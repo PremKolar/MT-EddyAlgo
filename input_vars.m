@@ -2,15 +2,19 @@ function U=input_vars
 	%% threads
 	U.threads.num=2;
 	%% time
-	U.time.from.str='19940425';
-	U.time.till.str='19940505';
-	U.time.delta_t=1; % [days]!
+% 	U.time.from.str='19940425';
+% 	U.time.till.str='19940505';
+	U.time.from.str='19091231';
+	U.time.till.str='19160627';
+% 	U.time.delta_t=1; % [days]!
+	U.time.delta_t=3; % [days]!
 	%% dirs
-	U.path.root='../data/';
+	U.path.root='../dataM/';
 	U.path.TempSalt.name='TempSalt/';
-	U.path.raw.name='/home/niko/documents/data/SSH_POP/';
+%	U.path.raw.name='/home/niko/documents/data/SSH_POP/';
+	U.path.raw.name='/home/niko/documents/dataM/';
 	%U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
+ 	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
 	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -20,14 +24,14 @@ function U=input_vars
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=1*24*60^2; % max distance travelled per day
-	U.thresh.life=5; % min num of living days for saving
+	U.thresh.life=2; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=360*1+1;
-	U.dim.Y=160*1+1;
+	U.dim.Y=20*3+1;
 	U.dim.west=-180;
 	U.dim.east=180;
-	U.dim.south=-90;
-	U.dim.north=90;
+	U.dim.south=-10;
+	U.dim.north=10;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

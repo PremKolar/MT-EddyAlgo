@@ -16,10 +16,10 @@ function S01_contours
 	end
 	%% save info
 	save_info(DD)
-	%% git
-%	auto_git
+
 end
 function spmd_body(DD)
+	
 	DD.id=labindex;
 	%% loop over ssh cuts
 	JJ=DD.threads.lims(DD.id,1):DD.threads.lims(DD.id,2);

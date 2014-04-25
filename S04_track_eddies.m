@@ -94,7 +94,16 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 end
 function archive(trck,path,jj)
 	%% write out file (one per eddy)
-	trck(end).filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', 'TRACK')];
+	cc=1;
+	EoD=['TRACK', sprintf('%05i',cc)];
+	filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
+	while true
+		cc=cc+1;
+		EoD=['TRACK', sprintf("%03i",cc)];
+		filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
+		if ~exist(filename,'file'), break; end
+	end
+	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end
 function [tracks,NEW]=append_born(TDB, tracks,NEW)
@@ -178,7 +187,35 @@ function [TDB]=tracked_dead_born(MD)
 	end
 end
 function [N]=kill_phantoms(N)
+	
+	%step: 1/9
+%0 %
+%time so far:   00:00:00
+%time to go:    calculating...
+%Cannot remove an empty or out-of-range index from an undefined variable.
+
+%Error in S04_track_eddies>kill_phantoms (line 201)
+				%N.(field).(sen)(xx)=[];
+
+%Error in S04_track_eddies>operate_day (line 35)
+		%[NEW]=kill_phantoms(NEW);
+
+%Error in S04_track_eddies>seq_body (line 29)
+		%[OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms);
+
+%Error in S04_track_eddies (line 13)
+	%seq_body(DD);
+
+%Error in Sall (line 6)
+%tic;S04_track_eddies;T(5).toc=toc;
+ 
+%201 				N.(field).(sen)(xx)=[];
+%K>> 
+
+	
+	
 	% this takes care of potential double eddies due to map-overlap. (see S00...)
+	
 	fn=fieldnames(N.LON);
 	for sense=fn'	;	sen=cell2mat(sense);
 		%% search for identical eddies
@@ -187,20 +224,10 @@ function [N]=kill_phantoms(N)
 		LONDIFF=abs(LOM.a - LOM.b);
 		DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
 		DIST(logical(eye(size(DIST))))=nan; % nan self distance
-		[Y,X]=find(DIST==0);
-		while ~isempty(Y)
-			xx=Y(end);
-			%% delete respective double from y
-			Y(X==xx)=[];
-			if isempty(Y)
-				break
-			end
-			%% delete phantom fields
-			fn=fieldnames(N);
-			for fields=fn'	;	field=cell2mat(fields);
-				N.(field).(sen)(xx)=[];
-			end
-		end
+		[Y,~]=find(DIST==0);
+%% kill
+		N.eddies.(sen)(Y)=[];		
+		
 	end
 end
 function [MD]=get_min_dists(OLD,NEW)

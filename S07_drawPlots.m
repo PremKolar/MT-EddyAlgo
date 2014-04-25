@@ -17,6 +17,7 @@ function S07_drawPlots
 	lo=maps.Cycs.GLO;
 	tracks=load([DD.path.analyzed.name, 'tracks.mat']);
 	%%
+	
 	ticks.y=[-80 -60 -40 -20 0 20 40 60 80]';
 	ticks.x=linspace(-180,180,9);
 	ticks.age=[1,DD.time.span,10];
@@ -31,17 +32,20 @@ function S07_drawPlots
 	ticks.disttot=[0;200;10];
 	ticks.vel=[-50;20;15];
 	
-	ticks.axis=[15 30 -43 -33];
+	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	
-	spmd
+	
+	
+	
+	%spmd
 		%%
-		if labindex==2
+	%	if labindex==2
 			trackPlots(DD,ticks,tracks)
-		end
-		if labindex==1
+	%	end
+	%	if labindex==1
 			mapstuff(maps,DD,ticks,lo,la)
-		end
-	end
+	%	end
+	%end
 		%% update infofile
 		%	save_info(DD)
 
@@ -141,51 +145,50 @@ function drawcoast
 	hold on; plot(long,lat,'LineWidth',0.5);
 end
 function trackPlots(DD,ticks,tracks)
-	tracks.Cycs.age
 	%
-	figure
-	drawColorLine(tracks.Cycs,'age',240,1) ;
-	decorate('age',ticks,DD,'Cyclones','age','d',1,1)
+% 	figure
+% 	drawColorLine(tracks.Cycs,'age',240,1) ;
+% 	decorate('age',ticks,DD,'Cyclones','age','d',1,1)
 	%%
 	figure
 	[ACyc.Fig,ACyc.maxTick,ACyc.cmap]=drawColorLine(tracks.AntiCycs,'age',240,1) ;
 	ACyc.mintick=1;
 	decorate('age',ticks,DD,'Anti-Cyclones','age','d',1,1)
 	%%
-	figure
-	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'isoper',1,0) ;
-	Cyc.mintick=DD.thresh.shape.iq;
-	decorate('isoper',ticks,DD,'Cyclones','IQ',' ',0,100)
+% 	figure
+% 	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'isoper',1,0) ;
+% 	Cyc.mintick=DD.thresh.shape.iq;
+% 	decorate('isoper',ticks,DD,'Cyclones','IQ',' ',0,100)
 	%%
 	figure
 	[ACyc.Fig,ACyc.maxTick,ACyc.cmap]=drawColorLine(tracks.AntiCycs,'isoper',1,0) ;
 	ACyc.mintick=DD.thresh.shape.iq;
 	decorate('isoper',ticks,DD,'Anti-Cyclones','IQ',' ',0,100)
 	%%
-	figure
-	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'radiusmean',max(cat(2,tracks.Cycs.radiusmean)),0) ;
-	Cyc.mintick=1000;
-	decorate('radius',ticks,DD,'Cyclones','Radius','km',0,1)
+% 	figure
+% 	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'radiusmean',max(cat(2,tracks.Cycs.radiusmean)),0) ;
+% 	Cyc.mintick=1000;
+% 	decorate('radius',ticks,DD,'Cyclones','Radius','km',0,1)
 	%%
 	figure
 	[ACyc.Fig,ACyc.maxTick,ACyc.cmap]=drawColorLine(tracks.AntiCycs,'radiusmean',max(cat(2,tracks.AntiCycs.radiusmean)),0) ;
 	ACyc.mintick=1000;
 	decorate('radius',ticks,DD,'Anti-Cyclones','Radius', 'km',0,1)
 	%%
-	figure
-	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'peakampto_ellipse',max(cat(2,tracks.Cycs.peakampto_ellipse)),0) ;
-	Cyc.mintick=0;
-	decorate('amp',ticks,DD,'Cyclones','Amp to ellipse','cm',0,1)
+% 	figure
+% 	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'peakampto_ellipse',max(cat(2,tracks.Cycs.peakampto_ellipse)),0) ;
+% 	Cyc.mintick=0;
+% 	decorate('amp',ticks,DD,'Cyclones','Amp to ellipse','cm',0,1)
 	%%
 	figure
 	[ACyc.Fig,ACyc.maxTick,ACyc.cmap]=drawColorLine(tracks.AntiCycs,'peakampto_ellipse',max(cat(2,tracks.AntiCycs.peakampto_ellipse)),0) ;
 	ACyc.mintick=0;
 	decorate('amp',ticks,DD,'Anti-Cyclones','Amp to ellipse','cm',0,1)
 	%%
-	figure
-	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'peakampto_contour',max(cat(2,tracks.Cycs.peakampto_ellipse)),0) ;
-	Cyc.mintick=0;
-	decorate('amp',ticks,DD,'Cyclones','Amp to contour','cm',0,1)
+% 	figure
+% 	[Cyc.Fig,Cyc.maxTick,Cyc.cmap]=drawColorLine(tracks.Cycs,'peakampto_contour',max(cat(2,tracks.Cycs.peakampto_ellipse)),0) ;
+% 	Cyc.mintick=0;
+% 	decorate('amp',ticks,DD,'Cyclones','Amp to contour','cm',0,1)
 	%%
 	figure
 	[ACyc.Fig,ACyc.maxTick,ACyc.cmap]=drawColorLine(tracks.AntiCycs,'peakampto_contour',max(cat(2,tracks.AntiCycs.peakampto_ellipse)),0) ;

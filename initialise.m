@@ -34,7 +34,7 @@ function checks = check_data(DD,toCheck)
 	del_t = ones(size(passed)); del_t(1)=nan;
 	T=disp_progress('init','checkind data');
 	for tt = all_time_steps;
-	T=disp_progress('disp',T,all_time_steps,100);
+	T=disp_progress('disp',T,numel(all_time_steps),100);
 		if (pp>0 && ~passed(pp) && pp<numel(passed))
 			del_t(pp+1)=del_t(pp)+1;  % cumsum time steps for missing files
 			del_t(pp)=nan; % nan out del_t for inexistent files

@@ -19,7 +19,6 @@ function S00_prep_data_Madeleine
 	nc_info(MadFile)
 	
 	MF.TIME=nc_varget(MadFile,'TIME')+datenum('1900','yyyy');
-	
 	MF.XT_bnds=nc_varget(MadFile,'XT_bnds');
 	MF.YT_bnds=nc_varget(MadFile,'YT_bnds');
 	MF.XT=nc_varget(MadFile,'XT');
@@ -30,13 +29,11 @@ function S00_prep_data_Madeleine
 	MF.grids.LON=rad2deg(MF.grids.XX./(cosd(MF.grids.LAT)*earthRadius));
 	
 	[MF.grids.DY,MF.grids.DX]=DYDX(MF.grids.LAT,MF.grids.LON);
-	
 	DD.map.west=min(MF.grids.LON(:));
 	DD.map.east=max(MF.grids.LON(:));
 	DD.map.south=min(MF.grids.LAT(:));
 	DD.map.north=max(MF.grids.LAT(:));
-	
-	%% thread distro
+		%% thread distro
 	DD.threads.lims=thread_distro(DD.threads.num,numel(MF.TIME));
 	
 	%% start threads

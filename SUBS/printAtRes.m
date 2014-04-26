@@ -1,4 +1,4 @@
-function printAtRes(rez,xdim,ydim)
+function printAtRes(rez,xdim,ydim,tit)
 	
 	%% set up figure
 	resolution=get(0,'ScreenPixelsPerInch');
@@ -8,11 +8,16 @@ function printAtRes(rez,xdim,ydim)
 	
 	%% print
 	mkdirp('~/PRINTS/')
-	fname=['~/PRINTS/print_',datestr(now,'mmddHHMMSS')];
+	%fname=['~/PRINTS/',tit,'_',datestr(now,'mmddHHMMSS')];
+	fname=['~/PRINTS/',tit];
 	fnamepng=[fname,'.png'];
 	fnamepdf=[fname,'.pdf'];
+	try
 	print(gcf, '-dpng',['-r',num2str(rez)],fnamepng );
+	end
+	try
 	print(gcf, '-dpdf',['-r',num2str(rez)],fnamepdf );
-	
+	end
+	close(gcf);
 end
 

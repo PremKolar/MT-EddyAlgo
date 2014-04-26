@@ -10,14 +10,12 @@ function S03_filter_eddies
 	DD=initialise('conts');
 	init_threads(DD.threads.num);
 	%% spmd
-	spmd
+%	spmd
 		id=labindex;
 		spmd_body(DD,id)
-	end
+%	end
 	%% update infofile
 	save_info(DD)
-	%% git
-	%	auto_git
 end
 %% main functions
 function save_eddies(EE)
@@ -197,7 +195,7 @@ end
 function [pass,chelt]=chelton_shape(ee,thresh)
 % (diameter of circle with equal area)/(maximum distance between nodes)
 %% get max dist in x | y
-dndhfnfgnhfd
+ihgkjh
 if chelt >= thresh, pass=true; else pass=false; end
 end
 
@@ -343,6 +341,7 @@ function [geo]=geocoor(zoom,volume)
 	yz=volume.center.yz;
 	geo.lat=interp2(zoom.fields.LAT,xz,yz);
 	geo.lon=interp2(zoom.fields.LON,xz,yz);
+
 end
 function [volume]=CenterOfVolume(zoom,area,Y)
 	%% get "volume" of eddy

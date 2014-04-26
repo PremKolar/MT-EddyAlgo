@@ -1,7 +1,11 @@
 function DD=initialise(toCheck)
 	addpath(genpath('./'));
-	%clc;
-	%close all;
+	clc;
+	close all;
+	if ~exist('toCheck','var')
+		toCheck=false;
+	end
+	
 	if exist('Sall_output.mat','file')
 		DD=catstruct(load('Sall_output.mat'),ini(toCheck));
 	else
@@ -15,9 +19,11 @@ function out=ini(toCheck)
 	%% read input file
 	out = get_input;
 	%% check data for consistency
-	out.checks = check_data(out,toCheck);
+	if toCheck
+		out.checks = check_data(out,toCheck);	
 	%% distro thread limits
 	out.threads.lims = thread_distro(out.threads.num,out.checks.passed.total);
+	end
 end
 
 function checks = check_data(DD,toCheck)
@@ -31,14 +37,14 @@ function checks = check_data(DD,toCheck)
 	%% check for each needed file
 	pp = 0;
 	%% init new delta t
-	del_t = ones(size(passed)); del_t(1)=nan;
+	del_t = ones(size(passed))*DD.time.delta_t; del_t(1)=nan;
 	T=disp_progress('init','checkind data');
 	for tt = all_time_steps;
-	T=disp_progress('disp',T,numel(all_time_steps),100);
-		if (pp>0 && ~passed(pp) && pp<numel(passed))
-			del_t(pp+1)=del_t(pp)+1;  % cumsum time steps for missing files
-			del_t(pp)=nan; % nan out del_t for inexistent files
-		end
+	T=disp_progress('disp',T,numel(all_time_steps),10);		
+	if (pp>0 && ~passed(pp) && pp<numel(passed))
+			del_t(pp+1)=del_t(pp)+ DD.time.delta_t;  % cumsum time steps for missing files
+			del_t(pp)=nan; % nan out del_t for inexistent files			
+	end	
 		pp=pp+1;
 		current_day = datestr(tt,'yyyymmdd');
 		for aa=1:numel(all_passed)
@@ -51,6 +57,7 @@ function checks = check_data(DD,toCheck)
 	end
 	%% create new del_t time vector in accordance with missing files
 	checks.del_t = del_t; % 'backwards' del_t
+	
 	%% append info
 	checks.passed.daynums = all_time_steps(passed)';
 	checks.passed.flags = passed;

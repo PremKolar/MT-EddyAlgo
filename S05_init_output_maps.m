@@ -8,7 +8,7 @@ function S05_init_output_maps
 	%% init
 	DD=initialise('cuts');
 	%%
-	DD.threads.lims_eddies=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	DD.CutOne=read_fields(DD,1,'cuts');
 	%%
 	init_threads(DD.threads.num);
@@ -22,6 +22,7 @@ end
 
 function [MAP]=MakeMaps(DD)
 	%% init output map dims
+	
 	xvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.west,DD.dim.east,DD.dim.X))/10^DD.dim.NumOfDecimals;
 	yvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.south,DD.dim.north,DD.dim.Y))/10^DD.dim.NumOfDecimals;
 	[MAP.GLO,MAP.GLA]=meshgrid(xvec,yvec);
@@ -50,14 +51,15 @@ function idx_out=getIndicesForOutMaps(grids,MAP,threads)
 		%% sum vectors from all workers
 		idx_out=gplus(idx,1);
 	end
+	
 	%% send distributed vector to master
 	idx_out=idx_out{1};
 end
 function [idx]=TransferIdx(lon,lat,LONout,LATout)
 	[A,B]=meshgrid(lon,LONout);
-	xx=abs(A-B);
+	xx=abs(A-B)*cos(lat);
 	[A,B]=meshgrid(lat,LATout);
 	yy=abs(A-B);
-	[~,idx]=min(hypot(xx*cosd(lat), yy)) ;
+	[~,idx]=min(hypot(xx,yy)) ;
 end
 

@@ -6,15 +6,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06_analyze_tracks
 	%% init
-	DD=initialise('tracks');
+	DD=initialise;
 	%%
-	DD.threads.lims_eddies=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	%spmd
-	id=labindex;
-	[map,tracks]=spmd_body(DD,id);
-	%end
+	spmd
+		id=labindex;
+		[map,tracks]=spmd_body(DD,id);
+	end
 	%% merge
 	MAP=mergeMapData(map,DD);  %#ok<NASGU>
 	TRACKS=mergeTracksData(tracks,DD); %#ok<NASGU>
@@ -22,8 +22,6 @@ function S06_analyze_tracks
 	%% save
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','MAP');
 	save([DD.path.analyzed.name,'tracks.mat'],'-struct','TRACKS');
-	%% update infofile
-	%	save_info(DD)
 end
 
 function	TRACKS=mergeTracksData(tracks,DD)
@@ -57,7 +55,6 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	for ee=1:numel(eddies)
 		ALL.lat=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lat');
 		ALL.lon=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lon');
-		
 		for subfield=subfields'; sub=subfield{1};
 			collapsedField=strrep(sub,'.','');
 			ALL.(collapsedField) =	extractdeepfield(eddies(1).track,sub);
@@ -85,7 +82,7 @@ end
 
 
 function [AntiCycs,Cycs]=initACandC(DD,id)
-	JJ=DD.threads.lims_eddies(id,1):DD.threads.lims_eddies(id,2);
+	JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
 	Cycs(numel(JJ),1)=struct; %pre allocate
 	AntiCycs(numel(JJ),1)=struct;
 	ac=0; cc=0;
@@ -97,10 +94,10 @@ function [AntiCycs,Cycs]=initACandC(DD,id)
 		eddy=load(filename);
 		sense=eddy.trck(1).sense.num;
 		switch sense
-			case 1
+			case -1
 				ac=ac+1;
 				AntiCycs(ac).track=cell2mat(extractfield(eddy,'trck'));
-			case -1
+			case 1
 				cc=cc+1;
 				Cycs(cc).track=cell2mat(extractfield(eddy,'trck'));
 		end
@@ -125,8 +122,6 @@ function MAP=MeanStdStuff(eddies,MAP)
 	MAP.radius=TRradius(MAP,eddies);
 	disp('amp stuff')
 	MAP.amp=TRamp(MAP,eddies);
-	
-	
 end
 
 function	amp=TRamp(MAP,eddies)
@@ -145,8 +140,6 @@ function	amp=TRamp(MAP,eddies)
 		end
 	end
 end
-
-
 function	radius=TRradius(MAP,eddies)
 	A={'mean';'meridional';'zonal'};
 	for a=A'
@@ -195,9 +188,8 @@ function	[dist,eddies]=TRdist(MAP,eddies)
 	%%
 	for ee=1:numel(eddies)
 		%% calc distances
-		
 		[eddies(ee).dist.num,eddies(ee).dist.drct]=diststuff(field2mat(eddies(ee).track,'geo')');
-		for tt=MAP.strctr.length{ee}(1:end-1)
+		for tt=MAP.strctr.length{ee}
 			idx=MAP.strctr.idx{ee}(tt);
 			count(idx)=count(idx) + 1;
 			%% traj from birth
@@ -227,7 +219,9 @@ function	[dist,eddies]=TRdist(MAP,eddies)
 		end
 	end
 end
+
 function [d,drct]=diststuff(geo)
+	geo=[geo(1,:); geo];
 	%%
 	[d.traj.deg, drct.traj]=distance(geo(1:end-1,:),geo(2:end,:));
 	d.traj.m=deg2rad(d.traj.deg)*earthRadius;
@@ -314,33 +308,35 @@ function ALL=mergeMapData(MAP,DD)
 end
 function ALL=spmdCase(MAP,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
-	T=disp_progress('init','combining results from all threads');
+	
 	map=MAP{1};
 	for sense=[{'AntiCycs'},{'Cycs'}];	sen=sense{1};
 		ALL.(sen)=map.(sen);
+		T=disp_progress('init',['combining results from all threads - ',sen,' ']);
 		for tt=1:DD.threads.num
 			T=disp_progress('calc',T,DD.threads.num,DD.threads.num);
 			new = MAP{tt};
 			new=new.(sen);
 			if tt>1
 				for ff=1:numel(subfieldstrings)
-					%%
-					[value.new.mean,fields]=getSubField([subfieldstrings{ff},'.mean'],new);
-					value.old.mean=getSubField([subfieldstrings{ff},'.mean'],old);
-					value.new.std=getSubField([subfieldstrings{ff},'.std'],new);
-					value.old.std=getSubField([subfieldstrings{ff},'.std'],old);
-					%%
+					%%	 extract current field to mean/std level
+					value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
+					value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
+					%% nan2zero
 					value.new.mean(isnan(value.new.mean))=0;
 					value.old.mean(isnan(value.old.mean))=0;
 					value.new.std(isnan(value.new.std))=0;
 					value.old.std(isnan(value.old.std))=0;
-					%%
+					%% combo update
 					combo.mean=ComboMean(new.visits,old.visits,value.new.mean,value.old.mean);
 					combo.std=ComboStd(new.visits,old.visits,value.new.std,value.old.std);
+					%% set to updated values
+					fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
 					meanfields={['mean';fields{1}]};
 					stdfields={['std';fields{1}]};
 					ALL.(sen)=setfield(ALL.(sen),meanfields{1}{:},combo.mean)				;
 					ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std)				;
+					
 				end
 				ALL.(sen).visits=ALL.(sen).visits + new.visits;
 			end

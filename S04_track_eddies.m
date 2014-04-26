@@ -38,8 +38,9 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	[MinDists]=get_min_dists(OLD,NEW);
 	%% determine which ones are tracked/died/new
 	TDB=tracked_dead_born(MinDists);
-	%% filter for distance per time step threshold
-	TDB=filter4threshold(TDB,MinDists,DD.thresh.dist);
+	%% filter for distance per day threshold
+	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
+	TDB=filter4threshold(TDB,MinDists,dist_thresh);
 	%% append tracked to respective cell of temporary archive 'tracks'
 	[tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
 	%% append new ones to end of temp archive
@@ -99,7 +100,7 @@ function archive(trck,path,jj)
 	filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
 	while true
 		cc=cc+1;
-		EoD=['TRACK', sprintf("%03i",cc)];
+		EoD=['TRACK', sprintf('%03i',cc)];
 		filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
 		if ~exist(filename,'file'), break; end
 	end
@@ -130,6 +131,7 @@ function [tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 		%% loop over successfully tracked eddies
 		for nn=find(TDB.(sen).flags.inNew.tracked)
 			idx=MinDists.(sen).new2old.idx(nn); % get index in old data
+			if isempty(idx), continue;end
 			ID =	OLD.eddies.(sen)(idx).ID; % get ID
 			AIdx = ArchIds==ID;			% get index in archive (tracks)
 			age = OLD.eddies.(sen)(idx).age; % get age
@@ -155,7 +157,7 @@ function [tracks,new_eddies]=init_day_one(eddies)
 	end
 end
 function [TDB]=filter4threshold(TDB,MD,thresh)
-	fn=fieldnames(MD);
+	fn=fieldnames(MD);	
 	for sense=fn'	;	sen=cell2mat(sense);
 		dist=MD.(sen).new2old.dist;
 		tooQuick = (dist > thresh);

@@ -16,7 +16,7 @@ function S01_contours
 	end
 	%% save info
 	save_info(DD)
-
+	
 end
 function spmd_body(DD)
 	
@@ -34,10 +34,10 @@ function get_contours(jj,dd,JJ)
 	%% loop over levels
 	for level=II.levels
 		II.T=disp_progress('disp',II.T,numel(II.levels),5,II.days_prog);
-		II.CONT.all=[II.CONT.all; contourc(II.grids.SSH,[level level])'];		
+		II.CONT.all=[II.CONT.all; contourc(II.grids.SSH,[level level])'];
 	end
 	%% save data
-	savedata(II.CONT,dd,II.file)	
+	savedata(II.CONT,dd,II.file)
 end
 function [OUT]=init_get_contours(jj,dd,JJ)
 	%% load cut

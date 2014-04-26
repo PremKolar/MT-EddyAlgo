@@ -6,6 +6,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [value,fields]=getSubField(fieldnameToAccess,structure)
 		fields = textscan(fieldnameToAccess,'%s','Delimiter','.');
-		value = getfield(structure,fields{1}{:});
-		
+		value = getfield(structure,fields{1}{:});		
 end

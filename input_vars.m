@@ -10,7 +10,7 @@ function U=input_vars
 	U.time.delta_t=3; % [days]!
 	%% dirs
 % 	U.path.root='../dataM/';
-U.path.root='../data/';
+	U.path.root='../data/';
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/home/niko/documents/data/SSH_POP/';
 	%U.path.raw.name='/home/niko/documents/dataM/';

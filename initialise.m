@@ -2,12 +2,14 @@ function DD=initialise(toCheck)
 	addpath(genpath('./'));
 	clc;
 	close all;
+	temp = get_input;
+	DDcheck=[temp.path.root, 'DD.mat'];
 	if ~exist('toCheck','var')
 		toCheck=false;
 	end
 	
-	if exist('Sall_output.mat','file')
-		DD=catstruct(load('Sall_output.mat'),ini(toCheck));
+	if exist(DDcheck,'file')
+		DD=catstruct(load(DDcheck),ini(toCheck));
 	else
 		DD=ini(toCheck);
 	end

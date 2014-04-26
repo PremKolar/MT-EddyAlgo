@@ -15,7 +15,7 @@ function S00_prep_data
 	%% get madeleine's data
 	[MadFile,MF]=madsData(DD);
 	%% get geo stuff
-	DD=geostuff(MF,DD);
+	[DD,MF]=geostuff(MF,DD);
 	%% thread distro
 	DD.threads.lims=thread_distro(DD.threads.num,numel(MF.TIME));
 	%% start threads

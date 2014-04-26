@@ -1,4 +1,3 @@
-test
 function DD=initialise(toCheck)
 	addpath(genpath('./'));
 	clc;

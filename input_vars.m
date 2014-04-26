@@ -2,18 +2,19 @@ function U=input_vars
 	%% threads
 	U.threads.num=2;
 	%% time
-% 	U.time.from.str='19940425';
-% 	U.time.till.str='19940505';
-	U.time.from.str='19091231';
-	U.time.till.str='19160627';
+ 	U.time.from.str='19940425';
+ 	U.time.till.str='19940505';
+%	U.time.from.str='19091231';
+%	U.time.till.str='19160627';
 % 	U.time.delta_t=1; % [days]!
 	U.time.delta_t=3; % [days]!
 	%% dirs
-	U.path.root='../dataM/';
+% 	U.path.root='../dataM/';
+U.path.root='../data/';
 	U.path.TempSalt.name='TempSalt/';
-%	U.path.raw.name='/home/niko/documents/data/SSH_POP/';
+	U.path.raw.name='/home/niko/documents/data/SSH_POP/';
 	%U.path.raw.name='/home/niko/documents/dataM/';
-	U.path.raw.name=U.path.root;
+	%U.path.raw.name=U.path.root;
 	%U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
  	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
 	%% thresholds
@@ -72,7 +73,5 @@ function U=input_vars
 		'peak.amp.to_contour';
       'peak.amp.to_mean.of_contour';
 		'peak.amp.to_ellipse';
-		};
-	
-	
+		};	
 end

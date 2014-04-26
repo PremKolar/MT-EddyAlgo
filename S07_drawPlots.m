@@ -72,7 +72,6 @@ function mapstuff(maps,DD,ticks,lo,la)
 		pcolor(lo,la,VV);shading flat
 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
-		
 		savefig(ticks.rez,ticks.width,ticks.height,'MapDFB')
 		
 		%%

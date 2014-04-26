@@ -1,5 +1,4 @@
-% S00_prep_data
-%S00_prep_data_Madeleine
+S00_prep_data
 S01_contours
 %S01b_BruntVaisRossby
 S02_infer_fields

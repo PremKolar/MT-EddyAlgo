@@ -32,7 +32,7 @@ function U=input_vars
 	U.switchs.RossbyStuff=false;
 	U.switchs.IQ=true;	
 	
-	%% technical params
+	% technical params (not important..
 	U.RossbyStuff.splits = 10; % number of chunks for brunt väis calculations
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...

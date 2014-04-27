@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=12;
+	U.threads.num=4;
 	%% time
  	U.time.from.str='19940425';
  	U.time.till.str='19980131';

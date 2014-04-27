@@ -25,8 +25,7 @@ function S07_drawPlots
 	ticks.dist=[-1200;300;8];
 	ticks.disttot=[0;2600;8];
 	ticks.vel=[-30;10;5];
-	%ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
-	ticks.axis=[0 46 0 37];
+	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
 	main(DD,tracks,maps,lo,la,ticks);
 end
@@ -175,9 +174,9 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(gca,'ytick',ticks.y);
 	set(gca,'xtick',ticks.x) ;
 	cb=colorbar;
-	% 	load coast;
+	load coast;
 	hold on;
-	% 	plot(long,lat,'LineWidth',0.5);
+ 	plot(long,lat,'LineWidth',0.5);
 	if logornot
 		zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
 		zticklabel=num2str(round(exp(zticks)));

@@ -59,20 +59,20 @@ function mapstuff(maps,DD,ticks,lo,la)
 		VV=maps.(sen).age.logmean;
 		pcolor(lo,la,VV);shading flat
 		decorate('age',ticks,DD,sen,'age','d',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapAge'])
 		%%
 		%figure
 		VV=maps.(sen).visitsSingleEddy;
 		pcolor(lo,la,VV);shading flat
 		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapVisits']);
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapDFB']);
 		
 		%%
 		%figure
@@ -80,32 +80,32 @@ function mapstuff(maps,DD,ticks,lo,la)
 		pcolor(lo,la,VV);shading flat
 		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapDTD']);
 		%%
 		%figure
 		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapDTFB']);
 		%%
 		%figure
 		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapDTTD']);
 		%%
 		%figure
 		VV=maps.(sen).vel.zonal.mean*100;
 		pcolor(lo,la,VV);shading flat
 		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
 		doublemap(cb,autumn,winter,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapVel']);
 		%%
 		%figure
 		VV=maps.(sen).radius.mean.mean/1000;
 		pcolor(lo,la,VV);shading flat
 		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_MapRad']);
 		
 	end
 	
@@ -118,27 +118,27 @@ function trackPlots(DD,ticks,tracks)
 		field='age';
 		drawColorLine(tracks.(sen),field,240,1) ;
 		decorate(field,ticks,DD,sen,field,'d',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_field']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_field']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'isoper',1,0) ;
 		decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_IQ']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_IQ']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'radiusmean',max(cat(2,tracks.(sen).radiusmean)),0) ;
 		decorate('radius',ticks,DD,sen,'Radius','km',0,1)
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_radius']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_radius']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_ellipse',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
 		decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',0,1)
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_TrackPeakampto_ellipse']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_contour',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
 		decorate('amp',ticks,DD,sen,'Amp to contour','cm',0,1)
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
+		savefig(ticks.rez,ticks.width,ticks.height,['Mad',sen,'_TrackPeakampto_contour'])
 	end
 end
 

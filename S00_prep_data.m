@@ -213,21 +213,6 @@ function [DY,DX]=DYDX(LAT,LON)
 	seamcrossflag=DX>100*median(DX(:));
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));
 end
-%% other functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function PlotCut(S)
-% 	% show chosen window on globe
-% 	load coast
-% 	plot(long,lat)
-% 	hold on
-% 	LO=downsize(S.grids.LON,140,180);
-% 	LA=downsize(S.grids.LAT,140,180);
-% 	FL=downsize(double(S.window.flag),140,180);
-% 	pcolor(LO,LA,FL);
-% 	shading flat;
-% 	title('close to continue!');disp('close to continue!')
-% 	sleep(3)
-% 	close(gcf)
-% end
 function file=SampleFile(DD)
 	dir_in =DD.path.raw;
 	pattern_in=DD.map.pattern.in;

@@ -35,29 +35,29 @@ function get_contours(jj,dd,JJ)
 		return
 	end	
 	%%
-	[II]=init_get_contours(jj,dd,JJ,outFile);
+	[II,CONT]=init_get_contours(jj,dd,JJ,outFile);
 	%% loop over levels
 	for level=II.levels
 		II.T=disp_progress('disp',II.T,numel(II.levels),5,II.days_prog);
-		II.CONT.all=[II.CONT.all; contourc(II.grids.SSH,[level level])'];
+		CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];
 	end
 	%% save data	
-	save(II.CONT.filename,'-struct','CONT');
+	save(CONT.filename,'-struct','CONT');
 end
-function [OUT]=init_get_contours(jj,dd,JJ,filename)
+function [II,CONT]=init_get_contours(jj,dd,JJ,filename)
 	%% load cut
-	OUT.file=get_file(jj,dd);
-	OUT.grids=getfield(load(OUT.file.full),'grids');	 %#ok<GFLD>
+	II.file=get_file(jj,dd);
+	II.grids=getfield(load(II.file.full),'grids');	 %#ok<GFLD>
 	%% calc contours
 	disp('calculating contours... takes long time!')
-	OUT.days_prog=(jj-JJ(1)+1)/numel(JJ); % %/100 done of days
-	OUT.CONT.all=[]; % init
+	II.days_prog=(jj-JJ(1)+1)/numel(JJ); % %/100 done of days
+	CONT.all=[]; % init
 	%% create level vector at chosen interval
-	OUT.levels=nanmin(OUT.grids.SSH(:))-0.1:dd.contour.step:nanmax(OUT.grids.SSH(:))+0.1;
-	OUT.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(dd.id,1)),'/',sprintf('%03i',numel(JJ))]]);
+	II.levels=nanmin(II.grids.SSH(:))-0.1:dd.contour.step:nanmax(II.grids.SSH(:))+0.1;
+	II.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(dd.id,1)),'/',sprintf('%03i',numel(JJ))]]);
 	%% add info
-	OUT.CONT.filename=filename;
-	OUT.CONT.input=dd;  % add input info
+	CONT.filename=filename;
+	CONT.input=dd;  % add input info
 end
 
 function file=get_file(jj,dd)

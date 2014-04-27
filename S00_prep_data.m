@@ -23,21 +23,21 @@ function S00_prep_data
 	%% create out dir
 	[~,~]=mkdir(DD.path.cuts.name);
 	%% spmd
+	spmd
 	spmdBlock(DD,MadFile,MF);
+	end
 	%% save info
 	save_info(DD);
 end
 function spmdBlock(DD,MadFile,MF)
-	spmd
-		CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
+			CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
 		E325=nc_varget(MadFile,'E325');
 		%% loop over files
 		[T]=disp_progress('init','preparing raw data');
 		for cc=CC
 			[T]=disp_progress('calc',T,numel(CC),4242);
 			operateDay(squeeze(E325(cc,:,:)),MF,DD,cc);
-		end
-	end
+		end	
 end
 function [MadFile,MF]=madsData(DD)
 	MadFile=[DD.path.root	,'psvar.cdf'];

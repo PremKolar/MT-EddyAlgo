@@ -173,9 +173,7 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(gca,'ytick',ticks.y);
 	set(gca,'xtick',ticks.x) ;
 	cb=colorbar;
-	load coast;
-	hold on;
- 	plot(long,lat,'LineWidth',0.5);
+	
 	if logornot
 		zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
 		zticklabel=num2str(round(exp(zticks)));
@@ -188,6 +186,7 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(cb,'yticklabel',zticklabel);
 	title([tit,' - ',tit2,' [',unit,']'])
 	xlabel(['Eddies that died younger ',num2str(DD.thresh.life),' days are excluded'])
+	drawcoast;
 end
 function [maxV,cmap]=drawColorLine(V,fieldName,maxV,logornot)
 	cmap=jet;% Generate range of color indices that map to cmap

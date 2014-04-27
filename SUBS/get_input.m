@@ -26,6 +26,7 @@ function [DD]=get_input
 	DD.path.tracks.files=dir([DD.path.tracks.name,'*.mat']);
 	DD.path.analyzed.files=dir([DD.path.analyzed.name,'*.mat']);
 	%%
+	DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; 
 	try
 		DD.path.TempSalt.files=dir([DD.path.TempSalt.name,'*.nc']);
 	catch  %#ok<CTCH>

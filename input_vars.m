@@ -8,8 +8,7 @@ function U=input_vars
 	%% dirs
  	U.path.root='../dataM2/';
 	U.path.raw.name=U.path.root;
- 	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
-	%% thresholds
+ 	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=1e4; % [SI]

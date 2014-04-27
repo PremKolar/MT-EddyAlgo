@@ -49,6 +49,11 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	disp('formating 4 plots..')
 	%% get keys
 	ALL=struct;
+	if isempty(eddies)
+		warning('no eddies on thread!! breaking'); %#ok<WNTAG>
+		tracks=struct;
+		return
+	end
 	tracks(numel(eddies))=struct;
 	subfields=DD.FieldKeys.trackPlots;
 	%% init

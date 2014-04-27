@@ -3,7 +3,7 @@ function U=input_vars
 	U.threads.num=12;
 	%% time
  	U.time.from.str='19940425';
- 	U.time.till.str='19960131';
+ 	U.time.till.str='19980131';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.root='../datatemp/';

@@ -48,12 +48,14 @@ end
 function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	disp('formating 4 plots..')
 	%% get keys
+	noeddies=false;
 	ALL=struct;
 	if isempty(eddies)
 		warning('no eddies on thread!! breaking'); %#ok<WNTAG>
 		tracks=struct;
-		return
+		noeddies=true;
 	end
+	if ~noeddies
 	tracks(numel(eddies))=struct;
 	subfields=DD.FieldKeys.trackPlots;
 	%% init
@@ -78,7 +80,7 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 			ALL.(collapsedField) =	[ALL.(collapsedField), tracks(ee).(collapsedField)];
 		end
 	end
-	
+	end
 	%%
 	disp('sending to master..')
 	ALL=gcat(ALL,2,1);

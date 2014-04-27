@@ -42,7 +42,7 @@ function get_contours(jj,dd,JJ)
 		II.CONT.all=[II.CONT.all; contourc(II.grids.SSH,[level level])'];
 	end
 	%% save data	
-	save(CONT.filename,'-struct','CONT');
+	save(II.CONT.filename,'-struct','CONT');
 end
 function [OUT]=init_get_contours(jj,dd,JJ,filename)
 	%% load cut

@@ -9,11 +9,11 @@ function S01_contours
 	%% init
 	DD=initialise('cuts');
 	%% open pool
-	init_threads(DD.threads.num)
+%	init_threads(DD.threads.num)
 	%% spmd
-	spmd
+	%spmd
 		spmd_body(DD);
-	end
+	%end
 	%% save info
 	save_info(DD)
 	
@@ -38,6 +38,7 @@ function get_contours(jj,dd,JJ)
 	[II,CONT]=init_get_contours(jj,dd,JJ,outFile);
 	%% loop over levels
 	for level=II.levels
+	dfb
 		II.T=disp_progress('disp',II.T,numel(II.levels),5,II.days_prog);
 		CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];
 	end

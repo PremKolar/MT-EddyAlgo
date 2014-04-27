@@ -22,7 +22,7 @@ function save_eddies(EE)
 	save(EE.filename,'-struct','EE')
 end
 function spmd_body(DD,id)
-	Td=disp_progress('init','days');
+	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(id,1):DD.threads.lims(id,2)
 		Td=disp_progress('disp',Td,diff(DD.threads.lims(id,:))+1,4242);
 		%%

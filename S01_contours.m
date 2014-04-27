@@ -30,7 +30,7 @@ function spmd_body(DD)
 end
 function get_contours(jj,dd,JJ)
 	%% check
-	outFile=[dd.path.conts.name regexprep(file.file, 'CUT', 'CONT')];		
+	outFile=[dd.path.conts.name regexprep(dd.path.cuts.files(jj).name, 'CUT', 'CONT')];		
 	if exist(outFile,'file')
 		return
 	end	

@@ -7,8 +7,7 @@ function U=input_vars
 	U.time.delta_t=3; % [days]!
 	%% dirs
  	U.path.root='../dataM2/';
-	U.path.raw.name=U.path.root;
- 	%% thresholds
+	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=1e4; % [SI]
@@ -21,17 +20,33 @@ function U=input_vars
 	%% dims for map plots
 	U.dim.X=46*1+1;
 	U.dim.Y=37*1+1;
+		%% switches
+	U.switchs.IQ=true;	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	%% IGNORE all following 
+	U.path.raw.name=U.path.root;
 	U.dim.west=0;
 	U.dim.east=46;
 	U.dim.south=0;
 	U.dim.north=37;
 	U.dim.NumOfDecimals=1;
-	%% switches
-	U.switchs.RossbyStuff=false;
-	U.switchs.IQ=true;	
-	
-	% technical params (not important..
-	U.RossbyStuff.splits = 10; % number of chunks for brunt väis calculations
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';

@@ -1,7 +1,7 @@
 function MAP=map_vars
 	%% user input
 	MAP.geo.west=-90;
-	MAP.geo.east=0;
+	MAP.geo.east=-20;
 	MAP.geo.south=20;
 	MAP.geo.north=60;
 	MAP.time.delta_t = 1; % [days]

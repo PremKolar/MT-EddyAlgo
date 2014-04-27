@@ -19,9 +19,6 @@ function S07_drawPlots
 	ticks.radius=[0,300,7];
 	ticks.amp=[0,20,7];
 	ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
-	%ticks.dist=[min([maps.AntiCycs.dist.zonal.fromBirth.mean(:);...
-	%		maps.Cycs.dist.zonal.fromBirth.mean(:)])/1000,...
-	%		max([maps.AntiCycs.dist.zonal.fromBirth.mean(:); maps.Cycs.dist.zonal.fromBirth.mean(:)])/1000,10];
 	ticks.dist=[-1200;300;8];
 	ticks.disttot=[0;2600;8];
 	ticks.vel=[-30;10;5];

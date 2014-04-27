@@ -1,13 +1,12 @@
 function U=input_vars
 	%% threads
-	U.threads.num=2;
+	U.threads.num=12;
 	%% time
 	U.time.from.str='19091231';
 	U.time.till.str='19160627';
 	U.time.delta_t=3; % [days]!
 	%% dirs
- 	U.path.root='../dataM/';
-	U.path.TempSalt.name='TempSalt/';
+ 	U.path.root='../dataM2/';
 	U.path.raw.name=U.path.root;
  	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
 	%% thresholds

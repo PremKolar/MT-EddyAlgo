@@ -9,8 +9,7 @@ function U=input_vars
 	U.path.root='../datatemp/';
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
- 	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
-	%% thresholds
+ 	%% thresholds
  	U.path.root='../dataM2/';
 	U.path.raw.name=U.path.root;
  	%% thresholds

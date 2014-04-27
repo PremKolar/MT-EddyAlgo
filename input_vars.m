@@ -10,7 +10,7 @@ function U=input_vars
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
  	%% thresholds
- 	U.path.root='../dataM2/';
+ 	U.path.root='../dataTest/';
 	U.path.raw.name=U.path.root;
  	%% thresholds
 	U.contour.step=0.01; % [SI]

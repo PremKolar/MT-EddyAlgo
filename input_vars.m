@@ -6,17 +6,14 @@ function U=input_vars
  	U.time.till.str='19980131';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-<<<<<<< HEAD
 	U.path.root='../datatemp/';
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
  	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here
 	%% thresholds
-=======
  	U.path.root='../dataM2/';
 	U.path.raw.name=U.path.root;
  	%% thresholds
->>>>>>> 274ad73... pattern moved from inpput_vars to get_input
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=1e4; % [SI]

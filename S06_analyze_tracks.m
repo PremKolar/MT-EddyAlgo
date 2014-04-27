@@ -10,12 +10,11 @@ function S06_analyze_tracks
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
-	%init_threads(DD.threads.num);
-	%spmd
+	init_threads(DD.threads.num);
+	spmd
 		id=labindex;
-		id=12
 		[map,tracks]=spmd_body(DD,id);
-	%end
+	end
 	%% merge
 	MAP=mergeMapData(map,DD);  %#ok<NASGU>
 	TRACKS=mergeTracksData(tracks,DD); %#ok<NASGU>
@@ -49,7 +48,14 @@ end
 function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	disp('formating 4 plots..')
 	%% get keys
+	noeddies=false;
 	ALL=struct;
+	if isempty(eddies)
+		warning('no eddies on thread!! breaking'); %#ok<WNTAG>
+		tracks=struct;
+		noeddies=true;
+	end
+	if ~noeddies
 	tracks(numel(eddies))=struct;
 	subfields=DD.FieldKeys.trackPlots;
 	%% init
@@ -74,7 +80,7 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 			ALL.(collapsedField) =	[ALL.(collapsedField), tracks(ee).(collapsedField)];
 		end
 	end
-	
+	end
 	%%
 	disp('sending to master..')
 	ALL=gcat(ALL,2,1);

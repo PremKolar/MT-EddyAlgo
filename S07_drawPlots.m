@@ -173,7 +173,6 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(gca,'ytick',ticks.y);
 	set(gca,'xtick',ticks.x) ;
 	cb=colorbar;
-	
 	if logornot
 		zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
 		zticklabel=num2str(round(exp(zticks)));

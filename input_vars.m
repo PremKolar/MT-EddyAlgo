@@ -3,10 +3,10 @@ function U=input_vars
 	U.threads.num=12;
 	%% time
  	U.time.from.str='19940425';
- 	U.time.till.str='20071231';
+ 	U.time.till.str='19960131';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.root='../data/';
+	U.path.root='../datatemp/';
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
  	U.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; %shouldnt be here

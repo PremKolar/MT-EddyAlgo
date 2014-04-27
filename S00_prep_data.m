@@ -62,7 +62,7 @@ function operateDay(SSH,MF,DD,cc)
 	tt=MF.TIME(cc);
 	SSH(SSH>10000)=nan;
 	SSH(SSH<-10000)=nan;
-	MF.grids.SSH=SSH/DD.map.SSH_unitFactor;
+	MF.grids.SSH=double(SSH/DD.map.SSH_unitFactor);
 	%%
 	MF.params.full_globe.x=false;
 	%% set up output file

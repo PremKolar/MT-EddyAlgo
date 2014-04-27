@@ -29,17 +29,22 @@ function spmd_body(DD)
 	end
 end
 function get_contours(jj,dd,JJ)
-	%% set up
-	[II]=init_get_contours(jj,dd,JJ);
+	%% check
+	outFile=[dd.path.conts.name regexprep(file.file, 'CUT', 'CONT')];		
+	if exist(outFile,'file')
+		return
+	end	
+	%%
+	[II]=init_get_contours(jj,dd,JJ,outFile);
 	%% loop over levels
 	for level=II.levels
 		II.T=disp_progress('disp',II.T,numel(II.levels),5,II.days_prog);
 		II.CONT.all=[II.CONT.all; contourc(II.grids.SSH,[level level])'];
 	end
-	%% save data
-	savedata(II.CONT,dd,II.file)
+	%% save data	
+	save(CONT.filename,'-struct','CONT');
 end
-function [OUT]=init_get_contours(jj,dd,JJ)
+function [OUT]=init_get_contours(jj,dd,JJ,filename)
 	%% load cut
 	OUT.file=get_file(jj,dd);
 	OUT.grids=getfield(load(OUT.file.full),'grids');	 %#ok<GFLD>
@@ -50,12 +55,11 @@ function [OUT]=init_get_contours(jj,dd,JJ)
 	%% create level vector at chosen interval
 	OUT.levels=nanmin(OUT.grids.SSH(:))-0.1:dd.contour.step:nanmax(OUT.grids.SSH(:))+0.1;
 	OUT.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(dd.id,1)),'/',sprintf('%03i',numel(JJ))]]);
+	%% add info
+	OUT.CONT.filename=filename;
+	OUT.CONT.input=dd;  % add input info
 end
-function savedata(CONT,dd, file)
-	CONT.input=dd;  % add input info
-	CONT.filename=[dd.path.conts.name regexprep(file.file, 'CUT', 'CONT')];
-	save(CONT.filename,'-struct','CONT');
-end
+
 function file=get_file(jj,dd)
 	%% load cut
 	file.file=dd.path.cuts.files(jj).name;

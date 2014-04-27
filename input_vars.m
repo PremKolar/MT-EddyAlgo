@@ -6,18 +6,15 @@ function U=input_vars
  	U.time.till.str='19980131';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.root='../datatemp/';
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
- 	%% thresholds
- 	U.path.root='../dataTest/';
-	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+  	U.path.root='../data/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=1e4; % [SI]
 	U.thresh.amp=0.01; % [SI]
-	U.thresh.shape.iq=0.35; % isoperimetric quotient
+	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=8; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.3*24*60^2; % max distance travelled per day

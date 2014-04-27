@@ -50,14 +50,27 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	%% get keys
 	noeddies=false;
 	ALL=struct;
+	subfields=DD.FieldKeys.trackPlots;
 	if isempty(eddies)
 		warning('no eddies on thread!! breaking'); %#ok<WNTAG>
-		tracks=struct;
+		tracks(1)=struct;
 		noeddies=true;
 	end
-	if ~noeddies
+	
+	%%
+	if noeddies
+		ALL.lat=[];
+		ALL.lon=[];
+		tracks.lat=[];
+		tracks.lon=[];
+		for subfield=subfields'; sub=subfield{1};
+			collapsedField=strrep(sub,'.','');
+			ALL.(collapsedField) =	[];
+			tracks(1).(collapsedField)=[];
+		end
+	else
+	%%	
 	tracks(numel(eddies))=struct;
-	subfields=DD.FieldKeys.trackPlots;
 	%% init
 	for ee=1:numel(eddies)
 		ALL.lat=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lat');

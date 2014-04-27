@@ -48,28 +48,12 @@ end
 function [ALL,tracks]=TrackData4Plot(eddies,DD)
 	disp('formating 4 plots..')
 	%% get keys
-	noeddies=false;
 	ALL=struct;
 	subfields=DD.FieldKeys.trackPlots;
 	if isempty(eddies)
-		warning('no eddies on thread!! breaking'); %#ok<WNTAG>
-		tracks(1)=struct;
-		noeddies=true;
+		error('no eddies on thread! run with fewer workers!');
 	end
-	
 	%%
-	if noeddies
-		ALL.lat=[];
-		ALL.lon=[];
-		tracks.lat=[];
-		tracks.lon=[];
-		for subfield=subfields'; sub=subfield{1};
-			collapsedField=strrep(sub,'.','');
-			ALL.(collapsedField) =	[];
-			tracks(1).(collapsedField)=[];
-		end
-	else
-	%%	
 	tracks(numel(eddies))=struct;
 	%% init
 	for ee=1:numel(eddies)
@@ -92,8 +76,7 @@ function [ALL,tracks]=TrackData4Plot(eddies,DD)
 			tracks(ee).(collapsedField) =  extractdeepfield(eddies(ee).track,sub);
 			ALL.(collapsedField) =	[ALL.(collapsedField), tracks(ee).(collapsedField)];
 		end
-	end
-	end
+	end	
 	%%
 	disp('sending to master..')
 	ALL=gcat(ALL,2,1);
@@ -328,7 +311,6 @@ function ALL=mergeMapData(MAP,DD)
 end
 function ALL=spmdCase(MAP,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
-	
 	map=MAP{1};
 	for sense=[{'AntiCycs'},{'Cycs'}];	sen=sense{1};
 		ALL.(sen)=map.(sen);

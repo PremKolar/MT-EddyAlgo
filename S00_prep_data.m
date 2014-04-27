@@ -50,7 +50,8 @@ function spmd_body(DD)
 	for tt=TT
 		[T]=disp_progress('calc',T,numel(TT),10);
 		%% get data
-		[file,exists]=GetCurrentFile(tt,DD); if ~exists, continue; end
+		[file,exists]=GetCurrentFile(tt,DD);
+		if (~exists.in || exists.out), continue; end
 		%% cut data
 		[CUT,readable]=CutMap(file,DD); if ~readable, continue; end
 		%% write data
@@ -237,7 +238,8 @@ function file=SampleFile(DD)
 	end
 end
 function [file,exists]=GetCurrentFile(tt,DD)
-	exists=true;
+	exists.in=true;
+	exists.out=false;
 	path=DD.path.raw;
 	pattern=DD.map.pattern.in;
 	timestr=datestr(DD.time.from.num+tt-1,'yyyymmdd');
@@ -246,7 +248,7 @@ function [file,exists]=GetCurrentFile(tt,DD)
 	if ~exist(file.in,'file')
 		disp([file.in,' doesnt exist!!!'])
 		disp('skipping...')
-		exists=false;
+		exists.in=false;
 	end
 	%% set up output file
 	path=DD.path.cuts.name;
@@ -256,6 +258,7 @@ function [file,exists]=GetCurrentFile(tt,DD)
 	file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
 	file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
 	file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
+	if exist(file.out,'file'), exists.out=true; end
 end
 function WriteFileOut(file,CUT) %#ok<INUSD>
 	save(file,'-struct','CUT')

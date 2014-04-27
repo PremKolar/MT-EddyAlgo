@@ -40,7 +40,7 @@ function checks = check_data(DD,toCheck)
 	pp = 0;
 	%% init new delta t
 	del_t = ones(size(passed))*DD.time.delta_t; del_t(1)=nan;
-	T=disp_progress('init','checkind data');
+	T=disp_progress('init','checking data');
 	for tt = all_time_steps;
 	T=disp_progress('disp',T,numel(all_time_steps),10);		
 	if (pp>0 && ~passed(pp) && pp<numel(passed))

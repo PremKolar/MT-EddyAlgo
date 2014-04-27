@@ -12,7 +12,7 @@ function DD=initialise(toCheck)
 		DD=catstruct(load(DDcheck),ini(toCheck));
 	else
 		DD=ini(toCheck);
-	end
+	end	
 	dbstop if error
 	rehash	
 end

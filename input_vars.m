@@ -6,7 +6,7 @@ function U=input_vars
 	U.time.till.str='19160627';
 	U.time.delta_t=3; % [days]!
 	%% dirs
- 	U.path.root='../dataM2/';
+ 	U.path.root='../dataM3/';
 	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;

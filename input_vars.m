@@ -18,7 +18,7 @@ function U=input_vars
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=4; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.7*24*60^2; % max distance travelled per day
-	U.thresh.life=3; % min num of living days for saving
+	U.thresh.life=30; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=70*1+1;
 	U.dim.Y=40*1+1;

@@ -40,16 +40,16 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	%% find minium distances between old an new time step eddies
 	[MinDists]=get_min_dists(OLD,NEW);
 	%% determine which ones are tracked/died/new
-	TDB=tracked_dead_born(MinDists);
+	TDB=tracked_dead_born(MinDists);	
 	%% filter for distance per day threshold
 	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
 	TDB=filter4threshold(TDB,MinDists,dist_thresh);
 	%% append tracked to respective cell of temporary archive 'tracks'
-	[tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
+	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
 	%% append new ones to end of temp archive
 	[tracks,NEW]=append_born(TDB, tracks, NEW);
 	%% write/kill dead
-	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);
+	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);	
 	%% swap
 	OLD=NEW;
 	
@@ -73,6 +73,7 @@ function [tracks,OLD,phantoms]=set_up_init(DD)
 	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies);
 end
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
+	
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		%% collect all ID's in archive
 		ArchIDs=cat(2,tracks.(sen).ID);
@@ -93,7 +94,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 			kill_idxs(AIdx)=true;
 		end
 		%% kill in 'stack'
-		tracks.(sen)(kill_idxs)=[];		
+		tracks.(sen)(kill_idxs)=[];
 	end
 end
 function archive(trck,path,jj)
@@ -114,11 +115,12 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		maxID=max(cat(1,tracks.(sen).ID));
 		NN=find(TDB.(sen).flags.inNew.born);
+	
 		if size(NN,1)>size(NN,2), NN=NN'; end
 		if ~isempty(NN)
 			for nn=NN
 				NEW.eddies.(sen)(nn).ID=maxID+1;
-				tracks.(sen)(end+1).track={NEW.eddies.(sen)(nn)}; % new position
+				tracks.(sen)(end+1).track={NEW.eddies.(sen)(nn)}; % new position		
 				tracks.(sen)(end).ID=maxID+1; % IDs are unique/dont get reused
 				tracks.(sen)(end).age=0;
 				maxID=maxID+1;
@@ -126,18 +128,20 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 		end
 	end
 end
-function [tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
-	for sense=fieldnames(TDB);	sen=sense{1};
+function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
+	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies
 		for nn=find(TDB.(sen).flags.inNew.tracked)
+			%% get
 			idx=MinDists.(sen).new2old.idx(nn); % get index in old data
 			ID =	OLD.eddies.(sen)(idx).ID; % get ID
 			AIdx = ArchIds==ID;			% get index in archive (tracks)
-			age = OLD.eddies.(sen)(idx).age; % get age
+			age = tracks.(sen)(AIdx).age + NEW.time.delT; % get new age
+			%% set
 			NEW.eddies.(sen)(nn).ID= ID; % set ID accordingly for new data
-			NEW.eddies.(sen)(nn).age= age + NEW.time.delT	; % set age accordingly for new data
-			tracks.(sen)(AIdx).age=age + NEW.time.delT;		% update age in archive
+			NEW.eddies.(sen)(nn).age= age 	; % set age accordingly for new data
+			tracks.(sen)(AIdx).age=age ;		% update age in archive
 			tracks.(sen)(AIdx).track{1}=[tracks.(sen)(AIdx).track{1}, NEW.eddies.(sen)(nn)]; % append to archive
 			tracks.(sen)(AIdx).ID=ID; % append to archive
 		end
@@ -158,7 +162,7 @@ function [tracks,new_eddies]=init_day_one(eddies)
 	end
 end
 function [TDB]=filter4threshold(TDB,MD,thresh)
-	fn=fieldnames(MD);	
+	fn=fieldnames(MD);
 	for sense=fn'	;	sen=cell2mat(sense);
 		dist=MD.(sen).new2old.dist;
 		tooQuick = (dist > thresh);
@@ -178,11 +182,7 @@ function [TDB]=tracked_dead_born(MD)
 		%% respective min dist values in new set
 		dn=MD.(sen).new2old.dist;
 		%% agreement among new and old ie definite tracking (with respect to new set)
-		try
-			TDB.(sen).flags.inNew.tracked = (do == dn);
-		catch
-			TDB.(sen).flags.inNew.tracked = (do == dn');
-		end
+		TDB.(sen).flags.inNew.tracked = (do == dn);
 		%% flag for fresh eddies with respect to new set
 		TDB.(sen).flags.inNew.born = ~TDB.(sen).flags.inNew.tracked;
 		%% indeces of deceised eddies with respect to old set
@@ -199,8 +199,12 @@ function [N]=kill_phantoms(N)
 		DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
 		DIST(logical(eye(size(DIST))))=nan; % nan self distance
 		[Y,~]=find(DIST==0);
-%% kill
-		N.eddies.(sen)(Y)=[];			
+		%% kill
+		N.eddies.(sen)(Y)=[];
+		N.time.(sen)(Y)=[];
+		N.LON.(sen)(Y)=[];
+		N.LAT.(sen)(Y)=[];
+		
 	end
 end
 function [MD]=get_min_dists(OLD,NEW)

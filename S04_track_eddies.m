@@ -127,14 +127,11 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	end
 end
 function [tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
-	fn=fieldnames(TDB);
-	for sense=fn';
-		sen=cell2mat(sense);
+	for sense=fieldnames(TDB);	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies
 		for nn=find(TDB.(sen).flags.inNew.tracked)
 			idx=MinDists.(sen).new2old.idx(nn); % get index in old data
-			if isempty(idx), continue;end
 			ID =	OLD.eddies.(sen)(idx).ID; % get ID
 			AIdx = ArchIds==ID;			% get index in archive (tracks)
 			age = OLD.eddies.(sen)(idx).age; % get age
@@ -203,8 +200,7 @@ function [N]=kill_phantoms(N)
 		DIST(logical(eye(size(DIST))))=nan; % nan self distance
 		[Y,~]=find(DIST==0);
 %% kill
-		N.eddies.(sen)(Y)=[];		
-		
+		N.eddies.(sen)(Y)=[];			
 	end
 end
 function [MD]=get_min_dists(OLD,NEW)

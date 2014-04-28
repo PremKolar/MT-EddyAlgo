@@ -45,12 +45,13 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
 	TDB=filter4threshold(TDB,MinDists,dist_thresh);
 	%% append tracked to respective cell of temporary archive 'tracks'
-	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
+	[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW);
 	%% append new ones to end of temp archive
 	[tracks,NEW]=append_born(TDB, tracks, NEW);
 	%% write/kill dead
 	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);	
 	%% swap
+	clear OLD;
 	OLD=NEW;
 	
 end
@@ -78,19 +79,19 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 		%% collect all ID's in archive
 		ArchIDs=cat(2,tracks.(sen).ID);
 		%% all indeces in old set of dead eddies
-		dead_idxs=TDB.(sen).idx.inOld.dead;
+		dead_idxs=TDB.(sen).inOld.dead;
 		%% find which ones to write and kill
-		[~,AIdx] = ismember(cat(1,old.(sen)(dead_idxs).ID),ArchIDs);
-		age = cat(1,tracks.(sen)(AIdx).age);
+		AIdxdead = find(ismember(ArchIDs,cat(1,old.(sen)(dead_idxs).ID)));
+		age = cat(1,tracks.(sen)(AIdxdead).age);
 		pass = age >= DD.thresh.life;
 		%%  write to 'heap'
 		if any(pass)
 			for pa=find(pass)'
-				archive(tracks.(sen)(AIdx(pa)).track{1}, DD.path,jj)
+				archive(tracks.(sen)(AIdxdead(pa)).track{1}, DD.path,jj)
 			end
 		end
 		%% kill in 'stack'	
-		tracks.(sen)(AIdx)=[];	% get rid of dead matter!
+		tracks.(sen)(AIdxdead)=[];	% get rid of dead matter!
 	end
 end
 
@@ -98,7 +99,7 @@ function archive(trck,path,jj)
 	%% write out file (one per eddy)
 	cc=1;
 	EoD=['TRACK', sprintf('%05i',cc)];
-	filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
+filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
 	%% add track counter for day to filename
 	while true
 		cc=cc+1;
@@ -111,12 +112,12 @@ function archive(trck,path,jj)
 end
 function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
-		maxID=max(cat(1,tracks.(sen).ID));
-		NN=find(TDB.(sen).flags.inNew.born);
-		if ~isempty(NN)
+		maxID=max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]);
+		NN=(TDB.(sen).inNew.born);
+		if any(NN)
 			%% new Ids and new indices (appended to end of tracks)
-			newIds=num2cell(maxID+1:maxID+numel(NN));
-			newendIdxs=numel(tracks.(sen))+1:numel(tracks.(sen))+numel(NN);
+			newIds=num2cell(maxID+1:maxID+sum(NN));
+			newendIdxs=numel(tracks.(sen))+1:numel(tracks.(sen))+sum(NN);
 			%% deal new ids to eddies
 			[NEW.eddies.(sen)(NN).age]=deal(0);	
 			[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});		
@@ -130,14 +131,15 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 		end
 	end
 end
-function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
+function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% get
-		NN=TDB.(sen).flags.inNew.tracked;
-		idx=MinDists.(sen).new2old.idx(NN); % get index in old data
+		NN=TDB.(sen).inNew.tracked;
+		idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
 		ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
 		IDc=num2cell(ID);
+		%% find position in archive
 		[~,AIdx] = ismember(ID,ArchIds);
 		if any(AIdx==0), error('something wrong went wrong!!!'); end
 		%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,7 +150,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 		[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data
 		[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
 		[tracks.(sen)(AIdx).age]= deal(age{:});		% update age in archive
-		[tracks.(sen)(AIdx).ID]=deal(IDc{:}); % append to archive
+		%[tracks.(sen)(AIdx).ID]=deal(IDc{:}); % append to archive
 		%% append tracks into track cells
 		cats=cat(2,tracks.(sen)(AIdx).track)	;	
 		newEdsCells=num2cell(NEW.eddies.(sen)(NN));
@@ -173,13 +175,15 @@ function [tracks,new_eddies]=init_day_one(eddies)
 	end
 end
 function [TDB]=filter4threshold(TDB,MD,thresh)
-	fn=fieldnames(MD);
-	for sense=fn'	;	sen=cell2mat(sense);		
+	for sense=fieldnames(MD)'	;	sen=cell2mat(sense);		
 		dist=MD.(sen).new2old.dist;
-		tooQuick = (dist > thresh);
+		%% find those that were supposedly tracked, yet dont fullfill threshold (for new)
+		tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
+		%% set them to ~tracked
 		TDB.(sen).inNew.tracked(tooQuick) = false;
-		TDB.(sen).inNew.tooQuick = tooQuick;
+		%% instead set them to 'born'
 		TDB.(sen).inNew.born(tooQuick) = true; % all new born
+		%% add respective indices for old set to 'dead' flags (track broke off)
 		TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked! 		
 	end
 end
@@ -197,7 +201,7 @@ function [TDB]=tracked_dead_born(MD)
 		TDB.(sen).inNew.tracked = (do == dn);
 		%% flag for fresh eddies with respect to new set
 		TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
-		%% indeces of deceised eddies with respect to old set (so far all old)
+		%% indeces of deceised eddies with respect to old set
 		TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));	
 		%% remember cross ref
 		TDB.(sen).inNew.n2oi=n2oi;
@@ -212,7 +216,7 @@ function [N]=kill_phantoms(N)
 		LONDIFF=abs(LOM.a - LOM.b);
 		DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
 		DIST(logical(eye(size(DIST))))=nan; % nan self distance
-		[Y,~]=find(DIST==0);
+		Y = DIST==0;
 		%% kill
 		N.eddies.(sen)(Y)=[];
 		N.time.(sen)(Y)=[];

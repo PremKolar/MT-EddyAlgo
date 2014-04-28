@@ -49,14 +49,8 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	%% append new ones to end of temp archive
 	[tracks,NEW]=append_born(TDB, tracks, NEW);
 	%% write/kill dead
-	
 	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);	
 	%% swap
-	
-	if any(isnan(cat(2,tracks.cyclones.age)))
-		wgh
-	end
-	
 	OLD=NEW;
 	
 end
@@ -78,30 +72,28 @@ function [tracks,OLD,phantoms]=set_up_init(DD)
 	%% append geo-coor vectors for min_dist function
 	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies);
 end
+
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		%% collect all ID's in archive
 		ArchIDs=cat(2,tracks.(sen).ID);
 		%% all indeces in old set of dead eddies
 		dead_idxs=TDB.(sen).idx.inOld.dead;
-		%% init logical of which ones to be deleted from archive
-		kill_idxs=false(size(ArchIDs));
-		%% loop over dead indeces
-		for idx=dead_idxs;
-			%% find index in archive
-			AIdx = ArchIDs==old.(sen)(idx).ID;
-			age = tracks.(sen)(AIdx).age;
-			if age >= DD.thresh.life
-				%% write to 'heap'
-				archive(tracks.(sen)(AIdx).track{1}, DD.path,jj)
+		%% find which ones to write and kill
+		[~,AIdx] = ismember(cat(1,old.(sen)(dead_idxs).ID),ArchIDs);
+		age = cat(1,tracks.(sen)(AIdx).age);
+		pass = age >= DD.thresh.life;
+		%%  write to 'heap'
+		if any(pass)
+			for pa=find(pass)'
+				archive(tracks.(sen)(AIdx(pa)).track{1}, DD.path,jj)
 			end
-			%% all dead get deleted
-			kill_idxs(AIdx)=true;
 		end
 		%% kill in 'stack'	
-		tracks.(sen)(kill_idxs)=[];
+		tracks.(sen)(AIdx)=[];	% get rid of dead matter!
 	end
 end
+
 function archive(trck,path,jj)
 	%% write out file (one per eddy)
 	cc=1;
@@ -141,15 +133,13 @@ end
 function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
-		%% loop over successfully tracked eddies
 		%% get
 		NN=TDB.(sen).flags.inNew.tracked;
 		idx=MinDists.(sen).new2old.idx(NN); % get index in old data
 		ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
 		IDc=num2cell(ID);
-		
-		[IDM,AIM]=meshgrid(ID,ArchIds); % get indeces in archive (tracks)
-		[AIdx,~]=find(IDM==AIM);
+		[~,AIdx] = ismember(ID,ArchIds);
+		if any(AIdx==0), error('something wrong went wrong!!!'); end
 		%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 		NEW.time.delT(isnan(NEW.time.delT))=1;
 		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -166,9 +156,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 		[tracks.(sen)(AIdx).track]=deal(newcats{:});
 	end
 end
-
-
-
 function [tracks,new_eddies]=init_day_one(eddies)
 	%% init day one
 	new_eddies=rmfield(eddies,'filename');
@@ -187,12 +174,13 @@ function [tracks,new_eddies]=init_day_one(eddies)
 end
 function [TDB]=filter4threshold(TDB,MD,thresh)
 	fn=fieldnames(MD);
-	for sense=fn'	;	sen=cell2mat(sense);
+	for sense=fn'	;	sen=cell2mat(sense);		
 		dist=MD.(sen).new2old.dist;
 		tooQuick = (dist > thresh);
-		TDB.(sen).flags.inNew.tracked(tooQuick) = false;
-		TDB.(sen).flags.inNew.tooQuick = tooQuick;
-		TDB.(sen).flags.inNew.born(tooQuick) = true; % all new born
+		TDB.(sen).inNew.tracked(tooQuick) = false;
+		TDB.(sen).inNew.tooQuick = tooQuick;
+		TDB.(sen).inNew.born(tooQuick) = true; % all new born
+		TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked! 		
 	end
 end
 function [TDB]=tracked_dead_born(MD)
@@ -206,11 +194,13 @@ function [TDB]=tracked_dead_born(MD)
 		%% respective min dist values in new set
 		dn=MD.(sen).new2old.dist;
 		%% agreement among new and old ie definite tracking (with respect to new set)
-		TDB.(sen).flags.inNew.tracked = (do == dn);
+		TDB.(sen).inNew.tracked = (do == dn);
 		%% flag for fresh eddies with respect to new set
-		TDB.(sen).flags.inNew.born = ~TDB.(sen).flags.inNew.tracked;
-		%% indeces of deceised eddies with respect to old set
-		TDB.(sen).idx.inOld.dead = setdiff((1:length(o2ni)),n2oi);
+		TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
+		%% indeces of deceised eddies with respect to old set (so far all old)
+		TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));	
+		%% remember cross ref
+		TDB.(sen).inNew.n2oi=n2oi;
 	end
 end
 function [N]=kill_phantoms(N)
@@ -227,8 +217,7 @@ function [N]=kill_phantoms(N)
 		N.eddies.(sen)(Y)=[];
 		N.time.(sen)(Y)=[];
 		N.LON.(sen)(Y)=[];
-		N.LAT.(sen)(Y)=[];
-		
+		N.LAT.(sen)(Y)=[];		
 	end
 end
 function [MD]=get_min_dists(OLD,NEW)

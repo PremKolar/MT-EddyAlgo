@@ -58,7 +58,6 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 	%% write/kill dead
 	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);
 	%% swap
-	clear OLD;
 	OLD=NEW;
 	
 end

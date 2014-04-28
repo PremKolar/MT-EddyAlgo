@@ -3,7 +3,7 @@ function U=input_vars
 	U.threads.num=12;
 	%% time
  	U.time.from.str='19940425';
- 	U.time.till.str='19980131';
+ 	U.time.till.str='20060131';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='TempSalt/';
@@ -13,12 +13,12 @@ function U=input_vars
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=1e4; % [SI]
-	U.thresh.amp=0.04; % [SI]
-	U.thresh.shape.iq=0.6; % isoperimetric quotient
+	U.thresh.amp=0.01; % [SI]
+	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
-	U.thresh.corners=12; % min number of data points for the perimeter of an eddy
+	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.5*24*60^2; % max distance travelled per day
-	U.thresh.life=30; % min num of living days for saving
+	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=70*1+1;
 	U.dim.Y=40*1+1;

@@ -18,7 +18,8 @@ function S02_infer_fields
 	end
 	%% save info file
 	save_info(DD)
-	
+	%% git
+	%	auto_git
 end
 function spmd_body(DD)
 	id=labindex; 

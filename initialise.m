@@ -45,7 +45,8 @@ function checks = check_data(DD,toCheck)
 		T=disp_progress('disp',T,numel(all_time_steps),10);
 		if (pp>0 && ~passed(pp) && pp<numel(passed))
 			del_t(pp+1)=del_t(pp)+ DD.time.delta_t;  % cumsum time steps for missing files
-			del_t(pp)=nan; % nan out del_t for inexistent files
+			%del_t(pp)=nan;  % nan out del_t for inexistent files
+			del_t(pp)=DD.time.delta_t;  % nan out del_t for inexistent files
 		end
 		pp=pp+1;
 		current_day = datestr(tt,'yyyymmdd');

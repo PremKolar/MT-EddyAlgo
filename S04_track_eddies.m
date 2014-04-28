@@ -45,12 +45,18 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
 	TDB=filter4threshold(TDB,MinDists,dist_thresh);
 	%% append tracked to respective cell of temporary archive 'tracks'
-	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
+	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj);
 	%% append new ones to end of temp archive
 	[tracks,NEW]=append_born(TDB, tracks, NEW);
 	%% write/kill dead
+	
 	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);	
 	%% swap
+	
+	if any(isnan(cat(2,tracks.cyclones.age)))
+		wgh
+	end
+	
 	OLD=NEW;
 	
 end
@@ -92,7 +98,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 			%% all dead get deleted
 			kill_idxs(AIdx)=true;
 		end
-		%% kill in 'stack'		 
+		%% kill in 'stack'	
 		tracks.(sen)(kill_idxs)=[];
 	end
 end
@@ -120,6 +126,7 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 			newIds=num2cell(maxID+1:maxID+numel(NN));
 			newendIdxs=numel(tracks.(sen))+1:numel(tracks.(sen))+numel(NN);
 			%% deal new ids to eddies
+			[NEW.eddies.(sen)(NN).age]=deal(0);	
 			[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});		
 			%% deal eddies to archive
 			newcells=arrayfun(@(x) ({{x}}),NEW.eddies.(sen)(NN));
@@ -131,7 +138,10 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 		end
 	end
 end
-function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
+function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj)
+	if jj==5
+		wfrg
+	end
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies

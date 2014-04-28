@@ -95,7 +95,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	%%  write to 'heap'
 	if any(pass)
 		for pa=find(pass)'
-			archive(tracks.(sen)(AIdxdead(pa)).track{1}, DD.path,jj,id)
+			archive(tracks.(sen)(AIdxdead(pa)).track{1}, DD.path,jj,id(pa))
 		end
 	end
 	%% kill in 'stack'
@@ -105,7 +105,7 @@ end
 function archive(trck,path,jj,id)
 	%% write out file (one per eddy)
 	EoD=['TRACK', sprintf('%06i',id)];
-	filename=[EoD path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
+	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
 	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end

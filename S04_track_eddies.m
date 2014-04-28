@@ -9,10 +9,13 @@
 function S04_track_eddies
 	%% init
 	DD=initialise('eddies');
+	
 	%% sequential
 	seq_body(DD);
 	%% update infofile
 	save_info(DD);
+	
+	
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
@@ -90,7 +93,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 			kill_idxs(AIdx)=true;
 		end
 		%% kill in 'stack'
-		tracks.(sen)(kill_idxs)=[];
+		tracks.(sen)(kill_idxs)=[];		
 	end
 end
 function archive(trck,path,jj)
@@ -139,6 +142,7 @@ function [tracks,OLD,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 			NEW.eddies.(sen)(nn).age= age + NEW.time.delT	; % set age accordingly for new data
 			tracks.(sen)(AIdx).age=age + NEW.time.delT;		% update age in archive
 			tracks.(sen)(AIdx).track{1}=[tracks.(sen)(AIdx).track{1}, NEW.eddies.(sen)(nn)]; % append to archive
+			tracks.(sen)(AIdx).ID=ID; % append to archive
 		end
 	end
 end
@@ -189,35 +193,6 @@ function [TDB]=tracked_dead_born(MD)
 	end
 end
 function [N]=kill_phantoms(N)
-	
-	%step: 1/9
-%0 %
-%time so far:   00:00:00
-%time to go:    calculating...
-%Cannot remove an empty or out-of-range index from an undefined variable.
-
-%Error in S04_track_eddies>kill_phantoms (line 201)
-				%N.(field).(sen)(xx)=[];
-
-%Error in S04_track_eddies>operate_day (line 35)
-		%[NEW]=kill_phantoms(NEW);
-
-%Error in S04_track_eddies>seq_body (line 29)
-		%[OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms);
-
-%Error in S04_track_eddies (line 13)
-	%seq_body(DD);
-
-%Error in Sall (line 6)
-%tic;S04_track_eddies;T(5).toc=toc;
- 
-%201 				N.(field).(sen)(xx)=[];
-%K>> 
-
-	
-	
-	% this takes care of potential double eddies due to map-overlap. (see S00...)
-	
 	fn=fieldnames(N.LON);
 	for sense=fn'	;	sen=cell2mat(sense);
 		%% search for identical eddies

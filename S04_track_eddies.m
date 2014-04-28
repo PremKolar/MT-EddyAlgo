@@ -11,9 +11,9 @@ function S04_track_eddies
 	DD=initialise('eddies');
 	%% parallel!
 	init_threads(2);
-	%	spmd(2);
+	%spmd(2);
 	seq_body(DD);
-	%	end
+	%end
 	%% update infofile
 	save_info(DD);
 end
@@ -84,22 +84,24 @@ end
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	
 	%% collect all ID's in archive
-	ArchIDs=cat(2,tracks.(sen).ID);
+	ArchIDs=cat(2,tracks.ID);
 	%% all indeces in old set of dead eddies
 	dead_idxs=TDB.(sen).inOld.dead;
 	%% find which ones to write and kill
 	AIdxdead = find(ismember(ArchIDs,cat(1,old.(sen)(dead_idxs).ID)));
-	age = cat(1,tracks.(sen)(AIdxdead).age);
-	id = cat(1,tracks.(sen)(AIdxdead).ID);
+	age = cat(1,tracks(AIdxdead).age);
+	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;
-	%%  write to 'heap'
+	%%  write to 'heap'	
 	if any(pass)
-		for pa=find(pass)'
-			archive(tracks.(sen)(AIdxdead(pa)).track{1}, DD.path,jj,id(pa))
+		lens=cat(2,tracks(AIdxdead(pass)).length);
+		ll=0;
+		for pa=find(pass)'; ll=ll+1;			
+			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end
 	%% kill in 'stack'
-	tracks.(sen)(AIdxdead)=[];	% get rid of dead matter!
+	tracks(AIdxdead)=[];	% get rid of dead matter!
 	
 end
 function archive(trck,path,jj,id)
@@ -110,27 +112,34 @@ function archive(trck,path,jj,id)
 	save(trck(end).filename,'trck');
 end
 function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)	
-	maxID=max(max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]));
+	maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID]));
 	NN=(TDB.(sen).inNew.born);
 	if any(NN)
 		%% new Ids and new indices (appended to end of tracks)
 		newIds=num2cell(maxID+1:maxID+sum(NN));
-		newendIdxs=numel(tracks.(sen))+1:numel(tracks.(sen))+sum(NN);
+		newendIdxs=numel(tracks)+1:numel(tracks)+sum(NN);
 		%% deal new ids to eddies
 		[NEW.eddies.(sen)(NN).age]=deal(0);
 		[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});
-		%% deal eddies to archive
-		newcells=arrayfun(@(x) ({{x}}),NEW.eddies.(sen)(NN));
-		[tracks.(sen)(newendIdxs).track]=deal(newcells{:});
+		%% deal eddies to archive and pre alloc
+	for tt=1:find(newendIdxs)
+		tracks(tt).track{1}(1)	=tracks(tt).track{1}(1);
+		tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
+	end		
 		%% set all ages 0
-		[tracks.(sen)(newendIdxs).age]=deal(0);
+		[tracks(newendIdxs).age]=deal(0);
 		%% deal new ids to tracks
-		[tracks.(sen)(newendIdxs).ID]=deal(newIds{:});
+		[tracks(newendIdxs).ID]=deal(newIds{:});
+		%% init length
+		[tracks(newendIdxs).length]=deal(1);
+
+		
+		
 	end	
 end
 function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)	
 	%% get
-	ArchIds=cat(2,tracks.(sen).ID);
+	ArchIds=cat(2,tracks.ID);
 	NN=TDB.(sen).inNew.tracked;
 	idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
 	ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
@@ -141,16 +150,19 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 	NEW.time.delT(isnan(NEW.time.delT))=1;
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	age = num2cell(cat(2,tracks.(sen)(AIdx).age) + NEW.time.delT); % get new age
+	age = num2cell(cat(2,tracks(AIdx).age) + NEW.time.delT); % get new age
 	%% set
 	[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data
 	[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
-	[tracks.(sen)(AIdx).age]= deal(age{:});		% update age in archive
+	[tracks(AIdx).age]= deal(age{:});		% update age in archive
 	%% append tracks into track cells
-	cats=cat(2,tracks.(sen)(AIdx).track)	;
-	newEdsCells=num2cell(NEW.eddies.(sen)(NN));
-	newcats=	cellfun(@(cat,newed) ({[cat newed]}),cats,newEdsCells,'uniformoutput',false);
-	[tracks.(sen)(AIdx).track]=deal(newcats{:});	
+	for aa=1:length(AIdx)
+		aidx=AIdx(aa);
+		len=tracks(aidx).length+1;
+		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(aa);
+		tracks(aidx).length=len;
+	end
+	
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one
@@ -161,9 +173,16 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
 	[new_eddies.(sen)(1,ee).ID]=deal(eec{:});
 	%% store tracks in cells (to allow for arbitr. lengths)
 	edsArray=arrayfun(@(x) ({{x}}),new_eddies.(sen)(1,ee));
-	[tracks.(sen)(ee).track]=deal(edsArray{:});
-	[tracks.(sen)(ee).ID]=deal(eec{:});
-	[tracks.(sen)(ee).age]=deal(0);
+	[tracks(ee).track]=deal(edsArray{:});
+	[tracks(ee).ID]=deal(eec{:});
+	[tracks(ee).age]=deal(0);
+	[tracks(ee).length]=deal(1);
+	
+	%% prealloc for speed
+	for tt=1:length(tracks)
+		tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
+	end
+	
 end
 function [TDB]=filter4threshold(TDB,MD,thresh,sen)	
 	dist=MD.(sen).new2old.dist;

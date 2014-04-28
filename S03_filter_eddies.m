@@ -10,10 +10,10 @@ function S03_filter_eddies
 	DD=initialise('conts');
 	init_threads(DD.threads.num);
 	%% spmd
-%	spmd
+	spmd
 		id=labindex;
 		spmd_body(DD,id)
-%	end
+	end
 	%% update infofile
 	save_info(DD)
 end
@@ -22,7 +22,7 @@ function save_eddies(EE)
 	save(EE.filename,'-struct','EE')
 end
 function spmd_body(DD,id)
-	Td=disp_progress('init','days');
+	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(id,1):DD.threads.lims(id,2)
 		Td=disp_progress('disp',Td,diff(DD.threads.lims(id,:))+1,4242);
 		%%
@@ -209,17 +209,6 @@ function [pass,isoper]=IsopQuo(ee,thresh)
 end
 
 
-
-function [pass,isoper]=IQ(ee,thresh)
-	%% isoperimetric quotient
-% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter 
-% ie isoper=4pi area/circum^2.  isoper(circle)==1; 
-	isoper=12.5664*ee.area.total/ee.circum.si^2;
-	if isoper >= thresh, pass=true; else pass=false; end
-end
-
-
-
 function [pass]=CR_2dEddy(coor)
 	if (max(coor.x)-min(coor.x)<2) || (max(coor.y)-min(coor.y)<2)
 		pass=false;
@@ -255,10 +244,8 @@ function	[mask_out]=EddyPackMask(mask_in,limits,dims)
 	mask_out=false(dims);
 	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2))=mask_in;
 end
-function [A]=EddyArea2Ellipse(R)
-	%% area with respect to radius of circle of same area as calculated ellipse
-	A=pi*R^2;
-end
+
+
 function [pass,amp] = EddyAmp2Ellipse(peak,zoom,thresh)
 	%% mean amplitude with respect to ellipse contour 
 	amp=abs(zoom.fields.SSH(peak)-nanmean(zoom.fields.SSH(zoom.mask.ellipse)));

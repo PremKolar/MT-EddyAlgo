@@ -19,9 +19,6 @@ function S07_drawPlots
 	ticks.radius=[0,300,7];
 	ticks.amp=[0,20,7];
 	ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
-	%ticks.dist=[min([maps.AntiCycs.dist.zonal.fromBirth.mean(:);...
-	%		maps.Cycs.dist.zonal.fromBirth.mean(:)])/1000,...
-	%		max([maps.AntiCycs.dist.zonal.fromBirth.mean(:); maps.Cycs.dist.zonal.fromBirth.mean(:)])/1000,10];
 	ticks.dist=[-1200;300;8];
 	ticks.disttot=[0;2600;8];
 	ticks.vel=[-30;10;5];
@@ -72,7 +69,10 @@ function mapstuff(maps,DD,ticks,lo,la)
 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
+<<<<<<< HEAD
 		
+=======
+>>>>>>> thunder
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
@@ -174,9 +174,12 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(gca,'ytick',ticks.y);
 	set(gca,'xtick',ticks.x) ;
 	cb=colorbar;
+<<<<<<< HEAD
 	load coast;
 	hold on;
  	plot(long,lat,'LineWidth',0.5);
+=======
+>>>>>>> thunder
 	if logornot
 		zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
 		zticklabel=num2str(round(exp(zticks)));
@@ -189,6 +192,7 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(cb,'yticklabel',zticklabel);
 	title([tit,' - ',tit2,' [',unit,']'])
 	xlabel(['Eddies that died younger ',num2str(DD.thresh.life),' days are excluded'])
+	drawcoast;
 end
 function [maxV,cmap]=drawColorLine(V,fieldName,maxV,logornot)
 	cmap=jet;% Generate range of color indices that map to cmap

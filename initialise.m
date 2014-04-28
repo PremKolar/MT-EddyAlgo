@@ -14,7 +14,7 @@ function DD=initialise(toCheck)
 		DD=ini(toCheck);
 	end
 	dbstop if error
-	rehash	
+	rehash
 end
 
 function out=ini(toCheck)
@@ -22,9 +22,9 @@ function out=ini(toCheck)
 	out = get_input;
 	%% check data for consistency
 	if toCheck
-		out.checks = check_data(out,toCheck);	
-	%% distro thread limits
-	out.threads.lims = thread_distro(out.threads.num,out.checks.passed.total);
+		out.checks = check_data(out,toCheck);
+		%% distro thread limits
+		out.threads.lims = thread_distro(out.threads.num,out.checks.passed.total);
 	end
 end
 
@@ -42,11 +42,12 @@ function checks = check_data(DD,toCheck)
 	del_t = ones(size(passed))*DD.time.delta_t; del_t(1)=nan;
 	T=disp_progress('init','checking data');
 	for tt = all_time_steps;
-	T=disp_progress('disp',T,numel(all_time_steps),10);		
-	if (pp>0 && ~passed(pp) && pp<numel(passed))
+		T=disp_progress('disp',T,numel(all_time_steps),10);
+		if (pp>0 && ~passed(pp) && pp<numel(passed))
 			del_t(pp+1)=del_t(pp)+ DD.time.delta_t;  % cumsum time steps for missing files
-			del_t(pp)=nan; % nan out del_t for inexistent files			
-	end	
+			%del_t(pp)=nan;  % nan out del_t for inexistent files
+			del_t(pp)=DD.time.delta_t;  % nan out del_t for inexistent files
+		end
 		pp=pp+1;
 		current_day = datestr(tt,'yyyymmdd');
 		for aa=1:numel(all_passed)
@@ -76,5 +77,5 @@ function checks = check_data(DD,toCheck)
 		checks.east=str2double(file{1}(e:e+3));
 		checks.south=str2double(file{1}(s:s+3));
 		checks.north=str2double(file{1}(n:n+3));
-	end	
+	end
 end

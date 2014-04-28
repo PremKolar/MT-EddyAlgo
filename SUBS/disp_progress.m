@@ -41,17 +41,15 @@ function wb=printout(T,l,L)
 	catch %#ok<CTCH>
 		disp(['time to go:    ', 'calculating...']);
 	end
-	if numlabs==1
-		wb=waitbar(l/L); %not supported in spmd
-	else
-		wb=spmdwaitbar(l/L,30);
-	end
-	
-	function out=spmdwaitbar(frac,len)
-		out=['[',repmat('-',1,floor(frac*len)),'>',repmat(' ',1,ceil((1-frac)*len)),']'];
-		disp(out);
-	end
+	%%
+	wb=spmdwaitbar(l/L,30);
 end
+
+function out=spmdwaitbar(frac,len)
+	out=['[',repmat('-',1,floor(frac*len)),'>',repmat(' ',1,ceil((1-frac)*len)),']'];
+	disp(out);
+end
+
 function T=calcu(T,l,L,ulr)
 	T.toc=toc(T.tic);
 	T.tic=tic;

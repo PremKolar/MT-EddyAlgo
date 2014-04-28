@@ -8,74 +8,81 @@
 % entirely sequential no spmd...
 function S04_track_eddies
 	%% init
-	DD=initialise('eddies');
-	
-	%% sequential
-	seq_body(DD);
+	DD=initialise('eddies');	
+	%% parallel!
+	init_threads(2);
+	spmd(2);
+		seq_body(DD);
+	end
 	%% update infofile
-	save_info(DD);
-	
-	
+	save_info(DD);	
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
+	%% one thread do cycs, other acycs
+	switch labindex
+		case 1
+			sen='cyclones';
+		case 2
+			sen='anticyclones';
+	end
 	%% set up tracking procedure
-	[tracks,OLD,phantoms]=set_up_init(DD);
+	[tracks,OLD,phantoms]=set_up_init(DD,sen);
 	numDays=DD.checks.passed.total;
 	%% start tracking
 	T=disp_progress('init','tracking');
 	for jj=2:numDays
 		T=disp_progress('disp',T,numDays-1,499);
 		%% set up current day
-		[NEW]=set_up_today(DD,jj);
+		[NEW]=set_up_today(DD,jj,sen);
 		%% do calculations and archivings
-		[OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms);
+		[OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen);
 	end
 end
-function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
+function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 	%% in case of full globe only
 	if phantoms
-		[NEW]=kill_phantoms(NEW);
+		[NEW]=kill_phantoms(NEW,sen);
 	end
-	%% find minium distances between old an new time step eddies
-	[MinDists]=get_min_dists(OLD,NEW);
+	%% find minium distances between old and new time step eddies
+	[MinDists]=get_min_dists(OLD,NEW,sen);
 	%% determine which ones are tracked/died/new
-	TDB=tracked_dead_born(MinDists);	
+	TDB=tracked_dead_born(MinDists,sen);	
 	%% filter for distance per day threshold
 	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
-	TDB=filter4threshold(TDB,MinDists,dist_thresh);
+	TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
 	%% append tracked to respective cell of temporary archive 'tracks'
-	[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW);
+	[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
 	%% append new ones to end of temp archive
-	[tracks,NEW]=append_born(TDB, tracks, NEW);
+	[tracks,NEW]=append_born(TDB, tracks, NEW,sen);
 	%% write/kill dead
-	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj);	
+	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);	
 	%% swap
 	clear OLD;
 	OLD=NEW;
 	
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [NEW]=set_up_today(DD,jj)
+function [NEW]=set_up_today(DD,jj,sen)
 	eddies=read_fields(DD,jj,'eddies');
 	NEW.eddies=rmfield(eddies,'filename');
 	%% get delta time
 	NEW.time.daynum=DD.checks.passed.daynums(jj);
 	NEW.time.delT=DD.checks.del_t(jj);
-	[NEW.LON,NEW.LAT]=get_geocoor(NEW.eddies);
+	[NEW.LON,NEW.LAT]=get_geocoor(NEW.eddies,sen);
 end
-function [tracks,OLD,phantoms]=set_up_init(DD)
+function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% determine whether double eddies might be present due to full lon
 	phantoms=logical(cell2mat(extractdeepfield(read_fields(DD,1,'cuts'),'params.full_globe.x')));
 	%% read eddies
 	eddies=read_fields(DD,1,'eddies');
-	[tracks,OLD.eddies]=init_day_one(eddies);
+	[tracks,OLD.eddies]=init_day_one(eddies,sen);
 	%% append geo-coor vectors for min_dist function
-	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies);
+	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
 
-function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
-	for sense=fieldnames(TDB)';	sen=sense{1};
+function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
+	
 		%% collect all ID's in archive
 		ArchIDs=cat(2,tracks.(sen).ID);
 		%% all indeces in old set of dead eddies
@@ -92,7 +99,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 		end
 		%% kill in 'stack'	
 		tracks.(sen)(AIdxdead)=[];	% get rid of dead matter!
-	end
+
 end
 
 function archive(trck,path,jj)
@@ -110,9 +117,9 @@ filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
 	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end
-function [tracks,NEW]=append_born(TDB, tracks,NEW)
-	for sense=fieldnames(TDB)';	sen=sense{1};
-		maxID=max(max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]))
+function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
+	
+		maxID=max(max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]));
 		NN=(TDB.(sen).inNew.born);
 		if any(NN)
 			%% new Ids and new indices (appended to end of tracks)
@@ -129,10 +136,10 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 			%% deal new ids to tracks
 			[tracks.(sen)(newendIdxs).ID]=deal(newIds{:});			
 		end
-	end
+	
 end
-function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
-	for sense=fieldnames(TDB)';	sen=sense{1};
+function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
+	
 		%% get
 		ArchIds=cat(2,tracks.(sen).ID);
 		NN=TDB.(sen).inNew.tracked;
@@ -155,13 +162,11 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 		newEdsCells=num2cell(NEW.eddies.(sen)(NN));
 		newcats=	cellfun(@(cat,newed) ({[cat newed]}),cats,newEdsCells,'uniformoutput',false);
 		[tracks.(sen)(AIdx).track]=deal(newcats{:});
-	end
+
 end
-function [tracks,new_eddies]=init_day_one(eddies)
+function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one
 	new_eddies=rmfield(eddies,'filename');
-	%% init IDs
-	for sense=fieldnames(new_eddies)';	sen=sense{1};
 		%% set initial ID's etc
 		ee=(1:numel(new_eddies.(sen)));
 		eec=num2cell(ee);
@@ -170,11 +175,10 @@ function [tracks,new_eddies]=init_day_one(eddies)
 		edsArray=arrayfun(@(x) ({{x}}),new_eddies.(sen)(1,ee));
 		[tracks.(sen)(ee).track]=deal(edsArray{:});
 		[tracks.(sen)(ee).ID]=deal(eec{:});
-		[tracks.(sen)(ee).age]=deal(0);
-	end
+		[tracks.(sen)(ee).age]=deal(0);	
 end
-function [TDB]=filter4threshold(TDB,MD,thresh)
-	for sense=fieldnames(MD)'	;	sen=cell2mat(sense);		
+function [TDB]=filter4threshold(TDB,MD,thresh,sen)
+	
 		dist=MD.(sen).new2old.dist;
 		%% find those that were supposedly tracked, yet dont fullfill threshold (for new)
 		tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
@@ -184,10 +188,10 @@ function [TDB]=filter4threshold(TDB,MD,thresh)
 		TDB.(sen).inNew.born(tooQuick) = true; % all new born
 		%% add respective indices for old set to 'dead' flags (track broke off)
 		TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked! 		
-	end
+	
 end
-function [TDB]=tracked_dead_born(MD)
-	for sense=fieldnames(MD)'	;	sen=sense{1};
+function [TDB]=tracked_dead_born(MD,sen)
+
 		%% idx in old set of min dist claims by new set
 		n2oi=MD.(sen).new2old.idx;
 		%% idx in new set of min dist claims by old set
@@ -204,11 +208,10 @@ function [TDB]=tracked_dead_born(MD)
 		TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));	
 		%% remember cross ref
 		TDB.(sen).inNew.n2oi=n2oi;
-	end
+	
 end
-function [N]=kill_phantoms(N)
-	fn=fieldnames(N.LON);
-	for sense=fn'	;	sen=cell2mat(sense);
+function [N]=kill_phantoms(N,sen)
+
 		%% search for identical eddies
 		[LOM.a,LOM.b]=meshgrid(N.LON.(sen),N.LON.(sen));
 		[LAM.a,LAM.b]=meshgrid(N.LAT.(sen),N.LAT.(sen));
@@ -221,26 +224,21 @@ function [N]=kill_phantoms(N)
 		N.time.(sen)(Y)=[];
 		N.LON.(sen)(Y)=[];
 		N.LAT.(sen)(Y)=[];		
-	end
+	
 end
-function [MD]=get_min_dists(OLD,NEW)
-	senses=fieldnames(NEW.eddies);
-	for sense=senses'	;	sen=cell2mat(sense);
-		[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
-		[LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
-		LONDIFF=abs(LOM.new - LOM.old);
-		DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
+function [MD]=get_min_dists(OLD,NEW,sen)
+	[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
+	[LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
+	LONDIFF=abs(LOM.new - LOM.old);
+	DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
 		%% find min dists
-		[MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
-		[MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
-	end
+	[MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
+	[MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
 end
-function [LON, LAT]=get_geocoor(eddies)
-	senses=fieldnames(eddies);
-	for sense=senses'
-		sen=sense{1};
+function [LON, LAT]=get_geocoor(eddies,sen)
+	
 		LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
 		LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
-	end
+	
 end
 

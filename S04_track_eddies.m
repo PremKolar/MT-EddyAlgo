@@ -45,7 +45,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms)
 	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
 	TDB=filter4threshold(TDB,MinDists,dist_thresh);
 	%% append tracked to respective cell of temporary archive 'tracks'
-	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj);
+	[tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW);
 	%% append new ones to end of temp archive
 	[tracks,NEW]=append_born(TDB, tracks, NEW);
 	%% write/kill dead
@@ -138,7 +138,7 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 		end
 	end
 end
-function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj)
+function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies
@@ -150,6 +150,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj)
 		
 		[IDM,AIM]=meshgrid(ID,ArchIds); % get indeces in archive (tracks)
 		[AIdx,~]=find(IDM==AIM);
+		%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
+		NEW.time.delT(isnan(NEW.time.delT))=1;
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 		age = num2cell(cat(2,tracks.(sen)(AIdx).age) + NEW.time.delT); % get new age
 		%% set
 		[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data

@@ -112,7 +112,7 @@ filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
 end
 function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
-		maxID=max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]);
+		maxID=max(max([cat(2,tracks.(sen).ID) NEW.eddies.(sen).ID]))
 		NN=(TDB.(sen).inNew.born);
 		if any(NN)
 			%% new Ids and new indices (appended to end of tracks)
@@ -133,8 +133,8 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 end
 function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
-		ArchIds=cat(2,tracks.(sen).ID);
 		%% get
+		ArchIds=cat(2,tracks.(sen).ID);
 		NN=TDB.(sen).inNew.tracked;
 		idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
 		ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
@@ -150,7 +150,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 		[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data
 		[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
 		[tracks.(sen)(AIdx).age]= deal(age{:});		% update age in archive
-		%[tracks.(sen)(AIdx).ID]=deal(IDc{:}); % append to archive
 		%% append tracks into track cells
 		cats=cat(2,tracks.(sen)(AIdx).track)	;	
 		newEdsCells=num2cell(NEW.eddies.(sen)(NN));

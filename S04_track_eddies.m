@@ -73,7 +73,6 @@ function [tracks,OLD,phantoms]=set_up_init(DD)
 	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies);
 end
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
-	
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		%% collect all ID's in archive
 		ArchIDs=cat(2,tracks.(sen).ID);
@@ -93,7 +92,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj)
 			%% all dead get deleted
 			kill_idxs(AIdx)=true;
 		end
-		%% kill in 'stack'
+		%% kill in 'stack'		 
 		tracks.(sen)(kill_idxs)=[];
 	end
 end
@@ -102,6 +101,7 @@ function archive(trck,path,jj)
 	cc=1;
 	EoD=['TRACK', sprintf('%05i',cc)];
 	filename=[path.tracks.name regexprep(path.eddies.files(jj).name, 'EDDIE', EoD)];
+	%% add track counter for day to filename
 	while true
 		cc=cc+1;
 		EoD=['TRACK', sprintf('%03i',cc)];
@@ -115,16 +115,19 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		maxID=max(cat(1,tracks.(sen).ID));
 		NN=find(TDB.(sen).flags.inNew.born);
-	
-		if size(NN,1)>size(NN,2), NN=NN'; end
 		if ~isempty(NN)
-			for nn=NN
-				NEW.eddies.(sen)(nn).ID=maxID+1;
-				tracks.(sen)(end+1).track={NEW.eddies.(sen)(nn)}; % new position		
-				tracks.(sen)(end).ID=maxID+1; % IDs are unique/dont get reused
-				tracks.(sen)(end).age=0;
-				maxID=maxID+1;
-			end
+			%% new Ids and new indices (appended to end of tracks)
+			newIds=num2cell(maxID+1:maxID+numel(NN));
+			newendIdxs=numel(tracks.(sen))+1:numel(tracks.(sen))+numel(NN);
+			%% deal new ids to eddies
+			[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});		
+			%% deal eddies to archive
+			newcells=arrayfun(@(x) ({{x}}),NEW.eddies.(sen)(NN));
+			[tracks.(sen)(newendIdxs).track]=deal(newcells{:});
+			%% set all ages 0
+			[tracks.(sen)(newendIdxs).age]=deal(0);
+			%% deal new ids to tracks
+			[tracks.(sen)(newendIdxs).ID]=deal(newIds{:});			
 		end
 	end
 end
@@ -132,33 +135,44 @@ function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW)
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies
-		for nn=find(TDB.(sen).flags.inNew.tracked)
-			%% get
-			idx=MinDists.(sen).new2old.idx(nn); % get index in old data
-			ID =	OLD.eddies.(sen)(idx).ID; % get ID
-			AIdx = ArchIds==ID;			% get index in archive (tracks)
-			age = tracks.(sen)(AIdx).age + NEW.time.delT; % get new age
-			%% set
-			NEW.eddies.(sen)(nn).ID= ID; % set ID accordingly for new data
-			NEW.eddies.(sen)(nn).age= age 	; % set age accordingly for new data
-			tracks.(sen)(AIdx).age=age ;		% update age in archive
-			tracks.(sen)(AIdx).track{1}=[tracks.(sen)(AIdx).track{1}, NEW.eddies.(sen)(nn)]; % append to archive
-			tracks.(sen)(AIdx).ID=ID; % append to archive
-		end
+		%% get
+		NN=TDB.(sen).flags.inNew.tracked;
+		idx=MinDists.(sen).new2old.idx(NN); % get index in old data
+		ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
+		IDc=num2cell(ID);
+		
+		[IDM,AIM]=meshgrid(ID,ArchIds); % get indeces in archive (tracks)
+		[AIdx,~]=find(IDM==AIM);
+		age = num2cell(cat(2,tracks.(sen)(AIdx).age) + NEW.time.delT); % get new age
+		%% set
+		[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data
+		[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
+		[tracks.(sen)(AIdx).age]= deal(age{:});		% update age in archive
+		[tracks.(sen)(AIdx).ID]=deal(IDc{:}); % append to archive
+		%% append tracks into track cells
+		cats=cat(2,tracks.(sen)(AIdx).track)	;	
+		newEdsCells=num2cell(NEW.eddies.(sen)(NN));
+		newcats=	cellfun(@(cat,newed) ({[cat newed]}),cats,newEdsCells,'uniformoutput',false);
+		[tracks.(sen)(AIdx).track]=deal(newcats{:});
 	end
 end
+
+
+
 function [tracks,new_eddies]=init_day_one(eddies)
 	%% init day one
 	new_eddies=rmfield(eddies,'filename');
 	%% init IDs
 	for sense=fieldnames(new_eddies)';	sen=sense{1};
 		%% set initial ID's etc
-		for ee=1:numel(new_eddies.(sen));
-			new_eddies.(sen)(1,ee).ID=ee;
-			tracks.(sen)(ee).track={new_eddies.(sen)(1,ee)};
-			tracks.(sen)(ee).ID=ee;
-			tracks.(sen)(ee).age=0;
-		end
+		ee=(1:numel(new_eddies.(sen)));
+		eec=num2cell(ee);
+		[new_eddies.(sen)(1,ee).ID]=deal(eec{:});
+		%% store tracks in cells (to allow for arbitr. lengths)
+		edsArray=arrayfun(@(x) ({{x}}),new_eddies.(sen)(1,ee));
+		[tracks.(sen)(ee).track]=deal(edsArray{:});
+		[tracks.(sen)(ee).ID]=deal(eec{:});
+		[tracks.(sen)(ee).age]=deal(0);
 	end
 end
 function [TDB]=filter4threshold(TDB,MD,thresh)

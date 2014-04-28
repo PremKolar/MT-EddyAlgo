@@ -139,9 +139,6 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW)
 	end
 end
 function [tracks,NEW]=append_tracked(TDB,tracks,MinDists,OLD,NEW,jj)
-	if jj==5
-		wfrg
-	end
 	for sense=fieldnames(TDB)';	sen=sense{1};
 		ArchIds=cat(2,tracks.(sen).ID);
 		%% loop over successfully tracked eddies

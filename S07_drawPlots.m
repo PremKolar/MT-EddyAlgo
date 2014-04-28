@@ -69,10 +69,6 @@ function mapstuff(maps,DD,ticks,lo,la)
 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
-<<<<<<< HEAD
-		
-=======
->>>>>>> thunder
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
@@ -174,12 +170,6 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim)
 	set(gca,'ytick',ticks.y);
 	set(gca,'xtick',ticks.x) ;
 	cb=colorbar;
-<<<<<<< HEAD
-	load coast;
-	hold on;
- 	plot(long,lat,'LineWidth',0.5);
-=======
->>>>>>> thunder
 	if logornot
 		zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
 		zticklabel=num2str(round(exp(zticks)));

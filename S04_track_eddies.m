@@ -11,9 +11,9 @@ function S04_track_eddies
 	DD=initialise('eddies');
 	%% parallel!
 	init_threads(2);
-	%spmd(2);
+ 	spmd(2);
 	seq_body(DD);
-	%end
+ 	end
 	%% update infofile
 	save_info(DD);
 end
@@ -91,11 +91,12 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	age = cat(1,tracks(AIdxdead).age);
 	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;
-	%%  write to 'heap'	
+	%%  write to 'heap'
 	if any(pass)
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
-		for pa=find(pass)'; ll=ll+1;			
+		for pa=find(pass)'; ll=ll+1;
+			
 			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end
@@ -110,7 +111,7 @@ function archive(trck,path,jj,id)
 	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end
-function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)	
+function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
 	maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID]));
 	NN=(TDB.(sen).inNew.born);
 	if any(NN)
@@ -121,22 +122,21 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
 		[NEW.eddies.(sen)(NN).age]=deal(0);
 		[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});
 		%% deal eddies to archive and pre alloc
-	for tt=1:find(newendIdxs)
-		tracks(tt).track{1}(1)	=tracks(tt).track{1}(1);
-		tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
-	end		
+		NN=find(NN);nn=0;
+		for tt=newendIdxs; nn=nn+1;
+			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(NN(nn));
+			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
+		end
 		%% set all ages 0
 		[tracks(newendIdxs).age]=deal(0);
 		%% deal new ids to tracks
 		[tracks(newendIdxs).ID]=deal(newIds{:});
 		%% init length
 		[tracks(newendIdxs).length]=deal(1);
-
-		
-		
-	end	
+				
+	end
 end
-function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)	
+function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	%% get
 	ArchIds=cat(2,tracks.ID);
 	NN=TDB.(sen).inNew.tracked;
@@ -155,13 +155,13 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
 	[tracks(AIdx).age]= deal(age{:});		% update age in archive
 	%% append tracks into track cells
+	NNf=find(NN);
 	for aa=1:length(AIdx)
 		aidx=AIdx(aa);
 		len=tracks(aidx).length+1;
-		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(aa);
+		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(NNf(aa));
 		tracks(aidx).length=len;
-	end
-	
+	end	
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one
@@ -183,7 +183,7 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
 	end
 	
 end
-function [TDB]=filter4threshold(TDB,MD,thresh,sen)	
+function [TDB]=filter4threshold(TDB,MD,thresh,sen)
 	dist=MD.(sen).new2old.dist;
 	%% find those that were supposedly tracked, yet dont fullfill threshold (for new)
 	tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
@@ -192,9 +192,9 @@ function [TDB]=filter4threshold(TDB,MD,thresh,sen)
 	%% instead set them to 'born'
 	TDB.(sen).inNew.born(tooQuick) = true; % all new born
 	%% add respective indices for old set to 'dead' flags (track broke off)
-	TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!	
+	TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
 end
-function [TDB]=tracked_dead_born(MD,sen)	
+function [TDB]=tracked_dead_born(MD,sen)
 	%% idx in old set of min dist claims by new set
 	n2oi=MD.(sen).new2old.idx;
 	%% idx in new set of min dist claims by old set
@@ -210,9 +210,9 @@ function [TDB]=tracked_dead_born(MD,sen)
 	%% indeces of deceised eddies with respect to old set
 	TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
 	%% remember cross ref
-	TDB.(sen).inNew.n2oi=n2oi;	
+	TDB.(sen).inNew.n2oi=n2oi;
 end
-function [N]=kill_phantoms(N,sen)	
+function [N]=kill_phantoms(N,sen)
 	%% search for identical eddies
 	[LOM.a,LOM.b]=meshgrid(N.LON.(sen),N.LON.(sen));
 	[LAM.a,LAM.b]=meshgrid(N.LAT.(sen),N.LAT.(sen));
@@ -224,7 +224,7 @@ function [N]=kill_phantoms(N,sen)
 	N.eddies.(sen)(Y)=[];
 	N.time.(sen)(Y)=[];
 	N.LON.(sen)(Y)=[];
-	N.LAT.(sen)(Y)=[];	
+	N.LAT.(sen)(Y)=[];
 end
 function [MD]=get_min_dists(OLD,NEW,sen)
 	[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
@@ -235,8 +235,8 @@ function [MD]=get_min_dists(OLD,NEW,sen)
 	[MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
 	[MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
 end
-function [LON, LAT]=get_geocoor(eddies,sen)	
+function [LON, LAT]=get_geocoor(eddies,sen)
 	LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
-	LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');	
+	LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
 end
 

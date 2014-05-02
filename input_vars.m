@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=12;
+	U.threads.num=2;
 	%% time
  	U.time.from.str='20000101';
  	U.time.till.str='20000301';
@@ -17,7 +17,7 @@ function U=input_vars
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-	U.thresh.dist=.5*24*60^2; % max distance travelled per day
+	U.thresh.dist=1*24*60^2; % max distance travelled per day
 	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=70*1+1;

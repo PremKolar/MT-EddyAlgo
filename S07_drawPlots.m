@@ -40,10 +40,10 @@ end
 function main(DD,tracks,maps,lo,la,ticks)
 	spmd
 		if labindex==2
-			trackPlots(DD,ticks,tracks)
+ 			trackPlots(DD,ticks,tracks)
 		end
 		if labindex==1
-			mapstuff(maps,DD,ticks,lo,la)
+ 			mapstuff(maps,DD,ticks,lo,la)
 		end
 	end
 end

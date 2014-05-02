@@ -113,6 +113,8 @@ function MAP=MeanStdStuff(eddies,MAP)
 	MAP.strctr=TRstructure(MAP,eddies);
 	disp('counting visits')
 	[MAP.visits,MAP.visitsSingleEddy]=TRvisits(MAP,eddies);
+	disp('counting births/deaths')
+	[MAP.birthDeath]=TRbirthdeath(MAP,eddies);
 	disp('age stuff')
 	MAP.age=TRage(MAP,eddies);
 	disp('sense stuff')
@@ -260,6 +262,24 @@ function	sense=TRsense(MAP,eddies)
 		end
 	end
 end
+
+function [count]=TRbirthdeath(MAP,eddies)
+	BD={'birth','death'};
+	for bd=BD; bd=bd{1};
+		count.(bd)=MAP.proto.zeros;
+		for ee=1:numel(eddies)
+			switch bd
+				case 'birth'
+					idx=MAP.strctr.idx{ee}(1);
+				case 'death'
+					idx=MAP.strctr.idx{ee}(end);
+			end
+			count.(bd)(idx)=count.(bd)(idx) +1;
+		end
+		count.(bd)(count.(bd)==0)=nan;
+	end
+end
+
 function [count,singlecount]=TRvisits(MAP,eddies)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;
@@ -271,6 +291,8 @@ function [count,singlecount]=TRvisits(MAP,eddies)
 		sidx=unique(MAP.strctr.idx{ee});
 		singlecount(sidx)=singlecount(sidx) + 1;
 	end
+	count(count==0)=nan;
+	singlecount(singlecount==0)=nan;
 end
 function age=TRage(MAP,eddies)
 	[age,count]=protoInit(MAP.proto);

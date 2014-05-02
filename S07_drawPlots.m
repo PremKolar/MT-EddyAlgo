@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% all figs are printed to ~/PRINTS/  !
+% all figs are saved to ~/FIGS/  !
 function S07_drawPlots
 	%% init
 	[DD,maps,tracks,lo,la]=inits;

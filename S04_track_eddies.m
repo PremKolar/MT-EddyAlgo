@@ -143,8 +143,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
 	ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
 	IDc=num2cell(ID);
-	%% find position in archive
+	%% find position in archive	
 	[~,AIdx] = ismember(ID,ArchIds);
+	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 	if any(AIdx==0)
 		wrong=find(AIdx);
 		NN(wrong)=[];
@@ -155,6 +156,8 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 		%	error('something wrong went wrong!!!');
 		warning('something wrong went wrong!!!');
 	end
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 	NEW.time.delT(isnan(NEW.time.delT))=1;
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

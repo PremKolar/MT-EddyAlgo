@@ -11,9 +11,9 @@ function S04_track_eddies
 	DD=initialise('eddies');
 	%% parallel!
 	init_threads(2);
- 	spmd(2);
-	seq_body(DD);
- 	end
+	spmd(2);
+		seq_body(DD);
+	end
 	%% update infofile
 	save_info(DD);
 end
@@ -133,7 +133,7 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
 		[tracks(newendIdxs).ID]=deal(newIds{:});
 		%% init length
 		[tracks(newendIdxs).length]=deal(1);
-				
+		
 	end
 end
 function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
@@ -143,9 +143,21 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
 	ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
 	IDc=num2cell(ID);
-	%% find position in archive
+	%% find position in archive	
 	[~,AIdx] = ismember(ID,ArchIds);
-	if any(AIdx==0), error('something wrong went wrong!!!'); end
+	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
+	if any(AIdx==0)
+		wrong=find(AIdx);
+		NN(wrong)=[];
+		idx(wrong)=[];
+		ID(wrong)=[];
+		IDc(wrong)=[];
+		AIdx(wrong)=[];
+		%	error('something wrong went wrong!!!');
+		warning('something wrong went wrong!!!');
+	end
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 	NEW.time.delT(isnan(NEW.time.delT))=1;
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -161,7 +173,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 		len=tracks(aidx).length+1;
 		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(NNf(aa));
 		tracks(aidx).length=len;
-	end	
+	end
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one

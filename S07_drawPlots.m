@@ -22,6 +22,7 @@ function S07_drawPlots
 	ticks.dist=[-1200;300;8];
 	ticks.disttot=[0;2600;8];
 	ticks.vel=[-30;10;5];
+	ticks.birthdeath=[0;10;11];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
 	main(DD,tracks,maps,lo,la,ticks);
@@ -38,70 +39,82 @@ function [DD,maps,tracks,lo,la]=inits
 	tracks=load([DD.path.analyzed.name, 'tracks.mat']);
 end
 function main(DD,tracks,maps,lo,la,ticks)
-	spmd
-		if labindex==2
- 			trackPlots(DD,ticks,tracks)
-		end
-		if labindex==1
+% 	spmd
+% 		if labindex==2
+%  			trackPlots(DD,ticks,tracks)
+% 		end
+% 		if labindex==1
  			mapstuff(maps,DD,ticks,lo,la)
-		end
-	end
+% 		end
+% 	end
 end
 function mapstuff(maps,DD,ticks,lo,la)
 	for sense=fieldnames(maps)';sen=sense{1};
-		maps.(sen).age.logmean=log(maps.(sen).age.mean);
+% 		maps.(sen).age.logmean=log(maps.(sen).age.mean);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).age.logmean;
+% 		pcolor(lo,la,VV);shading flat
+% 		decorate('age',ticks,DD,sen,'age','d',1,1);
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).visitsSingleEddy;
+% 		pcolor(lo,la,VV);shading flat
+% 		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);		%%
+% 		%%
+		%figure
+		VV=maps.(sen).birthDeath.birth;
+		pcolor(lo,la,VV);shading flat
+		decorate('birthdeath',ticks,DD,sen,'Births','',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_births']);
 		%%
 		%figure
-		VV=maps.(sen).age.logmean;
+		VV=maps.(sen).birthDeath.death;
 		pcolor(lo,la,VV);shading flat
-		decorate('age',ticks,DD,sen,'age','d',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
-		%%
-		%figure
-		VV=maps.(sen).visitsSingleEddy;
-		pcolor(lo,la,VV);shading flat
-		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
-		%%
-		%figure
-		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
-		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
-		doublemap(cb,winter,autumn,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
-		%%
-		%figure
-		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
-		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
-		doublemap(cb,winter,autumn,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
-		%%
-		%figure
-		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
-		pcolor(lo,la,VV);shading flat
-		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
-		%%
-		%figure
-		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
-		pcolor(lo,la,VV);shading flat
-		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
-		%%
-		%figure
-		VV=maps.(sen).vel.zonal.mean*100;
-		pcolor(lo,la,VV);shading flat
-		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
-		doublemap(cb,autumn,winter,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
-		%%
-		%figure
-		VV=maps.(sen).radius.mean.mean/1000;
-		pcolor(lo,la,VV);shading flat
-		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
-		
+		decorate('birthdeath',ticks,DD,sen,'Deaths','',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
+% 		pcolor(lo,la,VV);shading flat
+% 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
+% 		doublemap(cb,winter,autumn,[.9 1 .9])
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
+% 		pcolor(lo,la,VV);shading flat
+% 		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
+% 		doublemap(cb,winter,autumn,[.9 1 .9])
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
+% 		pcolor(lo,la,VV);shading flat
+% 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
+% 		pcolor(lo,la,VV);shading flat
+% 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).vel.zonal.mean*100;
+% 		pcolor(lo,la,VV);shading flat
+% 		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
+% 		doublemap(cb,autumn,winter,[.9 1 .9])
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
+% 		%%
+% 		%figure
+% 		VV=maps.(sen).radius.mean.mean/1000;
+% 		pcolor(lo,la,VV);shading flat
+% 		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
+% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
+% 		
 	end
 	
 end

@@ -2,8 +2,8 @@ function U=input_vars
 	%% threads
 	U.threads.num=12;
 	%% time
- 	U.time.from.str='19940425';
- 	U.time.till.str='20060131';
+ 	U.time.from.str='20000101';
+ 	U.time.till.str='20000301';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='TempSalt/';
@@ -22,10 +22,10 @@ function U=input_vars
 	%% dims for map plots
 	U.dim.X=70*1+1;
 	U.dim.Y=40*1+1;
-	U.dim.west=-90;
-	U.dim.east=-20;
-	U.dim.south=20;
-	U.dim.north=60;
+	U.dim.west=-75;
+	U.dim.east=-60;
+	U.dim.south=30;
+	U.dim.north=45;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

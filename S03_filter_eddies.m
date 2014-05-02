@@ -10,10 +10,10 @@ function S03_filter_eddies
 	DD=initialise('conts');
 	init_threads(DD.threads.num);
 	%% spmd
-	%spmd
+	spmd
 		id=labindex;
 		spmd_body(DD,id)
-	%end
+	end
 	%% update infofile
 	save_info(DD)
 end
@@ -132,9 +132,6 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% get effective amplitude relative to ellipse;
 	[pass,ee.peak.amp.to_ellipse]=EddyAmp2Ellipse(ee.peak.lin,zoom,dd.thresh.amp);
 	if ~pass, return, end;
-	%% get area regarding ellipse;
-	%redundant!
-	%[ee.area.ellipse]=EddyArea2Ellipse(ee.radius.mean);
 	%% append mask to ee in cut coordinates
 	[ee.mask]=sparse(EddyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%plots4debug(zoom,ee)
@@ -367,13 +364,8 @@ end
 function mask=EddyCut_mask(zoom)
 	[Y,X]=size(zoom.fields.SSH);
 	mask.rim_only=false(Y,X);
-	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
-	xma=max(zoom.coor.int.x);
-	xmi=min(zoom.coor.int.x);
-	yma=max(zoom.coor.int.y);
-	ymi=min(zoom.coor.int.y);
-	mask.filled=mask.rim_only;
-	mask.filled(ymi:yma,xmi:xma)=logical(imfill(mask.rim_only(ymi:yma,xmi:xma),'holes'));
+	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;	
+	mask.filled=logical(imfill(mask.rim_only,'holes'));
 	mask.inside= mask.filled & ~mask.rim_only;
 	mask.size.Y=Y;
 	mask.size.X=X;

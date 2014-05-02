@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=1;
+	U.threads.num=2;
 	%% time
  	U.time.from.str='19940501';
  	U.time.till.str='19940514';
@@ -20,12 +20,12 @@ function U=input_vars
 	U.thresh.dist=.5*24*60^2; % max distance travelled per day
 	U.thresh.life=4; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=15*2+1;
-	U.dim.Y=15*2+1;
-	U.dim.west=-75;
-	U.dim.east=-60;
-	U.dim.south=30;
-	U.dim.north=45;
+	U.dim.X=360*1+1;
+	U.dim.Y=180*1+1;
+	U.dim.west=-180;
+	U.dim.east=180;
+	U.dim.south=-90;
+	U.dim.north=90;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

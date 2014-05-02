@@ -149,12 +149,10 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	if any(AIdx==0)
 		wrong=find(AIdx);
 		NN(wrong)=[];
-		idx(wrong)=[];
-		ID(wrong)=[];
 		IDc(wrong)=[];
 		AIdx(wrong)=[];
 		%	error('something wrong went wrong!!!');
-		warning('something wrong went wrong!!!');
+		warning('something wrong went wrong!!!'); %#ok<WNTAG>
 	end
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	

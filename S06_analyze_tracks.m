@@ -265,7 +265,7 @@ end
 
 function [count]=TRbirthdeath(MAP,eddies)
 	BD={'birth','death'};
-	for bd=BD; bd=bd{1};
+	for bd=BD; bd=bd{1}; %#ok<FXSET>
 		count.(bd)=MAP.proto.zeros;
 		for ee=1:numel(eddies)
 			switch bd

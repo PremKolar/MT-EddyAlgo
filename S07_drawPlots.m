@@ -10,18 +10,19 @@ function S07_drawPlots
 	[DD,maps,tracks,lo,la]=inits;
 	%%	set ticks here!
 	ticks.rez=400;
-	ticks.width=800;
-	ticks.height=800;
-	ticks.y=linspace(0,40,5);
-	ticks.x=linspace(0,40,5);
-	ticks.age=[1,DD.time.span/2,10];
+	ticks.width=400;
+	ticks.height=400;
+	ticks.y=linspace(20,60,2);
+	ticks.x=linspace(-90,-40,2);
+	ticks.age=[1,DD.time.span/4,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
-	ticks.radius=[0,300,7];
+	ticks.radius=[0,200,5];
 	ticks.amp=[0,20,7];
-	ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
+	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
+	ticks.visits=[0,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[0;2600;8];
-	ticks.vel=[-30;10;5];
+	ticks.disttot=[0;1000;6];
+	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
 	main(DD,tracks,maps,lo,la,ticks);
@@ -59,6 +60,7 @@ function mapstuff(maps,DD,ticks,lo,la)
 		%%
 		%figure
 		VV=maps.(sen).visitsSingleEddy;
+		VV(VV==0)=nan;
 		pcolor(lo,la,VV);shading flat
 		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);

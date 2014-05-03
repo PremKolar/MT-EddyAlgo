@@ -12,16 +12,16 @@ function S07_drawPlots
 	ticks.rez=400;
 	ticks.width=400;
 	ticks.height=400;
-	ticks.y=linspace(20,60,2);
-	ticks.x=linspace(-90,-40,2);
+	ticks.y= [] %linspace(20,60,2);
+	ticks.x= [] %linspace(-90,-50,2);
 	ticks.age=[1,DD.time.span/4,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
-	ticks.radius=[0,200,5];
+	ticks.radius=[50,150,6];
 	ticks.amp=[0,20,7];
 	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
 	ticks.visits=[0,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[0;1000;6];
+	ticks.disttot=[0;1200;6];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
@@ -68,27 +68,27 @@ function mapstuff(maps,DD,ticks,lo,la)
 		%figure
 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
+		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',1,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
+		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',1,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
 		%%
 		%figure
 		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
+		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
 		%%
 		%figure
 		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
+		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
 		%%
 		%figure
@@ -129,12 +129,12 @@ function trackPlots(DD,ticks,tracks)
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_ellipse',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
-		decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',0,1)
+		decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_contour',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
-		decorate('amp',ticks,DD,sen,'Amp to contour','cm',0,1)
+		decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
 	end
 end

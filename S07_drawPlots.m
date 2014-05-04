@@ -10,16 +10,18 @@ function S07_drawPlots
 	[DD,maps,tracks,lo,la]=inits;
 	%%	set ticks here!
 	ticks.rez=400;
-	ticks.width=400;
-	ticks.height=400;
-	ticks.y= [] %linspace(20,60,2);
-	ticks.x= [] %linspace(-90,-50,2);
+	ticks.width=600;
+	ticks.height=600;
+% 	ticks.y= linspace(20,60,2);
+% 	ticks.x= linspace(-90,-50,2);
+	ticks.y= [0];
+	ticks.x= [0];	
 	ticks.age=[1,DD.time.span/4,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
 	ticks.radius=[50,150,6];
-	ticks.amp=[0,20,7];
+	ticks.amp=[1,20,7];
 	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
-	ticks.visits=[0,10,6];
+	ticks.visits=[1,10,6];
 	ticks.dist=[-1200;300;8];
 	ticks.disttot=[0;1200;6];
 	ticks.vel=[-30;20;6];
@@ -39,14 +41,14 @@ function [DD,maps,tracks,lo,la]=inits
 	tracks=load([DD.path.analyzed.name, 'tracks.mat']);
 end
 function main(DD,tracks,maps,lo,la,ticks)
-	spmd
-		if labindex==2
+% 	spmd
+% 		if labindex==2
  			trackPlots(DD,ticks,tracks)
-		end
-		if labindex==1
+% 		end
+% 		if labindex==1
  			mapstuff(maps,DD,ticks,lo,la)
-		end
-	end
+% 		end
+% 	end
 end
 function mapstuff(maps,DD,ticks,lo,la)
 	for sense=fieldnames(maps)';sen=sense{1};
@@ -68,14 +70,14 @@ function mapstuff(maps,DD,ticks,lo,la)
 		%figure
 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',1,1);
+		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',1,1);
+		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
 		doublemap(cb,winter,autumn,[.9 1 .9])
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
 		%%

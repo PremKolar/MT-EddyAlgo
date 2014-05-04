@@ -23,7 +23,7 @@ function S07_drawPlots
 	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
 	ticks.visits=[1,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[0;1200;6];
+	ticks.disttot=[1;1200;6];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
@@ -82,13 +82,13 @@ function mapstuff(maps,DD,ticks,lo,la)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
 		%%
 		%figure
-		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
+		VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
 		%%
 		%figure
-		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
+		VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
@@ -214,7 +214,7 @@ function [maxV,cmap]=drawColorLine(V,fieldName,maxV,logornot)
 		la=V(ee).lat;
 		for ii=1:length(la)-1
 			if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
-				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.5);
+				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.8);
 			end
 		end
 	end

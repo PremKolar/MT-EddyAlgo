@@ -23,7 +23,7 @@ function S07_drawPlots
 	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
 	ticks.visits=[1,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[0;2600;8];
+	ticks.disttot=[1;2600;8];
 	ticks.birthdeath=[0;10;11];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];

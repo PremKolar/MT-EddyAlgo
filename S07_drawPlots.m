@@ -4,25 +4,28 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% all figs are printed to ~/PRINTS/  !
+% all figs are saved to ~/FIGS/  !
 function S07_drawPlots
 	%% init
 	[DD,maps,tracks,lo,la]=inits;
 	%%	set ticks here!
 	ticks.rez=400;
-	ticks.width=800;
-	ticks.height=800;
-	ticks.y=linspace(0,40,5);
-	ticks.x=linspace(0,40,5);
-	ticks.age=[1,DD.time.span/2,10];
+	ticks.width=600;
+	ticks.height=600;
+% 	ticks.y= linspace(20,60,2);
+% 	ticks.x= linspace(-90,-50,2);
+	ticks.y= [0];
+	ticks.x= [0];	
+	ticks.age=[1,DD.time.span/4,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
-	ticks.radius=[0,300,7];
-	ticks.amp=[0,20,7];
-	ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
+	ticks.radius=[50,150,6];
+	ticks.amp=[1,20,7];
+	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
+	ticks.visits=[1,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[0;2600;8];
-	ticks.vel=[-30;10;5];
+	ticks.disttot=[1;2600;8];
 	ticks.birthdeath=[0;10;11];
+	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
 	main(DD,tracks,maps,lo,la,ticks);
@@ -41,7 +44,7 @@ end
 function main(DD,tracks,maps,lo,la,ticks)
 % 	spmd
 % 		if labindex==2
-%  			trackPlots(DD,ticks,tracks)
+ 			trackPlots(DD,ticks,tracks)
 % 		end
 % 		if labindex==1
  			mapstuff(maps,DD,ticks,lo,la)
@@ -50,20 +53,47 @@ function main(DD,tracks,maps,lo,la,ticks)
 end
 function mapstuff(maps,DD,ticks,lo,la)
 	for sense=fieldnames(maps)';sen=sense{1};
-% 		maps.(sen).age.logmean=log(maps.(sen).age.mean);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).age.logmean;
-% 		pcolor(lo,la,VV);shading flat
-% 		decorate('age',ticks,DD,sen,'age','d',1,1);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).visitsSingleEddy;
-% 		pcolor(lo,la,VV);shading flat
-% 		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);		%%
-% 		%%
+		maps.(sen).age.logmean=log(maps.(sen).age.mean);
+		%%
+		%figure
+		VV=maps.(sen).age.logmean;
+		pcolor(lo,la,VV);shading flat
+		decorate('age',ticks,DD,sen,'age','d',1,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
+		%%
+		%figure
+		VV=maps.(sen).visitsSingleEddy;
+		VV(VV==0)=nan;
+		pcolor(lo,la,VV);shading flat
+		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
+		%%
+		%figure
+		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
+		pcolor(lo,la,VV);shading flat
+		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
+		doublemap(cb,winter,autumn,[.9 1 .9])
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
+		%%
+		%figure
+		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
+		pcolor(lo,la,VV);shading flat
+		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
+		doublemap(cb,winter,autumn,[.9 1 .9])
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
+		%%
+		%figure
+		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
+		pcolor(lo,la,VV);shading flat
+		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
+		%%
+		%figure
+		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
+		pcolor(lo,la,VV);shading flat
+		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
+		%%
 		%figure
 		VV=maps.(sen).birthDeath.birth;
 		pcolor(lo,la,VV);shading flat
@@ -75,46 +105,6 @@ function mapstuff(maps,DD,ticks,lo,la)
 		pcolor(lo,la,VV);shading flat
 		decorate('birthdeath',ticks,DD,sen,'Deaths','',0,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
-% 		pcolor(lo,la,VV);shading flat
-% 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
-% 		doublemap(cb,winter,autumn,[.9 1 .9])
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
-% 		pcolor(lo,la,VV);shading flat
-% 		cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
-% 		doublemap(cb,winter,autumn,[.9 1 .9])
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
-% 		pcolor(lo,la,VV);shading flat
-% 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
-% 		pcolor(lo,la,VV);shading flat
-% 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).vel.zonal.mean*100;
-% 		pcolor(lo,la,VV);shading flat
-% 		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
-% 		doublemap(cb,autumn,winter,[.9 1 .9])
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
-% 		%%
-% 		%figure
-% 		VV=maps.(sen).radius.mean.mean/1000;
-% 		pcolor(lo,la,VV);shading flat
-% 		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
-% 		
 	end
 	
 end
@@ -140,12 +130,12 @@ function trackPlots(DD,ticks,tracks)
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_ellipse',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
-		decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',0,1)
+		decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
 		%%
 		%figure
 		drawColorLine(tracks.(sen),'peakampto_contour',max(cat(2,tracks.(sen).peakampto_ellipse)),0) ;
-		decorate('amp',ticks,DD,sen,'Amp to contour','cm',0,1)
+		decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
 	end
 end

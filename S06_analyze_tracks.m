@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
- 	spmd
+%  	spmd
 		id=labindex;
 		[map,tracks,vecs]=spmd_body(DD,id);
-	end
+% 	end
 	
 	%% merge
 	MAP=mergeMapData(map,DD);  %#ok<NASGU>

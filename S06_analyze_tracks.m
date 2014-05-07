@@ -11,28 +11,36 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	spmd
+%  	spmd
 		id=labindex;
-		[map,tracks]=spmd_body(DD,id);
-	end
+		[map,tracks,vecs]=spmd_body(DD,id);
+% 	end
+	
 	%% merge
 	MAP=mergeMapData(map,DD);  %#ok<NASGU>
 	TRACKS=mergeTracksData(tracks,DD); %#ok<NASGU>
+	vecs=mergeVecData(vecs); %#ok<NASGU>
 	
 	%% save
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','MAP');
 	save([DD.path.analyzed.name,'tracks.mat'],'-struct','TRACKS');
+	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
+end
+
+
+function	vecs=mergeVecData(vecs)
+	vecs=vecs{1};
 end
 
 function	TRACKS=mergeTracksData(tracks,DD)
 	if DD.threads.num>1
 		TRACKS=tracks{1}; %already joined TrackData4Plot
 	else
-		TRACKS=tracks;
+		TRACKS=tracks{1};
 	end
 end
 
-function [MeanStd,tracks]=spmd_body(DD,id)
+function [MeanStd,tracks,vectors]=spmd_body(DD,id)
 	%% init
 	[AntiCycs,Cycs]=initACandC(DD,id);
 	%% put tracks into better plottable struct
@@ -40,8 +48,8 @@ function [MeanStd,tracks]=spmd_body(DD,id)
 	[~,tracks.AntiCycs]=TrackData4Plot(AntiCycs,DD)	;
 	%% Mean and STD maps
 	MAP=load([DD.path.root,'protoMaps.mat']);
-	MeanStd.AntiCycs=MeanStdStuff(AntiCycs,MAP);
-	MeanStd.Cycs=MeanStdStuff(Cycs,MAP);
+	[MeanStd.AntiCycs,vectors.AntiCycs]=MeanStdStuff(AntiCycs,MAP);
+	[MeanStd.Cycs,vectors.Cycs]=MeanStdStuff(Cycs,MAP);
 end
 
 
@@ -109,10 +117,17 @@ function [AntiCycs,Cycs]=initACandC(DD,id)
 	AntiCycs(ac+1:end)=[];
 	Cycs(cc+1:end)=[];
 end
-function MAP=MeanStdStuff(eddies,MAP)
+function [MAP,V]=MeanStdStuff(eddies,MAP)
 	MAP.strctr=TRstructure(MAP,eddies);
 	disp('counting visits')
 	[MAP.visits,MAP.visitsSingleEddy]=TRvisits(MAP,eddies);
+	disp('getting lat distro')
+	[V]=getVecs(eddies);
+	
+	
+	
+	
+	
 	disp('age stuff')
 	MAP.age=TRage(MAP,eddies);
 	disp('sense stuff')
@@ -125,7 +140,17 @@ function MAP=MeanStdStuff(eddies,MAP)
 	MAP.radius=TRradius(MAP,eddies);
 	disp('amp stuff')
 	MAP.amp=TRamp(MAP,eddies);
+	
+	for ff=fieldnames(V)'
+	V.(ff{1})=gcat(V.(ff{1}),2,1);
+	end
 end
+
+function [V]=getVecs(eddies)
+V.lat=extractdeepfield(eddies,'track.geo.lat');
+V.age=cellfun(@(x) (x(end).age), extractdeepfield(eddies,'track'));
+end
+
 
 function	amp=TRamp(MAP,eddies)
 	
@@ -293,8 +318,10 @@ end
 function	strctr=TRstructure(MAP,eddies)
 	strctr.length=cell(numel(eddies),1);
 	strctr.idx=cell(numel(eddies),1);
+	strctr.lengthTotal=0;
 	for ee=1:numel(eddies)
 		tracklen=numel(eddies(ee).track);
+		strctr.lengthTotal=strctr.lengthTotal + tracklen;
 		strctr.length{ee}=(1:tracklen);
 		strctr.idx{ee}=nan(1,tracklen);
 		for tt=1:tracklen
@@ -306,7 +333,7 @@ function ALL=mergeMapData(MAP,DD)
 	if DD.threads.num>1
 		ALL=spmdCase(MAP,DD);
 	else
-		ALL=MAP;
+		ALL=MAP{1};
 	end
 end
 function ALL=spmdCase(MAP,DD)

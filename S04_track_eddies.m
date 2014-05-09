@@ -55,7 +55,7 @@ TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
 %% append new ones to end of temp archive
 [tracks,NEW]=append_born(TDB, tracks, OLD,NEW,sen);
 %% write/kill dead
-[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen,NEW.eddies);
+[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);
 %% swap
 OLD=NEW;
 
@@ -107,7 +107,7 @@ eddies=read_fields(DD,1,'eddies');
 %% append geo-coor vectors for min_dist function
 [OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
-function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen,new)
+function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 %% collect all ID's in archive
 ArchIDs=cat(2,tracks.ID);
 %% all indeces in old set of dead eddies

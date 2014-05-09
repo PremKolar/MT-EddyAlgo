@@ -9,10 +9,10 @@ function S04_track_eddies
 %% init
 DD=initialise('eddies');
 %% parallel!
-init_threads(2);
-spmd(2);
+ init_threads(2);
+ spmd(2);
     spmd_body(DD);
-end
+ end
 %% update infofile
 save_info(DD);
 end
@@ -41,7 +41,7 @@ end
 function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 %% in case of full globe only
 if phantoms
-    [NEW]=kill_phantoms(NEW,sen);
+       [NEW]=kill_phantoms(NEW,sen);
 end
 %% find minium distances between old and new time step eddies
 [MinDists]=get_min_dists(OLD,NEW,sen);
@@ -217,19 +217,18 @@ TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
 %% remember cross ref
 TDB.(sen).inNew.n2oi=n2oi;
 end
-function [N]=kill_phantoms(N,sen)
+function [inout]=kill_phantoms(inout,sen)
 %% search for identical eddies
-[LOM.a,LOM.b]=meshgrid(N.LON.(sen),N.LON.(sen));
-[LAM.a,LAM.b]=meshgrid(N.LAT.(sen),N.LAT.(sen));
+[LOM.a,LOM.b]=meshgrid(inout.LON.(sen),inout.LON.(sen));
+[LAM.a,LAM.b]=meshgrid(inout.LAT.(sen),inout.LAT.(sen));
 LONDIFF=abs(LOM.a - LOM.b);
 DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
 DIST(logical(eye(size(DIST))))=nan; % nan self distance
-Y = DIST==0;
+[Y,~] = find(DIST==0);
 %% kill
-N.eddies.(sen)(Y)=[];
-N.time.(sen)(Y)=[];
-N.LON.(sen)(Y)=[];
-N.LAT.(sen)(Y)=[];
+inout.eddies.(sen)(Y)=[];
+inout.LON.(sen)(Y)=[];
+inout.LAT.(sen)(Y)=[];
 end
 function [MD]=get_min_dists(OLD,NEW,sen)
 [LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));

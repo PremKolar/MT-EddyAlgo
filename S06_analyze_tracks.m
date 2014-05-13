@@ -11,23 +11,17 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
- 	  	spmd
-	id=labindex;
-	[map,vecs]=spmd_body(DD,id);
- 	 	end
-	
+	spmd
+		id=labindex;
+		[map,vecs]=spmd_body(DD,id);
+	end
 	%% merge
-	map=mergeMapData(map,DD);  %#ok<NASGU>
- 	vecs=mergeVecData(vecs); %#ok<NASGU>
-	
+	map=mergeMapData(map,DD);   %#ok<NASGU>
+	vecs=mergeVecData(vecs);  %#ok<NASGU>
 	%% save
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
- 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
+	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end
-
-
-
-
 
 function MAP=initMAP(DD)
 	MAP=load([DD.path.root,'protoMaps.mat']);
@@ -43,6 +37,7 @@ function MAP=initMAP(DD)
 	MAP.visits=MAP.proto.zeros;
 	MAP.visitsSingleEddy=MAP.proto.zeros;
 end
+
 function resortTracks(DD,eddy,sense,fname)
 	subfields=DD.FieldKeys.trackPlots;
 	track=cell2mat(extractfield(eddy,'trck'));
@@ -81,20 +76,18 @@ function [MAP,V]=spmd_body(DD,id)
 		%%
 		switch sense
 			case -1
-		[MAPac,Vac]=MeanStdStuff(eddy,MAPac,Vac,DD);
+				[MAPac,Vac]=MeanStdStuff(eddy,MAPac,Vac,DD);
 			case 1
-		[MAPc,Vc]=MeanStdStuff(eddy,MAPc,Vc,DD);
+				[MAPc,Vc]=MeanStdStuff(eddy,MAPc,Vc,DD);
 		end
 		
 	end
 	
 	MAP.AntiCycs=MAPac;
-	MAP.Cycs=MAPc;	
+	MAP.Cycs=MAPc;
 	V.AntiCycs=Vac;
-	V.Cycs=Vc;	
+	V.Cycs=Vc;
 end
-
-
 
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	MAP.strctr=TRstructure(MAP,eddy);
@@ -105,9 +98,8 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	NEW.amp=TRamp(MAP,eddy);
 	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
 	MAP=comboMS(MAP,NEW,DD);
+	[V]=getVecs(eddy,V);
 	
-	 	[V]=getVecs(eddy,V);
-
 end
 
 function	strctr=TRstructure(MAP,eddy)
@@ -134,7 +126,6 @@ function [age]=TRage(MAP,eddy)
 	end
 	
 end
-
 
 function	amp=TRamp(MAP,eddy)
 	
@@ -264,10 +255,10 @@ function [count,singlecount]=TRvisits(MAP)
 	for tt=MAP.strctr.length
 		idx=MAP.strctr.idx(tt);
 		count(idx)=count(idx) + 1;
+		
 	end
 	sidx=unique(MAP.strctr.idx);
 	singlecount(sidx)=singlecount(sidx) + 1;
-	
 end
 
 function [param,count]=protoInit(proto,type)
@@ -285,11 +276,9 @@ function ALL=mergeMapData(MAP,DD)
 	end
 end
 
-
 function	vecs=mergeVecData(vecs)
 	vecs=vecs{1};
 end
-
 
 function old=comboMS(old,new,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
@@ -316,8 +305,6 @@ function old=comboMS(old,new,DD)
 	old.visits=old.visits + new.visits;
 	old.visitsSingleEddy=old.visitsSingleEddy + new.visitsSingleEddy;
 end
-
-
 
 function ALL=spmdCase(MAP,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;

@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	spmd
+ 	spmd
 		id=labindex;
 		[map,vecs]=spmd_body(DD,id);
-	end
+ 	end
 	%% merge
 	map=mergeMapData(map,DD);   %#ok<NASGU>
 	vecs=mergeVecData(vecs);  %#ok<NASGU>
@@ -46,8 +46,7 @@ function resortTracks(DD,eddy,sense,fname)
 	for subfield=subfields'; sub=subfield{1};
 		collapsedField=strrep(sub,'.','');
 		TT.(collapsedField) =  extractdeepfield(track,sub);
-	end
-	
+	end	
 	switch sense
 		case -1
 			outfile=[DD.path.analyzedTracks.AC.name,fname];
@@ -66,6 +65,11 @@ function [MAP,V]=spmd_body(DD,id)
 	MAPac=initMAP(DD);
 	MAPc=initMAP(DD);
 	Vac.age=[];Vc.age=[];Vac.lat=[];Vc.lat=[];
+	Vac.birth.lat=[];Vac.birth.lon=[];
+	Vc.birth.lat=[];Vc.birth.lon=[];
+	Vac.death.lat=[];Vac.death.lon=[];
+	Vc.death.lat=[];Vc.death.lon=[];
+	%%
 	for jj=JJ;
 		fname=DD.path.tracks.files(jj).name;
 		filename = [DD.path.tracks.name  fname	];
@@ -82,7 +86,7 @@ function [MAP,V]=spmd_body(DD,id)
 		end
 		
 	end
-	
+	%% output	
 	MAP.AntiCycs=MAPac;
 	MAP.Cycs=MAPc;
 	V.AntiCycs=Vac;
@@ -99,12 +103,17 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
 	MAP=comboMS(MAP,NEW,DD);
 	[V]=getVecs(eddy,V);
-	
 end
 
 function [V]=getVecs(eddy,V)
-	V.lat= [V.lat extractdeepfield(eddy,'trck.geo.lat')];
-	V.age= [V.age eddy.trck(end).age];
+	V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
+	V.age=[V.age eddy.trck(end).age];
+	death=eddy.trck(end).geo;
+	V.death.lat=[V.death.lat  cat(1,death.lat)];
+	V.death.lon=[ V.death.lon cat(1,death.lon)];
+	birth=eddy.trck(1).geo;
+	V.birth.lat=[ V.birth.lat cat(1,birth.lat)];
+	V.birth.lon=[ V.birth.lon cat(1,birth.lon)];
 end
 
 function	strctr=TRstructure(MAP,eddy)
@@ -251,6 +260,7 @@ function [d,drct]=diststuff(geo)
 	d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
 	
 end
+
 function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;

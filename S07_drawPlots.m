@@ -63,17 +63,17 @@ function [DD,maps,tracks,vecs,lo,la]=inits
 end
 
 function main(DD,tracks,vecs,maps,lo,la,ticks)
-	%spmd
-	%	if labindex==1
-	%		histstuff(vecs,DD,ticks)
-	%	end
-	%	if labindex==2
-	%		trackPlots(DD,ticks,tracks)
-	%	end
-	%	if labindex==3
+	spmd
+		if labindex==1
+			histstuff(vecs,DD,ticks)
+		end
+		if labindex==2
+			trackPlots(DD,ticks,tracks)
+		end
+		if labindex==3
 			mapstuff(maps,vecs,DD,ticks,lo,la)
-	%	end
-	%end
+		end
+	end
 end
 function histstuff(vecs,DD,ticks)
 for sense=fieldnames(vecs)';sen=sense{1};

@@ -5,25 +5,24 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % inter-allocate different time steps to determine tracks of eddies
-% entirely sequential no spmd...
 function S04_track_eddies
 	%% init
 	DD=initialise('eddies');
 	%% parallel!
 	init_threads(2);
 	spmd(2);
-		seq_body(DD);
+		spmd_body(DD);
 	end
 	%% update infofile
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function seq_body(DD)
+function spmd_body(DD)
 	%% one thread do cycs, other acycs
 	switch labindex
-		case 1
-			sen='cyclones';
 		case 2
+			sen='cyclones';
+		case 1
 			sen='anticyclones';
 	end
 	%% set up tracking procedure
@@ -54,7 +53,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 	%% append tracked to respective cell of temporary archive 'tracks'
 	[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
 	%% append new ones to end of temp archive
-	[tracks,NEW]=append_born(TDB, tracks, NEW,sen);
+	[tracks,NEW]=append_born(TDB, tracks, OLD,NEW,sen);
 	%% write/kill dead
 	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);
 	%% swap
@@ -62,6 +61,35 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 	
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
+	%% get
+	ID.arch=cat(2,tracks.ID);
+	flag.new=TDB.(sen).inNew.tracked;
+	idx.old=TDB.(sen).inNew.n2oi(flag.new); % get index in old data
+	ID.old =	cat(2,OLD.eddies.(sen)(idx.old).ID); % get ID
+	IDc=num2cell(ID.old);
+	%% find position in archive
+	[~,idx.arch] = ismember(ID.old,ID.arch);
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
+	NEW.time.delT(isnan(NEW.time.delT))=1;
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
+	%% set
+	[NEW.eddies.(sen)(flag.new).ID] = deal(IDc{:}); % set ID accordingly for new data
+	[NEW.eddies.(sen)(flag.new).age] = deal(age{:}); % set age accordingly for new data
+	[tracks(idx.arch).age]= deal(age{:});		% update age in archive
+	%% append tracks into track cells
+	idx.new=find(flag.new);
+	for aa=1:length(idx.arch)
+		aidx=idx.arch(aa);
+		len=tracks(aidx).length+1;
+		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(idx.new(aa));
+		tracks(aidx).length=len;
+	end
+end
+
+
 function [NEW]=set_up_today(DD,jj,sen)
 	eddies=read_fields(DD,jj,'eddies');
 	NEW.eddies=rmfield(eddies,'filename');
@@ -79,15 +107,15 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% append geo-coor vectors for min_dist function
 	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
-
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
-	
 	%% collect all ID's in archive
 	ArchIDs=cat(2,tracks.ID);
 	%% all indeces in old set of dead eddies
 	dead_idxs=TDB.(sen).inOld.dead;
 	%% find which ones to write and kill
-	AIdxdead = find(ismember(ArchIDs,cat(1,old.(sen)(dead_idxs).ID)));
+	
+	AIdxdead = find(ismember(ArchIDs',cat(1,old.(sen)(dead_idxs).ID)));
+	
 	age = cat(1,tracks(AIdxdead).age);
 	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;
@@ -96,7 +124,6 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
 		for pa=find(pass)'; ll=ll+1;
-			
 			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end
@@ -111,20 +138,20 @@ function archive(trck,path,jj,id)
 	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end
-function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
-	maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID]));
-	NN=(TDB.(sen).inNew.born);
-	if any(NN)
+function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
+	maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID  OLD.eddies.(sen).ID]));
+	flag.born.inNew=(TDB.(sen).inNew.born);
+	if any(flag.born.inNew)
 		%% new Ids and new indices (appended to end of tracks)
-		newIds=num2cell(maxID+1:maxID+sum(NN));
-		newendIdxs=numel(tracks)+1:numel(tracks)+sum(NN);
+		newIds=num2cell(maxID+1:maxID+sum(flag.born.inNew));
+		newendIdxs=numel(tracks)+1:numel(tracks)+sum(flag.born.inNew);
 		%% deal new ids to eddies
-		[NEW.eddies.(sen)(NN).age]=deal(0);
-		[NEW.eddies.(sen)(NN).ID]=deal(newIds{:});
+		[NEW.eddies.(sen)(flag.born.inNew).age]=deal(0);
+		[NEW.eddies.(sen)(flag.born.inNew).ID]=deal(newIds{:});
 		%% deal eddies to archive and pre alloc
-		NN=find(NN);nn=0;
+		idx.born.inNew=find(flag.born.inNew);nn=0;
 		for tt=newendIdxs; nn=nn+1;
-			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(NN(nn));
+			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
 			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
 		end
 		%% set all ages 0
@@ -134,43 +161,6 @@ function [tracks,NEW]=append_born(TDB, tracks,NEW,sen)
 		%% init length
 		[tracks(newendIdxs).length]=deal(1);
 		
-	end
-end
-function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
-	%% get
-	ArchIds=cat(2,tracks.ID);
-	NN=TDB.(sen).inNew.tracked;
-	idx=TDB.(sen).inNew.n2oi(NN); % get index in old data
-	ID =	cat(2,OLD.eddies.(sen)(idx).ID); % get ID
-	IDc=num2cell(ID);
-	%% find position in archive	
-	[~,AIdx] = ismember(ID,ArchIds);
-	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-	if any(AIdx==0)
-		wrong=find(AIdx);
-		NN(wrong)=[];
-		IDc(wrong)=[];
-		AIdx(wrong)=false;
-		%	error('something wrong went wrong!!!');
-		warning('something wrong went wrong!!!'); %#ok<WNTAG>
-	end
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	
-	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-	NEW.time.delT(isnan(NEW.time.delT))=1;
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	age = num2cell(cat(2,tracks(AIdx).age) + NEW.time.delT); % get new age
-	%% set
-	[NEW.eddies.(sen)(NN).ID] = deal(IDc{:}); % set ID accordingly for new data
-	[NEW.eddies.(sen)(NN).age] = deal(age{:}); % set age accordingly for new data
-	[tracks(AIdx).age]= deal(age{:});		% update age in archive
-	%% append tracks into track cells
-	NNf=find(NN);
-	for aa=1:length(AIdx)
-		aidx=AIdx(aa);
-		len=tracks(aidx).length+1;
-		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(NNf(aa));
-		tracks(aidx).length=len;
 	end
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
@@ -209,12 +199,17 @@ function [TDB]=tracked_dead_born(MD,sen)
 	n2oi=MD.(sen).new2old.idx;
 	%% idx in new set of min dist claims by old set
 	o2ni=MD.(sen).old2new.idx;
+	
+	%% index in new set of claims by old set
+	io=MD.(sen).old2new.idx(n2oi)';
+	%% respective index in new (from new's perspective)
+	in=(1:length(n2oi));
 	%% min dist values of old set of n2oi
 	do=MD.(sen).old2new.dist(n2oi)';
 	%% respective min dist values in new set
 	dn=MD.(sen).new2old.dist;
 	%% agreement among new and old ie definite tracking (with respect to new set)
-	TDB.(sen).inNew.tracked = (do == dn);
+	TDB.(sen).inNew.tracked = ((do == dn) & (io == in));
 	%% flag for fresh eddies with respect to new set
 	TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
 	%% indeces of deceised eddies with respect to old set

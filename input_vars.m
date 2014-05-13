@@ -6,7 +6,7 @@ function U=input_vars
  	U.time.till.str='20061230';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.TempSalt.name='TempSalt/';
+	U.path.TempSalt.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/MEANS/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
   	U.path.root='../dataTR/';
  	%% thresholds
@@ -20,12 +20,12 @@ function U=input_vars
 	U.thresh.dist=.5*24*60^2; % max distance travelled per day
 	U.thresh.life=20; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=40*1+1;
-	U.dim.Y=40*1+1;
-	U.dim.west=-90;
-	U.dim.east=-40;
-	U.dim.south=20;
-	U.dim.north=60;
+	U.dim.X=360*1+1;
+ -	U.dim.Y=180*1+1;
+ -	U.dim.west=-180;
+ -	U.dim.east=180;
+ -	U.dim.south=-90;
+ -	U.dim.north=90;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

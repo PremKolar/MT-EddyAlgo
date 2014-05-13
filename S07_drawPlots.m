@@ -9,9 +9,9 @@ function S07_drawPlots
 	%% init
 	[DD,maps,tracks,vecs,lo,la]=inits;
 	%%	set ticks here!
-	ticks.rez=400;
-	ticks.width=600;
-	ticks.height=600;
+	ticks.rez=300;
+	ticks.width=300;
+	ticks.height=300;
 	% 	ticks.y= linspace(20,60,2);
 	% 	ticks.x= linspace(-90,-50,2);
 	ticks.y= 0;

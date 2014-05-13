@@ -11,12 +11,18 @@ function savefig(rez,xdim,ydim,tit)
 	ydim=ydim*rez/resolution;
 	set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
 	mkdirp('~/FIGS/')
-	fname=['~/FIGS/',tit,'.fig'];
-	fnamepng=['~/FIGS/',tit,'.png'];
-	saveas(gcf,fname);
-	try
-	saveas(gcf,fnamepng);
-	end
+% 	fname=['~/FIGS/',tit,'.fig'];
+% 	fnamepng=['~/FIGS/',tit,'.png'];
+	fnameeps=['~/FIGS/',tit,'.eps'];
+% 	fnamepdf=['~/FIGS/',tit,'.pdf'];
+%	saveas(gcf,fname);
+%	try
+		eval(['print ', fnameeps, ' -f -r',num2str(rez),' -depsc'])
+		%eval(['print ', fnamepdf, ' -f -r600 -dpdf'])
+%	end
+%	try
+%		saveas(gcf,fnamepng);
+%	end
 	close(gcf);
 end
 

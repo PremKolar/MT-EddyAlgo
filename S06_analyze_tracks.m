@@ -102,6 +102,11 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	
 end
 
+function [V]=getVecs(eddy,V)
+	V.lat= [V.lat cat(2,eddy.trck.geo.lat)];
+	V.age= [V.age eddy.trck(end).age];
+end
+
 function	strctr=TRstructure(MAP,eddy)
 	strctr.length=cell(numel(eddy),1);
 	strctr.idx=cell(numel(eddy),1);

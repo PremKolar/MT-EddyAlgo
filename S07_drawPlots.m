@@ -134,8 +134,6 @@ caxis([zticks(1) zticks(end)])
 set(cb,'ytick',zticks);
 set(cb,'yticklabel',zticklabel);
 
-
-
 savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatLat']);
 %%
 figure
@@ -163,8 +161,6 @@ for ii = 1:length(x)
   cm(cm>1)=1;
     set(a,'facecolor', cm');
 end
-
-
 
 axis([min(x)-1 max(x) -1 1]);
 xtck=get(gca,'xtick')
@@ -200,76 +196,6 @@ tit=['ratio of cyclones to anticyclones as upper tail cum. of age'];
 title(tit)
 savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatAge']);
 end
-
-% 
-% function histstuff(vecs,DD,ticks) %#ok<INUSL>
-% 	for sense=fieldnames(vecs)';sen=sense{1};
-% 		figure
-% 		lat=vecs.(sen).lat;
-% 		range.(sen).lat=round(min(vecs.(sen).lat)):round(max(vecs.(sen).lat));
-% 		hc.(sen).lat=histc(lat,range.(sen).lat);
-% 		semilogy(range.(sen).lat,hc.(sen).lat);
-% 		tit=['number of ',sen,' per 1° lat'];
-% 		title(tit);
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_latNum']);
-% 		%%
-% 		figure
-% 		age=vecs.(sen).age;
-% 		range.(sen).age=round(min(vecs.(sen).age)):round(max(vecs.(sen).age));
-% 		hc.(sen).age=histc(age,range.(sen).age);
-% 		semilogy(range.(sen).age,hc.(sen).age)
-% 		tit=['number of ',sen,' per age'];
-% 		unit='d';
-% 		title([tit,' [',unit,']'])
-% 		hc.(sen).cum.age=fliplr(cumsum(fliplr(hc.(sen).age)));
-% 		semilogy(range.(sen).age,hc.(sen).cum.age)
-% 		tit=['upper tail cumulative of ',sen,' per age'];
-% 		title([tit,' [',unit,']'])
-% 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum']);
-% 	end
-% 	
-% 	figure
-% 	smallerlength=min([length(hc.Cycs.lat),length(hc.AntiCycs.lat)]);
-% 	hc.rat.lat=hc.Cycs.lat(1:smallerlength)./hc.AntiCycs.lat(1:smallerlength);
-% 	bar(range.Cycs.lat,log10(hc.rat.lat));
-% 	axis([range.Cycs.lat(1) range.Cycs.lat(end) -1 1]);
-% 	ticks.y=linspace(-1,1,3);
-% 	ticks.lab.y=num2cell(10.^(ticks.y));
-% 	set(gca,'ytick',ticks.y)
-% 	set(gca,'yticklabel',ticks.lab.y)
-% 	tit='ratio of cyclones to anticyclones as function of latitude';
-% 	title(tit)
-% 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatLat']);
-% 	%%
-% 	figure
-% 	len=min([length(hc.AntiCycs.age), length(hc.Cycs.age)]);
-% 	hc.rat.age=hc.Cycs.age(1:len)./hc.AntiCycs.age(1:len);
-% 	hc.rat.age(isinf(hc.rat.age))=nan;
-% 	bar(range.Cycs.age(1:len),log10(hc.rat.age));
-% 	axis([range.Cycs.age(1) range.Cycs.age(end) -1 1]);
-% 	ticks.y=linspace(-1,1,3);
-% 	ticks.lab.y=num2cell(10.^(ticks.y));
-% 	set(gca,'ytick',ticks.y)
-% 	set(gca,'yticklabel',ticks.lab.y)
-% 	tit='ratio of cyclones to anticyclones as function of age';
-% 	title(tit)
-% 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_LatNum']);
-% 	%%
-% 	figure
-% 	hc.rat.cum.age=hc.Cycs.cum.age(1:len)./hc.AntiCycs.cum.age(1:len);
-% 	hc.rat.cum.age(isinf(hc.rat.cum.age))=nan;
-% 	plot(range.Cycs.age(1:len),log10(hc.rat.cum.age));
-% 	axis([range.Cycs.age(1) range.Cycs.age(len) -1 1]);
-% 	ticks.y=linspace(-1,1,3);
-% 	ticks.lab.y=num2cell(10.^(ticks.y));
-% 	set(gca,'ytick',ticks.y)
-% 	set(gca,'yticklabel',ticks.lab.y)
-% 	tit='ratio of cyclones to anticyclones as upper tail cum. of age';
-% 	title(tit)
-% 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatAge']);
-% end
-% 
-% 
 
 function mapstuff(maps,vecs,DD,ticks,lo,la)
 	for sense=fieldnames(maps)';sen=sense{1};

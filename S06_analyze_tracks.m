@@ -11,200 +11,189 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-%  	spmd
+ 	spmd
 		id=labindex;
-		[map,tracks,vecs]=spmd_body(DD,id);
-% 	end
-	
+		[map,vecs]=spmd_body(DD,id);
+ 	end
 	%% merge
-	MAP=mergeMapData(map,DD);  %#ok<NASGU>
-	TRACKS=mergeTracksData(tracks,DD); %#ok<NASGU>
-	vecs=mergeVecData(vecs); %#ok<NASGU>
-	
+	map=mergeMapData(map,DD);   %#ok<NASGU>
+	vecs=mergeVecData(vecs);  %#ok<NASGU>
 	%% save
-	save([DD.path.analyzed.name,'maps.mat'],'-struct','MAP');
-	save([DD.path.analyzed.name,'tracks.mat'],'-struct','TRACKS');
+	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end
 
-
-function	vecs=mergeVecData(vecs)
-	vecs=vecs{1};
-end
-
-function	TRACKS=mergeTracksData(tracks,DD)
-	if DD.threads.num>1
-		TRACKS=tracks{1}; %already joined TrackData4Plot
-	else
-		TRACKS=tracks{1};
-	end
-end
-
-function [MeanStd,tracks,vectors]=spmd_body(DD,id)
-	%% init
-	[AntiCycs,Cycs]=initACandC(DD,id);
-	%% put tracks into better plottable struct
-	[~,tracks.Cycs]=TrackData4Plot(Cycs,DD);
-	[~,tracks.AntiCycs]=TrackData4Plot(AntiCycs,DD)	;
-	%% Mean and STD maps
+function MAP=initMAP(DD)
 	MAP=load([DD.path.root,'protoMaps.mat']);
-	[MeanStd.AntiCycs,vectors.AntiCycs]=MeanStdStuff(AntiCycs,MAP);
-	[MeanStd.Cycs,vectors.Cycs]=MeanStdStuff(Cycs,MAP);
+	subfieldstrings=DD.FieldKeys.MeanStdFields;
+	[MSproto,~]=protoInit(MAP.proto);
+	for ff=1:numel(subfieldstrings)
+		fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
+		meanfields={[fields{1};'mean']};
+		stdfields={[fields{1};'std']};
+		MAP=setfield(MAP,meanfields{1}{:},MSproto.mean)				;
+		MAP=setfield(MAP,stdfields{1}{:},MSproto.std)				;
+	end
+	MAP.visits=MAP.proto.zeros;
+	MAP.visitsSingleEddy=MAP.proto.zeros;
 end
 
-
-function [ALL,tracks]=TrackData4Plot(eddies,DD)
-	disp('formating 4 plots..')
-	%% get keys
-	ALL=struct;
+function resortTracks(DD,eddy,sense,fname)
 	subfields=DD.FieldKeys.trackPlots;
-	if isempty(eddies)
-		error('no eddies on thread! run with fewer workers!');
-	end
-	%%
-	tracks(numel(eddies))=struct;
-	%% init
-	for ee=1:numel(eddies)
-		ALL.lat=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lat');
-		ALL.lon=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lon');
-		for subfield=subfields'; sub=subfield{1};
-			collapsedField=strrep(sub,'.','');
-			ALL.(collapsedField) =	extractdeepfield(eddies(1).track,sub);
-		end
-	end
-	%% append
-	for ee=2:numel(eddies)
-		ALL.lat=[ALL.lat, extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lat')];
-		ALL.lon=[ALL.lon, extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lon')];
-		tracks(ee).lat=extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lat');
-		tracks(ee).lon=extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lon');
-		%%
-		for subfield=subfields'; sub=subfield{1};
-			collapsedField=strrep(sub,'.','');
-			tracks(ee).(collapsedField) =  extractdeepfield(eddies(ee).track,sub);
-			ALL.(collapsedField) =	[ALL.(collapsedField), tracks(ee).(collapsedField)];
-		end
+	track=cell2mat(extractfield(eddy,'trck'));
+	TT.lat=extractfield(cell2mat(extractfield(track,'geo')),'lat');
+	TT.lon=extractfield(cell2mat(extractfield(track,'geo')),'lon');
+	for subfield=subfields'; sub=subfield{1};
+		collapsedField=strrep(sub,'.','');
+		TT.(collapsedField) =  extractdeepfield(track,sub);
 	end	
-	%%
-	disp('sending to master..')
-	ALL=gcat(ALL,2,1);
-	tracks=gcat(tracks,2,1);
+	switch sense
+		case -1
+			outfile=[DD.path.analyzedTracks.AC.name,fname];
+		case 1
+			outfile=[DD.path.analyzedTracks.C.name,fname];
+	end
+	save(outfile,'-struct','TT');
+	tracklistfile=[DD.path.analyzed.name, sprintf('%02i',labindex),'tracklist.txt'	];
+	fid=fopen(tracklistfile,'a+');
+	fprintf(fid,'%s\n',outfile);
+	fclose(fid);
 end
 
-
-function [AntiCycs,Cycs]=initACandC(DD,id)
+function [MAP,V]=spmd_body(DD,id)
 	JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
-	Cycs(numel(JJ),1)=struct; %pre allocate
-	AntiCycs(numel(JJ),1)=struct;
-	ac=0; cc=0;
-	T=disp_progress('init','collecting eddies');
+	MAPac=initMAP(DD);
+	MAPc=initMAP(DD);
+	Vac.age=[];Vc.age=[];Vac.lat=[];Vc.lat=[];
+	Vac.birth.lat=[];Vac.birth.lon=[];
+	Vc.birth.lat=[];Vc.birth.lon=[];
+	Vac.death.lat=[];Vac.death.lon=[];
+	Vc.death.lat=[];Vc.death.lon=[];
 	%%
 	for jj=JJ;
-		T=disp_progress('calc',T,numel(JJ),10);
-		filename = [DD.path.tracks.name  DD.path.tracks.files(jj).name	];
+		fname=DD.path.tracks.files(jj).name;
+		filename = [DD.path.tracks.name  fname	];
 		eddy=load(filename);
 		sense=eddy.trck(1).sense.num;
+		%%
+		resortTracks(DD,eddy,sense,fname);
+		%%
 		switch sense
 			case -1
-				ac=ac+1;
-				AntiCycs(ac).track=cell2mat(extractfield(eddy,'trck'));
+				[MAPac,Vac]=MeanStdStuff(eddy,MAPac,Vac,DD);
 			case 1
-				cc=cc+1;
-				Cycs(cc).track=cell2mat(extractfield(eddy,'trck'));
+				[MAPc,Vc]=MeanStdStuff(eddy,MAPc,Vc,DD);
 		end
+		
 	end
-	%% kill empty pre allocated space
-	AntiCycs(ac+1:end)=[];
-	Cycs(cc+1:end)=[];
+	%% output	
+	MAP.AntiCycs=MAPac;
+	MAP.Cycs=MAPc;
+	V.AntiCycs=Vac;
+	V.Cycs=Vc;
 end
-function [MAP,V]=MeanStdStuff(eddies,MAP)
-	MAP.strctr=TRstructure(MAP,eddies);
-	disp('counting visits')
-	[MAP.visits,MAP.visitsSingleEddy]=TRvisits(MAP,eddies);
-	disp('getting lat distro')
-	[V]=getVecs(eddies);
-	
-	
-	
-	
-	
-	disp('age stuff')
-	MAP.age=TRage(MAP,eddies);
-	disp('sense stuff')
-	MAP.sense=TRsense(MAP,eddies);
-	disp('distance stuff')
-	[MAP.dist,eddies]=TRdist(MAP,eddies);
-	disp('velocity stuff')
-	MAP.vel=TRvel(MAP,eddies);
-	disp('radius stuff')
-	MAP.radius=TRradius(MAP,eddies);
-	disp('amp stuff')
-	MAP.amp=TRamp(MAP,eddies);
-	
-	for ff=fieldnames(V)'
-	V.(ff{1})=gcat(V.(ff{1}),2,1);
+
+function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
+	MAP.strctr=TRstructure(MAP,eddy);
+	[NEW.age]=TRage(MAP,eddy);
+	[NEW.dist,eddy]=TRdist(MAP,eddy);
+	NEW.vel=TRvel(MAP,eddy);
+	NEW.radius=TRradius(MAP,eddy);
+	NEW.amp=TRamp(MAP,eddy);
+	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
+	MAP=comboMS(MAP,NEW,DD);
+	[V]=getVecs(eddy,V);
+end
+
+function [V]=getVecs(eddy,V)
+	V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
+	V.age=[V.age eddy.trck(end).age];
+	death=eddy.trck(end).geo;
+	V.death.lat=[V.death.lat  cat(1,death.lat)];
+	V.death.lon=[ V.death.lon cat(1,death.lon)];
+	birth=eddy.trck(1).geo;
+	V.birth.lat=[ V.birth.lat cat(1,birth.lat)];
+	V.birth.lon=[ V.birth.lon cat(1,birth.lon)];
+end
+
+function	strctr=TRstructure(MAP,eddy)
+	strctr.length=cell(numel(eddy),1);
+	strctr.idx=cell(numel(eddy),1);
+	strctr.lengthTotal=0;
+	tracklen=numel(eddy.trck);
+	strctr.lengthTotal=strctr.lengthTotal + tracklen;
+	strctr.length=(1:tracklen);
+	strctr.idx=nan(1,tracklen);
+	for tt=1:tracklen
+		strctr.idx(tt)=MAP.idx(eddy.trck(tt).volume.center.lin)	;
 	end
 end
 
-function [V]=getVecs(eddies)
-V.lat=extractdeepfield(eddies,'track.geo.lat');
-V.age=cellfun(@(x) (x(end).age), extractdeepfield(eddies,'track'));
+function [age]=TRage(MAP,eddy)
+	[age,count]=protoInit(MAP.proto);
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		age_now=eddy.trck(tt).age;
+		age.mean(idx)=meanOnFly(age.mean(idx), age_now, count(idx));
+		age.std(idx)=stdOnFly(age.std(idx), age_now, count(idx));
+	end
+	
 end
 
-
-function	amp=TRamp(MAP,eddies)
+function	amp=TRamp(MAP,eddy)
 	
 	[amp.to_mean.of_contour,count]=protoInit(MAP.proto);
 	[amp.to_contour,~]=protoInit(MAP.proto);
 	[amp.to_ellipse,~]=protoInit(MAP.proto);
 	
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddies(ee).track(tt).peak.amp.to_mean.of_contour,	count(idx));
-			amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddies(ee).track(tt).peak.amp.to_contour,count(idx));
-			amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddies(ee).track(tt).peak.amp.to_ellipse,count(idx));
-		end
+	
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_mean.of_contour,	count(idx));
+		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_contour,count(idx));
+		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_ellipse,count(idx));
 	end
+	
 end
-function	radius=TRradius(MAP,eddies)
+function	radius=TRradius(MAP,eddy)
 	A={'mean';'meridional';'zonal'};
 	for a=A'
 		[radius.(a{1}),count]=protoInit(MAP.proto);
 	end
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			for a=A'
-				radius_now=eddies(ee).track(tt).radius.(a{1});
-				radius.(a{1}).mean(idx)=meanOnFly(radius.(a{1}).mean(idx), radius_now, count(idx));
-				radius.(a{1}).std(idx)=stdOnFly(radius.(a{1}).std(idx), radius_now, count(idx));
-			end
+	
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		for a=A'
+			radius_now=eddy.trck(tt).radius.(a{1});
+			radius.(a{1}).mean(idx)=meanOnFly(radius.(a{1}).mean(idx), radius_now, count(idx));
+			radius.(a{1}).std(idx)=stdOnFly(radius.(a{1}).std(idx), radius_now, count(idx));
 		end
 	end
+	
 end
-function	vel=TRvel(MAP,eddies)
+function	vel=TRvel(MAP,eddy)
 	A={'traj';'merid';'zonal'};
 	for a=A'
 		[vel.(a{1}),count]=protoInit(MAP.proto);
 	end
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}(1:end-1)
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			for a=A'
-				dist_now=eddies(ee).dist.num.(a{1}).m(tt);
-				delT= (eddies(ee).track(tt+1).age - eddies(ee).track(tt).age) * 86400;
-				vel_now = dist_now/delT;
-				vel.(a{1}).mean(idx)=meanOnFly(vel.(a{1}).mean(idx), vel_now, count(idx));
-				vel.(a{1}).std(idx)=stdOnFly(vel.(a{1}).std(idx), vel_now, count(idx));
-			end
+	
+	for tt=MAP.strctr.length(1:end-1)
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		for a=A'
+			dist_now=eddy.dist.num.(a{1}).m(tt);
+			delT= (eddy.trck(tt+1).age - eddy.trck(tt).age) * 86400;
+			vel_now = dist_now/delT;
+			vel.(a{1}).mean(idx)=meanOnFly(vel.(a{1}).mean(idx), vel_now, count(idx));
+			vel.(a{1}).std(idx)=stdOnFly(vel.(a{1}).std(idx), vel_now, count(idx));
 		end
 	end
+	
 end
-function	[dist,eddies]=TRdist(MAP,eddies)
+function	[dist,eddy]=TRdist(MAP,eddy)
 	%% set up
 	A={'traj';'merid';'zonal'};
 	B={'fromBirth';'tillDeath'};
@@ -214,37 +203,35 @@ function	[dist,eddies]=TRdist(MAP,eddies)
 		end
 	end
 	%%
-	for ee=1:numel(eddies)
-		%% calc distances
-		[eddies(ee).dist.num,eddies(ee).dist.drct]=diststuff(field2mat(eddies(ee).track,'geo')');
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			%% traj from birth
-			newValue=eddies(ee).dist.num.traj.fromBirth(tt);
-			dist.traj.fromBirth.mean(idx)=meanOnFly(dist.traj.fromBirth.mean(idx),newValue , count(idx));
-			dist.traj.fromBirth.std(idx)=stdOnFly(dist.traj.fromBirth.std(idx),newValue , count(idx));
-			%% traj till death
-			newValue=eddies(ee).dist.num.traj.tillDeath(tt);
-			dist.traj.tillDeath.mean(idx)=meanOnFly(dist.traj.tillDeath.mean(idx),newValue , count(idx));
-			dist.traj.tillDeath.std(idx)=stdOnFly(dist.traj.tillDeath.std(idx),newValue , count(idx));
-			%% zonal from birth
-			newValue=eddies(ee).dist.num.zonal.fromBirth(tt);
-			dist.zonal.fromBirth.mean(idx)=meanOnFly(dist.zonal.fromBirth.mean(idx),newValue , count(idx));
-			dist.zonal.fromBirth.std(idx)=stdOnFly(dist.zonal.fromBirth.std(idx),newValue , count(idx));
-			%% zonal till death
-			newValue=eddies(ee).dist.num.zonal.tillDeath(tt);
-			dist.zonal.tillDeath.mean(idx)=meanOnFly(dist.zonal.tillDeath.mean(idx),newValue , count(idx));
-			dist.zonal.tillDeath.std(idx)=stdOnFly(dist.zonal.tillDeath.std(idx),newValue , count(idx));
-			%% meridional from birth
-			newValue=eddies(ee).dist.num.merid.fromBirth(tt);
-			dist.merid.fromBirth.mean(idx)=meanOnFly(dist.merid.fromBirth.mean(idx),newValue , count(idx));
-			dist.merid.fromBirth.std(idx)=stdOnFly(dist.merid.fromBirth.std(idx),newValue , count(idx));
-			%% meridional till death
-			newValue=eddies(ee).dist.num.merid.tillDeath(tt);
-			dist.merid.tillDeath.mean(idx)=meanOnFly(dist.merid.tillDeath.mean(idx),newValue , count(idx));
-			dist.merid.tillDeath.std(idx)=stdOnFly(dist.merid.tillDeath.std(idx),newValue , count(idx));
-		end
+	%% calc distances
+	[eddy.dist.num,eddy.dist.drct]=diststuff(field2mat(eddy.trck,'geo')');
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		%% traj from birth
+		newValue=eddy.dist.num.traj.fromBirth(tt);
+		dist.traj.fromBirth.mean(idx)=meanOnFly(dist.traj.fromBirth.mean(idx),newValue , count(idx));
+		dist.traj.fromBirth.std(idx)=stdOnFly(dist.traj.fromBirth.std(idx),newValue , count(idx));
+		%% traj till death
+		newValue=eddy.dist.num.traj.tillDeath(tt);
+		dist.traj.tillDeath.mean(idx)=meanOnFly(dist.traj.tillDeath.mean(idx),newValue , count(idx));
+		dist.traj.tillDeath.std(idx)=stdOnFly(dist.traj.tillDeath.std(idx),newValue , count(idx));
+		%% zonal from birth
+		newValue=eddy.dist.num.zonal.fromBirth(tt);
+		dist.zonal.fromBirth.mean(idx)=meanOnFly(dist.zonal.fromBirth.mean(idx),newValue , count(idx));
+		dist.zonal.fromBirth.std(idx)=stdOnFly(dist.zonal.fromBirth.std(idx),newValue , count(idx));
+		%% zonal till death
+		newValue=eddy.dist.num.zonal.tillDeath(tt);
+		dist.zonal.tillDeath.mean(idx)=meanOnFly(dist.zonal.tillDeath.mean(idx),newValue , count(idx));
+		dist.zonal.tillDeath.std(idx)=stdOnFly(dist.zonal.tillDeath.std(idx),newValue , count(idx));
+		%% meridional from birth
+		newValue=eddy.dist.num.merid.fromBirth(tt);
+		dist.merid.fromBirth.mean(idx)=meanOnFly(dist.merid.fromBirth.mean(idx),newValue , count(idx));
+		dist.merid.fromBirth.std(idx)=stdOnFly(dist.merid.fromBirth.std(idx),newValue , count(idx));
+		%% meridional till death
+		newValue=eddy.dist.num.merid.tillDeath(tt);
+		dist.merid.tillDeath.mean(idx)=meanOnFly(dist.merid.tillDeath.mean(idx),newValue , count(idx));
+		dist.merid.tillDeath.std(idx)=stdOnFly(dist.merid.tillDeath.std(idx),newValue , count(idx));
 	end
 end
 
@@ -273,62 +260,27 @@ function [d,drct]=diststuff(geo)
 	d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
 	
 end
-function	sense=TRsense(MAP,eddies)
-	[sense,count]=protoInit(MAP.proto);
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			sense_now=eddies(ee).track(tt).sense.num;
-			sense.mean(idx)=meanOnFly(sense.mean(idx), sense_now, count(idx));
-			sense.std(idx)=stdOnFly(sense.std(idx), sense_now, count(idx));
-		end
-	end
-end
-function [count,singlecount]=TRvisits(MAP,eddies)
+
+function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-		end
-		sidx=unique(MAP.strctr.idx{ee});
-		singlecount(sidx)=singlecount(sidx) + 1;
+	
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+		
 	end
+	sidx=unique(MAP.strctr.idx);
+	singlecount(sidx)=singlecount(sidx) + 1;
 end
-function age=TRage(MAP,eddies)
-	[age,count]=protoInit(MAP.proto);
-	for ee=1:numel(eddies)
-		for tt=MAP.strctr.length{ee}
-			idx=MAP.strctr.idx{ee}(tt);
-			count(idx)=count(idx) + 1;
-			age_now=eddies(ee).track(tt).age;
-			age.mean(idx)=meanOnFly(age.mean(idx), age_now, count(idx));
-			age.std(idx)=stdOnFly(age.std(idx), age_now, count(idx));
-		end
-	end
-end
+
 function [param,count]=protoInit(proto,type)
 	if nargin < 2, type='nan'; end
 	param.mean=proto.(type);
 	param.std=proto.(type);
 	count=proto.zeros;
 end
-function	strctr=TRstructure(MAP,eddies)
-	strctr.length=cell(numel(eddies),1);
-	strctr.idx=cell(numel(eddies),1);
-	strctr.lengthTotal=0;
-	for ee=1:numel(eddies)
-		tracklen=numel(eddies(ee).track);
-		strctr.lengthTotal=strctr.lengthTotal + tracklen;
-		strctr.length{ee}=(1:tracklen);
-		strctr.idx{ee}=nan(1,tracklen);
-		for tt=1:tracklen
-			strctr.idx{ee}(tt)=MAP.idx(eddies(ee).track(tt).volume.center.lin)	;
-		end
-	end
-end
+
 function ALL=mergeMapData(MAP,DD)
 	if DD.threads.num>1
 		ALL=spmdCase(MAP,DD);
@@ -336,6 +288,37 @@ function ALL=mergeMapData(MAP,DD)
 		ALL=MAP{1};
 	end
 end
+
+function	vecs=mergeVecData(vecs)
+	vecs=vecs{1};
+end
+
+function old=comboMS(old,new,DD)
+	subfieldstrings=DD.FieldKeys.MeanStdFields;
+	for ff=1:numel(subfieldstrings)
+		%%	 extract current field to mean/std level
+		value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
+		value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
+		%% nan2zero
+		value.new.mean(isnan(value.new.mean))=0;
+		value.old.mean(isnan(value.old.mean))=0;
+		value.new.std(isnan(value.new.std))=0;
+		value.old.std(isnan(value.old.std))=0;
+		%% combo update
+		combo.mean=ComboMean(new.visits,old.visits,value.new.mean,value.old.mean);
+		combo.std=ComboStd(new.visits,old.visits,value.new.std,value.old.std);
+		%% set to updated values
+		fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
+		meanfields={[fields{1};'mean']};
+		stdfields={[fields{1};'std']};
+		old=setfield(old,meanfields{1}{:},combo.mean)				;
+		old=setfield(old,stdfields{1}{:},combo.std)				;
+		
+	end
+	old.visits=old.visits + new.visits;
+	old.visitsSingleEddy=old.visitsSingleEddy + new.visitsSingleEddy;
+end
+
 function ALL=spmdCase(MAP,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
 	map=MAP{1};
@@ -373,8 +356,4 @@ function ALL=spmdCase(MAP,DD)
 		end
 	end
 end
-
-
-
-
 

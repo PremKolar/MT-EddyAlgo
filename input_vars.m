@@ -25,21 +25,6 @@ function U=input_vars
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	%% IGNORE all following 
 	U.path.raw.name=U.path.root;
 	U.dim.west=0;
@@ -50,7 +35,6 @@ function U=input_vars
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';
-		'sense';
 		'dist.traj.fromBirth';
 		'dist.traj.tillDeath';
 		'dist.zonal.fromBirth';

@@ -56,7 +56,7 @@ function T=calcu(T,l,L,ulr)
 	T.time=T.time+T.toc;
 	T.prcnt_done=((l-1)/L)*100;
 	T.time_to_go=T.time/T.prcnt_done*100-T.time;
-	T.full_time_to_go=(T.time_to_go+T.time)/ulr;
+	T.full_time_to_go=T.time_to_go + T.time*(1/ulr-1);
 end
 
 

@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% walks through all the contours and decides whether they qualify 
+% walks through all the contours and decides whether they qualify
 function S03_filter_eddies
 	%% init
 	DD=initialise('conts');
@@ -36,7 +36,7 @@ function EE=work_day(DD,jj)
 	cut=read_fields(DD,jj,'cuts');
 	%% get contours
 	cont=read_fields(DD,jj,'conts');
-	%% put all eddies into a struct: ee(number of eddies).characteristica  
+	%% put all eddies into a struct: ee(number of eddies).characteristica
 	ee=eddies2struct(cont.all,DD.thresh.corners);
 	%% avoid out of bounds integer coordinates close to boundaries
 	[ee_clean,cut]=CleanEddies(ee,cut);
@@ -61,7 +61,7 @@ function ACyc=anti_cyclones(ee,cut,DD)
 			%% append healthy found eddy
 			ACyc(pp)=ee_out;  %#ok<AGROW>
 			%% nan out ssh where eddy was found
-			cut.grids.SSH(ee_out.mask)=nan;						
+			cut.grids.SSH(ee_out.mask)=nan;
 		end
 	end
 	
@@ -89,6 +89,9 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% pre-nan-check
 	pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
 	if ~pass, return, end;
+	%% corners-check
+	pass=CR_corners(ee.circum.length	,dd.thresh.corners);
+	if ~pass, return, end;
 	%% closed ring check
 	[pass]=CR_ClosedRing(ee);
 	if ~pass, return, end;
@@ -98,7 +101,7 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% get coordinates for zoom cut
 	[zoom]=get_window_limits(ee.coordinates,cut.dim,4);
 	%% cut out rectangle encompassing eddy range only for further calcs
-	zoom.fields=EddyCut_init(cut.grids,zoom);  
+	zoom.fields=EddyCut_init(cut.grids,zoom);
 	%% generate logical masks defining eddy interiour and outline
 	zoom.mask=EddyCut_mask(zoom);
 	%% check for nans within eddy
@@ -129,9 +132,6 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% get effective amplitude relative to ellipse;
 	[pass,ee.peak.amp.to_ellipse]=EddyAmp2Ellipse(ee.peak.lin,zoom,dd.thresh.amp);
 	if ~pass, return, end;
-	%% get area regarding ellipse;
-	%redundant!
-	%[ee.area.ellipse]=EddyArea2Ellipse(ee.radius.mean);
 	%% append mask to ee in cut coordinates
 	[ee.mask]=sparse(EddyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%plots4debug(zoom,ee)
@@ -140,7 +140,7 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% get coordinates
 	[ee.geo]=geocoor(zoom,ee.volume);
 	%% append 'age'
-	ee.age=0;	
+	ee.age=0;
 end
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
@@ -168,6 +168,11 @@ function pass=CR_RimNan(coor, Y, SSH)
 	pass=true;
 	if any(isnan(SSH(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
 end
+function pass=CR_corners(corners,thresh)
+	pass=true;
+	if corners < thresh, pass=false; end
+end
+
 function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	pass=false;
 	%%
@@ -185,25 +190,25 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
 function [pass,ShapeRatio]=CR_Shape(ee,thresh,iq)
-if iq 	
-	[pass,ShapeRatio]=IsopQuo(ee,thresh.iq);
-else
-	[pass,ShapeRatio]=chelton_shape(ee,thresh.chelt);
-end
+	if iq
+		[pass,ShapeRatio]=IsopQuo(ee,thresh.iq);
+	else
+		[pass,ShapeRatio]=chelton_shape(ee,thresh.chelt);
+	end
 end
 
-function [pass,chelt]=chelton_shape(ee,thresh)
-% (diameter of circle with equal area)/(maximum distance between nodes)
-%% get max dist in x | y
-ihgkjh
-if chelt >= thresh, pass=true; else pass=false; end
+function [pass,chelt]=chelton_shape(ee,thresh) %#ok<INUSL,STOUT>
+	% (diameter of circle with equal area)/(maximum distance between nodes)
+	%% get max dist in x | y
+	ihgkjh
+	if chelt >= thresh, pass=true; else pass=false; end
 end
 
 
 function [pass,isoper]=IsopQuo(ee,thresh)
 	%% isoperimetric quotient
-% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter 
-% ie isoper=4pi area/circum^2.  isoper(circle)==1; 
+	% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
+	% ie isoper=4pi area/circum^2.  isoper(circle)==1;
 	isoper=12.5664*ee.area.total/ee.circum.si^2;
 	if isoper >= thresh, pass=true; else pass=false; end
 end
@@ -247,7 +252,7 @@ end
 
 
 function [pass,amp] = EddyAmp2Ellipse(peak,zoom,thresh)
-	%% mean amplitude with respect to ellipse contour 
+	%% mean amplitude with respect to ellipse contour
 	amp=abs(zoom.fields.SSH(peak)-nanmean(zoom.fields.SSH(zoom.mask.ellipse)));
 	if amp>=thresh, pass=true; else pass=false; end
 end
@@ -290,7 +295,7 @@ end
 function radius=EddyRadiusFromUV(peak,prof,fields)
 	%% differentiate velocities to find first local extremata away from peak ie
 	%% maximum orbital speed
-	%% ie those distances at which the orbital velocity seizes to increase 
+	%% ie those distances at which the orbital velocity seizes to increase
 	x.Vdiff=(diff(smooth(prof.x.V)));
 	y.Udiff=(diff(smooth(prof.y.U)));
 	%% append one value in case eddy close to wall
@@ -328,7 +333,7 @@ function [geo]=geocoor(zoom,volume)
 	yz=volume.center.yz;
 	geo.lat=interp2(zoom.fields.LAT,xz,yz);
 	geo.lon=interp2(zoom.fields.LON,xz,yz);
-
+	
 end
 function [volume]=CenterOfVolume(zoom,area,Y)
 	%% get "volume" of eddy
@@ -358,14 +363,12 @@ function [circum]=EddyCircumference(z)
 end
 function mask=EddyCut_mask(zoom)
 	[Y,X]=size(zoom.fields.SSH);
-	mask.rim_only=zeros(Y,X);
-	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=1;
-	mask.inside=abs((fill_frame(mask.rim_only,Y,X))-1);
+	mask.rim_only=false(Y,X);
+	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
+	mask.filled=logical(imfill(mask.rim_only,'holes'));
+	mask.inside= mask.filled & ~mask.rim_only;
 	mask.size.Y=Y;
 	mask.size.X=X;
-	mask.rim_only=logical(mask.rim_only);
-	mask.inside=logical(mask.inside);
-	mask.filled=mask.inside | mask.rim_only;
 end
 function fields_out=EddyCut_init(fields_in,zoom)
 	ya=zoom.limits.y(1);

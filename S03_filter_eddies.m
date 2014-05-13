@@ -10,10 +10,10 @@ function S03_filter_eddies
 	DD=initialise('conts');
 	init_threads(DD.threads.num);
 	%% spmd
-% 	spmd
+ 	spmd
 		id=labindex;
 		spmd_body(DD,id)
-% 	end
+ 	end
 	%% update infofile
 	save_info(DD)
 end
@@ -89,6 +89,9 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% pre-nan-check
 	pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
 	if ~pass, return, end;
+	%% corners-check
+	pass=CR_corners(ee.circum.length	,dd.thresh.corners);
+	if ~pass, return, end;
 	%% closed ring check
 	[pass]=CR_ClosedRing(ee);
 	if ~pass, return, end;
@@ -129,9 +132,6 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% get effective amplitude relative to ellipse;
 	[pass,ee.peak.amp.to_ellipse]=EddyAmp2Ellipse(ee.peak.lin,zoom,dd.thresh.amp);
 	if ~pass, return, end;
-	%% get area regarding ellipse;
-	%redundant!
-	%[ee.area.ellipse]=EddyArea2Ellipse(ee.radius.mean);
 	%% append mask to ee in cut coordinates
 	[ee.mask]=sparse(EddyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%plots4debug(zoom,ee)
@@ -168,6 +168,11 @@ function pass=CR_RimNan(coor, Y, SSH)
 	pass=true;
 	if any(isnan(SSH(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
 end
+function pass=CR_corners(corners,thresh)
+	pass=true;
+	if corners < thresh, pass=false; end
+end
+
 function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	pass=false;
 	%%
@@ -358,14 +363,12 @@ function [circum]=EddyCircumference(z)
 end
 function mask=EddyCut_mask(zoom)
 	[Y,X]=size(zoom.fields.SSH);
-	mask.rim_only=zeros(Y,X);
-	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=1;
-	mask.inside=abs((fill_frame(mask.rim_only,Y,X))-1);
+	mask.rim_only=false(Y,X);
+	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;	
+	mask.filled=logical(imfill(mask.rim_only,'holes'));
+	mask.inside= mask.filled & ~mask.rim_only;
 	mask.size.Y=Y;
 	mask.size.X=X;
-	mask.rim_only=logical(mask.rim_only);
-	mask.inside=logical(mask.inside);
-	mask.filled=mask.inside | mask.rim_only;
 end
 function fields_out=EddyCut_init(fields_in,zoom)
 	ya=zoom.limits.y(1);

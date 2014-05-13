@@ -11,19 +11,17 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	%  	spmd
+ 	  	spmd
 	id=labindex;
 	[map,vecs]=spmd_body(DD,id);
-	% 	end
+ 	 	end
 	
 	%% merge
 	map=mergeMapData(map,DD);  %#ok<NASGU>
-% 	TRACKS=mergeTracksData(tracks,DD); %#ok<NASGU>
  	vecs=mergeVecData(vecs); %#ok<NASGU>
 	
 	%% save
-	save([DD.path.analyzed.name,'maps.mat'],'-struct','MAP');
-% 	save([DD.path.analyzed.name,'tracks.mat'],'-struct','TRACKS');
+	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
  	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end
 
@@ -87,12 +85,13 @@ function [MAP,V]=spmd_body(DD,id)
 			case 1
 		[MAPc,Vc]=MeanStdStuff(eddy,MAPc,Vc,DD);
 		end
+		
 	end
 	
-	MAP.AC=MAPac;
-	MAP.C=MAPc;	
-	V.AC=Vac;
-	V.C=Vc;	
+	MAP.AntiCycs=MAPac;
+	MAP.Cycs=MAPc;	
+	V.AntiCycs=Vac;
+	V.Cycs=Vc;	
 end
 
 
@@ -287,22 +286,9 @@ function ALL=mergeMapData(MAP,DD)
 end
 
 
-
 function	vecs=mergeVecData(vecs)
 	vecs=vecs{1};
 end
-
-function	TRACKS=mergeTracksData(tracks,DD)
-	if DD.threads.num>1
-		TRACKS=tracks{1}; %already joined TrackData4Plot
-	else
-		TRACKS=tracks{1};
-	end
-end
-
-
-
-
 
 
 function old=comboMS(old,new,DD)
@@ -321,8 +307,8 @@ function old=comboMS(old,new,DD)
 		combo.std=ComboStd(new.visits,old.visits,value.new.std,value.old.std);
 		%% set to updated values
 		fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-		meanfields={['mean';fields{1}]};
-		stdfields={['std';fields{1}]};
+		meanfields={[fields{1};'mean']};
+		stdfields={[fields{1};'std']};
 		old=setfield(old,meanfields{1}{:},combo.mean)				;
 		old=setfield(old,stdfields{1}{:},combo.std)				;
 		
@@ -330,8 +316,6 @@ function old=comboMS(old,new,DD)
 	old.visits=old.visits + new.visits;
 	old.visitsSingleEddy=old.visitsSingleEddy + new.visitsSingleEddy;
 end
-
-
 
 
 
@@ -373,59 +357,3 @@ function ALL=spmdCase(MAP,DD)
 	end
 end
 
-
-function [ALL,tracks]=TrackData4Plot(eddies,DD)
-	disp('formating 4 plots..')
-	%% get keys
-	ALL=struct;
-	subfields=DD.FieldKeys.trackPlots;
-	if isempty(eddies)
-		error('no eddies on thread! run with fewer workers!');
-	end
-	%%
-	tracks(numel(eddies))=struct;
-	%% init
-	for ee=1:numel(eddies)
-		ALL.lat=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lat');
-		ALL.lon=extractfield(cell2mat(extractfield(eddies(1).track,'geo')),'lon');
-		for subfield=subfields'; sub=subfield{1};
-			collapsedField=strrep(sub,'.','');
-			ALL.(collapsedField) =	extractdeepfield(eddies(1).track,sub);
-		end
-	end
-	%% append
-	for ee=2:numel(eddies)
-		ALL.lat=[ALL.lat, extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lat')];
-		ALL.lon=[ALL.lon, extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lon')];
-		tracks(ee).lat=extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lat');
-		tracks(ee).lon=extractfield(cell2mat(extractfield(eddies(ee).track,'geo')),'lon');
-		%%
-		for subfield=subfields'; sub=subfield{1};
-			collapsedField=strrep(sub,'.','');
-			tracks(ee).(collapsedField) =  extractdeepfield(eddies(ee).track,sub);
-			ALL.(collapsedField) =	[ALL.(collapsedField), tracks(ee).(collapsedField)];
-		end
-	end
-	%%
-	disp('sending to master..')
-	ALL=gcat(ALL,2,1);
-	tracks=gcat(tracks,2,1);
-end
-function [V]=getVecs(eddy,V)
-	V.lat= [V.lat cat(2,eddy.trck.geo.lat)];
-	V.age= [V.age eddy.trck(end).age];
-% 	V.lat=extractdeepfield(eddy,'track.geo.lat');
-% 	V.age=cellfun(@(x) (x(end).age), extractdeepfield(eddy,'track'));
-end
-
-
-function	[sense,count]=TRsense(MAP,eddy)
-	[sense,count]=protoInit(MAP.proto);
-	for tt=MAP.strctr.length
-		idx=MAP.strctr.idx(tt);
-		count(idx)=count(idx) + 1;
-		sense_now=eddy.trck(tt).sense.num;
-		sense.mean(idx)=meanOnFly(sense.mean(idx), sense_now, count(idx));
-		sense.std(idx)=stdOnFly(sense.std(idx), sense_now, count(idx));
-	end
-end

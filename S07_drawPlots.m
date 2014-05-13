@@ -37,8 +37,19 @@ function [DD,maps,tracks,lo,la]=inits
 	init_threads(2);
 	maps=load([DD.path.analyzed.name, 'maps.mat']);
 	la=maps.Cycs.GLA;
-	lo=maps.Cycs.GLO;
-	tracks=load([DD.path.analyzed.name, 'tracks.mat']);
+	lo=maps.Cycs.GLO;	
+	
+	root=DD.path.analyzedTracks.AC.name;
+	ACs={DD.path.analyzedTracks.AC.files.name};
+	for ff=1:numel(ACs)
+	tracks.AntiCycs(ff)=load([root ACs{ff}]);
+	end
+	root=DD.path.analyzedTracks.C.name;
+	Cs={DD.path.analyzedTracks.C.files.name};
+	for ff=1:numel(Cs)
+	tracks.Cycs(ff)=load([root Cs{ff}]);
+	end
+	
 end
 function main(DD,tracks,maps,lo,la,ticks)
 % 	spmd

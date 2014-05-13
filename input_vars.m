@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=1;
+	U.threads.num=12;
 	%% time
  	U.time.from.str='19940425';
  	U.time.till.str='20061231';
@@ -24,7 +24,7 @@ function U=input_vars
 	U.dim.X=40*1+1;
 	U.dim.Y=40*1+1;
 	U.dim.west=-90;
-	U.dim.east=-50;
+	U.dim.east=-40;
 	U.dim.south=20;
 	U.dim.north=60;
 	U.dim.NumOfDecimals=1;

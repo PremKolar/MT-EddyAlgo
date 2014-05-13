@@ -6,87 +6,87 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % inter-allocate different time steps to determine tracks of eddies
 function S04_track_eddies
-%% init
-DD=initialise('eddies');
-%% parallel!
-init_threads(2);
-spmd(2);
-    spmd_body(DD);
-end
-%% update infofile
-save_info(DD);
+	%% init
+	DD=initialise('eddies');
+	%% parallel!
+	init_threads(2);
+	spmd(2);
+		spmd_body(DD);
+	end
+	%% update infofile
+	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
-%% one thread do cycs, other acycs
-switch labindex
-    case 2
-        sen='cyclones';
-    case 1
-        sen='anticyclones';
-end
-%% set up tracking procedure
-[tracks,OLD,phantoms]=set_up_init(DD,sen);
-numDays=DD.checks.passed.total;
-%% start tracking
-T=disp_progress('init','tracking');
-for jj=2:numDays
-    T=disp_progress('disp',T,numDays-1,499);
-    %% set up current day
-    [NEW]=set_up_today(DD,jj,sen);
-    %% do calculations and archivings
-    [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen);
-end
+	%% one thread do cycs, other acycs
+	switch labindex
+		case 2
+			sen='cyclones';
+		case 1
+			sen='anticyclones';
+	end
+	%% set up tracking procedure
+	[tracks,OLD,phantoms]=set_up_init(DD,sen);
+	numDays=DD.checks.passed.total;
+	%% start tracking
+	T=disp_progress('init','tracking');
+	for jj=2:numDays
+		T=disp_progress('disp',T,numDays-1,499);
+		%% set up current day
+		[NEW]=set_up_today(DD,jj,sen);
+		%% do calculations and archivings
+		[OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen);
+	end
 end
 function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
-%% in case of full globe only
-if phantoms
-    [NEW]=kill_phantoms(NEW,sen);
-end
-%% find minium distances between old and new time step eddies
-[MinDists]=get_min_dists(OLD,NEW,sen);
-%% determine which ones are tracked/died/new
-TDB=tracked_dead_born(MinDists,sen);
-%% filter for distance per day threshold
-dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
-TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
-%% append tracked to respective cell of temporary archive 'tracks'
-[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
-%% append new ones to end of temp archive
-[tracks,NEW]=append_born(TDB, tracks, OLD,NEW,sen);
-%% write/kill dead
-[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen,NEW.eddies);
-%% swap
-OLD=NEW;
-
+	%% in case of full globe only
+	if phantoms
+		[NEW]=kill_phantoms(NEW,sen);
+	end
+	%% find minium distances between old and new time step eddies
+	[MinDists]=get_min_dists(OLD,NEW,sen);
+	%% determine which ones are tracked/died/new
+	TDB=tracked_dead_born(MinDists,sen);
+	%% filter for distance per day threshold
+	dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
+	TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
+	%% append tracked to respective cell of temporary archive 'tracks'
+	[tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
+	%% append new ones to end of temp archive
+	[tracks,NEW]=append_born(TDB, tracks, OLD,NEW,sen);
+	%% write/kill dead
+	[tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);
+	%% swap
+	OLD=NEW;
+	
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
-%% get
-ID.arch=cat(2,tracks.ID);
-flag.new=TDB.(sen).inNew.tracked;
-idx.old=TDB.(sen).inNew.n2oi(flag.new); % get index in old data
-ID.old =	cat(2,OLD.eddies.(sen)(idx.old).ID); % get ID
-IDc=num2cell(ID.old);
-%% find position in archive
-[~,idx.arch] = ismember(ID.old,ID.arch);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-NEW.time.delT(isnan(NEW.time.delT))=1;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
-%% set
-[NEW.eddies.(sen)(flag.new).ID] = deal(IDc{:}); % set ID accordingly for new data
-[NEW.eddies.(sen)(flag.new).age] = deal(age{:}); % set age accordingly for new data
-[tracks(idx.arch).age]= deal(age{:});		% update age in archive
-%% append tracks into track cells
-idx.new=find(flag.new);
-for aa=1:length(idx.arch)
-    aidx=idx.arch(aa);
-    len=tracks(aidx).length+1;
-    tracks(aidx).track{1}(len)=NEW.eddies.(sen)(idx.new(aa));
-    tracks(aidx).length=len;
-end
+	%% get
+	ID.arch=cat(2,tracks.ID);
+	flag.new=TDB.(sen).inNew.tracked;
+	idx.old=TDB.(sen).inNew.n2oi(flag.new); % get index in old data
+	ID.old =	cat(2,OLD.eddies.(sen)(idx.old).ID); % get ID
+	IDc=num2cell(ID.old);
+	%% find position in archive
+	[~,idx.arch] = ismember(ID.old,ID.arch);
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
+	NEW.time.delT(isnan(NEW.time.delT))=1;
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
+	%% set
+	[NEW.eddies.(sen)(flag.new).ID] = deal(IDc{:}); % set ID accordingly for new data
+	[NEW.eddies.(sen)(flag.new).age] = deal(age{:}); % set age accordingly for new data
+	[tracks(idx.arch).age]= deal(age{:});		% update age in archive
+	%% append tracks into track cells
+	idx.new=find(flag.new);
+	for aa=1:length(idx.arch)
+		aidx=idx.arch(aa);
+		len=tracks(aidx).length+1;
+		tracks(aidx).track{1}(len)=NEW.eddies.(sen)(idx.new(aa));
+		tracks(aidx).length=len;
+	end
 end
 
 
@@ -107,61 +107,61 @@ eddies=read_fields(DD,1,'eddies');
 %% append geo-coor vectors for min_dist function
 [OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
-function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen,new)
-%% collect all ID's in archive
-ArchIDs=cat(2,tracks.ID);
-%% all indeces in old set of dead eddies
-dead_idxs=TDB.(sen).inOld.dead;
-%% find which ones to write and kill
-
-AIdxdead = find(ismember(ArchIDs',cat(1,old.(sen)(dead_idxs).ID)));
-
-age = cat(1,tracks(AIdxdead).age);
-id = cat(1,tracks(AIdxdead).ID);
-pass = age >= DD.thresh.life;
-%%  write to 'heap'
-if any(pass)
-    lens=cat(2,tracks(AIdxdead(pass)).length);
-    ll=0;
-    for pa=find(pass)'; ll=ll+1;
-        archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
-    end
-end
-%% kill in 'stack'
-tracks(AIdxdead)=[];	% get rid of dead matter!
-
+function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
+	%% collect all ID's in archive
+	ArchIDs=cat(2,tracks.ID);
+	%% all indeces in old set of dead eddies
+	dead_idxs=TDB.(sen).inOld.dead;
+	%% find which ones to write and kill
+	
+	AIdxdead = find(ismember(ArchIDs',cat(1,old.(sen)(dead_idxs).ID)));
+	
+	age = cat(1,tracks(AIdxdead).age);
+	id = cat(1,tracks(AIdxdead).ID);
+	pass = age >= DD.thresh.life;
+	%%  write to 'heap'
+	if any(pass)
+		lens=cat(2,tracks(AIdxdead(pass)).length);
+		ll=0;
+		for pa=find(pass)'; ll=ll+1;
+			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
+		end
+	end
+	%% kill in 'stack'
+	tracks(AIdxdead)=[];	% get rid of dead matter!
+	
 end
 function archive(trck,path,jj,id)
-%% write out file (one per eddy)
-EoD=['TRACK', sprintf('%06i',id)];
-filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
-trck(end).filename=filename;
-save(trck(end).filename,'trck');
+	%% write out file (one per eddy)
+	EoD=['TRACK', sprintf('%06i',id)];
+	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
+	trck(end).filename=filename;
+	save(trck(end).filename,'trck');
 end
 function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
-maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID  OLD.eddies.(sen).ID]));
-flag.born.inNew=(TDB.(sen).inNew.born);
-if any(flag.born.inNew)
-    %% new Ids and new indices (appended to end of tracks)
-    newIds=num2cell(maxID+1:maxID+sum(flag.born.inNew));
-    newendIdxs=numel(tracks)+1:numel(tracks)+sum(flag.born.inNew);
-    %% deal new ids to eddies
-    [NEW.eddies.(sen)(flag.born.inNew).age]=deal(0);
-    [NEW.eddies.(sen)(flag.born.inNew).ID]=deal(newIds{:});
-    %% deal eddies to archive and pre alloc
-    idx.born.inNew=find(flag.born.inNew);nn=0;
-    for tt=newendIdxs; nn=nn+1;
-        tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
-        tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
-    end
-    %% set all ages 0
-    [tracks(newendIdxs).age]=deal(0);
-    %% deal new ids to tracks
-    [tracks(newendIdxs).ID]=deal(newIds{:});
-    %% init length
-    [tracks(newendIdxs).length]=deal(1);
-    
-end
+	maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID  OLD.eddies.(sen).ID]));
+	flag.born.inNew=(TDB.(sen).inNew.born);
+	if any(flag.born.inNew)
+		%% new Ids and new indices (appended to end of tracks)
+		newIds=num2cell(maxID+1:maxID+sum(flag.born.inNew));
+		newendIdxs=numel(tracks)+1:numel(tracks)+sum(flag.born.inNew);
+		%% deal new ids to eddies
+		[NEW.eddies.(sen)(flag.born.inNew).age]=deal(0);
+		[NEW.eddies.(sen)(flag.born.inNew).ID]=deal(newIds{:});
+		%% deal eddies to archive and pre alloc
+		idx.born.inNew=find(flag.born.inNew);nn=0;
+		for tt=newendIdxs; nn=nn+1;
+			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
+			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
+		end
+		%% set all ages 0
+		[tracks(newendIdxs).age]=deal(0);
+		%% deal new ids to tracks
+		[tracks(newendIdxs).ID]=deal(newIds{:});
+		%% init length
+		[tracks(newendIdxs).length]=deal(1);
+		
+	end
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 %% init day one
@@ -199,7 +199,6 @@ function [TDB]=tracked_dead_born(MD,sen)
 n2oi=MD.(sen).new2old.idx;
 %% idx in new set of min dist claims by old set
 o2ni=MD.(sen).old2new.idx;
-
 %% index in new set of claims by old set
 io=MD.(sen).old2new.idx(n2oi)';
 %% respective index in new (from new's perspective)
@@ -217,19 +216,18 @@ TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
 %% remember cross ref
 TDB.(sen).inNew.n2oi=n2oi;
 end
-function [N]=kill_phantoms(N,sen)
+function [inout]=kill_phantoms(inout,sen)
 %% search for identical eddies
-[LOM.a,LOM.b]=meshgrid(N.LON.(sen),N.LON.(sen));
-[LAM.a,LAM.b]=meshgrid(N.LAT.(sen),N.LAT.(sen));
+[LOM.a,LOM.b]=meshgrid(inout.LON.(sen),inout.LON.(sen));
+[LAM.a,LAM.b]=meshgrid(inout.LAT.(sen),inout.LAT.(sen));
 LONDIFF=abs(LOM.a - LOM.b);
 DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
 DIST(logical(eye(size(DIST))))=nan; % nan self distance
-Y = DIST==0;
+[Y,~] = find(DIST==0);
 %% kill
-N.eddies.(sen)(Y)=[];
-N.time.(sen)(Y)=[];
-N.LON.(sen)(Y)=[];
-N.LAT.(sen)(Y)=[];
+inout.eddies.(sen)(Y)=[];
+inout.LON.(sen)(Y)=[];
+inout.LAT.(sen)(Y)=[];
 end
 function [MD]=get_min_dists(OLD,NEW,sen)
 [LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));

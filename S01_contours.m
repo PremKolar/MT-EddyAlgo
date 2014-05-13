@@ -57,7 +57,6 @@ function [II,CONT]=init_get_contours(jj,dd,JJ,filename)
 	II.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(dd.id,1)),'/',sprintf('%03i',numel(JJ))]]);
 	%% add info
 	CONT.filename=filename;
-	CONT.input=dd;  % add input info
 end
 
 function file=get_file(jj,dd)

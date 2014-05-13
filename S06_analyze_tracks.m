@@ -72,7 +72,7 @@ function [MAP,V]=spmd_body(DD,id)
 	%%
 	T=disp_progress('init',['analyzing tracks']);
 	for jj=JJ;
-		T=disp_progress('calc',numel(JJ),100);
+		T=disp_progress('calc',T,numel(JJ),100);
 		fname=DD.path.tracks.files(jj).name;
 		filename = [DD.path.tracks.name  fname	];
 		eddy=load(filename);

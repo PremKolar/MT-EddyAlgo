@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=12;
+	U.threads.num=2;
 	%% time
 
  U.time.from.str='19940102';
@@ -8,9 +8,10 @@ function U=input_vars
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='TempSalt/';
-	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataWorld/';
-
+% 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+%   	U.path.root='../dataWorld/';
+U.path.raw.name='../data/SSH_POP/';
+  	U.path.root='../data/';
  	%% thresholds
 	U.contour.step=0.05; % [SI]
 	U.thresh.ssh_filter_size=1;

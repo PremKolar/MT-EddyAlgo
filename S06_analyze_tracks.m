@@ -104,7 +104,7 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 end
 
 function [V]=getVecs(eddy,V)
-	V.lat= [V.lat extractdeepfield(eddy,'track.geo.lat')];
+	V.lat= [V.lat extractdeepfield(eddy,'trck.geo.lat')];
 	V.age= [V.age eddy.trck(end).age];
 end
 

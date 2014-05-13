@@ -236,20 +236,6 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
 		%%
 		%figure
-		VV=maps.(sen).visits.birth;
-		VV(VV==0)=nan;
-		pcolor(lo,la,log(VV));shading flat
-		decorate('visits',ticks,DD,sen,'Births','',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_births']);
-		%%
-		%figure
-		VV=maps.(sen).visits.birth;
-		VV(VV==0)=nan;
-		pcolor(lo,la,log(VV));shading flat
-		decorate('visits',ticks,DD,sen,'Births','',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
-		%%
-		%figure
 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
 		pcolor(lo,la,VV);shading flat
 		cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);

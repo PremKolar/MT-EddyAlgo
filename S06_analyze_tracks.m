@@ -70,7 +70,9 @@ function [MAP,V]=spmd_body(DD,id)
 	Vac.death.lat=[];Vac.death.lon=[];
 	Vc.death.lat=[];Vc.death.lon=[];
 	%%
+	T=disp_progress('init',['analyzing tracks']);
 	for jj=JJ;
+		T=disp_progress('calc',numel(JJ),100);
 		fname=DD.path.tracks.files(jj).name;
 		filename = [DD.path.tracks.name  fname	];
 		eddy=load(filename);

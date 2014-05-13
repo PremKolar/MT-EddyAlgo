@@ -52,7 +52,9 @@ function [DD,maps,tracks,vecs,lo,la]=inits
 	end
 	root=DD.path.analyzedTracks.C.name;
 	Cs={DD.path.analyzedTracks.C.files.name};
-	for ff=1:numel(Cs)
+	T=disp_progress('init',['collecting all eddies']);
+	for ff=1:numel(Cs)	
+	T=disp_progress('calc',T,numel(Cs),100);
 		tracks.Cycs(ff)=load([root Cs{ff}]);
 	end
 	

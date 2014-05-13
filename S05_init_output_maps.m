@@ -22,7 +22,6 @@ end
 
 function [MAP]=MakeMaps(DD)
 	%% init output map dims
-	
 	xvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.west,DD.dim.east,DD.dim.X))/10^DD.dim.NumOfDecimals;
 	yvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.south,DD.dim.north,DD.dim.Y))/10^DD.dim.NumOfDecimals;
 	[MAP.GLO,MAP.GLA]=meshgrid(xvec,yvec);
@@ -50,8 +49,7 @@ function idx_out=getIndicesForOutMaps(grids,MAP,threads)
 		end
 		%% sum vectors from all workers
 		idx_out=gplus(idx,1);
-	end
-	
+	end	
 	%% send distributed vector to master
 	idx_out=idx_out{1};
 end

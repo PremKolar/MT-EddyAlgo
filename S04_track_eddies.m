@@ -70,7 +70,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	IDc=num2cell(ID.old);
 	%% find position in archive
 	[~,idx.arch] = ismember(ID.old,ID.arch);
-	
 	%%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
 	NEW.time.delT(isnan(NEW.time.delT))=1;
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,7 +88,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 	end
 end
 
-
 function [NEW]=set_up_today(DD,jj,sen)
 eddies=read_fields(DD,jj,'eddies');
 NEW.eddies=rmfield(eddies,'filename');
@@ -107,15 +105,14 @@ eddies=read_fields(DD,1,'eddies');
 %% append geo-coor vectors for min_dist function
 [OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
+
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	%% collect all ID's in archive
 	ArchIDs=cat(2,tracks.ID);
 	%% all indeces in old set of dead eddies
 	dead_idxs=TDB.(sen).inOld.dead;
 	%% find which ones to write and kill
-	
 	AIdxdead = find(ismember(ArchIDs',cat(1,old.(sen)(dead_idxs).ID)));
-	
 	age = cat(1,tracks(AIdxdead).age);
 	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;

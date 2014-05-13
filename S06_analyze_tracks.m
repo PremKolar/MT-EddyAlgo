@@ -65,6 +65,11 @@ function [MAP,V]=spmd_body(DD,id)
 	MAPac=initMAP(DD);
 	MAPc=initMAP(DD);
 	Vac.age=[];Vc.age=[];Vac.lat=[];Vc.lat=[];
+	Vac.birth.lat=[];Vac.birth.lon=[];
+	Vc.birth.lat=[];Vc.birth.lon=[];
+	Vac.death.lat=[];Vac.death.lon=[];
+	Vc.death.lat=[];Vc.death.lon=[];
+	%%
 	for jj=JJ;
 		fname=DD.path.tracks.files(jj).name;
 		filename = [DD.path.tracks.name  fname	];
@@ -100,10 +105,19 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	[V]=getVecs(eddy,V);
 end
 
+
 function [V]=getVecs(eddy,V)
- V.lat=[V.lat extractdeepfield(eddy,'track.geo.lat')];
- V.age=[V.age eddy.track(end).age];
+	V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
+	V.age=[V.age eddy.trck(end).age];
+	death=eddy.trck(end).geo;
+	V.death.lat=[V.death.lat  cat(1,death.lat)];
+	V.death.lon=[ V.death.lon cat(1,death.lon)];
+	birth=eddy.trck(1).geo;
+	V.birth.lat=[ V.birth.lat cat(1,birth.lat)];
+	V.birth.lon=[ V.birth.lon cat(1,birth.lon)];
 end
+
+
 
 function	strctr=TRstructure(MAP,eddy)
 	strctr.length=cell(numel(eddy),1);

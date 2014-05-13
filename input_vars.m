@@ -1,10 +1,6 @@
 function U=input_vars
 	%% threads
-<<<<<<< HEAD
 	U.threads.num=12;
-=======
-	U.threads.num=2;
->>>>>>> 4230fd341468c4f332905c21e2ff025981a5607e
 	%% time
  	U.time.from.str='19940930';
  	U.time.till.str='19941030';

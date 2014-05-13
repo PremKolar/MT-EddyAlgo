@@ -98,9 +98,13 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	NEW.amp=TRamp(MAP,eddy);
 	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
 	MAP=comboMS(MAP,NEW,DD);
-	
 	[V]=getVecs(eddy,V);
 	
+end
+
+function [V]=getVecs(eddy,V)
+	V.lat= [V.lat extractdeepfield(eddy,'trck.geo.lat')];
+	V.age= [V.age eddy.trck(end).age];
 end
 
 function	strctr=TRstructure(MAP,eddy)
@@ -144,7 +148,6 @@ function	amp=TRamp(MAP,eddy)
 	end
 	
 end
-
 function	radius=TRradius(MAP,eddy)
 	A={'mean';'meridional';'zonal'};
 	for a=A'
@@ -162,7 +165,6 @@ function	radius=TRradius(MAP,eddy)
 	end
 	
 end
-
 function	vel=TRvel(MAP,eddy)
 	A={'traj';'merid';'zonal'};
 	for a=A'
@@ -182,7 +184,6 @@ function	vel=TRvel(MAP,eddy)
 	end
 	
 end
-
 function	[dist,eddy]=TRdist(MAP,eddy)
 	%% set up
 	A={'traj';'merid';'zonal'};
@@ -250,7 +251,6 @@ function [d,drct]=diststuff(geo)
 	d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
 	
 end
-
 function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;

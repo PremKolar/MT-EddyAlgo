@@ -195,41 +195,39 @@ function [TDB]=filter4threshold(TDB,MD,thresh,sen)
 	TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
 end
 function [TDB]=tracked_dead_born(MD,sen)
-	%% idx in old set of min dist claims by new set
-	n2oi=MD.(sen).new2old.idx;
-	%% idx in new set of min dist claims by old set
-	o2ni=MD.(sen).old2new.idx;
-	
-	%% index in new set of claims by old set
-	io=MD.(sen).old2new.idx(n2oi)';
-	%% respective index in new (from new's perspective)
-	in=(1:length(n2oi));
-	%% min dist values of old set of n2oi
-	do=MD.(sen).old2new.dist(n2oi)';
-	%% respective min dist values in new set
-	dn=MD.(sen).new2old.dist;
-	%% agreement among new and old ie definite tracking (with respect to new set)
-	TDB.(sen).inNew.tracked = ((do == dn) & (io == in));
-	%% flag for fresh eddies with respect to new set
-	TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
-	%% indeces of deceised eddies with respect to old set
-	TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
-	%% remember cross ref
-	TDB.(sen).inNew.n2oi=n2oi;
+%% idx in old set of min dist claims by new set
+n2oi=MD.(sen).new2old.idx;
+%% idx in new set of min dist claims by old set
+o2ni=MD.(sen).old2new.idx;
+%% index in new set of claims by old set
+io=MD.(sen).old2new.idx(n2oi)';
+%% respective index in new (from new's perspective)
+in=(1:length(n2oi));
+%% min dist values of old set of n2oi
+do=MD.(sen).old2new.dist(n2oi)';
+%% respective min dist values in new set
+dn=MD.(sen).new2old.dist;
+%% agreement among new and old ie definite tracking (with respect to new set)
+TDB.(sen).inNew.tracked = ((do == dn) & (io == in));
+%% flag for fresh eddies with respect to new set
+TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
+%% indeces of deceised eddies with respect to old set
+TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
+%% remember cross ref
+TDB.(sen).inNew.n2oi=n2oi;
 end
-function [N]=kill_phantoms(N,sen)
-	%% search for identical eddies
-	[LOM.a,LOM.b]=meshgrid(N.LON.(sen),N.LON.(sen));
-	[LAM.a,LAM.b]=meshgrid(N.LAT.(sen),N.LAT.(sen));
-	LONDIFF=abs(LOM.a - LOM.b);
-	DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
-	DIST(logical(eye(size(DIST))))=nan; % nan self distance
-	Y = DIST==0;
-	%% kill
-	N.eddies.(sen)(Y)=[];
-	N.time.(sen)(Y)=[];
-	N.LON.(sen)(Y)=[];
-	N.LAT.(sen)(Y)=[];
+function [inout]=kill_phantoms(inout,sen)
+%% search for identical eddies
+[LOM.a,LOM.b]=meshgrid(inout.LON.(sen),inout.LON.(sen));
+[LAM.a,LAM.b]=meshgrid(inout.LAT.(sen),inout.LAT.(sen));
+LONDIFF=abs(LOM.a - LOM.b);
+DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
+DIST(logical(eye(size(DIST))))=nan; % nan self distance
+[Y,~] = find(DIST==0);
+%% kill
+inout.eddies.(sen)(Y)=[];
+inout.LON.(sen)(Y)=[];
+inout.LAT.(sen)(Y)=[];
 end
 function [MD]=get_min_dists(OLD,NEW,sen)
 	[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));

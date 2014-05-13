@@ -14,8 +14,8 @@ function S07_drawPlots
 	ticks.height=600;
 	% 	ticks.y= linspace(20,60,2);
 	% 	ticks.x= linspace(-90,-50,2);
-	ticks.y= [0];
-	ticks.x= [0];
+	ticks.y= 0;
+	ticks.x= 0;
 	ticks.age=[1,DD.time.span/2,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
 	ticks.radius=[50,150,6];
@@ -61,30 +61,30 @@ function [DD,maps,tracks,vecs,lo,la]=inits
 end
 
 function main(DD,tracks,vecs,maps,lo,la,ticks)
-	% spmd
-	%     if labindex==1
-	%         histstuff(vecs,DD,ticks)
-	%     end
-	%     if labindex==2
-	trackPlots(DD,ticks,tracks)
-	%     end
-	%     if labindex==3
-	%         mapstuff(maps,vecs,DD,ticks,lo,la)
-	%     end
-	% end
+	spmd
+		if labindex==1
+			histstuff(vecs,DD,ticks)
+		end
+		if labindex==2
+			trackPlots(DD,ticks,tracks)
+		end
+		if labindex==3
+			mapstuff(maps,vecs,DD,ticks,lo,la)
+		end
+	end
 end
 
 
 
-function histstuff(vecs,DD,ticks)
+function histstuff(vecs,DD,ticks) %#ok<INUSL>
 	for sense=fieldnames(vecs)';sen=sense{1};
 		figure
 		lat=vecs.(sen).lat;
 		range.(sen).lat=round(min(vecs.(sen).lat)):round(max(vecs.(sen).lat));
 		hc.(sen).lat=histc(lat,range.(sen).lat);
-		semilogy(range.(sen).lat,hc.(sen).lat)
-		tit=['number of ',sen,' per 1° lat']
-		title([tit])
+		semilogy(range.(sen).lat,hc.(sen).lat);
+		tit=['number of ',sen,' per 1° lat'];
+		title(tit);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_latNum']);
 		%%
 		figure
@@ -103,15 +103,15 @@ function histstuff(vecs,DD,ticks)
 	end
 	
 	figure
-	smallerlength=min([length(hc.Cycs.lat),length(hc.AntiCycs.lat)])
+	smallerlength=min([length(hc.Cycs.lat),length(hc.AntiCycs.lat)]);
 	hc.rat.lat=hc.Cycs.lat(1:smallerlength)./hc.AntiCycs.lat(1:smallerlength);
 	bar(range.Cycs.lat,log10(hc.rat.lat));
 	axis([range.Cycs.lat(1) range.Cycs.lat(end) -1 1]);
-	ticks.y=linspace(-1,1,3)
+	ticks.y=linspace(-1,1,3);
 	ticks.lab.y=num2cell(10.^(ticks.y));
 	set(gca,'ytick',ticks.y)
 	set(gca,'yticklabel',ticks.lab.y)
-	tit=['ratio of cyclones to anticyclones as function of latitude'];
+	tit='ratio of cyclones to anticyclones as function of latitude';
 	title(tit)
 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatLat']);
 	%%
@@ -121,11 +121,11 @@ function histstuff(vecs,DD,ticks)
 	hc.rat.age(isinf(hc.rat.age))=nan;
 	bar(range.Cycs.age(1:len),log10(hc.rat.age));
 	axis([range.Cycs.age(1) range.Cycs.age(end) -1 1]);
-	ticks.y=linspace(-1,1,3)
+	ticks.y=linspace(-1,1,3);
 	ticks.lab.y=num2cell(10.^(ticks.y));
 	set(gca,'ytick',ticks.y)
 	set(gca,'yticklabel',ticks.lab.y)
-	tit=['ratio of cyclones to anticyclones as function of age'];
+	tit='ratio of cyclones to anticyclones as function of age';
 	title(tit)
 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_LatNum']);
 	%%
@@ -138,7 +138,7 @@ function histstuff(vecs,DD,ticks)
 	ticks.lab.y=num2cell(10.^(ticks.y));
 	set(gca,'ytick',ticks.y)
 	set(gca,'yticklabel',ticks.lab.y)
-	tit=['ratio of cyclones to anticyclones as upper tail cum. of age'];
+	tit='ratio of cyclones to anticyclones as upper tail cum. of age';
 	title(tit)
 	savefig(ticks.rez,ticks.width,ticks.height,[sen,'_RatAge']);
 end
@@ -246,7 +246,7 @@ function trackPlots(DD,ticks,tracks)
 		set(gca,'ytick',[-200 0 200])
 		set(gca,'xtick',[-1000 0 200])
 		colorbar
-		xlabel(['latitude repr. by color; IQ repr. by thickness'])
+		xlabel('latitude repr. by color; IQ repr. by thickness')
 		axis equal
 		
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_defletcs']);

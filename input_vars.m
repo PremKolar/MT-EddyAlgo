@@ -2,7 +2,6 @@ function U=input_vars
 	%% threads
 	U.threads.num=2;
 	%% time
-
  	U.time.from.str='19940930';
  	U.time.till.str='19941030';
  	U.time.delta_t=1; % [days]!

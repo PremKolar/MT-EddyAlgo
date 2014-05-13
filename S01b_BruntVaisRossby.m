@@ -19,8 +19,6 @@ function S01b_BruntVaisRossby
 	end
 	%% make netcdf
 	WriteNCfile(DD,lims)
-	%% git
-%	auto_git
 end
 function [DD,lims]=					set_up
 	%% init
@@ -123,11 +121,22 @@ function							catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	varstruct.Dimension = {'j_index','i_index' };
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
 	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.twoD.start, dim.twoD.length);
+	%% delete chunks
+	deleteChunk(DD,chnk)	
 end
-function							saveChunk(CK,DD,chnk) %#ok<INUSL>
+
+
+function							deleteChunk(DD,chnk)
+	file_out=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
+	system(['rm ' file_out]);
+end
+
+function							saveChunk(CK,DD,chnk)  %#ok<INUSL>
 	file_out=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
 	save(file_out,'-struct','CK');
 end
+
+
 function CK=					loadChunk(DD,chnk)
 	file_in=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
 	CK=load(file_in);
@@ -237,7 +246,8 @@ function dim=					ncArrayDims(DD,lims,chnk)
 end
 function [fileS,fileT]=		tempsalt(DD)
 %% find the temp and salt files
-	for kk=1:numel(DD.path.TempSalt.files)
+	
+for kk=1:numel(DD.path.TempSalt.files)
 		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'SALT'))
 			fileS=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
 		end

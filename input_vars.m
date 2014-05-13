@@ -6,7 +6,7 @@ function U=input_vars
  	U.time.till.str='20061230';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.TempSalt.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/MEANS/';
+	U.path.TempSalt.name='TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
   	U.path.root='../dataTR/';
  	%% thresholds

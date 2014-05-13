@@ -21,11 +21,11 @@ function U=input_vars
 	U.thresh.life=20; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=360*1+1;
- -	U.dim.Y=180*1+1;
- -	U.dim.west=-180;
- -	U.dim.east=180;
- -	U.dim.south=-90;
- -	U.dim.north=90;
+ 	U.dim.Y=180*1+1;
+ 	U.dim.west=-180;
+ 	U.dim.east=180;
+ 	U.dim.south=-90;
+ 	U.dim.north=90;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

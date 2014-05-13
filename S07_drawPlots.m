@@ -209,30 +209,28 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
 		%%
 		%figure
-		VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
-		pcolor(lo,la,VV);shading flat
+		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
+		pcolor(lo,la,log(VV));shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
 		%%
 		%figure
-		VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
-		pcolor(lo,la,VV);shading flat
+		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
+		pcolor(lo,la,log(VV));shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
 		%%
 		%figure
-		VV=maps.(sen).vel.zonal.mean*100;
+		VV=maps.(sen).birthDeath.birth;
 		pcolor(lo,la,VV);shading flat
-		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
-		doublemap(cb,autumn,winter,[.9 1 .9])
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
+		decorate('birthdeath',ticks,DD,sen,'Births','',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_births']);
 		%%
 		%figure
-		VV=maps.(sen).radius.mean.mean/1000;
+		VV=maps.(sen).birthDeath.death;
 		pcolor(lo,la,VV);shading flat
-		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
-		
+		decorate('birthdeath',ticks,DD,sen,'Deaths','',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
 	end
 	
 end
@@ -406,7 +404,7 @@ function [maxV,cmap]=drawColorLine(V,fieldName,maxV,logornot,zeroshift)
 		
 		for ii=1:length(la)-1
 			if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
-				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.8);
+				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.5);
 			end
 		end
 	end

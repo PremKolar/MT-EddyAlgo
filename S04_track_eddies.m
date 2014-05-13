@@ -91,21 +91,21 @@ end
 
 
 function [NEW]=set_up_today(DD,jj,sen)
-eddies=read_fields(DD,jj,'eddies');
-NEW.eddies=rmfield(eddies,'filename');
-%% get delta time
-NEW.time.daynum=DD.checks.passed.daynums(jj);
-NEW.time.delT=DD.checks.del_t(jj);
-[NEW.LON,NEW.LAT]=get_geocoor(NEW.eddies,sen);
+	eddies=read_fields(DD,jj,'eddies');
+	NEW.eddies=rmfield(eddies,'filename');
+	%% get delta time
+	NEW.time.daynum=DD.checks.passed.daynums(jj);
+	NEW.time.delT=DD.checks.del_t(jj);
+	[NEW.LON,NEW.LAT]=get_geocoor(NEW.eddies,sen);
 end
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
-%% determine whether double eddies might be present due to full lon
-phantoms=logical(cell2mat(extractdeepfield(read_fields(DD,1,'cuts'),'params.full_globe.x')));
-%% read eddies
-eddies=read_fields(DD,1,'eddies');
-[tracks,OLD.eddies]=init_day_one(eddies,sen);
-%% append geo-coor vectors for min_dist function
-[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
+	%% determine whether double eddies might be present due to full lon
+	phantoms=logical(cell2mat(extractdeepfield(read_fields(DD,1,'cuts'),'params.full_globe.x')));
+	%% read eddies
+	eddies=read_fields(DD,1,'eddies');
+	[tracks,OLD.eddies]=init_day_one(eddies,sen);
+	%% append geo-coor vectors for min_dist function
+	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	%% collect all ID's in archive
@@ -164,35 +164,35 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
 	end
 end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-%% init day one
-new_eddies=rmfield(eddies,'filename');
-%% set initial ID's etc
-ee=(1:numel(new_eddies.(sen)));
-eec=num2cell(ee);
-[new_eddies.(sen)(1,ee).ID]=deal(eec{:});
-%% store tracks in cells (to allow for arbitr. lengths)
-edsArray=arrayfun(@(x) ({{x}}),new_eddies.(sen)(1,ee));
-[tracks(ee).track]=deal(edsArray{:});
-[tracks(ee).ID]=deal(eec{:});
-[tracks(ee).age]=deal(0);
-[tracks(ee).length]=deal(1);
-
-%% prealloc for speed
-for tt=1:length(tracks)
-    tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
-end
-
+	%% init day one
+	new_eddies=rmfield(eddies,'filename');
+	%% set initial ID's etc
+	ee=(1:numel(new_eddies.(sen)));
+	eec=num2cell(ee);
+	[new_eddies.(sen)(1,ee).ID]=deal(eec{:});
+	%% store tracks in cells (to allow for arbitr. lengths)
+	edsArray=arrayfun(@(x) ({{x}}),new_eddies.(sen)(1,ee));
+	[tracks(ee).track]=deal(edsArray{:});
+	[tracks(ee).ID]=deal(eec{:});
+	[tracks(ee).age]=deal(0);
+	[tracks(ee).length]=deal(1);
+	
+	%% prealloc for speed
+	for tt=1:length(tracks)
+		tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
+	end
+	
 end
 function [TDB]=filter4threshold(TDB,MD,thresh,sen)
-dist=MD.(sen).new2old.dist;
-%% find those that were supposedly tracked, yet dont fullfill threshold (for new)
-tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
-%% set them to ~tracked
-TDB.(sen).inNew.tracked(tooQuick) = false;
-%% instead set them to 'born'
-TDB.(sen).inNew.born(tooQuick) = true; % all new born
-%% add respective indices for old set to 'dead' flags (track broke off)
-TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
+	dist=MD.(sen).new2old.dist;
+	%% find those that were supposedly tracked, yet dont fullfill threshold (for new)
+	tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
+	%% set them to ~tracked
+	TDB.(sen).inNew.tracked(tooQuick) = false;
+	%% instead set them to 'born'
+	TDB.(sen).inNew.born(tooQuick) = true; % all new born
+	%% add respective indices for old set to 'dead' flags (track broke off)
+	TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
 end
 function [TDB]=tracked_dead_born(MD,sen)
 %% idx in old set of min dist claims by new set
@@ -230,16 +230,16 @@ inout.LON.(sen)(Y)=[];
 inout.LAT.(sen)(Y)=[];
 end
 function [MD]=get_min_dists(OLD,NEW,sen)
-[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
-[LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
-LONDIFF=abs(LOM.new - LOM.old);
-DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
-%% find min dists
-[MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
-[MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
+	[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
+	[LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
+	LONDIFF=abs(LOM.new - LOM.old);
+	DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
+	%% find min dists
+	[MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
+	[MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
 end
 function [LON, LAT]=get_geocoor(eddies,sen)
-LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
-LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
+	LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
+	LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
 end
 

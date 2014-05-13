@@ -246,8 +246,6 @@ function [d,drct]=diststuff(geo)
 	d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
 	
 end
-
-
 function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;

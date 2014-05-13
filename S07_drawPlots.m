@@ -23,8 +23,7 @@ function S07_drawPlots
 	%ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
 	ticks.visits=[1,10,6];
 	ticks.dist=[-1200;300;8];
-	ticks.disttot=[1;2600;8];
-	ticks.birthdeath=[0;10;11];
+	ticks.disttot=[1;1200;6];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.geo.west DD.map.geo.east DD.map.geo.south DD.map.geo.north	];
 	%%
@@ -38,8 +37,19 @@ function [DD,maps,tracks,lo,la]=inits
 	init_threads(2);
 	maps=load([DD.path.analyzed.name, 'maps.mat']);
 	la=maps.Cycs.GLA;
-	lo=maps.Cycs.GLO;
-	tracks=load([DD.path.analyzed.name, 'tracks.mat']);
+	lo=maps.Cycs.GLO;	
+	
+	root=DD.path.analyzedTracks.AC.name;
+	ACs={DD.path.analyzedTracks.AC.files.name};
+	for ff=1:numel(ACs)
+	tracks.AntiCycs(ff)=load([root ACs{ff}]);
+	end
+	root=DD.path.analyzedTracks.C.name;
+	Cs={DD.path.analyzedTracks.C.files.name};
+	for ff=1:numel(Cs)
+	tracks.Cycs(ff)=load([root Cs{ff}]);
+	end
+	
 end
 function main(DD,tracks,maps,lo,la,ticks)
 % 	spmd
@@ -83,28 +93,30 @@ function mapstuff(maps,DD,ticks,lo,la)
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
 		%%
 		%figure
-		VV=maps.(sen).dist.traj.fromBirth.mean/1000;
+		VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
 		%%
 		%figure
-		VV=maps.(sen).dist.traj.tillDeath.mean/1000;
+		VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
 		pcolor(lo,la,VV);shading flat
 		decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
 		%%
 		%figure
-		VV=maps.(sen).birthDeath.birth;
+		VV=maps.(sen).vel.zonal.mean*100;
 		pcolor(lo,la,VV);shading flat
-		decorate('birthdeath',ticks,DD,sen,'Births','',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_births']);
+		cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
+		doublemap(cb,autumn,winter,[.9 1 .9])
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
 		%%
 		%figure
-		VV=maps.(sen).birthDeath.death;
+		VV=maps.(sen).radius.mean.mean/1000;
 		pcolor(lo,la,VV);shading flat
-		decorate('birthdeath',ticks,DD,sen,'Deaths','',0,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
+		decorate('radius',ticks,DD,sen,'Radius','km',0,1);
+		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
+		
 	end
 	
 end
@@ -213,7 +225,7 @@ function [maxV,cmap]=drawColorLine(V,fieldName,maxV,logornot)
 		la=V(ee).lat;
 		for ii=1:length(la)-1
 			if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
-				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.5);
+				line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',0.8);
 			end
 		end
 	end

@@ -10,10 +10,10 @@ function S03_filter_eddies
 	DD=initialise('conts');
 	init_threads(DD.threads.num);
 	%% spmd
-	spmd
+% 	spmd
 		id=labindex;
 		spmd_body(DD,id)
-	end
+% 	end
 	%% update infofile
 	save_info(DD)
 end

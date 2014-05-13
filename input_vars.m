@@ -2,6 +2,7 @@ function U=input_vars
 	%% threads
 	U.threads.num=12;
 	%% time
+
  U.time.from.str='19940102';
  	U.time.till.str='20061231';
  	U.time.delta_t=1; % [days]!
@@ -9,8 +10,9 @@ function U=input_vars
 	U.path.TempSalt.name='TempSalt/';
 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
   	U.path.root='../dataWorld/';
+
  	%% thresholds
-	U.contour.step=0.01; % [SI]
+	U.contour.step=0.05; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
 	U.thresh.amp=0.01; % [SI]
@@ -36,7 +38,6 @@ function U=input_vars
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';
-		'sense';
 		'dist.traj.fromBirth';
 		'dist.traj.tillDeath';
 		'dist.zonal.fromBirth';

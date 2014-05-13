@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-% 	spmd
+ 	spmd
 		id=labindex;
 		[map,vecs]=spmd_body(DD,id);
-% 	end
+ 	end
 	%% merge
 	map=mergeMapData(map,DD);   %#ok<NASGU>
 	vecs=mergeVecData(vecs);  %#ok<NASGU>
@@ -46,8 +46,7 @@ function resortTracks(DD,eddy,sense,fname)
 	for subfield=subfields'; sub=subfield{1};
 		collapsedField=strrep(sub,'.','');
 		TT.(collapsedField) =  extractdeepfield(track,sub);
-	end
-	
+	end	
 	switch sense
 		case -1
 			outfile=[DD.path.analyzedTracks.AC.name,fname];
@@ -82,7 +81,7 @@ function [MAP,V]=spmd_body(DD,id)
 		end
 		
 	end
-	
+	%% output	
 	MAP.AntiCycs=MAPac;
 	MAP.Cycs=MAPc;
 	V.AntiCycs=Vac;
@@ -99,7 +98,11 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
 	MAP=comboMS(MAP,NEW,DD);
 	[V]=getVecs(eddy,V);
-	
+end
+
+function [V]=getVecs(eddy,V)
+ V.lat=[V.lat extractdeepfield(eddy,'track.geo.lat')];
+ V.age=[V.age eddy.track(end).age];
 end
 
 function	strctr=TRstructure(MAP,eddy)

@@ -52,7 +52,9 @@ function [DD,maps,tracks,vecs,lo,la]=inits
 	end
 	root=DD.path.analyzedTracks.C.name;
 	Cs={DD.path.analyzedTracks.C.files.name};
-	for ff=1:numel(Cs)
+	T=disp_progress('init',['collecting all eddies']);
+	for ff=1:numel(Cs)	
+	T=disp_progress('calc',T,numel(Cs),100);
 		tracks.Cycs(ff)=load([root Cs{ff}]);
 	end
 	
@@ -213,10 +215,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 		set(gca,'xtick',ticks.x) ;
 		legend('births','deaths')
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths']);
-		
-		
-		
-		
+				
 		%%
 		%figure
 		maps.(sen).age.logmean=log(maps.(sen).age.mean);
@@ -231,20 +230,6 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 		pcolor(lo,la,log(VV));shading flat
 		decorate('visits',ticks,DD,sen,'Visits of unique eddy','',1,1);
 		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
-		%%
-		%figure
-		VV=maps.(sen).visits.birth;
-		VV(VV==0)=nan;
-		pcolor(lo,la,log(VV));shading flat
-		decorate('visits',ticks,DD,sen,'Births','',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_births']);
-		%%
-		%figure
-		VV=maps.(sen).visits.birth;
-		VV(VV==0)=nan;
-		pcolor(lo,la,log(VV));shading flat
-		decorate('visits',ticks,DD,sen,'Births','',1,1);
-		savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deaths']);
 		%%
 		%figure
 		VV=maps.(sen).dist.zonal.fromBirth.mean/1000;

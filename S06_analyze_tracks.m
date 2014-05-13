@@ -34,8 +34,8 @@ function MAP=initMAP(DD)
 		MAP=setfield(MAP,meanfields{1}{:},MSproto.mean)				;
 		MAP=setfield(MAP,stdfields{1}{:},MSproto.std)				;
 	end
-	MAP.visits=MAP.proto.zeros;
-	MAP.visitsSingleEddy=MAP.proto.zeros;
+	MAP.visits.single=MAP.proto.zeros;
+	MAP.visits.all=MAP.proto.zeros;
 end
 
 function resortTracks(DD,eddy,sense,fname)
@@ -70,7 +70,9 @@ function [MAP,V]=spmd_body(DD,id)
 	Vac.death.lat=[];Vac.death.lon=[];
 	Vc.death.lat=[];Vc.death.lon=[];
 	%%
+	T=disp_progress('init',['analyzing tracks']);
 	for jj=JJ;
+		T=disp_progress('calc',T,numel(JJ),100);
 		fname=DD.path.tracks.files(jj).name;
 		filename = [DD.path.tracks.name  fname	];
 		eddy=load(filename);
@@ -100,7 +102,7 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	NEW.vel=TRvel(MAP,eddy);
 	NEW.radius=TRradius(MAP,eddy);
 	NEW.amp=TRamp(MAP,eddy);
-	[NEW.visits,NEW.visitsSingleEddy]=TRvisits(MAP);
+	[NEW.visits.all,NEW.visits.single]=TRvisits(MAP);
 	MAP=comboMS(MAP,NEW,DD);
 	[V]=getVecs(eddy,V);
 end
@@ -264,11 +266,9 @@ end
 function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;
-	
 	for tt=MAP.strctr.length
 		idx=MAP.strctr.idx(tt);
-		count(idx)=count(idx) + 1;
-		
+		count(idx)=count(idx) + 1;		
 	end
 	sidx=unique(MAP.strctr.idx);
 	singlecount(sidx)=singlecount(sidx) + 1;
@@ -305,8 +305,8 @@ function old=comboMS(old,new,DD)
 		value.new.std(isnan(value.new.std))=0;
 		value.old.std(isnan(value.old.std))=0;
 		%% combo update
-		combo.mean=ComboMean(new.visits,old.visits,value.new.mean,value.old.mean);
-		combo.std=ComboStd(new.visits,old.visits,value.new.std,value.old.std);
+		combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
+		combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
 		%% set to updated values
 		fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
 		meanfields={[fields{1};'mean']};
@@ -315,8 +315,8 @@ function old=comboMS(old,new,DD)
 		old=setfield(old,stdfields{1}{:},combo.std)				;
 		
 	end
-	old.visits=old.visits + new.visits;
-	old.visitsSingleEddy=old.visitsSingleEddy + new.visitsSingleEddy;
+	old.visits.all=old.visits.all + new.visits.all;
+	old.visits.single=old.visits.single + new.visits.single;
 end
 
 function ALL=spmdCase(MAP,DD)
@@ -340,8 +340,8 @@ function ALL=spmdCase(MAP,DD)
 					value.new.std(isnan(value.new.std))=0;
 					value.old.std(isnan(value.old.std))=0;
 					%% combo update
-					combo.mean=ComboMean(new.visits,old.visits,value.new.mean,value.old.mean);
-					combo.std=ComboStd(new.visits,old.visits,value.new.std,value.old.std);
+					combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
+					combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
 					%% set to updated values
 					fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
 					meanfields={['mean';fields{1}]};
@@ -350,7 +350,7 @@ function ALL=spmdCase(MAP,DD)
 					ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std)				;
 					
 				end
-				ALL.(sen).visits=ALL.(sen).visits + new.visits;
+				ALL.(sen).visits.all=ALL.(sen).visits.all + new.visits.all;
 			end
 			old=ALL.(sen);
 		end

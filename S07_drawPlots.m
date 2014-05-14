@@ -8,8 +8,8 @@
 function S07_drawPlots
 %% init
 
- init_threads(3);
- spmd
+%  init_threads(3);
+%  spmd
     [DD,threadData]=inits;
     
     %%	set ticks here!
@@ -37,7 +37,7 @@ function S07_drawPlots
     %% main
     main(DD,threadData,ticks);
     
- end
+%  end
 end
 
 %%
@@ -81,11 +81,9 @@ if labindex==3
     histstuff(IN.vecs,DD,ticks)
 end
 if labindex==1
-    try
+  
     trackPlots(DD,ticks,IN.tracks.tracks)
-    catch
-        trackPlots(DD,ticks,IN.tracks)
-    end
+   
 end
 if labindex==2
     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
@@ -100,7 +98,7 @@ for sense=fieldnames(vecs)';sen=sense{1};
     semilogy(range.(sen).lat,hc.(sen).lat)
     tit=['number of ',sen,' per 1° lat']
     title([tit])
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_latNum'],0);
+    savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_latNum'],0);
     %%
     figure
     age=vecs.(sen).age;
@@ -114,7 +112,7 @@ for sense=fieldnames(vecs)';sen=sense{1};
     semilogy(range.(sen).age,hc.(sen).cum.age)
     tit=['upper tail cumulative of ',sen,' per age'];
     title([tit,' [',unit,']'])
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum'],0);
 end
 %%
 figure
@@ -235,7 +233,7 @@ for sense=fieldnames(maps)';sen=sense{1};
     set(gca,'xtick',ticks.x) ;
     legend('births','deaths')
     title(sen)
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths'],0);
     
     %%
     figure
@@ -244,7 +242,7 @@ for sense=fieldnames(maps)';sen=sense{1};
     pcolor(lo,la,VV);shading flat
     caxis([ticks.age(1) ticks.age(2)])
     decorate('age',ticks,DD,sen,'age','d',1,1);
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'],0)
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'],0)
     %%
     figure
     VV=maps.(sen).visits.single;
@@ -252,7 +250,7 @@ for sense=fieldnames(maps)';sen=sense{1};
     pcolor(lo,la,log(VV));shading flat
     caxis([ticks.visits(1) ticks.visits(2)])
     decorate('visits',ticks,DD,sen,'Visits of unique eddy','',1,1);
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits'],0);
     %%
     figure
     VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
@@ -260,7 +258,7 @@ for sense=fieldnames(maps)';sen=sense{1};
     caxis([ticks.dist(1) ticks.dist(2)])
     cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
     doublemap(cb,win,aut,[1 1 1])
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB'],0);
     %%
     figure
     VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
@@ -268,21 +266,21 @@ for sense=fieldnames(maps)';sen=sense{1};
     caxis([ticks.dist(1) ticks.dist(2)])
     cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
     doublemap(cb,win,aut,[1 1 1])
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD'],0);
     %%
     figure
     VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
     pcolor(lo,la,VV);shading flat
     caxis([ticks.disttot(1) ticks.disttot(2)])
     decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB'],0);
     %%
     figure
     VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
     pcolor(lo,la,VV);shading flat
     caxis([ticks.disttot(1) ticks.disttot(2)])
     decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD'],0);
     %%
     figure
     VV=maps.(sen).vel.zonal.mean*100;
@@ -290,14 +288,14 @@ for sense=fieldnames(maps)';sen=sense{1};
     caxis([ticks.vel(1) ticks.vel(2)])
     cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
     doublemap(cb,aut,win,[.9 1 .9])
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapVel'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapVel'],0);
     %%
     figure
     VV=maps.(sen).radius.mean.mean/1000;
     pcolor(lo,la,VV);shading flat
     caxis([ticks.radius(1) ticks.radius(2)])
     decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-    savefig(ticks.rez,ticks.width,ticks.height,[sen,'_MapRad'],0);
+   savefig(DD.path.plots, ticks.rez,ticks.width,ticks.height,[sen,'_MapRad'],0);
     
 end
 
@@ -408,7 +406,7 @@ end
 
 function [maxV,cmap]=drawColorLinem(files,fieldName,fieldName2)
 cmap=jet;% Generate range of color indices that map to cmap
-
+kjbjkb
 %% get extremata
 minVglob=inf; minIQglob=inf; maxVglob=0; maxIQglob=0;
 for file=files; ff=file{1};

@@ -29,7 +29,7 @@ function [DD]=set_up
 	%% get user map input
 	DD.map=map_vars;
 	%% get sample window
-	[DD.map.window]=GetWindow(SampleFile(DD),DD);
+%	[DD.map.window]=GetWindow(SampleFile(DD),DD);
 	%% cut sample
 %	[SMPL]=CutMap(SampleFile(DD),DD);
 	%% plot sample

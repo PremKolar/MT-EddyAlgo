@@ -2,29 +2,27 @@ function DD=initialise(toCheck)
 	addpath(genpath('./'));
 	clc;
 	close all;
-	temp = get_input;
-	DDcheck=[temp.path.root, 'DD.mat'];
+	INPUT = get_input;
+	DDcheck=[INPUT.path.root, 'DD.mat'];
 	if ~exist('toCheck','var')
 		toCheck=false;
 	end
 	
 	if exist(DDcheck,'file')
-		DD=catstruct(load(DDcheck),ini(toCheck));
+		DD=catstruct(load(DDcheck),ini(toCheck,INPUT));
 	else
-		DD=ini(toCheck);
+		DD=ini(toCheck,INPUT);
 	end
 	dbstop if error
 	rehash
 end
 
-function out=ini(toCheck)
-	%% read input file
-	out = get_input;
+function INPUT=ini(toCheck,INPUT)
 	%% check data for consistency
 	if toCheck
-		out.checks = check_data(out,toCheck);
+		INPUT.checks = check_data(INPUT,toCheck);
 		%% distro thread limits
-		out.threads.lims = thread_distro(out.threads.num,out.checks.passed.total);
+		INPUT.threads.lims = thread_distro(INPUT.threads.num,INPUT.checks.passed.total);
 	end
 end
 

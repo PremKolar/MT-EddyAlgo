@@ -18,7 +18,9 @@ function S00_prep_data
 		spmd_body(DD);
 	end
 	%% save info file
-	save_info(DD)
+	
+    DD.map.window.flag=[]; % redundant
+    save_info(DD)
 	
 end
 function [DD]=set_up
@@ -29,7 +31,7 @@ function [DD]=set_up
 	%% get user map input
 	DD.map=map_vars;
 	%% get sample window
-%	[DD.map.window]=GetWindow(SampleFile(DD),DD);
+	[DD.map.window]=GetWindow(SampleFile(DD),DD);
 	%% cut sample
 %	[SMPL]=CutMap(SampleFile(DD),DD);
 	%% plot sample

@@ -4,25 +4,29 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(rez,xdim,ydim,tit)
-	%% set up figure
-	resolution=get(0,'ScreenPixelsPerInch');
-	xdim=xdim*rez/resolution;
-	ydim=ydim*rez/resolution;
-	set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
-	mkdirp('~/FIGS/')
-% 	fname=['~/FIGS/',tit,'.fig'];
-% 	fnamepng=['~/FIGS/',tit,'.png'];
-	fnameeps=['~/FIGS/',tit,'.eps'];
-% 	fnamepdf=['~/FIGS/',tit,'.pdf'];
-%	saveas(gcf,fname);
-%	try
-		eval(['print ', fnameeps, ' -f -r',num2str(rez),' -depsc'])
-		%eval(['print ', fnamepdf, ' -f -r600 -dpdf'])
-%	end
-%	try
-%		saveas(gcf,fnamepng);
-%	end
-	close(gcf);
+function savefig(outdir,rez,xdim,ydim,tit,zbub)
+%% set up figure
+if nargin<6
+    zbub=false;
+end
+set(gcf,'renderer','opengl');
+resolution=get(0,'ScreenPixelsPerInch');
+xdim=xdim*rez/resolution;
+ydim=ydim*rez/resolution;
+set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
+mkdirp(outdir);
+fnamepng=[outdir,tit,'.png'];
+fnameeps=[outdir,tit,'.eps'];
+fnamepdf=[outdir,tit,'.pdf'];
+
+if zbub    
+    set(gcf,'renderer','zbuffer');
+    eval(['print ', fnamepng, ' -f -r',num2str(rez),' -dpng ;'])
+    system(['convert -quality 100 -density 30 ' fnamepng,' ',fnamepdf]);
+else
+    eval(['print ', fnameeps, ' -f -r',num2str(rez),' -depsc ;'])
+    system(['epstopdf ' fnameeps]);
+end
+close(gcf);
 end
 

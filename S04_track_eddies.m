@@ -9,10 +9,10 @@ function S04_track_eddies
 	%% init
 	DD=initialise('eddies');
 	%% parallel!
-	init_threads(2);
-	spmd(2);
+% 	init_threads(2);
+% 	spmd(2);
 		spmd_body(DD);
-	end
+% 	end
 	%% update infofile
 	save_info(DD);
 end
@@ -218,8 +218,8 @@ function [inout]=kill_phantoms(inout,sen)
 [LOM.a,LOM.b]=meshgrid(inout.LON.(sen),inout.LON.(sen));
 [LAM.a,LAM.b]=meshgrid(inout.LAT.(sen),inout.LAT.(sen));
 LONDIFF=abs(LOM.a - LOM.b);
-DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity
-DIST(logical(eye(size(DIST))))=nan; % nan self distance
+DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
+DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
 [Y,~] = find(DIST==0);
 %% kill
 inout.eddies.(sen)(Y)=[];

@@ -115,7 +115,7 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% calc contour circumference in [SI]
 	[ee.circum.si]=EddyCircumference(zoom);
 	%% filter eddies not circle-like enough
-	[pass,ee.isoper]=CR_Shape(ee,dd.thresh.shape,dd.switchs.IQ);
+	[pass,ee.isoper]=CR_Shape(zoom,ee,dd.thresh.shape,dd.switchs);
 	if ~pass, return, end;
 	%% get peak position and amplitude w.r.t contour
 	[pass,ee.peak,zoom.SSH_BasePos]=CR_AmpPeak(ee,zoom,dd.thresh.amp);
@@ -189,18 +189,30 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	peak.x=peak.z.x+z.limits.x -1;
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
-function [pass,ShapeRatio]=CR_Shape(ee,thresh,iq)
-	if iq
-		[pass,ShapeRatio]=IsopQuo(ee,thresh.iq);
+function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
+	[passes.iq,IQ]=IsopQuo(ee,thresh.iq);
+	[passes.chelt,chelt]=chelton_shape(z,ee,thresh.chelt);
+	if switches.IQ && ~switches.chelt
+		pass=passes.iq;
+	elseif switches.chelt && ~switches.IQ
+		pass=passes.chelt;
+	elseif switches.chelt && switches.IQ
+		pass=passes.chelt && passes.iq;
 	else
-		[pass,ShapeRatio]=chelton_shape(ee,thresh.chelt);
+		error('you need to choose at least one shape method (IQ or chelton method in input_vars switches section)')
 	end
 end
 
-function [pass,chelt]=chelton_shape(ee,thresh) %#ok<INUSL,STOUT>
+function [pass,chelt]=chelton_shape(z,ee,thresh)
 	% (diameter of circle with equal area)/(maximum distance between nodes)
-	%% get max dist in x | y
-	ihgkjh
+	%% get max dist in x | y	
+	x.min=min(z.coor.int.x);
+	y.min=min(z.coor.int.y);
+	x.max=max(z.coor.int.x);
+	y.max=max(z.coor.int.y);
+	circDiam=sqrt(ee.area.total/pi);
+	maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
+	chelt  = circDiam/maxDist;
 	if chelt >= thresh, pass=true; else pass=false; end
 end
 

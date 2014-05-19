@@ -39,6 +39,8 @@ function idx_out=getIndicesForOutMaps(grids,MAP,threads)
 	%% copy onto stack for performance
 	[out.lon]=deg2rad(MAP.GLO);
 	[out.lat]=deg2rad(MAP.GLA);
+	[out.dlon]=diff(out.lon,1,2);
+	[out.dlat]=diff(out.lat,1,1);
 	%%
 	temp=num2cell(deg2rad(grids.LON));
 	[in(1:Y*X).lon]=deal(temp{:});
@@ -46,41 +48,44 @@ function idx_out=getIndicesForOutMaps(grids,MAP,threads)
 	[in(1:Y*X).lat]=deal(temp{:});
 	%%
 	lims=thread_distro(threads,Y*X);
-	%          spmd
+	         spmd
 	%% allocate indices to be calculated by worker
 	idcs=(lims(labindex,1):lims(labindex,2));
-	idx(numel(idcs)).lin=nan;idx(numel(idcs)).x=nan;idx(numel(idcs)).y=nan;
+	%idx(numel(idcs)).lin=nan;idx(numel(idcs)).x=nan;idx(numel(idcs)).y=nan;
 	T=disp_progress('init','allocating old indices to output indeces');
 	for ii=idcs
 		kk=ii-idcs(1)+1;
 		T=disp_progress('disp',T,numel(idcs),10);
-		[idx(kk).lin,idx(kk).y,idx(kk).x]=TransferIdx(in(ii),out,Yout,Xout);
+		temp.lon=abs(out.lon-in(ii).lon)<=2*max(out.dlon(:));
+		temp.lat=abs(out.lat-in(ii).lat)<=2*max(out.dlat(:));
+		used.flag=temp.lon & temp.lat;
+		[yi,xi]=find(used.flag);
+		used.lat=out.lat(used.flag);
+		used.lon=out.lon(used.flag);
+		[used.idx]=TransferIdx(in(ii),used);
+		idx(kk).y=yi(used.idx.y);
+		idx(kk).x=xi(used.idx.x);
+		idx(kk).lin=drop_2d_to_1d(idx(kk).y,idx(kk).x,Yout);
 	end
 	%% sum vectors from all workers
 	idx_out=gop(@horzcat,idx,1);
-	%             end
+	            end
 	%% send distributed vector to master
 	idx_out=idx_out{1};
 	
 end
-function [lin,y,x]=TransferIdx(in,OUT,Y,X)
+function [idx]=TransferIdx(in,used)	
+	[yy,xx]=yyxx(in,used);			
+	H=hypot(yy,xx);
+	[~,pos]=min(H(:));
+	[idx.y,idx.x]=raise_1d_to_2d(size(H,1),pos) ;
 	
-	[yy,xx]=yyxx(in,OUT)
-	
-	
-	H=hypot(YY(:),XX(:));
-	[Hs]=min(reshape(H,[Y X Y*X]),[],3);
-	[Hs]= reshape(H,[Y X Y*X])
-	[Hs]=min(reshape(H,[Y Y*X X]),[],2);
-	[~,lin]=min(Hs(:))   ;
-	[y,x]=raise_1d_to_2d(Y,lin) ;
 end
 
-function [yy,xx]=yyxx(in,OUT)
-	[A,B]=meshgrid(in.lon,OUT.lon);
+function [YY,XX]=yyxx(in,used)
+	[A,B]=meshgrid(in.lon,used.lon);
 	xx=abs(A-B)*cos(in.lat);
-	[A,B]=meshgrid(in.lat,OUT.lat);
+	[A,B]=meshgrid(in.lat,used.lat);
 	yy=abs(A-B);
-	%  [YY,XX]=meshgrid(yy,xx);
-	
+	[YY,XX]=meshgrid(yy,xx);	
 end

@@ -15,6 +15,7 @@ function DD=initialise(toCheck)
 	end
 	dbstop if error
 	rehash
+     format shortg
 end
 
 function INPUT=ini(toCheck,INPUT)

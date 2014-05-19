@@ -15,6 +15,7 @@ function [DD]=get_input
 	DD.path.analyzed.name=[DD.path.root,'ANALYZED/'];
 	DD.path.analyzedTracks.AC.name=[DD.path.analyzed.name,'AntiCyclones/'];
 	DD.path.analyzedTracks.C.name=[DD.path.analyzed.name,'Cyclones/'];
+    DD.path.Rossby.name=[DD.path.root,'Rossby/'];
    	%%	
     mkdirp(DD.path.code);
     mkdirp(DD.path.codesubs);
@@ -25,9 +26,10 @@ function [DD]=get_input
 	mkdirp(DD.path.analyzed.name);	
 	mkdirp(DD.path.analyzedTracks.AC.name);	
 	mkdirp(DD.path.analyzedTracks.C.name);	
+    mkdirp(DD.path.Rossby.name);	
     %%
-    system(['cp ./*.m ' DD.path.code])
-    system(['cp ./SUBS/*.m ' DD.path.codesubs])
+    system(['cp ./*.m ' DD.path.code]);
+    system(['cp ./SUBS/*.m ' DD.path.codesubs]);
 	%%
 	DD.path.raw.files=dir([DD.path.raw.name,'*.nc']);
 	DD.path.cuts.files=dir([DD.path.cuts.name,'*.mat']);
@@ -37,6 +39,7 @@ function [DD]=get_input
 	DD.path.analyzed.files=dir([DD.path.analyzed.name,'*.mat']);
 	DD.path.analyzedTracks.AC.files=dir([DD.path.analyzedTracks.AC.name,'*.mat']);
 	DD.path.analyzedTracks.C.files=dir([DD.path.analyzedTracks.C.name,'*.mat']);
+    DD.path.Rossby.files=dir([DD.path.Rossby.name,'*.nc']);
 	%%
 	DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; 
 	try
@@ -44,6 +47,4 @@ function [DD]=get_input
 	catch  %#ok<CTCH>
 		disp('found no Salt/Temp data. Skipping Rossby calcs..')
 	end
-	%%
-	DD.monitor.tic=tic;
 end

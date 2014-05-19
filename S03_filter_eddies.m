@@ -141,7 +141,7 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	[ee.geo]=geocoor(zoom,ee.volume);
 	%% append 'age'
 	ee.age=0;
-end
+  end
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
@@ -172,7 +172,6 @@ function pass=CR_corners(corners,thresh)
 	pass=true;
 	if corners < thresh, pass=false; end
 end
-
 function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	pass=false;
 	%%
@@ -202,7 +201,6 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 		error('you need to choose at least one shape method (IQ or chelton method in input_vars switches section)')
 	end
 end
-
 function [pass,chelt]=chelton_shape(z,ee,thresh)
 	% (diameter of circle with equal area)/(maximum distance between nodes)
 	%% get max dist in x | y	
@@ -215,8 +213,6 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
 	chelt  = circDiam/maxDist;
 	if chelt >= thresh, pass=true; else pass=false; end
 end
-
-
 function [pass,isoper]=IsopQuo(ee,thresh)
 	%% isoperimetric quotient
 	% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
@@ -224,8 +220,6 @@ function [pass,isoper]=IsopQuo(ee,thresh)
 	isoper=12.5664*ee.area.total/ee.circum.si^2;
 	if isoper >= thresh, pass=true; else pass=false; end
 end
-
-
 function [pass]=CR_2dEddy(coor)
 	if (max(coor.x)-min(coor.x)<2) || (max(coor.y)-min(coor.y)<2)
 		pass=false;
@@ -246,11 +240,6 @@ function [pass]=CR_ClosedRing(ee)
 		pass=true;
 	end
 end
-
-
-
-
-
 %% others
 function [area]=Area(z)
 	area=struct;
@@ -261,8 +250,6 @@ function	[mask_out]=EddyPackMask(mask_in,limits,dims)
 	mask_out=false(dims);
 	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2))=mask_in;
 end
-
-
 function [pass,amp] = EddyAmp2Ellipse(peak,zoom,thresh)
 	%% mean amplitude with respect to ellipse contour
 	amp=abs(zoom.fields.SSH(peak)-nanmean(zoom.fields.SSH(zoom.mask.ellipse)));

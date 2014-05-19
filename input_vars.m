@@ -22,7 +22,7 @@ function U=input_vars
 	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=20*1+1;
- 	U.dim.Y=20*1+1;
+ 	U.dim.Y=20*2+1;
    	U.dim.west=-80;
  	U.dim.east=-60;
  	U.dim.south=20;

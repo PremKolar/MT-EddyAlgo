@@ -33,47 +33,47 @@ function [MAP]=MakeMaps(DD,CutOne)
     MAP.idx=getIndicesForOutMaps(CutOne.grids,MAP,DD.threads.num);
 end
 function idx_out=getIndicesForOutMaps(grids,MAP,threads)
+    [Yout,Xout]=size(MAP.GLO);
     [Y,X]=size(grids.LAT);
-    idx=zeros(Y*X,1);
     %% copy onto stack for performance
     out.lon=deg2rad(MAP.GLO);
     out.lat=deg2rad(MAP.GLA);
     in.lon=deg2rad(grids.LON);
     in.lat=deg2rad(grids.LAT);
-    lims=thread_distro(threads,numel(idx));
-%     spmd
-        %% allocate indices to be calculated by worker
-                idcs=(lims(labindex,1):lims(labindex,2));
-        T=disp_progress('init','allocating old indices to output indeces');
-        for ii=idcs
-            T=disp_progress('disp',T,numel(idcs),10);
-            idx(ii)=TransferIdx(in,out,ii);
-        end
-        %% sum vectors from all workers
-        idx_out=gplus(idx,1);
-%     end
+    lims=thread_distro(threads,Y*X);
+%          spmd
+    %% allocate indices to be calculated by worker
+    idcs=(lims(labindex,1):lims(labindex,2));
+    idx(numel(idcs)).lin=nan;idx(numel(idcs)).x=nan;idx(numel(idcs)).y=nan;
+    T=disp_progress('init','allocating old indices to output indeces');
+    for ii=idcs
+        kk=ii-idcs(1)+1;
+        T=disp_progress('disp',T,numel(idcs),10);
+        [idx(kk).lin,idx(kk).y,idx(kk).x]=TransferIdx(in,out,ii,Yout,Xout);
+    end
+    %% sum vectors from all workers
+    idx_out=gop(@horzcat,idx,1);
+%             end
     %% send distributed vector to master
     idx_out=idx_out{1};
     
 end
-function [idx]=TransferIdx(in,out,ii)
+function [lin,y,x]=TransferIdx(in,out,ii,Y,X)
+
     
-   near=false(size(out.lat));
-    FirstNumOfpointsToConsider=min([10,size(out.lat)]);
-    temp.grid.lon=abs((in.lon(ii)-out.lon));
-    temp.grid.lat=abs((in.lat(ii)-out.lat));
-    temp.max.x=max(temp.grid.lon,[],1);
-    temp.max.y=max(temp.grid.lat,[],2);    
-    demandA=(temp.grid.lon<=temp.max.x(FirstNumOfpointsToConsider));
-    demandB=(temp.grid.lat<=temp.max.y(FirstNumOfpointsToConsider));
-    near(demandA & demandB)=true;
-   [A,B]=meshgridQuick(in.lon(ii),out.lon(near));
-    xx=abs(A-B)*cos(in.lat(ii));
-    [A,B]=meshgridQuick(in.lat(ii),out.lat(near));
-    yy=abs(A-B);  
-   H=hypot(yy,xx);
-   [~,idxi]=min(H(:)) ;
-   near=find(near);
-    idx=near(idxi);
+      H=hypot(YY(:),XX(:));
+    [Hs]=min(reshape(H,[Y X Y*X]),[],3);
+  [Hs]= reshape(H,[Y X Y*X])
+    [Hs]=min(reshape(H,[Y Y*X X]),[],2);
+    [~,lin]=min(Hs(:))   ;
+    [y,x]=raise_1d_to_2d(Y,lin) ;
 end
 
+function [yy,xx]=yyxx(in,out,ii)
+    [A,B]=meshgrid(in.lon(ii),out.lon(:));
+    xx=abs(A-B)*cos(in.lat(ii));
+    [A,B]=meshgrid(in.lat(ii),out.lat(:));
+    yy=abs(A-B);
+  %  [YY,XX]=meshgrid(yy,xx);
+  
+end

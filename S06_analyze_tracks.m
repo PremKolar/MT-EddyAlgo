@@ -133,10 +133,14 @@ function Ro=loadRossby(DD)
     MAP=initMAP(DD)
     Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name]
     Ro.large.radius=nc_varget(Ro.file,'RossbyRadius');
+    Ro.large.radius(Ro.large.radius==0)=nan;
     Ro.small.radius=MAP.proto.nan;
-   [idxs,~,~]=unique(MAP.idx);
-     for idx=idxs'
-        Ro.small.radius(idx)=nanmean(Ro.large.radius(MAP.idx==idx));
+    lin=cat(1,MAP.idx.lin);
+   
+ 
+     for li=unique(lin,'stable')'
+       [y,x]=raise_1d_to_2d(MAP.dim.y,li);
+         Ro.small.radius(y,x)=nanmean(Ro.large.radius(lin==li));
     end
     
     

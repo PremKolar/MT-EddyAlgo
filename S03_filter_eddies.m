@@ -115,7 +115,7 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% calc contour circumference in [SI]
 	[ee.circum.si]=EddyCircumference(zoom);
 	%% filter eddies not circle-like enough
-	[pass,ee.isoper]=CR_Shape(zoom,ee,dd.thresh.shape,dd.switchs);
+	[pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,dd.thresh.shape,dd.switchs);
 	if ~pass, return, end;
 	%% get peak position and amplitude w.r.t contour
 	[pass,ee.peak,zoom.SSH_BasePos]=CR_AmpPeak(ee,zoom,dd.thresh.amp);

@@ -7,7 +7,7 @@
 % all figs are saved to ~/FIGS/  !
 function S07_drawPlots
     %% init
-    init_threads(8);
+    init_threads(2);
          spmd
     [DD,threadData]=inits;
     %%	set ticks here!

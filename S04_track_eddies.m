@@ -10,15 +10,17 @@ function S04_track_eddies
 	DD=initialise('eddies');
 	%% parallel!
 % 	init_threads(2);
-% 	spmd(2);
+ 	spmd(2);
 		spmd_body(DD);
-% 	end
+end
+
 	%% update infofile
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
 	%% one thread do cycs, other acycs
+	labindex=2;
 	switch labindex
 		case 2
 			sen='cyclones';
@@ -204,6 +206,9 @@ in=(1:length(n2oi));
 do=MD.(sen).old2new.dist(n2oi)';
 %% respective min dist values in new set
 dn=MD.(sen).new2old.dist;
+%% matlab sets dims arbitrarily sometimes for short vecs
+if size(do)~=size(dn), do=do'; end
+if size(io)~=size(in), io=io'; end
 %% agreement among new and old ie definite tracking (with respect to new set)
 TDB.(sen).inNew.tracked = ((do == dn) & (io == in));
 %% flag for fresh eddies with respect to new set

@@ -1,22 +1,22 @@
 function U=input_vars
 	%% threads
-	U.threads.num=12;
+	U.threads.num=2;
 	%% time
  	U.time.from.str='19940930';
  	U.time.till.str='19950930';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
- 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataSmall/';
-    U.path.plots='../plotssmall/';
+ 	U.path.raw.name='/media/ROM/SSH_POP/';
+  	U.path.root='../TR/';
+    U.path.plots='../TRplots/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
 	U.thresh.amp=0.01; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
-	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
+	U.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.8*24*60^2; % max distance travelled per day
 	U.thresh.life=10; % min num of living days for saving
@@ -29,8 +29,9 @@ function U=input_vars
  	U.dim.north=-30;
 	U.dim.NumOfDecimals=1;
 	%% switches
-	U.switchs.RossbyStuff=false;
-	U.switchs.IQ=true;	
+	U.switchs.RossbyStuff=false;  % TODO
+	U.switchs.IQ=false;	
+	U.switchs.chelt=true;	
 	
 	%% technical params
 	U.RossbyStuff.splits = 10; % number of chunks for brunt väis calculations

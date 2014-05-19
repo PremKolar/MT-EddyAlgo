@@ -3,30 +3,30 @@ function U=input_vars
 	U.threads.num=12;
 	%% time
  	U.time.from.str='19940930';
- 	U.time.till.str='19950930';
+ 	U.time.till.str='20080101';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataSmall/';
-    U.path.plots='../plotssmall/';
+  	U.path.root='../dataWrld/';
+    U.path.plots='../plotswrld/';
  	%% thresholds
-	U.contour.step=0.01; % [SI]
+	U.contour.step=0.005; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
-	U.thresh.amp=0.01; % [SI]
+	U.thresh.amp=0.005; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.8*24*60^2; % max distance travelled per day
-	U.thresh.life=10; % min num of living days for saving
+	U.thresh.life=20; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=30*1+1;
- 	U.dim.Y=20*1+1;
- 	U.dim.west=-10;
- 	U.dim.east=20;
- 	U.dim.south=-50;
- 	U.dim.north=-30;
+	U.dim.X=360*2+1;
+ 	U.dim.Y=180*2+1;
+ 	U.dim.west=-180;
+ 	U.dim.east=180;
+ 	U.dim.south=-90;
+ 	U.dim.north=90;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;

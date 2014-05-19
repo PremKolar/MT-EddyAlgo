@@ -11,16 +11,16 @@ function S06_analyze_tracks
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     %%
     init_threads(DD.threads.num);
-        spmd
+%        spmd(DD.threads.num)
     id=labindex;
-    [map,vecs,minmax]=spmd_body(DD,id); 
-      end
+    [map,vecs,minMax]=spmd_body(DD,id);
+%        end
     %% merge
-    minmax=minmax{1};   
-    map=mergeMapData(map,DD);  
-    vecs=mergeVecData(vecs); 
-    map.minmax=minmax;
-    vecs.minmax=minmax;
+    minMax=minMax{1};
+    map=mergeMapData(map,DD);
+    vecs=mergeVecData(vecs);
+    map.minMax=minMax;
+    vecs.minMax=minMax;
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
     save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
@@ -52,7 +52,7 @@ function MinMax=resortTracks(DD,MinMax,TT)
         TT.(collapsedField) =  extractdeepfield(track,sub);
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
-     end
+    end
     switch TT.sense
         case -1
             outfile=[DD.path.analyzedTracks.AC.name,TT.fname];
@@ -60,31 +60,27 @@ function MinMax=resortTracks(DD,MinMax,TT)
             outfile=[DD.path.analyzedTracks.C.name,TT.fname];
     end
     %% save
-    save(outfile,'-struct','TT');  
+    save(outfile,'-struct','TT');
 end
 
 
-  function [TT,MinMax]=getStats(TT,MinMax,cf)
-      %% local
-      TT.max.(cf)=nanmax(TT.(cf));
-      TT.min.(cf)=nanmin(TT.(cf));
-      TT.median.(cf)=nanmedian(TT.(cf));
-      TT.std.(cf)=nanstd(TT.(cf));
-      %% global updates
-      if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
-      if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
-      
-      MinMax.max.(cf)=gop(@max, MinMax.max.(cf)) ;
-      MinMax.min.(cf)=gop(@min, MinMax.min.(cf)) ;
-      
-      
-  end
-  
-  
-  function [MAP,V,JJ,MinMax]=initAll(DD,id)
-      JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
-      MAP.AntiCycs=initMAP(DD);
-      MAP.Cycs=initMAP(DD);
+function [TT,MinMax]=getStats(TT,MinMax,cf)
+    %% local
+    TT.max.(cf)=nanmax(TT.(cf));
+    TT.min.(cf)=nanmin(TT.(cf));
+    TT.median.(cf)=nanmedian(TT.(cf));
+    TT.std.(cf)=nanstd(TT.(cf));
+    %% global updates
+    if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
+    if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
+    
+end
+
+
+function [MAP,V,JJ,MinMax]=initAll(DD,id)
+    JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
+    MAP.AntiCycs=initMAP(DD);
+    MAP.Cycs=initMAP(DD);
     V.AntiCycs.age=[];V.Cycs.age=[];V.AntiCycs.lat=[];V.Cycs.lat=[];
     V.AntiCycs.birth.lat=[];V.AntiCycs.birth.lon=[];
     V.Cycs.birth.lat=[];V.Cycs.birth.lon=[];
@@ -95,6 +91,7 @@ end
         MinMax.max.(collapsedField)=-inf;
         MinMax.min.(collapsedField)=inf;
     end
+    MAP.Rossby=loadRossby(DD);
 end
 
 function [TT]=getTrack(DD,jj)
@@ -109,6 +106,7 @@ function [MAP,V,MinMax]=spmd_body(DD,id)
     [MAP,V,JJ,MinMax]=initAll(DD,id);
     %%
     T=disp_progress('init','analyzing tracks');
+   
     for jj=JJ;
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
@@ -122,10 +120,74 @@ function [MAP,V,MinMax]=spmd_body(DD,id)
             case 1
                 [MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
         end
-    end   
+    end
+    %% get global extrms
+   MinMax=globalExtr(MinMax);
+    %% build zonal means
+%    zonMean=zonmeans(MAP,DD);
+   %%
+   
 end
 
+function Ro=loadRossby(DD)
+    MAP=initMAP(DD)
+    Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name]
+    Ro.large.radius=nc_varget(Ro.file,'RossbyRadius');
+    Ro.large.radius(Ro.large.radius==0)=nan;
+    Ro.small.radius=MAP.proto.nan;
+    lin=cat(1,MAP.idx.lin);
+   
+ 
+     for li=unique(lin,'stable')'
+       [y,x]=raise_1d_to_2d(MAP.dim.y,li);
+         Ro.small.radius(y,x)=nanmean(Ro.large.radius(lin==li));
+    end
+    
+    
+    pcolor(Ro.small.radius);shading flat;colorbar
+    caxis([3e4 6e4])
+    figure
+   pcolor(Ro.large.radius);shading flat;colorbar
+    caxis([3e4 6e4])
+%      Ro.small.radius=DD.;
+    
+end
+
+function MinMax=globalExtr(MinMax)
+     for cf=fieldnames(MinMax.max)'; cf=cf{1};
+        MinMax.max.(cf)=gop(@max, MinMax.max.(cf)) ;
+        MinMax.min.(cf)=gop(@min, MinMax.min.(cf)) ;
+    end
+end
+
+
+
+function zonMean=zonmeans(M,DD)
+    zonMean=M;
+    for sense=fieldnames(M)'; sen=sense{1};
+        N=M.(sen).visits.all;        
+        for Field=DD.FieldKeys.MeanStdFields'; field=Field{1};
+            wms=weightedZonMean(cell2mat(extractdeepfield(M.(sen),field)),N);
+            fields = textscan(field,'%s','Delimiter','.');
+            zonMean.(sen)=setfield(zonMean.(sen),fields{1}{:},wms);
+        end
+    end
+    
+    
+   
+end
+%
+%
+ function OUT=weightedZonMean(MS,weight)
+        OUT.mean=nansum(MS.mean.*weight,2)./sum(weight,2);
+        OUT.std=nansum(MS.std.*weight,2)./sum(weight,2);
+    end
+
+
+
+
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
+    
     MAP.strctr=TRstructure(MAP,eddy);
     [NEW.age]=TRage(MAP,eddy);
     [NEW.dist,eddy]=TRdist(MAP,eddy);
@@ -136,6 +198,8 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
     MAP=comboMS(MAP,NEW,DD);
     [V]=getVecs(eddy,V);
 end
+
+
 
 function [V]=getVecs(eddy,V)
     V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
@@ -386,7 +450,7 @@ function ALL=spmdCase(MAP,DD)
             end
             old=ALL.(sen);
         end
-    end  
+    end
 end
 
 

@@ -8,8 +8,8 @@ function U=input_vars
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../horzData/';
-    U.path.plots='../horzplots/';
+  	U.path.root='../mapdata/';
+    U.path.plots='../mapplots/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -21,12 +21,12 @@ function U=input_vars
 	U.thresh.dist=.8*24*60^2; % max distance travelled per day
 	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=80*1+1;
- 	U.dim.Y=10*1+1;
+	U.dim.X=20*1+1;
+ 	U.dim.Y=20*2+1;
    	U.dim.west=-80;
- 	U.dim.east=0;
+ 	U.dim.east=-60;
  	U.dim.south=20;
- 	U.dim.north=30;
+ 	U.dim.north=40;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;  % TODO

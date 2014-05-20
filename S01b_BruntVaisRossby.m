@@ -14,7 +14,7 @@ function S01b_BruntVaisRossby
     %% set up
     [DD,lims]=set_up;
     %% spmd
-    spmd
+ spmd(DD.threads.num)
         spmd_body(DD,lims);
     end
     %% make netcdf

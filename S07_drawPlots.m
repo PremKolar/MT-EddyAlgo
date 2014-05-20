@@ -8,7 +8,7 @@
 function S07_drawPlots
     %% init
     init_threads(8);
-     spmd
+     spmd(8)
         [DD,threadData]=inits;
         %%	set ticks here!
         ticks.rez=100;

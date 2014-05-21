@@ -7,8 +7,8 @@
 % all figs are saved to ~/FIGS/  !
 function S07_drawPlots
     %% init
-    init_threads(8);
-     spmd(8)
+%     init_threads(8);
+%      spmd(8)
         [DD,threadData]=inits;
         %%	set ticks here!
         ticks.rez=100;
@@ -32,7 +32,7 @@ function S07_drawPlots
         ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
         %% main
         main(DD,threadData,ticks);
-     end
+%      end
 end
 
 %%
@@ -65,16 +65,20 @@ end
 %
 %
 function main(DD,IN,ticks)
-    if labindex==1
-        
-        histstuff(IN.vecs,DD,ticks)
-    end
-    if labindex==2
-        mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
-    end
-    if labindex > 2
-        trackPlots(DD,ticks,IN.tracks)
-    end
+   
+plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.radius)
+hold on
+plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
+% plot(IN.maps.zonMean.Cycs.radius.mean.mean,'black')
+% if labindex==1        
+%         histstuff(IN.vecs,DD,ticks)
+%     end
+%     if labindex==2
+%         mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
+%     end
+%     if labindex > 2
+%         trackPlots(DD,ticks,IN.tracks)
+%     end
 end
 %
 %

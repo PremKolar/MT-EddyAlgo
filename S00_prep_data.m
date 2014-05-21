@@ -69,8 +69,8 @@ function [window,readable]=GetWindow(file,DD)
     window.size=WriteSize(window.limits);
 end
 function S=WriteSize(lims)
-    S.Y = lims.east-lims.west   +1;
-    S.X = lims.north-lims.south +1;
+    S.X = lims.east-lims.west   +1;
+    S.Y = lims.north-lims.south +1;
 end
 function [F,readable]=GetFields(file)
     F=struct;

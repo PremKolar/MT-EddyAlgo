@@ -1,13 +1,14 @@
 function U=input_vars
 	%% threads
-	U.threads.num=2;
+	U.threads.num=12;
 	%% time
  	U.time.from.str='19941001';
- 	U.time.till.str='19941005';
+ 	U.time.till.str='19942001';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.TempSalt.name='/media/ROM/TempSalt/';
- 	U.path.raw.name='/media/ROM/SSH_POP/';
+% 	U.path.TempSalt.name='/media/ROM/TempSalt/';
+ 	U.path.TempSalt.name='/media/ROM/TempSalt/';
+	U.path.raw.name='/media/ROM/SSH_POP/';
   	U.path.root='../mapdata3/';
     U.path.plots='../mapplots/';
  	%% thresholds

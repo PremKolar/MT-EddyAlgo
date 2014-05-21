@@ -2,36 +2,36 @@ function U=input_vars
 	%% threads
 	U.threads.num=2;
 	%% time
- 	U.time.from.str='19940930';
- 	U.time.till.str='19941030';
+ 	U.time.from.str='19941001';
+ 	U.time.till.str='19941005';
  	U.time.delta_t=1; % [days]!
 	%% dirs
-	U.path.TempSalt.name='TempSalt/';
-	U.path.raw.name='../data/SSH_POP/';
-% 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../data/';
-
+	U.path.TempSalt.name='/media/ROM/TempSalt/';
+ 	U.path.raw.name='/media/ROM/SSH_POP/';
+  	U.path.root='../mapdata3/';
+    U.path.plots='../mapplots/';
  	%% thresholds
-	U.contour.step=0.05; % [SI]
+	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
 	U.thresh.amp=0.01; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
-	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
+	U.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-	U.thresh.dist=.5*24*60^2; % max distance travelled per day
-	U.thresh.life=4; % min num of living days for saving
+	U.thresh.dist=.8*24*60^2; % max distance travelled per day
+	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=40*1+1;
-	U.dim.Y=40*1+1;
-	U.dim.west=-90;
-	U.dim.east=-50;
-	U.dim.south=20;
-	U.dim.north=60;
+	U.dim.X=20*1+1;
+ 	U.dim.Y=5*1+1;
+   U.dim.west=-60;
+ 	U.dim.east=-50;
+ 	U.dim.south=20;
+ 	U.dim.north=30;
 	U.dim.NumOfDecimals=1;
 	%% switches
-	U.switchs.RossbyStuff=false;
-	U.switchs.IQ=true;	
+	U.switchs.RossbyStuff=false;  % TODO
+	U.switchs.IQ=false;	
+	U.switchs.chelt=true;	
 	
 	%% technical params
 	U.RossbyStuff.splits = 10; % number of chunks for brunt väis calculations
@@ -67,4 +67,9 @@ function U=input_vars
       'peak.amp.to_mean.of_contour';
 		'peak.amp.to_ellipse';
 		};	
+	%%
+	U.FieldKeys.senses= { ...
+		'AntiCycs';
+		'Cycs';		
+		};
 end

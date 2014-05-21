@@ -210,7 +210,7 @@ function depth=ChunkDepth(DD)
     depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
 end
 function salt=ChunkSalt(DD,dim)
-    dispNcInfo(DD.path.TempSalt.salt)
+     dispNcInfo(DD.path.TempSalt.salt)
     salt=squeeze(nc_varget(DD.path.TempSalt.salt,'SALT',dim.fourD.start,dim.fourD.length));
     salt(salt==0)=nan;
     salt=salt*1000; % to salinity unit. TODO: from input vars

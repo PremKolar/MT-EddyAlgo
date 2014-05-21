@@ -137,7 +137,8 @@ end
 function Ro=loadRossby(DD)
 MAP=initMAP(DD);
 Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-Ro.large.radius=nc_varget(Ro.file,'RossbyRadius')';  % note the TRANSPOSE!!!
+Ro.large.radius=nc_varget(Ro.file,'RossbyRadius'); 
+a=nc_getall(Ro.file)
 Ro.large.radius(Ro.large.radius==0)=nan;
 Ro.small.radius=MAP.proto.nan;
 %% nan mean to smaller map

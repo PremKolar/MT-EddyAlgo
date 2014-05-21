@@ -14,7 +14,7 @@ function S00_prep_data
     %% set up
     [DD]=set_up;
     %% spmd
-    spmd
+    spmd(DD.threads.num)
         spmd_body(DD);
     end
     %% save info file

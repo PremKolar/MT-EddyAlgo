@@ -5,3 +5,4 @@ lims=nan(threads,2);
 distemp=round(linspace(1,steps+1,threads+1));
 lims(:,1)=distemp(1:end-1);
 lims(:,2)=lims(:,1)+diff(distemp)'-1;
+end

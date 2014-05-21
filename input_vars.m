@@ -2,13 +2,13 @@ function U=input_vars
 	%% threads
 	U.threads.num=2;
 	%% time
- 	U.time.from.str='20000101';
- 	U.time.till.str='20000201';
+ 	U.time.from.str='19941001';
+ 	U.time.till.str='19941005';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
- 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../mapdata/';
+ 	U.path.raw.name='/media/ROM/SSH_POP/';
+  	U.path.root='../mapdata2/';
     U.path.plots='../mapplots/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
@@ -21,12 +21,12 @@ function U=input_vars
 	U.thresh.dist=.8*24*60^2; % max distance travelled per day
 	U.thresh.life=10; % min num of living days for saving
 	%% dims for map plots
-	U.dim.X=20*1+1;
- 	U.dim.Y=20*2+1;
-   	U.dim.west=-80;
- 	U.dim.east=-60;
+	U.dim.X=10*1+1;
+ 	U.dim.Y=10*1+1;
+   U.dim.west=-60;
+ 	U.dim.east=-50;
  	U.dim.south=20;
- 	U.dim.north=40;
+ 	U.dim.north=30;
 	U.dim.NumOfDecimals=1;
 	%% switches
 	U.switchs.RossbyStuff=false;  % TODO

@@ -3,13 +3,13 @@ function U=input_vars
 	U.threads.num=12;
 	%% time
  	U.time.from.str='19941001';
- 	U.time.till.str='19942001';
+ 	U.time.till.str='19961001';
  	U.time.delta_t=1; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataZon/';
-    U.path.plots='../plotsZon/';
+  	U.path.root='../ZONdat/';
+    U.path.plots='../ZONplots/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -19,13 +19,13 @@ function U=input_vars
 	U.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.8*24*60^2; % max distance travelled per day
-	U.thresh.life=3; % min num of living days for saving
+	U.thresh.life=5; % min num of living days for saving
 	%% dims for map plots
 	U.dim.X=20*1+1;
  	U.dim.Y=50*1+1;
    U.dim.west=-80;
  	U.dim.east=-60;
- 	U.dim.south=0;
+ 	U.dim.south=10;
  	U.dim.north=50;
 	U.dim.NumOfDecimals=1;
 	%% switches

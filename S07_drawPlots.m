@@ -13,7 +13,8 @@ function S07_drawPlots
         %%	set ticks here!
         ticks.rez=100;
         ticks.width=297/25.4*ticks.rez;
-        ticks.height=ticks.width/sqrt(2); % Din a4
+        ticks.height=ticks.width * DD.dim.Y/DD.dim.X;        
+%         ticks.height=ticks.width/sqrt(2); % Din a4
         ticks.y= 0;
         ticks.x= 0;
         ticks.age=[1,DD.time.span/2,10];
@@ -39,8 +40,8 @@ end
 function [DD,OUT]=inits
     DD=initialise();
     OUT.maps=load([DD.path.analyzed.name, 'maps.mat']);
-    OUT.la=OUT.maps.Cycs.GLA;
-    OUT.lo=OUT.maps.Cycs.GLO;
+    OUT.la=OUT.maps.Cycs.lat;
+    OUT.lo=OUT.maps.Cycs.lon;
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
     root=DD.path.analyzedTracks.AC.name;

@@ -11,7 +11,7 @@ function S07_drawPlots
 %      spmd(8)
         [DD,threadData]=inits;
         %%	set ticks here!
-        ticks.rez=100;
+        ticks.rez=42;
         ticks.width=297/25.4*ticks.rez;
         ticks.height=ticks.width * DD.dim.Y/DD.dim.X;        
 %         ticks.height=ticks.width/sqrt(2); % Din a4
@@ -102,19 +102,19 @@ function histstuff(vecs,DD,ticks)
     ratioBar(hc,'lat',range,ticks);
     tit='ratio of cyclones to anticyclones as function of latitude';
     title(tit)
-   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatLat'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatLat']);
     %%
     ratioBar(hc,'age',range,ticks);
     tit='ratio of cyclones to anticyclones as function of age';
     xlab='age [d] - gray scale indicates total number of eddies available';
     title(tit);
     xlabel(xlab)   ;
-   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_LatNum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_LatNum']);
     %%
     ratioBar(hc,'cum',range,ticks);
     tit='ratio of cyclones to anticyclones as upper tail cum. of age';
     title(tit);
-   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge']);
     
 end
 %
@@ -139,7 +139,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         set(gca,'xtick',ticks.x) ;
         legend('births','deaths')
         title(sen)
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths']);
         
         %%
         figure
@@ -148,7 +148,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         pcolor(lo,la,VV);shading flat
         caxis([ticks.age(1) ticks.age(2)])
         decorate('age',ticks,DD,sen,'age','d',1,1);
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'],0)
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'])
         %%
         figure
         VV=maps.(sen).visits.single;
@@ -156,7 +156,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         pcolor(lo,la,log(VV));shading flat
         caxis([ticks.visits(1) ticks.visits(2)])
         decorate('visits',ticks,DD,sen,'Visits of unique eddy',' ',0,1);
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits']);
         %%
         figure
         VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
@@ -164,7 +164,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         caxis([ticks.dist(1) ticks.dist(2)])
         cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
          doublemap(cb,win,aut,[.9 1 .9])
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB']);
         %%
         figure
         VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
@@ -172,21 +172,21 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         caxis([ticks.dist(1) ticks.dist(2)])
         cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
         doublemap(cb,win,aut,[.9 1 .9])
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD']);
         %%
         figure
         VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
         pcolor(lo,la,VV);shading flat
         caxis([ticks.disttot(1) ticks.disttot(2)])
         decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB']);
         %%
         figure
         VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
         pcolor(lo,la,VV);shading flat
         caxis([ticks.disttot(1) ticks.disttot(2)])
         decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD']);
         %%
         figure
         VV=maps.(sen).vel.zonal.mean*100;
@@ -194,14 +194,14 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         caxis([ticks.vel(1) ticks.vel(2)])
         cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVel'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVel']);
         %%
         figure
         VV=maps.(sen).radius.mean.mean/1000;
         pcolor(lo,la,VV);shading flat
         caxis([ticks.radius(1) ticks.radius(2)])
         decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapRad'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapRad']);
         
     end
     
@@ -283,7 +283,7 @@ function [lat]=numPerLat(latin,DD,ticks,range,sen)
     semilogy(range,lat);
     tit=['number of ',sen,' per 1° lat'];
     title([tit]);
-   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_latNum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_latNum']);
 end
 %
 %
@@ -298,7 +298,7 @@ function [age,cum]=ageCum(agein,DD,ticks,range,sen)
     semilogy(range,cum)
     tit=['upper tail cumulative of ',sen,' per age'];
     title([tit,' [',unit,']'])
-   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum']);
 end
 %
 %

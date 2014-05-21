@@ -1,6 +1,6 @@
 function []=init_threads(threads)
 	current_threads=matlabpool('size');
-	if current_threads~=threads
+	if current_threads < threads
 		try
 			matlabpool close
 		catch err

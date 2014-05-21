@@ -8,7 +8,7 @@
 function S07_drawPlots
     %% init
     init_threads(8);
-         spmd
+  spmd(8)
     [DD,threadData]=inits;
     %%	set ticks here!
     ticks.rez=100;
@@ -79,33 +79,36 @@ end
 function histstuff(vecs,DD,ticks)
     senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
+        %%
+        if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end 
         range.(sen).lat=round(nanmin(vecs.(sen).lat)):round(nanmax(vecs.(sen).lat));
+        %%
         range.(sen).age=round(nanmin(vecs.(sen).age)):round(nanmax(vecs.(sen).age));
+        %%
         range.(sen).cum=range.(sen).age;
         %%
         [hc.(sen).lat]=numPerLat(vecs.(sen).lat,DD,ticks,range.(sen).lat,sen);
         %%
         [hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
     end
-    
     %%
     ratioBar(hc,'lat',range,ticks);
     tit='ratio of cyclones to anticyclones as function of latitude';
     title(tit)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatLat'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatLat'],0);
     %%
     ratioBar(hc,'age',range,ticks);
     tit='ratio of cyclones to anticyclones as function of age';
     xlab='age [d] - gray scale indicates total number of eddies available';
     title(tit);
     xlabel(xlab)   ;
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_LatNum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_LatNum'],0);
     %%
     ratioBar(hc,'cum',range,ticks);
     tit='ratio of cyclones to anticyclones as upper tail cum. of age';
     title(tit);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge'],0);
-    
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge'],0);
+
 end
 %
 %
@@ -114,6 +117,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
     win=winter;
     senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
+        if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end 
         %%
         figure
         b.la=vecs.(sen).birth.lat;
@@ -128,54 +132,53 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         set(gca,'xtick',ticks.x) ;
         legend('births','deaths')
         title(sen)
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths'],0);
-        
-        %%
+      savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_deathsBirths'],0);
+       %%
         figure
         maps.(sen).age.logmean=log(maps.(sen).age.mean);
         VV=maps.(sen).age.logmean;
         pcolor(lo,la,VV);shading flat
         caxis([ticks.age(1) ticks.age(2)])
         decorate('age',ticks,DD,sen,'age','d',1,1);
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'],0)
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapAge'],0)
         %%
         figure
         VV=maps.(sen).visits.single;
         VV(VV==0)=nan;
         pcolor(lo,la,log(VV));shading flat
         caxis([ticks.visits(1) ticks.visits(2)])
-        decorate('visits',ticks,DD,sen,'Visits of unique eddy','',1,1);
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits'],0);
-        %%
+        decorate('visits',ticks,DD,sen,'Visits of unique eddy',' ',0,1);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVisits'],0);
+	%%
         figure
         VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
         pcolor(lo,la,VV);shading flat
         caxis([ticks.dist(1) ticks.dist(2)])
         cb=decorate('dist',ticks,DD,sen,'Distance from Birth','km',0,1);
-        doublemap(cb,win,aut,[1 1 1])
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB'],0);
+         doublemap(cb,win,aut,[.9 1 .9])
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDFB'],0);
         %%
         figure
         VV=maps.(sen).dist.zonal.tillDeath.mean/1000;
         pcolor(lo,la,VV);shading flat
         caxis([ticks.dist(1) ticks.dist(2)])
         cb=decorate('dist',ticks,DD,sen,'Distance till Death','km',0,1);
-        doublemap(cb,win,aut,[1 1 1])
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD'],0);
+        doublemap(cb,win,aut,[.9 1 .9])
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTD'],0);
         %%
         figure
         VV=log(maps.(sen).dist.traj.fromBirth.mean/1000);
         pcolor(lo,la,VV);shading flat
         caxis([ticks.disttot(1) ticks.disttot(2)])
-        decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',1,1);
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB'],0);
+        decorate('disttot',ticks,DD,sen,'Total distance travelled since birth','km',0,1);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTFB'],0);
         %%
         figure
         VV=log(maps.(sen).dist.traj.tillDeath.mean/1000);
         pcolor(lo,la,VV);shading flat
         caxis([ticks.disttot(1) ticks.disttot(2)])
-        decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',1,1);
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD'],0);
+        decorate('disttot',ticks,DD,sen,'Total distance to be travelled till death','km',0,1);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapDTTD'],0);
         %%
         figure
         VV=maps.(sen).vel.zonal.mean*100;
@@ -183,15 +186,14 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         caxis([ticks.vel(1) ticks.vel(2)])
         cb=decorate('vel',ticks,DD,sen,'Zonal velocity','cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVel'],0);
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapVel'],0);
         %%
         figure
         VV=maps.(sen).radius.mean.mean/1000;
         pcolor(lo,la,VV);shading flat
         caxis([ticks.radius(1) ticks.radius(2)])
         decorate('radius',ticks,DD,sen,'Radius','km',0,1);
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapRad'],0);
-        
+       savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapRad'],0);
     end
     
 end
@@ -199,10 +201,8 @@ end
 %
 function trackPlots(DD,ticks,tracks)
     %%
-    senses={'Cycs','AntiCycs'};
-    %figure
+    senses=fieldnames(tracks);
     for sense=senses; sen=sense{1};
-        
         if labindex==3
             %%
             drawColorLinem(ticks,tracks.(sen),'lat','isoper') ;
@@ -213,33 +213,35 @@ function trackPlots(DD,ticks,tracks)
             colorbar
             xlabel('latitude repr. by color; IQ repr. by thickness')
             axis equal
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_defletcs']);
-        elseif labindex==4
+
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_defletcs']);
+    elseif labindex==4
             %%
             field='age';
             drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
             decorate(field,ticks,DD,sen,field,'d',1,1);
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_age']);
+
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_age']);
         elseif labindex==5
             %%
             drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
             decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_IQ']);
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_IQ']);
         elseif labindex==6
             %%
             drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
             decorate('radius',ticks,DD,sen,'Radius','km',0,1)
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_radius']);
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_radius']);
         elseif labindex==7
             %%
             drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
             decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
-        elseif labindex==8
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
+        elseif labindex==1
             %%
             drawColorLine(ticks,tracks.(sen),'peakampto_contour',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
             decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
-            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
+           savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
         end
     end
 end
@@ -274,7 +276,7 @@ function [lat]=numPerLat(latin,DD,ticks,range,sen)
     semilogy(range,lat);
     tit=['number of ',sen,' per 1° lat'];
     title([tit]);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_latNum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_latNum'],0);
 end
 %
 %
@@ -289,7 +291,7 @@ function [age,cum]=ageCum(agein,DD,ticks,range,sen)
     semilogy(range,cum)
     tit=['upper tail cumulative of ',sen,' per age'];
     title([tit,' [',unit,']'])
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum'],0);
+   savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_ageUpCum'],0);
 end
 %
 %
@@ -320,10 +322,9 @@ function doublemap(cb,cm1,cm2,centercol)
     zlim=(get(cb,'ylim'));
     ztick=(get(cb,'ytick'));
     zticklabel=(get(cb,'yticklabel'));
-    
     %% resample to fit ticks
-    cm1r=resample(cm1,abs(zlim(1)),1);
-    cm2r=resample(cm2,zlim(2),1);
+    cm1r=resample(cm1,abs(zlim(1)),round(abs(zlim(1)) * abs(zlim(2)/zlim(1))));
+    cm2r=resample(cm2,zlim(2),zlim(2));
     CM=[cm1r;flipud(cm2r)];
     %% blend in the middle
     midfilt=linspace(-1,zlim(2)/abs(zlim(1)),length(CM));
@@ -348,7 +349,7 @@ end
 %
 %
 function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast)
-    if nargin<9
+     if nargin<9
         coast=true;
     end
     axis(ticks.axis);
@@ -394,6 +395,8 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
         cm(cm<0)=0;
         %% Find interpolated thickness
         iq = spline(iqiq,linspace(0.001,2,10),VViq);
+        iq(iq>1)=1;                       
+        iq(iq<0)=0.0000001;
         %% deg2km
         yy=[0 cumsum(deg2km(diff(V.lat)))];
         xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
@@ -443,6 +446,9 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
         end
         %% Find interpolated thickness
         iq = spline(iqiq,linspace(0.001,2,10),VViq);
+        iq(iq>1)=1;                       
+        iq(iq<0)=0.0000001;
+        %%
         for ii=1:length(la)-1
             if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
                 line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',iq(ii));

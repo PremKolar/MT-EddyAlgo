@@ -124,18 +124,29 @@ function [MAP,V,MinMax]=spmd_body(DD,id)
         end
     end   
 end
+%
+%
+function OUT=weightedZonMean(MS,weight)
+	OUT.mean=nansum(MS.mean.*weight,2)./sum(weight,2);
+	OUT.std=nansum(MS.std.*weight,2)./sum(weight,2);
+end
+
+
+
 
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
-    MAP.strctr=TRstructure(MAP,eddy);
-    [NEW.age]=TRage(MAP,eddy);
-    [NEW.dist,eddy]=TRdist(MAP,eddy);
-    NEW.vel=TRvel(MAP,eddy);
-    NEW.radius=TRradius(MAP,eddy);
-    NEW.amp=TRamp(MAP,eddy);
-    [NEW.visits.all,NEW.visits.single]=TRvisits(MAP);
-    MAP=comboMS(MAP,NEW,DD);
-    [V]=getVecs(eddy,V);
+	MAP.strctr=TRstructure(MAP,eddy);
+	[NEW.age]=TRage(MAP,eddy);
+	[NEW.dist,eddy]=TRdist(MAP,eddy);
+	NEW.vel=TRvel(MAP,eddy);
+	NEW.radius=TRradius(MAP,eddy);
+	NEW.amp=TRamp(MAP,eddy);
+	[NEW.visits.all,NEW.visits.single]=TRvisits(MAP);
+	MAP=comboMS(MAP,NEW,DD);
+	[V]=getVecs(eddy,V);
 end
+
+
 
 function [V]=getVecs(eddy,V)
     V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
@@ -297,14 +308,14 @@ function [d,drct]=diststuff(geo)
 end
 
 function [count,singlecount]=TRvisits(MAP)
-    count=MAP.proto.zeros;
-    singlecount=MAP.proto.zeros;
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-    end
-    sidx=unique(MAP.strctr.idx);
-    singlecount(sidx)=singlecount(sidx) + 1;
+	count=MAP.proto.zeros;
+	singlecount=MAP.proto.zeros;
+	for tt=MAP.strctr.length
+		idx=MAP.strctr.idx(tt);
+		count(idx)=count(idx) + 1;
+	end
+	sidx=unique(MAP.strctr.idx);
+	singlecount(sidx)=singlecount(sidx) + 1;
 end
 
 function [param,count]=protoInit(proto,type)
@@ -327,66 +338,66 @@ function	vecs=mergeVecData(vecs)
 end
 
 function old=comboMS(old,new,DD)
-    subfieldstrings=DD.FieldKeys.MeanStdFields;
-    for ff=1:numel(subfieldstrings)
-        %%	 extract current field to mean/std level
-        value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
-        value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
-        %% nan2zero
-        value.new.mean(isnan(value.new.mean))=0;
-        value.old.mean(isnan(value.old.mean))=0;
-        value.new.std(isnan(value.new.std))=0;
-        value.old.std(isnan(value.old.std))=0;
-        %% combo update
-        combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
-        combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
-        %% set to updated values
-        fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-        meanfields={[fields{1};'mean']};
-        stdfields={[fields{1};'std']};
-        old=setfield(old,meanfields{1}{:},combo.mean)				;
-        old=setfield(old,stdfields{1}{:},combo.std)				;
-        
-    end
-    old.visits.all=old.visits.all + new.visits.all;
-    old.visits.single=old.visits.single + new.visits.single;
+	subfieldstrings=DD.FieldKeys.MeanStdFields;
+	for ff=1:numel(subfieldstrings)
+		%%	 extract current field to mean/std level
+		value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
+		value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
+		%% nan2zero
+		value.new.mean(isnan(value.new.mean))=0;
+		value.old.mean(isnan(value.old.mean))=0;
+		value.new.std(isnan(value.new.std))=0;
+		value.old.std(isnan(value.old.std))=0;
+		%% combo update
+		combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
+		combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
+		%% set to updated values
+		fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
+		meanfields={[fields{1};'mean']};
+		stdfields={[fields{1};'std']};
+		old=setfield(old,meanfields{1}{:},combo.mean)				;
+		old=setfield(old,stdfields{1}{:},combo.std)				;
+		
+	end
+	old.visits.all=old.visits.all + new.visits.all;
+	old.visits.single=old.visits.single + new.visits.single;
 end
 
 function ALL=spmdCase(MAP,DD)
-    subfieldstrings=DD.FieldKeys.MeanStdFields;
-    map=MAP{1};
-    for sense=[{'AntiCycs'},{'Cycs'}];	sen=sense{1};
-        ALL.(sen)=map.(sen);
-        T=disp_progress('init',['combining results from all threads - ',sen,' ']);
-        for tt=1:DD.threads.num
-            T=disp_progress('calc',T,DD.threads.num,DD.threads.num);
-            new = cell2mat(extractfield(MAP{tt},sen));
-            if tt>1
-                for ff=1:numel(subfieldstrings)
-                    %%	 extract current field to mean/std level
-                    value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
-                    value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
-                    %% nan2zero
-                    value.new.mean(isnan(value.new.mean))=0;
-                    value.old.mean(isnan(value.old.mean))=0;
-                    value.new.std(isnan(value.new.std))=0;
-                    value.old.std(isnan(value.old.std))=0;
-                    %% combo update
-                    combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
-                    combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
-                    %% set to updated values
-                    fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-                    meanfields={[fields{1};'mean']};
-                    stdfields={[fields{1};'std']};
-                    ALL.(sen)=setfield(ALL.(sen),meanfields{1}{:},combo.mean);
-                    ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std);
-                end
-                ALL.(sen).visits.all=ALL.(sen).visits.all + new.visits.all;
-                ALL.(sen).visits.single=ALL.(sen).visits.single+ new.visits.single;
-            end
-            old=ALL.(sen);
-        end
-    end  
+	subfieldstrings=DD.FieldKeys.MeanStdFields;
+	map=MAP{1};
+	for sense=[{'AntiCycs'},{'Cycs'}];	sen=sense{1};
+		ALL.(sen)=map.(sen);
+		T=disp_progress('init',['combining results from all threads - ',sen,' ']);
+		for tt=1:DD.threads.num
+			T=disp_progress('calc',T,DD.threads.num,DD.threads.num);
+			new = cell2mat(extractfield(MAP{tt},sen));
+			if tt>1
+				for ff=1:numel(subfieldstrings)
+					%%	 extract current field to mean/std level
+					value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
+					value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
+					%% nan2zero
+					value.new.mean(isnan(value.new.mean))=0;
+					value.old.mean(isnan(value.old.mean))=0;
+					value.new.std(isnan(value.new.std))=0;
+					value.old.std(isnan(value.old.std))=0;
+					%% combo update
+					combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
+					combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
+					%% set to updated values
+					fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
+					meanfields={[fields{1};'mean']};
+					stdfields={[fields{1};'std']};
+					ALL.(sen)=setfield(ALL.(sen),meanfields{1}{:},combo.mean);
+					ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std);
+				end
+				ALL.(sen).visits.all=ALL.(sen).visits.all + new.visits.all;
+				ALL.(sen).visits.single=ALL.(sen).visits.single+ new.visits.single;
+			end
+			old=ALL.(sen);
+		end
+	end
 end
 
 

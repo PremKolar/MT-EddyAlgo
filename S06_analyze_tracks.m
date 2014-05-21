@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	spmd(DD.threads.num)
+% 	spmd(DD.threads.num)
 		id=labindex;
 		[map,vecs,minMax]=spmd_body(DD,id);
-	end
+% 	end
 	%% merge
 	minMax=minMax{1};
 	map=mergeMapData(map,DD);
@@ -138,7 +138,7 @@ function Ro=loadRossby(DD)
 	Ro.small.radius=MAP.proto.nan;
 	%% nan mean to smaller map
 	lin=MAP.idx;
-	for li=unique(lin(lin~=0))
+	for li=unique(lin(lin~=0 & ~isnan(lin)))
 		Ro.small.radius(li)=nanmean(Ro.large.radius(lin==li));
 	end
 end
@@ -439,41 +439,3 @@ function ALL=spmdCase(MAP,DD)
 		end
 	end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

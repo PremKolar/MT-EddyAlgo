@@ -14,8 +14,8 @@ function S05_init_output_maps
 	%% find respective index for all grid points of input map
  	spmd(DD.threads.num)
 		idx=spmd_body(DD,MAP);	
- 	end	
-	%% merge composite	
+    end	
+    %% merge composite	
 	spmd;	idxx=gop(@vertcat,idx,1);	end	
 	MAP.idx=sum(idxx{1});
 	%% save MAP
@@ -54,7 +54,7 @@ function [lin]=rangeOp(inLon,inLat,out)
 	temp.lat=abs(out.lat-inLat)<=2*(out.inc.y);
 	used.flag=temp.lon & temp.lat;
 	%% out of bounds
-	if ~any(used.flag(:)),	return;	end
+	if ~any(used.flag(:)), lin=nan;	return;	end
 	%% set lon/lat to be inter-distance checked
 	[yi,xi]=find(used.flag);
 	used.lat=out.lat(used.flag);

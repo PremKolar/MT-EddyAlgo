@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	init_threads(DD.threads.num);
-	spmd(DD.threads.num)
+% 	spmd(DD.threads.num)
 		id=labindex;
 		[map,vecs,minMax]=spmd_body(DD,id);
-	end
+% 	end
 	%% merge
 	minMax=minMax{1};
 	map=mergeMapData(map,DD);
@@ -96,22 +96,28 @@ function [MAP,V,JJ,MinMax]=initAll(DD,id)
 end
 
 function [TT]=getTrack(DD,jj)
-	TT.fname=DD.path.tracks.files(jj).name;
-	TT.filename = [DD.path.tracks.name  TT.fname];
-	TT.eddy=load(TT.filename);
-	TT.sense=TT.eddy.trck(1).sense.num;
+TT.fname=DD.path.tracks.files(jj).name;
+TT.filename = [DD.path.tracks.name  TT.fname];
+try
+    TT.eddy=load(TT.filename);
+catch corrupt
+    warning(corrupt.identifier,corrupt.getReport)
+    disp('skipping!')
+    TT=[]; return
+end
+TT.sense=TT.eddy.trck(1).sense.num;
 end
 
 function [MAP,V,MinMax]=spmd_body(DD,id)
-	%% get stuff
-	[MAP,V,JJ,MinMax]=initAll(DD,id);
-	%%
-	T=disp_progress('init','analyzing tracks');
-	
-	for jj=JJ;
-		T=disp_progress('calc',T,numel(JJ),100);
+%% get stuff
+[MAP,V,JJ,MinMax]=initAll(DD,id);
+%%
+T=disp_progress('init','analyzing tracks');
+
+for jj=JJ;
+    T=disp_progress('calc',T,numel(JJ),100);
 		%% get track
-		[TT]=getTrack(DD,jj);
+		[TT]=getTrack(DD,jj); if isempty(TT),continue;end
 		%% resort tracks for output
 		[MinMax]=resortTracks(DD,MinMax,TT);
 		%% mapstuff prep

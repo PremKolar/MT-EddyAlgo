@@ -137,7 +137,6 @@ if any(pass)
 end
 %% kill in 'stack'
 tracks(AIdxdead)=[];	% get rid of dead matter!
-
 end
 function archive(trck,path,jj,id)
 %% write out file (one per eddy)

@@ -2,10 +2,10 @@ function U=input_vars
     %% threads
     U.threads.num=12;
     %% time
-    U.time.from.str='19941001';
-    U.time.till.str='20061001';
-% 	 U.time.from.str='19940426';
-%     U.time.till.str='19940501';
+%     U.time.from.str='19941001';
+%     U.time.till.str='20061001';
+	 U.time.from.str='19940426';
+    U.time.till.str='19990501';
     U.time.delta_t=1; % [days]!
     %% dirs
 %     U.path.TempSalt.name='../TempSalt/';
@@ -24,8 +24,7 @@ function U=input_vars
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
     U.thresh.dist=.8*24*60^2; % max distance travelled per day
     U.thresh.life=30; % min num of living days for saving
-	 U.thresh.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    %% dims for map plots
+	 %% dims for map plots
     U.dim.X=10*3+1;
     U.dim.Y=10*3+1;
     U.dim.west=-50;
@@ -37,9 +36,13 @@ function U=input_vars
     U.switchs.RossbyStuff=false;  % TODO
     U.switchs.IQ=true;
     U.switchs.chelt=false;
-    
+    %% parameters
+	  U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
+     U.parameters.depthRossby=100; % depth from which to take rossby phase speed and radius
+	 
+	 
     %% technical params
-    U.RossbyStuff.splits = 25; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 2; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

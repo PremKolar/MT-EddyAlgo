@@ -7,7 +7,8 @@
 % walks through all the contours and declabindexes whether they qualify
 function S03_filter_eddies
 	%% init
-		DD=initialise('conts');	
+% 		DD=initialise('conts');	
+			DD=initialise();	
 	DD.threads.num=init_threads(DD.threads.num);	
 rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
@@ -155,7 +156,7 @@ function []=ProjectedLocations(ee,rossbyU,zoom,DD)
 %% get rossby wave phase speed once only (exact enough)
 rU=rossbyU(ee.volume.center.lin);
 %% get projected distance (1.75 * dt*rU  as in chelton 2011)
-dist=DD.time.delta_t*86400* DD.thresh.rossbySpeedFactor * rU;
+dist=DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU;
 %% 
 lat=zoom.fields.LAT(ee.centroid.linz)
 lon=zoom.fields.LON(ee.centroid.linz)
@@ -168,7 +169,9 @@ end
 
 
 function U=getRossbyPhaseSpeed(DD)
+	
 	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
+	
 end
 
 

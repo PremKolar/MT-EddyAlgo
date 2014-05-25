@@ -14,9 +14,9 @@ function S01b_BruntVaisRossby
 	%% set up
 	[DD,lims]=set_up;
 	%% spmd
-		spmd(DD.threads.num)
+	% 		spmd(DD.threads.num)
 	spmd_body(DD,lims);
-		end
+	% 		end
 	%% make netcdf
 	DD.path.Rossby=WriteNCfile(DD,lims);
 	%% update DD
@@ -43,14 +43,14 @@ function spmd_body(DD,lims)
 	%% loop over chunks
 	for chnk=lims.loop(id,1):lims.loop(id,2)
 		Calculations(DD,lims.data,chnk);
-	end	
+	end
 end
 function Calculations(DD,lims,chnk)
 	cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
 	disp('initialising..')
 	CK=initCK(DD,lims,chnk);
 	%% calculate Brunt-Väisälä f and potential vorticity
-	[CK.BRVA,CK.PVORT]=calcBrvaPvort(CK,cc);
+	[CK.BRVA,CK.PVORT,CK.midDepth]=calcBrvaPvort(CK,cc);
 	%% integrate first baroclinic rossby wave phase speed
 	[CK.rossby.c1]=calcC_one(CK,cc);
 	%% rossby radius ie c1/f
@@ -72,39 +72,40 @@ end
 function	nc_file_name=		initNC(DD)
 	nc_file_name=[DD.path.Rossby.name, 'BVRf_all.nc'];
 	overwriteornot(nc_file_name)
-	disp('adding depth dimension to netcdf...')
-	nc_adddim(nc_file_name,'depth_diff',41);
-	X=DD.map.window.size.X;
-	Y=DD.map.window.size.Y;
-	nc_adddim(nc_file_name,'i_index',X);
-	nc_adddim(nc_file_name,'j_index',Y);
-	%%
-	function overwriteornot(nc_file_name)
-		try
-			nc_create_empty(nc_file_name,'noclobber')
-		catch me
-			disp(me.message)
-			reply = input('Do you want to overwrite? Y/N [Y]: ', 's');
-			if isempty(reply)
-				reply = 'Y';
-			end
-			if strcmp(reply,'Y')
-				nc_create_empty(nc_file_name,'clobber')
-			else
-				error('exiting')
-			end
+end
+
+function overwriteornot(nc_file_name)
+	try
+		nc_create_empty(nc_file_name,'noclobber')
+	catch me
+		disp(me.message)
+		reply = input('Do you want to overwrite? Y/N [Y]: ', 's');
+		if isempty(reply)
+			reply = 'Y';
+		end
+		if strcmp(reply,'Y')
+			nc_create_empty(nc_file_name,'clobber')
+		else
+			error('exiting')
 		end
 	end
 end
+
 function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	%% init
 	CK=loadChunk(DD,chnk);
-	[Y,X]=size(CK.LAT);
+	[Z,Y,X]=size(CK.rossby.c1);
 	strt=lims.data(chnk,1)-DD.map.window.limits.west;
 	dim.fourD.start  = [ 0 0 strt	];
-	dim.twoD.start   = [0 strt];
-	dim.fourD.length = [ 41 Y X];
-	dim.twoD.length = [Y X	]    ;
+	dim.fourD.length = [Z Y X];
+	dim.twoD.start   = [0];
+	dim.twoD.length = [Z];
+	%% add dimensions to netcdf
+	if chnk==1
+		nc_adddim(nc_file_name,'depth_diff',Z);
+		nc_adddim(nc_file_name,'i_index',DD.map.window.size.X	);
+		nc_adddim(nc_file_name,'j_index',DD.map.window.size.Y);
+	end
 	%% N
 	varstruct.Name = 'BruntVaisala';
 	varstruct.Nctype = 'double';
@@ -123,6 +124,15 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	varstruct.Dimension ={'depth_diff','j_index','i_index' };
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
 	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.fourD.start, dim.fourD.length);
+	%% depth
+	
+	if chnk==1
+		varstruct.Name = 'Depth';
+		varstruct.Nctype = 'double';
+		varstruct.Dimension ={'depth_diff'};
+		nc_addvar(nc_file_name,varstruct)
+		nc_varput(nc_file_name,'Depth',CK.midDepth,dim.twoD.start, dim.twoD.length);
+	end
 end
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>
 	file_out=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
@@ -147,7 +157,7 @@ function [c1]=calcC_one(CK,cc)
 		c1(zz,:,:)=-squeeze(nansum(M.depthdiff(1:zz,:,:).*CK.BRVA(1:zz,:,:),1))/pi;
 	end
 end
-function [BRVA,PVORT]=calcBrvaPvort(CK,cc)
+function [BRVA,PVORT,midDepth]=calcBrvaPvort(CK,cc)
 	[ZZ,YY,XX]=size(CK.BRVA);
 	disp(['calculating brunt väisälä, chunk ',cc]);
 	%% get full matrices for all variables
@@ -157,10 +167,12 @@ function [BRVA,PVORT]=calcBrvaPvort(CK,cc)
 	M.salt=reshape(CK.SALT,[ZZ+1,YY*XX]);
 	M.temp=reshape(CK.TEMP,[ZZ+1,YY*XX]);
 	%% get brunt väisälä frequency and pot vort
-	[brva,pvort,a]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
+	[brva,pvort,md]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
+	midDepth=squeeze(md(:,1)); % uniform
 	BRVA=sqrt(reshape(brva,[ZZ,YY,XX]));
 	BRVA(abs(imag(BRVA))>0)=0;
 	PVORT=reshape(pvort,[ZZ,YY,XX]);
+	
 end
 function [CK,DD]=initCK(DD,lims,chnk)
 	CK.chunk=chnk;

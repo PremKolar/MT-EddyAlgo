@@ -14,9 +14,9 @@ function S01b_BruntVaisRossby
 	%% set up
 	[DD,lims]=set_up;
 	%% spmd
-	% 		spmd(DD.threads.num)
-	spmd_body(DD,lims);
-	% 		end
+	spmd(DD.threads.num)
+		spmd_body(DD,lims);
+	end
 	%% make netcdf
 	DD.path.Rossby=WriteNCfile(DD,lims);
 	%% update DD
@@ -125,7 +125,6 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
 	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.fourD.start, dim.fourD.length);
 	%% depth
-	
 	if chnk==1
 		varstruct.Name = 'Depth';
 		varstruct.Nctype = 'double';
@@ -156,6 +155,7 @@ function [c1]=calcC_one(CK,cc)
 	for zz=1:ZZ
 		c1(zz,:,:)=-squeeze(nansum(M.depthdiff(1:zz,:,:).*CK.BRVA(1:zz,:,:),1))/pi;
 	end
+	
 end
 function [BRVA,PVORT,midDepth]=calcBrvaPvort(CK,cc)
 	[ZZ,YY,XX]=size(CK.BRVA);

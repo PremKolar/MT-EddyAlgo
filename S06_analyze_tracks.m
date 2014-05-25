@@ -137,8 +137,12 @@ end
 
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
-	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-	Ro.large.radius=nc_varget(Ro.file,'RossbyRadius');
+		Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
+	dWanted=DD.parameters.depthRossby;
+	d=nc_varget(Ro.file,'Depth');
+		r=nc_varget(Ro.file,'RossbyRadius');
+	[~,pos]=min(abs(d-dWanted));
+	Ro.large.radius=squeeze(r(pos,:,:));
 	Ro.large.radius(Ro.large.radius==0)=nan;
 	Ro.small.radius=MAP.proto.nan;
 	%% nan mean to smaller map

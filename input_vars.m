@@ -2,10 +2,10 @@ function U=input_vars
     %% threads
     U.threads.num=12;
     %% time
-%     U.time.from.str='19941001';
-%     U.time.till.str='20061001';
-	 U.time.from.str='19940426';
-    U.time.till.str='19940501';
+    U.time.from.str='19941001';
+    U.time.till.str='20061001';
+% 	 U.time.from.str='19940426';
+%     U.time.till.str='19940501';
     U.time.delta_t=1; % [days]!
     %% dirs
 %     U.path.TempSalt.name='../TempSalt/';

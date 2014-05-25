@@ -43,8 +43,7 @@ function spmd_body(DD,lims)
 	%% loop over chunks
 	for chnk=lims.loop(id,1):lims.loop(id,2)
 		Calculations(DD,lims.data,chnk);
-	end
-	
+	end	
 end
 function Calculations(DD,lims,chnk)
 	cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
@@ -115,15 +114,15 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	%% Ro1
 	varstruct.Name = 'RossbyRadius';
 	varstruct.Nctype = 'double';
-	varstruct.Dimension = {'j_index','i_index' };
+	varstruct.Dimension = {'depth_diff','j_index','i_index' };
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
-	nc_varput(nc_file_name,'RossbyRadius',CK.rossby.Ro1,dim.twoD.start, dim.twoD.length);
+	nc_varput(nc_file_name,'RossbyRadius',CK.rossby.Ro1,dim.fourD.start, dim.fourD.length);
 	%% c1
 	varstruct.Name = 'RossbyPhaseSpeed';
 	varstruct.Nctype = 'double';
-	varstruct.Dimension = {'j_index','i_index' };
+	varstruct.Dimension ={'depth_diff','j_index','i_index' };
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
-	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.twoD.start, dim.twoD.length);
+	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.fourD.start, dim.fourD.length);
 end
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>
 	file_out=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
@@ -135,14 +134,18 @@ function CK=loadChunk(DD,chnk)
 end
 function R=	calcRossbyRadius(rossby)
 	%% lambda=c/f
-	R=rossby.c1./rossby.f;
+	f=repmat(permute(rossby.f,[3 1 2]),[size(rossby.c1,1) 1 1]);
+	R=rossby.c1./f;
 end
 function [c1]=calcC_one(CK,cc)
-	[YY,XX]=size(CK.rossby.c1);
-	%% int N/pi dz
+	c1=CK.rossby.c1;
+	[ZZ,YY,XX]=size(c1);
+	%% int_-h^0 N/pi dz
 	disp(['integrating phase speed for chunk ',cc])
-	depthMatrix=repmat(diff(CK.DEPTH),[1 YY XX]);
-	c1=-squeeze(nansum(depthMatrix.*sqrt(CK.BRVA),1))/pi;
+	M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
+	for zz=1:ZZ
+		c1(zz,:,:)=-squeeze(nansum(M.depthdiff(1:zz,:,:).*CK.BRVA(1:zz,:,:),1))/pi;
+	end
 end
 function [BRVA,PVORT]=calcBrvaPvort(CK,cc)
 	[ZZ,YY,XX]=size(CK.BRVA);
@@ -154,7 +157,7 @@ function [BRVA,PVORT]=calcBrvaPvort(CK,cc)
 	M.salt=reshape(CK.SALT,[ZZ+1,YY*XX]);
 	M.temp=reshape(CK.TEMP,[ZZ+1,YY*XX]);
 	%% get brunt väisälä frequency and pot vort
-	[brva,pvort]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
+	[brva,pvort,a]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
 	BRVA=sqrt(reshape(brva,[ZZ,YY,XX]));
 	BRVA(abs(imag(BRVA))>0)=0;
 	PVORT=reshape(pvort,[ZZ,YY,XX]);
@@ -173,16 +176,14 @@ function [CK,DD]=initCK(DD,lims,chnk)
 	disp('init pot vort and N..')
 	[CK.BRVA,CK.PVORT]=ChunkBrvaPvort(size(CK.TEMP));
 	disp('init rossby radius/phase speed..')
-	[CK.rossby]=ChunkRossby(CK.LAT);
-	
+	[CK.rossby]=ChunkRossby(CK);
 end
-function [rossby]=ChunkRossby(lat)
+function [rossby]=ChunkRossby(CK)
 	day_sid=23.9344696*60*60;
 	om=2*pi/(day_sid); % frequency earth
-	rossby.Ro1=nan(size(lat));
-	rossby.c1=nan(size(lat));
-	rossby.f=nan(size(lat));
-	rossby.f=2*om*sind(lat);
+	rossby.Ro1=nan(size(CK.BRVA));
+	rossby.c1=nan(size(CK.BRVA));
+	rossby.f=2*om*sind(CK.LAT);
 end
 function [BRVA,PVORT]=ChunkBrvaPvort(sze)
 	BRVA=nan(sze);

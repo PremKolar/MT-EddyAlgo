@@ -23,12 +23,16 @@ function INPUT=ini(toCheck,INPUT)
 	if toCheck
 		INPUT.checks = check_data(INPUT,toCheck);
 		%% distro thread limits
-		INPUT.threads.lims = thread_distro(INPUT.threads.num,INPUT.checks.passed.total);
+		maxthreads=matlabpool('size');
+		threads=min([maxthreads, INPUT.threads.num]);
+		
+		INPUT.threads.lims = thread_distro(maxthreads,INPUT.checks.passed.total);
 	end
 end
 
 function checks = check_data(DD,toCheck)
 	%% init
+	
 	TT = DD.time;
 	passed = false(TT.span,1);
 	all_time_steps = TT.from.num:TT.delta_t:TT.till.num;
@@ -51,7 +55,7 @@ function checks = check_data(DD,toCheck)
 		current_day = datestr(tt,'yyyymmdd');
 		for aa=1:numel(all_passed)
 			if isempty(findstr(current_day,all_files{aa}))
-				continue
+								continue
 			end
 			all_passed(aa)=true;
 			passed(pp)=true;

@@ -2,11 +2,14 @@ function U=input_vars
     %% threads
     U.threads.num=12;
     %% time
-    U.time.from.str='19941001';
-    U.time.till.str='20061001';
+%     U.time.from.str='19941001';
+%     U.time.till.str='20061001';
+	 U.time.from.str='19940426';
+    U.time.till.str='19940501';
     U.time.delta_t=1; % [days]!
     %% dirs
-    U.path.TempSalt.name='../TempSalt/';
+%     U.path.TempSalt.name='../TempSalt/';
+	 U.path.TempSalt.name='/media/ROM/TempSalt/';
 %     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
      U.path.raw.name='/media/ROM/SSH_POP/';
     U.path.root='../dataTINY/';
@@ -16,11 +19,12 @@ function U=input_vars
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]
     U.thresh.amp=0.01; % [SI]
-    U.thresh.shape.iq=0.3; % isoperimetric quotient
+    U.thresh.shape.iq=0.1; % isoperimetric quotient
     U.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
     U.thresh.dist=.8*24*60^2; % max distance travelled per day
     U.thresh.life=30; % min num of living days for saving
+	 U.thresh.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     %% dims for map plots
     U.dim.X=10*3+1;
     U.dim.Y=10*3+1;
@@ -35,7 +39,7 @@ function U=input_vars
     U.switchs.chelt=false;
     
     %% technical params
-    U.RossbyStuff.splits = 12; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 25; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

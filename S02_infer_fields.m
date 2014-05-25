@@ -12,7 +12,7 @@ DD=initialise('conts');
 cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
 
 DD.coriolis=coriolisStuff(cut1.grids);
-init_threads(DD.threads.num)
+DD.threads.num=init_threads(DD.threads.num);
 
 %% spmd
  spmd(DD.threads.num)

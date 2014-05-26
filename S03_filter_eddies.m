@@ -7,13 +7,13 @@
 % walks through all the contours and declabindexes whether they qualify
 function S03_filter_eddies
 	%% init
-		DD=initialise('conts');	
-			DD.threads.num=init_threads(DD.threads.num);	
-rossbyU=getRossbyPhaseSpeed(DD);
+	DD=initialise('conts');
+	DD.threads.num=init_threads(DD.threads.num);
+	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-% 	 spmd(DD.threads.num)
-			spmd_body(DD,rossbyU,labindex)
-% 	end
+	% 	 spmd(DD.threads.num)
+	spmd_body(DD,rossbyU,labindex)
+	% 	end
 	%% update infofile
 	save_info(DD)
 end
@@ -23,7 +23,7 @@ function save_eddies(EE)
 end
 function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
-		for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
+	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
 		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242);
 		%%
 		EE=work_day(DD,rossbyU,jj);
@@ -142,102 +142,54 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% get coordinates
 	[ee.geo]=geocoor(zoom,ee.volume);
 	%% append 'age'
-	ee.age=0;	
+	ee.age=0;
 	%% append projected location
-	
- 	ProjectedLocations(ee,rossbyU,cut,DD)
-	
-	
+	ee.projLocsMask=ProjectedLocations(ee,rossbyU,cut,DD)	;
 end
 
 
 
 
 
-function []=ProjectedLocations(ee,rossbyU,cut,DD)
-%% get rossby wave phase speed once only (exact enough)
-rU=rossbyU(ee.volume.center.lin);
-%% get projected distance (1.75 * dt*rU  as in chelton 2011)
-dist.east=DD.parameters.minProjecDist;
-dist.southnorth=dist.east;
-dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
-dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
-%% get major/minor semi-axes [m]
-ax.maj=sum([dist.east, dist.west])/2;
-ax.min=DD.parameters.minProjecDist;
-%% 
-%% set up distance-from-centroid-vectors
-xi=int16(ee.centroid.x);
-yi=int16(ee.centroid.y);
-M.x=cut.grids.DX(yi,:);
-M.y=cut.grids.DY(:,xi);
-M.x(xi)=0;
-M.y(yi)=0;
-M.x(xi:end)=cumsum(M.x(xi:end),2);
-M.x(xi:-1:1)=-cumsum(M.x(xi:-1:1),2);
-M.y(yi:end)=cumsum(M.y(yi:end),1);
-M.y(yi:-1:1)=-cumsum(M.y(yi:-1:1),1);
-%% find center/axis of ellipse
-[~,x.west] = min(abs(-M.x(1:xi)-dist.west));
-[~,x.east] = min(abs(M.x(xi:end)-dist.east));
-x.east= x.east +xi -1;
-x.indexvector=(x.west:x.east); % note: major axis >= minor axis always!
-center.x=int32(mean(struct2array(x)));
-center.y=yi;
-M.yc=cut.grids.DY(:,center.y);
-M.yc(yi)=0;
-M.yc(yi:end)=cumsum(M.yc(yi:end),1);
-M.yc(yi:-1:1)=-cumsum(M.yc(yi:-1:1),1);
-[~,y.south] = min(abs(-M.yc(1:center.y)-dist.southnorth));
-[~,y.north] = min(abs(M.yc(center.y:end)-dist.southnorth));
-y.north= y.north + center.y -1;
-%% find respective y-pos for all x of ellipse (x/a)^2 + (y/b)^2 = 1
-fullcirc=linspace(0,2*pi,numel(x.indexvector))
-X=center.x
-
-
-
-
-linsdeg=(linspace(0,2*pi,2*sum(struct2array(mask.size))));
-
-
-
-
-%% build threshold logical mask
-% M.inside=true(size(M.xy))
-% M.inside(M.xy>)
-
-
-lat=zoom.fields.LAT(ee.centroid.linz)
-lon=zoom.fields.LON(ee.centroid.linz)
-
-
-
-	%% get center, minor and major axis for ellipse
-	xa=ee.radius.coor.Xwest;
-	xb=ee.radius.coor.Xeast;
-	ya=ee.radius.coor.Ysouth;
-	yb=ee.radius.coor.Ynorth;
-	xm=(mean([xa,xb]));
-	ym=(mean([ya,yb]));
-	axisX=(double(xb-xa))/2;
-	axisY=(double(yb-ya))/2;
-	%% init ellipse mask
-	ellipse=false(mask.size.Y,mask.size.X);
-	%% get ellipse coordinates
-	linsdeg=(linspace(0,2*pi,2*sum(struct2array(mask.size))));
-	ellipseX=round(axisX*cos(linsdeg)+xm);
-	ellipseY=round(axisY*sin(linsdeg)+ym);
-	ellipseX(ellipseX>mask.size.X)=mask.size.X;
-	ellipseY(ellipseY>mask.size.Y)=mask.size.Y;
-	ellipseX(ellipseX<1)=1;
-	ellipseY(ellipseY<1)=1;
-	xlin=unique(drop_2d_to_1d(ellipseY,ellipseX,mask.size.Y));
-	%% draw into mask
-	ellipse(xlin)=true;
-
-ee.centroid.yz
-cut.grids.LAT	
+function [mask]=ProjectedLocations(ee,rossbyU,cut,DD)
+	%% get rossby wave phase speed once only (exact enough)
+	rU=rossbyU(ee.volume.center.lin);
+	%% get projected distance (1.75 * dt*rU  as in chelton 2011)
+	dist.east=DD.parameters.minProjecDist;
+	dist.southnorth=dist.east;
+	dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
+	dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
+	%% get major/minor semi-axes [m]
+	ax.maj=sum([dist.east, dist.west])/2;
+	ax.min=DD.parameters.minProjecDist;
+	%% get dx/dy at that eddy pos
+	dx=cut.grids.DX(ee.volume.center.lin);
+	dy=cut.grids.DY(ee.volume.center.lin);
+	%% get major/minor semi-axes [increments]
+	ax.majinc=int16(ceil(ax.maj/dx));
+	ax.mininc=int16(ceil(ax.min/dy));
+	%% translate dist to increments
+	dist.eastInc=int16(ceil(dist.east/dx));
+	dist.westInc=int16(ceil(dist.west/dx));
+	dist.southnorthInc=int16(ceil(dist.southnorth/dy));
+	%% get positions of params
+	xi.f2=int16(ee.centroid.x);
+	yi.f2=int16(ee.centroid.y);
+	xi.center=xi.f2-int16(ax.majinc-dist.eastInc);
+	yi.center=yi.f2;
+	%% build x vector (major axis >= minor axis always!)
+	fullcirc=linspace(0,2*pi,4*numel((-dist.westInc:dist.eastInc)));
+	ellip.x=int16(double(ax.majinc) * cos(fullcirc)) + xi.center;
+	ellip.y=int16(double(ax.mininc) * sin(fullcirc)) + yi.center;
+	%% take care of out of bounds values
+	ellip.x(ellip.x<1)=1;
+	ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
+	ellip.y(ellip.y<1)=1;
+	ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
+	%% build boundary mask
+	mask=sparse(false(struct2array(cut.dim)));
+	mask(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
+	mask=sparse(imfill(full(mask),'holes'));
 end
 
 
@@ -254,7 +206,7 @@ end
 
 function [centroid]=AreaCentroid(zoom,Y)
 	%% factor each grlabindex cell equally (compare to CenterOfVolume())
-	ssh=double(logical(zoom.SSH_BasePos));	
+	ssh=double(logical(zoom.SSH_BasePos));
 	%% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
 	[XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
 	y=sum(nansum(ssh.*YI));
@@ -267,7 +219,7 @@ function [centroid]=AreaCentroid(zoom,Y)
 	centroid.yz=yz;
 	centroid.x=x;
 	centroid.y=y;
-	centroid.lin=drop_2d_to_1d(y,x,Y);	
+	centroid.lin=drop_2d_to_1d(y,x,Y);
 	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 
@@ -332,7 +284,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 end
 function [pass,chelt]=chelton_shape(z,ee,thresh)
 	% (diameter of circle with equal area)/(maximum distance between nodes)
-	%% get max dist in x | y	
+	%% get max dist in x | y
 	x.min=min(z.coor.int.x);
 	y.min=min(z.coor.int.y);
 	x.max=max(z.coor.int.x);
@@ -507,7 +459,7 @@ function fields_out=EDDyCut_init(fields_in,zoom)
 	for ff=fieldnames(fields_in)'
 		field=ff{1};
 		fields_out.(field)=fields_in.(field)(ya:yb,xa:xb);
-end
+	end
 end
 function [z]=get_window_limits(coor,dim,enlargeFac)
 	z.coor=coor;

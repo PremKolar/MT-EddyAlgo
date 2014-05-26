@@ -5,7 +5,7 @@ function U=input_vars
 %     U.time.from.str='19941001';
 %     U.time.till.str='20061001';
 	 U.time.from.str='19940426';
-    U.time.till.str='19990501';
+    U.time.till.str='19950501';
     U.time.delta_t=1; % [days]!
     %% dirs
 %      U.path.TempSalt.name='../TempSalt/';

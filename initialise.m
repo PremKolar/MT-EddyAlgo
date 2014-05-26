@@ -23,7 +23,7 @@ function INPUT=ini(toCheck,INPUT)
 	if toCheck
 		INPUT.checks = check_data(INPUT,toCheck);
 		%% distro thread limits
-		maxthreads=matlabpool('size');
+		maxthreads=feature('numCores');
 		threads=min([maxthreads, INPUT.threads.num]);
 		
 		INPUT.threads.lims = thread_distro(maxthreads,INPUT.checks.passed.total);

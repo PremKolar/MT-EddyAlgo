@@ -11,9 +11,9 @@ function S03_filter_eddies
 			DD.threads.num=init_threads(DD.threads.num);	
 rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-	 spmd(DD.threads.num)
+% 	 spmd(DD.threads.num)
 			spmd_body(DD,rossbyU,labindex)
-	end
+% 	end
 	%% update infofile
 	save_info(DD)
 end
@@ -145,22 +145,96 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	ee.age=0;	
 	%% append projected location
 	
-% 	ProjectedLocations(ee,rossbyU,zoom,DD)
+ 	ProjectedLocations(ee,rossbyU,cut,DD)
 	
 	
 end
 
 
-function []=ProjectedLocations(ee,rossbyU,zoom,DD)
+
+
+
+function []=ProjectedLocations(ee,rossbyU,cut,DD)
 %% get rossby wave phase speed once only (exact enough)
 rU=rossbyU(ee.volume.center.lin);
 %% get projected distance (1.75 * dt*rU  as in chelton 2011)
-dist=DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU;
-dist=max([dist, DD.parameters.minProjecDist]);
+dist.east=DD.parameters.minProjecDist;
+dist.southnorth=dist.east;
+dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
+dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
+%% get major/minor semi-axes [m]
+ax.maj=sum([dist.east, dist.west])/2;
+ax.min=DD.parameters.minProjecDist;
 %% 
+%% set up distance-from-centroid-vectors
+xi=int16(ee.centroid.x);
+yi=int16(ee.centroid.y);
+M.x=cut.grids.DX(yi,:);
+M.y=cut.grids.DY(:,xi);
+M.x(xi)=0;
+M.y(yi)=0;
+M.x(xi:end)=cumsum(M.x(xi:end),2);
+M.x(xi:-1:1)=-cumsum(M.x(xi:-1:1),2);
+M.y(yi:end)=cumsum(M.y(yi:end),1);
+M.y(yi:-1:1)=-cumsum(M.y(yi:-1:1),1);
+%% find center/axis of ellipse
+[~,x.west] = min(abs(-M.x(1:xi)-dist.west));
+[~,x.east] = min(abs(M.x(xi:end)-dist.east));
+x.east= x.east +xi -1;
+x.indexvector=(x.west:x.east); % note: major axis >= minor axis always!
+center.x=int32(mean(struct2array(x)));
+center.y=yi;
+M.yc=cut.grids.DY(:,center.y);
+M.yc(yi)=0;
+M.yc(yi:end)=cumsum(M.yc(yi:end),1);
+M.yc(yi:-1:1)=-cumsum(M.yc(yi:-1:1),1);
+[~,y.south] = min(abs(-M.yc(1:center.y)-dist.southnorth));
+[~,y.north] = min(abs(M.yc(center.y:end)-dist.southnorth));
+y.north= y.north + center.y -1;
+%% find respective y-pos for all x of ellipse (x/a)^2 + (y/b)^2 = 1
+fullcirc=linspace(0,2*pi,numel(x.indexvector))
+X=center.x
+
+
+
+
+linsdeg=(linspace(0,2*pi,2*sum(struct2array(mask.size))));
+
+
+
+
+%% build threshold logical mask
+% M.inside=true(size(M.xy))
+% M.inside(M.xy>)
+
+
 lat=zoom.fields.LAT(ee.centroid.linz)
 lon=zoom.fields.LON(ee.centroid.linz)
 
+
+
+	%% get center, minor and major axis for ellipse
+	xa=ee.radius.coor.Xwest;
+	xb=ee.radius.coor.Xeast;
+	ya=ee.radius.coor.Ysouth;
+	yb=ee.radius.coor.Ynorth;
+	xm=(mean([xa,xb]));
+	ym=(mean([ya,yb]));
+	axisX=(double(xb-xa))/2;
+	axisY=(double(yb-ya))/2;
+	%% init ellipse mask
+	ellipse=false(mask.size.Y,mask.size.X);
+	%% get ellipse coordinates
+	linsdeg=(linspace(0,2*pi,2*sum(struct2array(mask.size))));
+	ellipseX=round(axisX*cos(linsdeg)+xm);
+	ellipseY=round(axisY*sin(linsdeg)+ym);
+	ellipseX(ellipseX>mask.size.X)=mask.size.X;
+	ellipseY(ellipseY>mask.size.Y)=mask.size.Y;
+	ellipseX(ellipseX<1)=1;
+	ellipseY(ellipseY<1)=1;
+	xlin=unique(drop_2d_to_1d(ellipseY,ellipseX,mask.size.Y));
+	%% draw into mask
+	ellipse(xlin)=true;
 
 ee.centroid.yz
 cut.grids.LAT	
@@ -433,7 +507,7 @@ function fields_out=EDDyCut_init(fields_in,zoom)
 	for ff=fieldnames(fields_in)'
 		field=ff{1};
 		fields_out.(field)=fields_in.(field)(ya:yb,xa:xb);
-	end
+end
 end
 function [z]=get_window_limits(coor,dim,enlargeFac)
 	z.coor=coor;

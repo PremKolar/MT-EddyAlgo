@@ -1,19 +1,19 @@
 function U=input_vars
     %% threads
-    U.threads.num=12;
+    U.threads.num=2;
     %% time
-    U.time.from.str='19941001';
-    U.time.till.str='20061001';
-% 	 U.time.from.str='19940426';
-%     U.time.till.str='19990501';
+%     U.time.from.str='19941001';
+%     U.time.till.str='20061001';
+	 U.time.from.str='19940426';
+    U.time.till.str='19990501';
     U.time.delta_t=1; % [days]!
     %% dirs
-     U.path.TempSalt.name='../TempSalt/';
-% 	 U.path.TempSalt.name='/media/ROM/TempSalt/';
-     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-%      U.path.raw.name='/media/ROM/SSH_POP/';
+%      U.path.TempSalt.name='../TempSalt/';
+	 U.path.TempSalt.name='/media/ROM/TempSalt/';
+%      U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+     U.path.raw.name='/media/ROM/SSH_POP/';
     U.path.root='../dataTINY/';
-    U.path.plots='../dataTINY/';
+    U.path.plots='../plotsTINY/';
     %% thresholds
     U.contour.step=0.005; % [SI]
     U.thresh.ssh_filter_size=1;
@@ -42,7 +42,7 @@ function U=input_vars
 	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
 	 
     %% technical params
-    U.RossbyStuff.splits = 2; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 12; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

@@ -31,9 +31,9 @@ function printout(T,l,L)
     disp('####')
     disp(['step: ',num2str(l),'/',num2str(L)]);
     disp([ num2str(round(T.prcnt_done)),' %']);
-    disp(['time so far:   ', datestr(T.time/86400,'HH:MM:SS.FFF')]);
+    disp(['time so far:   ', datestr(T.time/86400,'dd-HH:MM:SS.FFF')]);
     if isfinite(T.time_to_go)
-        disp(['time to go  :    ', datestr(T.time_to_go/86400,'HH:MM:SS.FFF')]);
+        disp(['time to go  :    ', datestr(T.time_to_go/86400,'dd-HH:MM:SS.FFF')]);
         spmdwaitbar(l/L,30);
     else
         disp(['time to go:    ', 'calculating...']);

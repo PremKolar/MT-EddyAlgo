@@ -230,21 +230,17 @@ function [age]=TRage(MAP,eddy)
 	
 end
 
-function	amp=TRamp(MAP,eddy)
-	
-	[amp.to_mean.of_contour,count]=protoInit(MAP.proto);
+function	amp=TRamp(MAP,eddy)	
+	[amp.to_mean,count]=protoInit(MAP.proto);
 	[amp.to_contour,~]=protoInit(MAP.proto);
-	[amp.to_ellipse,~]=protoInit(MAP.proto);
-	
-	
+	[amp.to_ellipse,~]=protoInit(MAP.proto);	
 	for tt=MAP.strctr.length
 		idx=MAP.strctr.idx(tt);
 		count(idx)=count(idx) + 1;
-		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_mean.of_contour,	count(idx));
-		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_contour,count(idx));
-		amp.to_mean.of_contour.mean(idx)=meanOnFly(	amp.to_mean.of_contour.mean(idx), eddy.trck(tt).peak.amp.to_ellipse,count(idx));
-	end
-	
+		amp.to_mean.mean(idx)=meanOnFly(	amp.to_mean.mean(idx), eddy.trck(tt).peak.amp.to_mean,	count(idx));
+		amp.to_contour.mean(idx)=meanOnFly(	amp.to_contour.mean(idx), eddy.trck(tt).peak.amp.to_contour,count(idx));
+		amp.to_ellipse.mean(idx)=meanOnFly(	amp.to_ellipse.mean(idx), eddy.trck(tt).peak.amp.to_ellipse,count(idx));
+	end	
 end
 
 function	radius=TRradius(MAP,eddy)

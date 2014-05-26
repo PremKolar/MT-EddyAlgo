@@ -11,9 +11,9 @@ function S03_filter_eddies
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-	% 	 spmd(DD.threads.num)
-	spmd_body(DD,rossbyU,labindex)
-	% 	end
+ 	spmd(DD.threads.num)
+		spmd_body(DD,rossbyU,labindex)
+ 	end
 	%% update infofile
 	save_info(DD)
 end
@@ -144,16 +144,25 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% append 'age'
 	ee.age=0;
 	%% append projected location
-	ee.projLocsMask=ProjectedLocations(ee,rossbyU,cut,DD)	;
+	if DD.switchs.distlimit
+		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
+	end
 end
-
-
-
-
-
-function [mask]=ProjectedLocations(ee,rossbyU,cut,DD)
-	%% get rossby wave phase speed once only (exact enough)
-	rU=rossbyU(ee.volume.center.lin);
+function TR=getTrackRef(ee,tr)
+	switch tr
+		case 'centroid'
+			TR.lin=ee.centroid.lin;
+		case 'CenterOfVolume'
+			TR.lin=ee.volume.center.lin;
+		case 'peak'
+			TR.lin=ee.peak.lin;
+	end
+end
+function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
+	%% get tracking reference point
+	trackref=getTrackRef(ee,DD.parameters.trackingRef);
+	%% get rossby wave phase speed
+	rU=rossbyU(trackref.lin);
 	%% get projected distance (1.75 * dt*rU  as in chelton 2011)
 	dist.east=DD.parameters.minProjecDist;
 	dist.southnorth=dist.east;
@@ -163,8 +172,8 @@ function [mask]=ProjectedLocations(ee,rossbyU,cut,DD)
 	ax.maj=sum([dist.east, dist.west])/2;
 	ax.min=DD.parameters.minProjecDist;
 	%% get dx/dy at that eddy pos
-	dx=cut.grids.DX(ee.volume.center.lin);
-	dy=cut.grids.DY(ee.volume.center.lin);
+	dx=cut.grids.DX(trackref.lin);
+	dy=cut.grids.DY(trackref.lin);
 	%% get major/minor semi-axes [increments]
 	ax.majinc=int16(ceil(ax.maj/dx));
 	ax.mininc=int16(ceil(ax.min/dy));
@@ -187,13 +196,12 @@ function [mask]=ProjectedLocations(ee,rossbyU,cut,DD)
 	ellip.y(ellip.y<1)=1;
 	ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
 	%% build boundary mask
-	mask=sparse(false(struct2array(cut.dim)));
-	mask(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
-	mask=sparse(imfill(full(mask),'holes'));
+	mask.logical=sparse(false(struct2array(cut.dim)));
+	mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
+	mask.logical=sparse(imfill(full(mask.logical),'holes'));
+	mask.lin=find((mask.logical));
+	
 end
-
-
-
 function UatDepthWanted=getRossbyPhaseSpeed(DD)
 	dWanted=DD.parameters.depthRossby;
 	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
@@ -201,9 +209,6 @@ function UatDepthWanted=getRossbyPhaseSpeed(DD)
 	[~,pos]=min(abs(d-dWanted));
 	UatDepthWanted=squeeze(U(pos,:,:));
 end
-
-
-
 function [centroid]=AreaCentroid(zoom,Y)
 	%% factor each grlabindex cell equally (compare to CenterOfVolume())
 	ssh=double(logical(zoom.SSH_BasePos));
@@ -222,7 +227,6 @@ function [centroid]=AreaCentroid(zoom,Y)
 	centroid.lin=drop_2d_to_1d(y,x,Y);
 	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
-
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
@@ -263,7 +267,7 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	%% amplitude
 	[peak.amp.to_contour,peak.lin]=max(base(:));
 	[peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
-	peak.amp.to_mean.of_contour=peak.amp.to_contour - mean(base(:));
+	peak.amp.to_mean = z.fields.SSH(peak.lin)-peak.mean_SSH;
 	%% coordinates in full map
 	peak.y=peak.z.y+z.limits.y -1;
 	peak.x=peak.z.x+z.limits.x -1;
@@ -361,13 +365,13 @@ function [ellipse]=EDDyEllipse(ee,mask)
 	ellipse(xlin)=true;
 end
 function prof=EDDyProfiles(ee,fields)
-	%% detect merlabindexional and zonal profiles shifted to baselevel of current level
+	%% detect meridional and zonal profiles shifted to baselevel of current level
 	offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
 	%%	zonal cut
 	prof.x.ssh=fields.SSH(ee.peak.z.y,:) + offset_term;
 	prof.x.U=fields.U(ee.peak.z.y,:) ;
 	prof.x.V=fields.V(ee.peak.z.y,:) ;
-	%% merlabindexional cut
+	%% meridional cut
 	prof.y.ssh=fields.SSH(:,ee.peak.z.x) + offset_term;
 	prof.y.U=fields.U(:,ee.peak.z.x) ;
 	prof.y.V=fields.V(:,ee.peak.z.x) ;
@@ -403,7 +407,7 @@ function radius=EDDyRadiusFromUV(peak,prof,fields)
 	end
 	%% radius
 	radius.zonal=sum(fields.DX(coor.Xwest:coor.Xeast))/2;
-	radius.merlabindexional=sum(fields.DY(coor.Ysouth:coor.Ynorth))/2;
+	radius.meridional=sum(fields.DY(coor.Ysouth:coor.Ynorth))/2;
 	radius.mean=mean(struct2array(radius));
 	%%
 	radius.coor=coor;

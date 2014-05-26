@@ -65,22 +65,21 @@ end
 %
 %
 function main(DD,IN,ticks)
-   
-plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.radius)
-hold on
-plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
-% plot(IN.maps.zonMean.Cycs.radius.mean.mean,'black')
-% if labindex==1        
-%         histstuff(IN.vecs,DD,ticks)
-%     end
-%     if labindex==2
-%         mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
-%     end
-%     if labindex > 2
-%         trackPlots(DD,ticks,IN.tracks)
-%     end
+	
+	plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.radius)
+	hold on
+	plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
+	plot(IN.maps.zonMean.Cycs.radius.mean.mean,'black')
+	if labindex==1
+		histstuff(IN.vecs,DD,ticks)
+	end
+	if labindex==2
+		mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
+	end
+	if labindex > 2
+		trackPlots(DD,ticks,IN.tracks)
+	end
 end
-%
 %
 function histstuff(vecs,DD,ticks)
     senses={'Cycs','AntiCycs'};

@@ -37,7 +37,7 @@ function [DD]=set_up
     %% thread distro
     DD.threads.lims=thread_distro(DD.threads.num,DD.time.span);
     %% start threads
-    init_threads(DD.threads.num)
+  DD.threads.num=init_threads(DD.threads.num);
 end
 function spmd_body(DD)
     %% distro chunks to threads

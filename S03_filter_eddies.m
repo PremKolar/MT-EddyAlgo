@@ -11,9 +11,9 @@ function S03_filter_eddies
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-% 	spmd(DD.threads.num)
+	spmd(DD.threads.num)
 		spmd_body(DD,rossbyU,labindex)
-% 	end
+	end
 	%% update infofile
 	save_info(DD)
 end
@@ -21,18 +21,19 @@ end
 function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
-		[EE]=work_day(DD,rossbyU,jj);
-		if isfield(EE,'skip'),disp(['skipping ' num2str(jj)]);continue;end
+		[EE,skip]=work_day(DD,rossbyU,jj);
 		%%
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242);
+		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
+		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);
 	end
 end
-function EE=work_day(DD,rossbyU,jj)
+function [EE,skip]=work_day(DD,rossbyU,jj)
 	%% check for exisiting data
+	skip=false;
 	EE.filename=[DD.path.eddies.name, regexprep(DD.path.conts.files(jj).name, 'CONT', 'EDDIE')];
-	if exist(EE.filename,'file'), EE.skip=true; return; end
+	if exist(EE.filename,'file'), skip=true; return; end
 	%% get ssh data
 	cut=read_fields(DD,jj,'cuts');
 	%% get contours

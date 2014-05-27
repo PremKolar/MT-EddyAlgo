@@ -8,7 +8,7 @@ function U=input_vars
 	%% dirs
  	U.path.root='../MAD/';
  	U.path.plots='../plotsMAD/';
-	U.path.TempSalt='/media/ROM/TempSalt/';
+	 U.path.TempSalt.name='/media/ROM/TempSalt/';
  	U.path.raw.name=U.path.root;
 	%% dims for map plots
 	U.dim.X=46*1+1;

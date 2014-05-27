@@ -15,12 +15,10 @@ function S04_track_eddies
 	spmd(2);
 		spmd_body(DD);
 	end
-	
 	%% update infofile
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function rmoldtracks(DD)
 	if ~isempty(DD.path.tracks.files)
 		reply=input('delet old tracks? Y/N [Y]:','s');
@@ -30,7 +28,6 @@ function rmoldtracks(DD)
 		end
 	end
 end
-
 function spmd_body(DD)
 	%% one thread do cycs, other acycs
 	switch labindex
@@ -58,7 +55,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
 		[NEW]=kill_phantoms(NEW,sen);
 	end
 	%% find minium distances between old and new time step eddies
-	[MinDists]=get_min_dists(OLD,NEW,sen);
+	[MinDists]=get_min_dists(OLD,NEW,sen,DD);
 	%% determine which ones are tracked/died/new
 	TDB=tracked_dead_born(MinDists,sen);
 	%% filter for distance per day threshold
@@ -101,7 +98,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 		tracks(aidx).length=len;
 	end
 end
-
 function [NEW]=set_up_today(DD,jj,sen)
 	eddies=read_fields(DD,jj,'eddies');
 	NEW.eddies=rmfield(eddies,'filename');
@@ -119,7 +115,6 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% append geo-coor vectors for min_dist function
 	[OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
 end
-
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	%% collect all ID's in archive
 	ArchIDs=cat(2,tracks.ID);
@@ -220,7 +215,7 @@ function [TDB]=tracked_dead_born(MD,sen)
 	%% matlab sets dims arbitrarily sometimes for short vecs
 	if size(do)~=size(dn), do=do'; end
 	if size(io)~=size(in), io=io'; end
-	%% agreement among new and old ie definite tracking (with respect to new set)
+	%% agreement among new and old ie definite tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !
 	TDB.(sen).inNew.tracked = ((do == dn) & (io == in));
 	%% flag for fresh eddies with respect to new set
 	TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
@@ -242,9 +237,59 @@ function [inout]=kill_phantoms(inout,sen)
 	inout.LON.(sen)(Y)=[];
 	inout.LAT.(sen)(Y)=[];
 end
-function [MD]=get_min_dists(OLD,NEW,sen)
+function closeEnough=checkForWithinEllipse(NEW,OLD)
+	%% get locations of new eddies
+	newLin=cat(1,NEW.trackref);
+	%% get possible (future) indeces for old eddies
+	oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
+	%% build mask. rows -> new, cols -> old
+	closeEnough=false(numel(oldEllipIncs),numel(newLin));
+	for ii=1:numel(oldEllipIncs)
+		closeEnough(ii,:)=ismember(cat(2,newLin(:).lin),oldEllipIncs(ii).lin');
+	end
+end
+function [LOM,LAM]=nanOutOfBounds(LOM,LAM,NEW,OLD)
+	closeEnough=checkForWithinEllipse(NEW,OLD);
+	LOM.new(~closeEnough)=nan;
+	LOM.old(~closeEnough)=nan;
+	LAM.new(~closeEnough)=nan;
+	LAM.old(~closeEnough)=nan;
+end
+function pass=getAmpAreaThreshMatrix(OLD,NEW,sen,ampArea)
+	%% get amp and area
+	amp.old=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_mean');
+	amp.new=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_mean');
+	area.old=extractdeepfield(OLD.eddies.(sen),'area.total');
+	area.new=extractdeepfield(NEW.eddies.(sen),'area.total');
+	%% get factors between all new and all old
+	[AMP.old,AMP.new]=meshgrid(amp.old,amp.new);
+	[AREA.old,AREA.new]=meshgrid(area.old,area.new);
+	AMPfac=AMP.old./AMP.new;
+	AREAfac=AREA.old./AREA.new;
+	%% check for thresholds
+	pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
+		& (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
+end
+function [LOM,LAM]=checkAmpAreaBounds(OLD,NEW,sen,ampArea,LOM,LAM)
+	AmpAreaPass=getAmpAreaThreshMatrix(OLD,NEW,sen,ampArea);
+	LOM.new(~AmpAreaPass)=nan;
+	LOM.old(~AmpAreaPass)=nan;
+	LAM.new(~AmpAreaPass)=nan;
+	LAM.old(~AmpAreaPass)=nan;
+end
+function [MD]=get_min_dists(OLD,NEW,sen,DD)
+	%% build geo loc matrices
 	[LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
 	[LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
+	%% nan out of bounds indeces
+	if DD.switchs.distlimit
+		[LOM,LAM]=nanOutOfBounds(LOM,LAM,NEW.eddies.(sen),OLD.eddies.(sen));
+	end
+	%% nan out of amp/area threshold
+	if DD.switchs.AmpAreaCheck
+		[LOM,LAM]=checkAmpAreaBounds(OLD,NEW,sen,DD.thresh.ampArea,LOM,LAM);
+	end
+	%% calc distances between all from new to all from old
 	LONDIFF=abs(LOM.new - LOM.old);
 	DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
 	%% find min dists

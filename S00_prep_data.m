@@ -9,7 +9,7 @@ function S00_prep_data
 	%% init dependencies
 	addpath(genpath('./'));
 	%% get user input
-	DD = initialise('raw');
+	DD = initialise;
 	%% get user map input
 	DD.map=map_vars;
 	%% get madeleine's data
@@ -30,7 +30,7 @@ function S00_prep_data
 	save_info(DD);
 end
 function spmdBlock(DD,MadFile,MF)
-			CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
+		CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
 		E325=nc_varget(MadFile,'E325');
 		%% loop over files
 		[T]=disp_progress('init','preparing raw data');
@@ -81,8 +81,8 @@ function [DY,DX]=DYDX(LAT,LON)
 	DY=deg2rad(abs(diff(double(LAT),1,1)))*earthRadius;
 	DX=deg2rad(abs(diff(double(LON),1,2)))*earthRadius.*cosd(LAT(:,1:end-1));
 	%% append one line/row to have identical size as other fields
-	DY=[DY; DY(end,:)];
-	DX=[DX, DY(:,end)];
+	DY=DY([1:end,end],:);
+	DX=DX(:,[1:end,end]);
 	%% correct 360° crossings
 	seamcrossflag=DX>100*median(DX(:));
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));

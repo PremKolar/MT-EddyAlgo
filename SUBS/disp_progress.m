@@ -35,7 +35,7 @@ function printout(T,L)
 	else
 		disp(['time to go:    ', 'calculating...']);
 	end
-	try
+	if isfield(T,'uplevel')
 		disp(['full time togo:    ', datestr(T.uplevel.full_time_to_go/86400,'dd-HH:MM:SS')]);
 		disp(T.uplevel.perDone);
 		spmdwaitbar(T.uplevel.l/T.uplevel.L,30);
@@ -56,6 +56,7 @@ function T=calcu(T,L)
 	T.prcnt_done=T.prcnt_done*100;
 	if isfield(T,'uplevel')
 		T.uplevel.full_time_to_go=(T.time_to_go + T.time)*T.uplevel.togo;
+		clc;
 	end
 end
 

@@ -6,8 +6,9 @@ function U=input_vars
 	U.time.till.str='19160627';
 	U.time.delta_t=3; % [days]!
 	%% dirs
- 	U.path.root='../dataM3/';
+ 	U.path.root='../MAD/';
  	U.path.plots='../plotsMAD/';
+	U.path.TempSalt='/media/ROM/TempSalt/';
  	U.path.raw.name=U.path.root;
 	%% dims for map plots
 	U.dim.X=46*1+1;

@@ -28,8 +28,8 @@ function U=input_vars
 	 %% dims for map plots
     U.dim.X=10*1+1;
     U.dim.Y=10*1+1;
-    U.dim.west=-50;
-    U.dim.east=-60;
+    U.dim.west=-60;
+    U.dim.east=-50;
     U.dim.south=30;
     U.dim.north=40;
     U.dim.NumOfDecimals=1;

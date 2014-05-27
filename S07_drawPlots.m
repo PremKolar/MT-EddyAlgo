@@ -7,8 +7,8 @@
 % all figs are saved to ~/FIGS/  !
 function S07_drawPlots
     %% init
-%     init_threads(8);
-%      spmd(8)
+     init_threads(8);
+%       spmd
         [DD,threadData]=inits;
         %%	set ticks here!
         ticks.rez=42;
@@ -32,7 +32,7 @@ function S07_drawPlots
         ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
         %% main
         main(DD,threadData,ticks);
-%      end
+%       end
 end
 
 %%
@@ -65,24 +65,50 @@ end
 %
 %
 function main(DD,IN,ticks)
+
 	
-	plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.radius)
-	hold on
-	plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
-	plot(IN.maps.zonMean.Cycs.radius.mean.mean,'black')
-	if labindex==1
-		histstuff(IN.vecs,DD,ticks)
-	end
-	if labindex==2
-		mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
-	end
-	if labindex > 2
-		trackPlots(DD,ticks,IN.tracks)
-	end
+	
+% 	plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.radius)
+% 	hold on
+% 	plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
+% 	plot(IN.maps.zonMean.Cycs.radius.mean.mean,'black')
+% 	
+
+jm = findResource();
+
+hjob = createParallelJob(jm)
+	mjob = createParallelJob(jm)
+	tjob = createParallelJob(jm)
+	a=IN.vecs;
+	b=DD;
+	c=ticks;
+createTask(hjob, 'histstuff', 1, {a,b,c})
+createTask(mjob, 'mapstuff', 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la})
+createTask(tjob, 'trackPlots', 0, {DD,ticks,IN.tracks})
+
+
+submit(mjob)
+submit(tjob)
+submit(hjob)
+
+
+
+
+% 	
+% 	if labindex==1
+% 		histstuff(IN.vecs,DD,ticks)
+% 	end
+% 	if labindex==2
+% 		mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
+% 	end
+% 	if labindex > 2
+% 		trackPlots(DD,ticks,IN.tracks)
+% 	end
 end
 %
-function histstuff(vecs,DD,ticks)
-    senses={'Cycs','AntiCycs'};
+function [success]=histstuff(vecs,DD,ticks)
+   success=false
+	senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
         %%
         if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end 
@@ -115,6 +141,7 @@ function histstuff(vecs,DD,ticks)
     title(tit);
    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge']);
     
+	success=true
 end
 %
 %
@@ -211,7 +238,10 @@ function trackPlots(DD,ticks,tracks)
     %%
     senses=fieldnames(tracks);
     for sense=senses; sen=sense{1};
-        if labindex==3
+      
+		 	 
+		 
+% 		 if labindex==3
             %%
             drawColorLinem(ticks,tracks.(sen),'lat','isoper') ;
             title([sen '- deflections'])
@@ -222,33 +252,33 @@ function trackPlots(DD,ticks,tracks)
             xlabel('latitude repr. by color; IQ repr. by thickness')
             axis equal
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_defletcs']);
-        elseif labindex==4
+%         elseif labindex==4
             %%
             field='age';
             drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
             decorate(field,ticks,DD,sen,field,'d',1,1);
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_age']);
-        elseif labindex==5
+%         elseif labindex==5
             %%
             drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
             decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_IQ']);
-        elseif labindex==6
+%         elseif labindex==6
             %%
             drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
             decorate('radius',ticks,DD,sen,'Radius','km',0,1)
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_radius']);
-        elseif labindex==7
+%         elseif labindex==7
             %%
             drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
             decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_ellipse']);
-        elseif labindex==1
+%         elseif labindex==1
             %%
             drawColorLine(ticks,tracks.(sen),'peakampto_contour',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
             decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
            savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_TrackPeakampto_contour'])
-        end
+%         end
     end
 end
 %

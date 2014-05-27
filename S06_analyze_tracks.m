@@ -11,10 +11,10 @@ function S06_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	DD.threads.num=init_threads(DD.threads.num);
-% 	spmd(DD.threads.num)
+	spmd(DD.threads.num)
 		id=labindex;
 		[map,vecs,minMax]=spmd_body(DD,id);
-% 	end
+	end
 	%%
 	seq_body(minMax,map,DD,vecs)
 end

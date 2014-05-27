@@ -12,9 +12,9 @@ function S05_init_output_maps
 	%%
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find respective index for all grid points of input map
-%   	spmd(DD.threads.num)
+  	spmd(DD.threads.num)
 		idx=spmd_body(DD,MAP);	
-%    end	
+   end	
     %% merge composite	
 	spmd;	idxx=gop(@vertcat,idx,1);	end	
 	MAP.idx=sum(idxx{1});

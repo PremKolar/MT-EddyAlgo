@@ -57,6 +57,9 @@ function [DD,MF]=geostuff(MF,DD)
 	DD.map.east=max(MF.grids.LON(:));
 	DD.map.south=min(MF.grids.LAT(:));
 	DD.map.north=max(MF.grids.LAT(:));
+	[Y,X]=size(MF.grids.LON);
+	DD.map.window.size.X=X;
+	DD.map.window.size.Y=Y;
 end
 function operateDay(SSH,MF,DD,cc)
 	tt=MF.TIME(cc);

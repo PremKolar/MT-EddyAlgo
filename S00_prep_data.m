@@ -45,10 +45,11 @@ function spmd_body(DD)
     [T]=disp_progress('init','preparing raw data');
     TT=from_t:inc:till_t;
     for tt=TT
-        [T]=disp_progress('calc',T,numel(TT),10);
-        %% get data
+         %% get data
         [file,exists]=GetCurrentFile(tt,DD);
         if (~exists.in || exists.out), continue; end
+		 %%
+		  [T]=disp_progress('calc',T,numel(TT),10000);      
         %% cut data
         [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
         %% write data
@@ -77,7 +78,7 @@ function [F,readable]=GetFields(file)
     try
         F.LON = CorrectLongitude(nc_varget(file,'U_LON_2D')); %TODO: from user input AND: flexible varget function
         F.LAT = nc_varget(file,'U_LAT_2D');
-        F.SSH = squeeze(nc_varget(file,'SSH'));
+       F.SSH = squeeze(nc_varget(file,'SSH'));
     catch void
         readable=false;
         warning(void.identifier,	['cant read ',file,', skipping!'])
@@ -228,8 +229,7 @@ function [file,exists]=GetCurrentFile(tt,DD)
     file.in=[path.name, strrep(pattern, 'yyyymmdd',timestr)];
     %% check for file
     if ~exist(file.in,'file')
-        disp([file.in,' doesnt exist!!!'])
-        disp('skipping...')
+        disp([file.in,' doesnt exist!!!']); disp('skipping...')
         exists.in=false;
     end
     %% set up output file
@@ -240,7 +240,7 @@ function [file,exists]=GetCurrentFile(tt,DD)
     file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
     file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
     file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
-    if exist(file.out,'file'), exists.out=true; end
+    if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
 end
 function WriteFileOut(file,CUT) %#ok<INUSD>
     save(file,'-struct','CUT')

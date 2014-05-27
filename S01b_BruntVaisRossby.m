@@ -144,7 +144,7 @@ end
 function R=	calcRossbyRadius(rossby)
 	%% lambda=c/f
 	f=repmat(permute(rossby.f,[3 1 2]),[size(rossby.c1,1) 1 1]);
-	R=rossby.c1./f;
+	R=abs(rossby.c1./f);
 end
 function [c1]=calcC_one(CK,cc)
 	c1=CK.rossby.c1;

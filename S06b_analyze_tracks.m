@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S06_analyze_tracks
+function S06b_analyze_tracks
 	%% init
 	DD=initialise;
 	%%

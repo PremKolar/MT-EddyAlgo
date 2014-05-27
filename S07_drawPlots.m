@@ -248,7 +248,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 		VV=maps.(sen).radius.toRo;
 		pcolor(lo,la,VV);shading flat
 		caxis([ticks.radiusToRo(1) ticks.radiusToRo(2)])
-		decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,1);
+		decorate('radiusToRo',ticks,DD,sen,'Radius/(2 L_R)',' ',1,1);
 		savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_MapRadToRo']);
 		
 	end

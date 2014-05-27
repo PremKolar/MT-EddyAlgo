@@ -34,7 +34,7 @@ function spmdBlock(DD,MadFile,MF)
 		E325=nc_varget(MadFile,'E325');
 		%% loop over files
 		[T]=disp_progress('init','preparing raw data');
-		for cc=CC
+		for cc=CC			
 			[T]=disp_progress('calc',T,numel(CC),4242);
 			operateDay(squeeze(E325(cc,:,:)),MF,DD,cc);
 		end	
@@ -60,15 +60,14 @@ function [DD,MF]=geostuff(MF,DD)
 	[Y,X]=size(MF.grids.LON);
 	DD.map.window.size.X=X;
 	DD.map.window.size.Y=Y;
+	DD.map.window.limits.west=1;
+	DD.map.window.limits.east=X;
+	DD.map.window.limits.south=1;
+	DD.map.window.limits.north=Y;
 end
 function operateDay(SSH,MF,DD,cc)
-	tt=MF.TIME(cc);
-	SSH(SSH>10000)=nan;
-	SSH(SSH<-10000)=nan;
-	MF.grids.SSH=double(SSH/DD.map.SSH_unitFactor);
-	%%
-	MF.params.full_globe.x=false;
 	%% set up output file
+	tt=MF.TIME(cc);
 	timestr=datestr(tt,'yyyymmdd');
 	path=DD.path.cuts.name;
 	geo=DD.map;
@@ -77,6 +76,14 @@ function operateDay(SSH,MF,DD,cc)
 	file.out=strrep(file.out, 'WWWW',sprintf('%04d',round(geo.west) ));
 	file.out=strrep(file.out, 'EEEE',sprintf('%04d',round(geo.east)) );
 	file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
+	 if exist(file.out,'file'), return; end
+	%%
+	SSH(SSH>10000)=nan;
+	SSH(SSH<-10000)=nan;
+	MF.grids.SSH=double(SSH/DD.map.SSH_unitFactor);
+	%%
+	MF.params.full_globe.x=false;
+	%%
 	save(file.out,'-struct','MF')
 end
 function [DY,DX]=DYDX(LAT,LON)

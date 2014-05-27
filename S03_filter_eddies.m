@@ -18,10 +18,10 @@ function S03_filter_eddies
 	save_info(DD)
 end
 %% main functions
+function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
 		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242);
-		%%
 		%%
 		EE=work_day(DD,rossbyU,jj);
 		%% save
@@ -371,7 +371,7 @@ function prof=EDDyProfiles(ee,fields)
 	prof.x.ssh=fields.SSH(ee.peak.z.y,:) + offset_term;
 	prof.x.U=fields.U(ee.peak.z.y,:) ;
 	prof.x.V=fields.V(ee.peak.z.y,:) ;
-	%% merlabindexional cut
+	%% meridional cut
 	prof.y.ssh=fields.SSH(:,ee.peak.z.x) + offset_term;
 	prof.y.U=fields.U(:,ee.peak.z.x) ;
 	prof.y.V=fields.V(:,ee.peak.z.x) ;
@@ -407,7 +407,7 @@ function radius=EDDyRadiusFromUV(peak,prof,fields)
 	end
 	%% radius
 	radius.zonal=sum(fields.DX(coor.Xwest:coor.Xeast))/2;
-	radius.merlabindexional=sum(fields.DY(coor.Ysouth:coor.Ynorth))/2;
+	radius.meridional=sum(fields.DY(coor.Ysouth:coor.Ynorth))/2;
 	radius.mean=mean(struct2array(radius));
 	%%
 	radius.coor=coor;

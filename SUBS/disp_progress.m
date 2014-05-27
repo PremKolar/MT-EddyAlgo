@@ -18,6 +18,7 @@ function T=later(T,L,num_prints)
 	T.cc=T.cc+1;
 	%%
 	if mod(T.cc,ceil(L/num_prints))==0;
+		clc
 		T=calcu(T,L);
 		printout(T,L);
 	end
@@ -56,7 +57,6 @@ function T=calcu(T,L)
 	T.prcnt_done=T.prcnt_done*100;
 	if isfield(T,'uplevel')
 		T.uplevel.full_time_to_go=(T.time_to_go + T.time)*T.uplevel.togo;
-		clc;
 	end
 end
 

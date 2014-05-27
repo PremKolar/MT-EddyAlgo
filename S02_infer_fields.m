@@ -10,20 +10,15 @@ function S02_infer_fields
 DD=initialise('conts');
 %% read input file
 cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
-
 DD.coriolis=coriolisStuff(cut1.grids);
 DD.threads.num=init_threads(DD.threads.num);
-
 %% spmd
  spmd(DD.threads.num)
     spmd_body(DD)
 end
 %% save info file
 save_info(DD)
-%% git
-%	auto_git
 end
-
 function spmd_body(DD)
 id=labindex;
 %% loop

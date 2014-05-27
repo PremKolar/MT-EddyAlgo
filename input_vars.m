@@ -22,11 +22,11 @@ function U=input_vars
 	U.contour.step=0.01; % [SI]
 	U.thresh.radius=1e4; % [SI]
 	U.thresh.amp=0.01; % [SI]
-	U.thresh.shape.iq=0.3; % isoperimetric quotient
+	U.thresh.shape.iq=0.4; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
-	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-	U.thresh.dist=.3*24*60^2; % max distance travelled per day
-	U.thresh.life=9; % min num of living days for saving
+	U.thresh.corners=12; % min number of data points for the perimeter of an eddy
+	U.thresh.dist=.5*24*60^2; % max distance travelled per day
+	U.thresh.life=10; % min num of living days for saving
 	U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	
 	

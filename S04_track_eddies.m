@@ -12,9 +12,9 @@ function S04_track_eddies
 	rmoldtracks(DD)
 	%% parallel!
 	init_threads(2);
-	spmd(2);
+% 	spmd(2);
 		spmd_body(DD);
-	end
+% 	end
 	%% update infofile
 	save_info(DD);
 end

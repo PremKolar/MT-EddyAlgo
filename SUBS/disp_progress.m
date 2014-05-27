@@ -18,7 +18,6 @@ function T=later(T,L,num_prints)
 	T.cc=T.cc+1;
 	%%
 	if mod(T.cc,ceil(L/num_prints))==0;
-		clc
 		T=calcu(T,L);
 		printout(T,L);
 	end

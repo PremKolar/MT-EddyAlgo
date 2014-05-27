@@ -42,7 +42,7 @@ function [MAP,V,MinMax]=spmd_body(DD,id)
 	MinMax=globalExtr(MinMax);
 end
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
-	[MAP.strctr, eddy]=TRstructure(MAP,eddy);
+	[MAP.strctr, eddy]=TRstructure(MAP,eddy,DD);
 	if isempty(eddy.trck),return;end % out of bounds
 	[NEW.age]=TRage(MAP,eddy);
 	[NEW.dist,eddy]=TRdist(MAP,eddy);
@@ -53,12 +53,23 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	MAP=comboMS(MAP,NEW,DD);
 	[V]=getVecs(eddy,V);
 end
+function [ACs,Cs]=netVels(DD,map)
+velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
+		'means.small.zonal'),DD.dim.Y,DD.dim.X); 	
+ACs=	map.AntiCycs.vel.zonal.mean -velmean;
+Cs =	map.Cycs.vel.zonal.mean		 -velmean;
+end
 function seq_body(minMax,map,DD,vecs)
 	[map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
 	%% get rossby radius
 	map.Rossby=loadRossby(DD);
 	%% build zonal means
 	map.zonMean=zonmeans(map,DD);
+	%% build net vels
+	[map.AntiCycs.vel.net.mean	,map.Cycs.vel.net.mean]=netVels(DD,map);
+	%% build radius/rossbyRadius ratio	
+	map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius/2;
+	map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius/2;
 	%% save
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
@@ -107,12 +118,19 @@ function [TT]=getTrack(DD,jj)
 	TT.sense=TT.eddy.trck(1).sense.num;
 end
 %% TRs
-function	[strctr, eddy]=TRstructure(MAP,eddy)
-	CoV=extractdeepfield(eddy,'trck.volume.center.lin');
+function	[strctr, eddy]=TRstructure(MAP,eddy,DD)
+	switch DD.parameters.trackingRef
+		case 'CenterOfVolume'
+			CoV=extractdeepfield(eddy,'trck.volume.center.lin');
+		case 'centroid'
+			CoV=extractdeepfield(eddy,'trck.centroid.lin');
+	end
 	strctr.idx=MAP.idx(CoV)	;
+	strctr.idxLargeMap=CoV	;
 	%% delete out of bounds values
 	outofbounds=isnan(strctr.idx);
 	strctr.idx(outofbounds) = [];
+	strctr.idxLargeMap(outofbounds) = [];
 	eddy.trck(outofbounds) = [];
 	tracklen=numel(eddy.trck);
 	strctr.length=(1:tracklen);
@@ -159,7 +177,7 @@ function	vel=TRvel(MAP,eddy)
 	for a=A'
 		[vel.(a{1}),count]=protoInit(MAP.proto);
 	end
-	for tt=MAP.strctr.length(1:end-1)
+		for tt=MAP.strctr.length(1:end-1)
 		idx=MAP.strctr.idx(tt);
 		count(idx)=count(idx) + 1;
 		for a=A'
@@ -168,7 +186,7 @@ function	vel=TRvel(MAP,eddy)
 			vel_now = dist_now/delT;
 			vel.(a{1}).mean(idx)=meanOnFly(vel.(a{1}).mean(idx), vel_now, count(idx));
 			vel.(a{1}).std(idx)=stdOnFly(vel.(a{1}).std(idx), vel_now, count(idx));
-		end
+		end	
 	end
 end
 function	[dist,eddy]=TRdist(MAP,eddy)
@@ -244,17 +262,23 @@ end
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
 	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-	dWanted=DD.parameters.depthRossby;
-	d=nc_varget(Ro.file,'Depth');
 	r=nc_varget(Ro.file,'RossbyRadius');
-	[~,pos]=min(abs(d-dWanted));
-	Ro.large.radius=squeeze(r(pos,:,:));
+	Ro.large.radius=squeeze(r(end,:,:));
 	Ro.large.radius(Ro.large.radius==0)=nan;
 	Ro.small.radius=MAP.proto.nan;
-	%% nan mean to smaller map
+	%%
+	dWanted=DD.parameters.depthRossby;
+	d=nc_varget(Ro.file,'Depth');
+	[~,pos]=min(abs(d-dWanted));
+	u=nc_varget(Ro.file,'RossbyPhaseSpeed');
+	Ro.large.phaseSpeed=squeeze(u(pos,:,:));
+	Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
+	Ro.small.phaseSpeed=MAP.proto.nan;
+	%% nanmean to smaller map
 	lin=MAP.idx;
 	for li=unique(lin(lin~=0 & ~isnan(lin)))
 		Ro.small.radius(li)=nanmean(Ro.large.radius(lin==li));
+		Ro.small.phaseSpeed(li)=nanmean(Ro.large.phaseSpeed(lin==li));
 	end
 end
 function MinMax=globalExtr(MinMax)
@@ -266,7 +290,7 @@ function MinMax=globalExtr(MinMax)
 end
 function zonMean=zonmeans(M,DD)
 	zonMean=M;
-	for sense=DD.FieldKeys.senses; sen=sense{1};
+	for sense=DD.FieldKeys.senses'; sen=sense{1};
 		N=M.(sen).visits.all;
 		for Field=DD.FieldKeys.MeanStdFields'; field=Field{1};
 			wms=weightedZonMean(cell2mat(extractdeepfield(M.(sen),field)),N);
@@ -274,8 +298,12 @@ function zonMean=zonmeans(M,DD)
 			zonMean.(sen)=setfield(zonMean.(sen),fields{1}{:},wms);
 		end
 	end
+	%%
 	zonMean.Rossby.small.radius=nanmean(M.Rossby.small.radius,2);
 	zonMean.Rossby.large.radius=nanmean(M.Rossby.large.radius,2);
+	%%
+	zonMean.Rossby.small.phaseSpeed=nanmean(M.Rossby.small.phaseSpeed,2);
+	zonMean.Rossby.large.phaseSpeed=nanmean(M.Rossby.large.phaseSpeed,2);
 end
 function OUT=weightedZonMean(MS,weight)
 	weight(weight==0)=nan;

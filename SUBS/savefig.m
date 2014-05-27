@@ -11,8 +11,7 @@ function savefig(outdir,rez,xdim,ydim,tit)
 		%% quick hack
 		disp(['quick print to ' [fname,'.png']])
 		print(gcf, '-dpng', [fname,'.png'])
-		system(['echo ' fname ' > ' fname])
-		
+			
 	else
 		%% set up figure
 		set(gcf,'renderer','opengl');

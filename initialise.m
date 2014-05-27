@@ -13,6 +13,9 @@ function DD=initialise(toCheck)
 	else
 		DD=ini(toCheck,INPUT);
 	end
+	
+	
+	
 	dbstop if error
 	rehash
      format shortg
@@ -24,8 +27,7 @@ function INPUT=ini(toCheck,INPUT)
 		INPUT.checks = check_data(INPUT,toCheck);
 		%% distro thread limits
 		maxthreads=feature('numCores');
-		threads=min([maxthreads, INPUT.threads.num]);
-		
+		threads=min([maxthreads, INPUT.threads.num]);		
 		INPUT.threads.lims = thread_distro(maxthreads,INPUT.checks.passed.total);
 	end
 end

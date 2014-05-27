@@ -1,6 +1,6 @@
 function U=input_vars
 	%% threads
-	U.threads.num=2;
+	U.threads.num=12;
 	%% time
  	U.time.from.str='19940930';
  	U.time.till.str='20080101';
@@ -27,47 +27,54 @@ function U=input_vars
  	U.dim.east=180;
  	U.dim.south=-90;
  	U.dim.north=90;
-	%% switches
-	U.switchs.RossbyStuff=false;  % TODO
-	U.switchs.IQ=false;	
-	U.switchs.chelt=true;	
-	%% technical params
-	U.RossbyStuff.splits = 10; % number of chunks for brunt väis calculations
-	%% fields that must end with .mean and .std - for output plot maps
-	U.FieldKeys.MeanStdFields= { ...
-		'age';
-		'dist.traj.fromBirth';
-		'dist.traj.tillDeath';
-		'dist.zonal.fromBirth';
-		'dist.zonal.tillDeath';
-		'dist.merid.fromBirth';
-		'dist.merid.tillDeath';
-		'radius.mean';
-		'radius.zonal';
-		'radius.meridional';
-		'vel.traj';
-		'vel.zonal';
-		'vel.merid';
-		'amp.to_contour';
-		'amp.to_ellipse';
-		 'amp.to_mean.of_contour';
-		};
-	
-	%% fields 4 colorcoded track plots
-	U.FieldKeys.trackPlots= { ...
-		'isoper';
-		'radius.mean';
-		'radius.meridional';
-		'radius.zonal';
-		%'radius.volume';
-		'age';
-		'peak.amp.to_contour';
-      'peak.amp.to_mean.of_contour';
-		'peak.amp.to_ellipse';
-		};	
-	%%
-	U.FieldKeys.senses= { ...
-		'AntiCycs';
-		'Cycs';		
-		};
+    %% switches
+    U.switchs.RossbyStuff=false;  % TODO
+    U.switchs.IQ=true;
+    U.switchs.chelt=false;
+	 U.switchs.distlimit=true;
+	 U.switchs.AmpAreaCheck=true;
+    %% parameters
+	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
+    U.parameters.depthRossby=100; % depth from which to take rossby phase speed and radius
+	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
+	 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
+    %% technical params
+    U.RossbyStuff.splits = 12; % number of chunks for brunt väis calculations
+    %% fields that must end with .mean and .std - for output plot maps
+    U.FieldKeys.MeanStdFields= { ...
+        'age';
+        'dist.traj.fromBirth';
+        'dist.traj.tillDeath';
+        'dist.zonal.fromBirth';
+        'dist.zonal.tillDeath';
+        'dist.merid.fromBirth';
+        'dist.merid.tillDeath';
+        'radius.mean';
+        'radius.zonal';
+        'radius.meridional';
+        'vel.traj';
+        'vel.zonal';
+        'vel.merid';
+		  'amp.to_contour';
+        'amp.to_ellipse';
+        'amp.to_mean';
+        };
+    
+    %% fields 4 colorcoded track plots
+    U.FieldKeys.trackPlots= { ...
+        'isoper';
+        'radius.mean';
+        'radius.meridional';
+        'radius.zonal';
+        %'radius.volume';
+        'age';
+        'peak.amp.to_contour';
+        'peak.amp.to_mean';
+        'peak.amp.to_ellipse';
+        };
+    %% TODO 
+    U.FieldKeys.senses= { ...
+        'AntiCycs';
+        'Cycs';
+        };
 end

@@ -10,12 +10,12 @@ function S05_init_output_maps
 	%%
 	[MAP]=MakeMaps(DD);
 	%%
-	init_threads(DD.threads.num);
+	DD.threads.num=init_threads(DD.threads.num);
 	%% find respective index for all grid points of input map
- 	spmd(DD.threads.num)
+  	spmd(DD.threads.num)
 		idx=spmd_body(DD,MAP);	
- 	end	
-	%% merge composite	
+   end	
+    %% merge composite	
 	spmd;	idxx=gop(@vertcat,idx,1);	end	
 	MAP.idx=sum(idxx{1});
 	%% save MAP
@@ -29,7 +29,7 @@ function idx=spmd_body(DD,out)
 	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LON'));
 	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LAT'));
 	%% get codisp'ed indeces
-	lims=thread_distro(numlabs,numel(in.lon));
+	lims=thread_distro(DD.threads.num,numel(in.lon));
 	JJ=lims(labindex,1):lims(labindex,2);
 	%% 
 	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
@@ -50,11 +50,11 @@ end
 
 function [lin]=rangeOp(inLon,inLat,out)
 	%% scan for lat/lon within vicinity and use those only
-	temp.lon=abs(out.lon-inLon)<=2*(out.inc.x);
-	temp.lat=abs(out.lat-inLat)<=2*(out.inc.y);
+	temp.lon=abs(out.lon-inLon)<=abs(2*(out.inc.x));
+	temp.lat=abs(out.lat-inLat)<=abs(2*(out.inc.y));
 	used.flag=temp.lon & temp.lat;
 	%% out of bounds
-	if ~any(used.flag(:)),	return;	end
+	if ~any(used.flag(:)), lin=nan;	return;	end
 	%% set lon/lat to be inter-distance checked
 	[yi,xi]=find(used.flag);
 	used.lat=out.lat(used.flag);

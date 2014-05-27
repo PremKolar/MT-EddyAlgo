@@ -4,59 +4,56 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% walks through all the contours and decides whether they qualify
+% walks through all the contours and declabindexes whether they qualify
 function S03_filter_eddies
 	%% init
 	DD=initialise('conts');
-	init_threads(DD.threads.num);
+	DD.threads.num=init_threads(DD.threads.num);
+	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-	 spmd(DD.threads.num)
-		id=labindex;
-		spmd_body(DD,id)
+	spmd(DD.threads.num)
+		spmd_body(DD,rossbyU,labindex)
 	end
 	%% update infofile
 	save_info(DD)
 end
 %% main functions
-function save_eddies(EE)
-	save(EE.filename,'-struct','EE')
-end
-function spmd_body(DD,id)
+function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
-	for jj=DD.threads.lims(id,1):DD.threads.lims(id,2)
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(id,:))+1,4242);
+	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
+		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242);
 		%%
-		EE=work_day(DD,jj);
+		EE=work_day(DD,rossbyU,jj);
 		%% save
 		save_eddies(EE);
 	end
 end
-function EE=work_day(DD,jj)
+function EE=work_day(DD,rossbyU,jj)
 	%% get ssh data
 	cut=read_fields(DD,jj,'cuts');
 	%% get contours
 	cont=read_fields(DD,jj,'conts');
 	%% put all eddies into a struct: ee(number of eddies).characteristica
 	ee=eddies2struct(cont.all,DD.thresh.corners);
-	%% avoid out of bounds integer coordinates close to boundaries
-	[ee_clean,cut]=CleanEddies(ee,cut);
+	%% avolabindex out of bounds integer coordinates close to boundaries
+	[ee_clean,cut]=CleanEDDies(ee,cut);
 	%% find them
-	EE=find_eddies(ee_clean,cut,DD,jj);
+	EE=find_eddies(ee_clean,rossbyU,cut,DD,jj);
 end
-function EE=find_eddies(ee_clean,cut,DD,jj)
+function EE=find_eddies(ee_clean,rossbyU,cut,DD,jj)
 	%% init
 	EE=struct;
 	EE.filename=[DD.path.eddies.name, regexprep(DD.path.conts.files(jj).name, 'CONT', 'EDDIE')];
 	%% anti cyclones
-	EE.anticyclones=anti_cyclones(ee_clean,cut,DD);
+	EE.anticyclones=anti_cyclones(ee_clean,rossbyU,cut,DD);
 	%% cyclones
-	EE.cyclones=cyclones(ee_clean,cut,DD);
+	EE.cyclones=cyclones(ee_clean,rossbyU,cut,DD);
 end
-function ACyc=anti_cyclones(ee,cut,DD)
+function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at deepest eddies, upwards
 	for kk=1:numel(ee)
-		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),cut,DD,-1);
+		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);
 		if PASS(kk), pp=pp+1;
 			%% append healthy found eddy
 			ACyc(pp)=ee_out;  %#ok<AGROW>
@@ -69,11 +66,11 @@ function ACyc=anti_cyclones(ee,cut,DD)
 		error('no anticyclones made it through the filter...')
 	end
 end
-function Cyc=cyclones(ee,cut,DD)
+function Cyc=cyclones(ee,rossbyU,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at highest eddies, downwards
 	for kk=numel(ee):-1:1
-		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),cut,DD,1);
+		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);
 		if PASS(kk),	pp=pp+1;
 			%% append healthy found eddy
 			Cyc(pp)=ee_out;
@@ -85,25 +82,25 @@ function Cyc=cyclones(ee,cut,DD)
 		error('no cyclones made it through the filter...')
 	end
 end
-function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
+function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% pre-nan-check
 	pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
 	if ~pass, return, end;
 	%% corners-check
-	pass=CR_corners(ee.circum.length	,dd.thresh.corners);
+	pass=CR_corners(ee.circum.length	,DD.thresh.corners);
 	if ~pass, return, end;
 	%% closed ring check
 	[pass]=CR_ClosedRing(ee);
 	if ~pass, return, end;
 	%% pre filter 'thin 1dimensional' eddies
-	pass=CR_2dEddy(ee.coordinates.int);
+	pass=CR_2dEDDy(ee.coordinates.int);
 	if ~pass, return, end;
 	%% get coordinates for zoom cut
 	[zoom]=get_window_limits(ee.coordinates,cut.dim,4);
 	%% cut out rectangle encompassing eddy range only for further calcs
-	zoom.fields=EddyCut_init(cut.grids,zoom);
+	zoom.fields=EDDyCut_init(cut.grids,zoom);
 	%% generate logical masks defining eddy interiour and outline
-	zoom.mask=EddyCut_mask(zoom);
+	zoom.mask=EDDyCut_mask(zoom);
 	%% check for nans within eddy
 	[pass]=CR_Nan(zoom);
 	if ~pass, return, end;
@@ -113,48 +110,54 @@ function [pass,ee]=run_eddy_checks(ee,cut,dd,direction)
 	%% calculate area with respect to contour
 	[ee.area]=Area(zoom);
 	%% calc contour circumference in [SI]
-	[ee.circum.si]=EddyCircumference(zoom);
+	[ee.circum.si]=EDDyCircumference(zoom);
 	%% filter eddies not circle-like enough
-	[pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,dd.thresh.shape,dd.switchs);
+	[pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
 	if ~pass, return, end;
 	%% get peak position and amplitude w.r.t contour
-	[pass,ee.peak,zoom.SSH_BasePos]=CR_AmpPeak(ee,zoom,dd.thresh.amp);
+	[pass,ee.peak,zoom.SSH_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
 	if ~pass, return, end;
 	%% get profiles
-	[ee.profiles]=EddyProfiles(ee,zoom.fields);
+	[ee.profiles]=EDDyProfiles(ee,zoom.fields);
 	%% get radius according to max UV ie min vort
-	ee.radius=EddyRadiusFromUV(ee.peak.z, ee.profiles,zoom.fields);
+	ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles,zoom.fields);
 	%% test
-	pass=CR_radius(ee.radius.mean,dd.thresh.radius);
+	pass=CR_radius(ee.radius.mean,DD.thresh.radius);
 	if ~pass, return, end;
-	%% get ideal ellipse contour
-	zoom.mask.ellipse=EddyEllipse(ee,zoom.mask);
+	%% get labindexeal ellipse contour
+	zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
 	%% get effective amplitude relative to ellipse;
-	[pass,ee.peak.amp.to_ellipse]=EddyAmp2Ellipse(ee.peak.lin,zoom,dd.thresh.amp);
+	[pass,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
 	if ~pass, return, end;
 	%% append mask to ee in cut coordinates
-	[ee.mask]=sparse(EddyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
+	[ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%plots4debug(zoom,ee)
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
+	%% get area centroid (chelton style)
+	[ee.centroid]=AreaCentroid(zoom,cut.dim.Y);
 	%% get coordinates
 	[ee.geo]=geocoor(zoom,ee.volume);
 	%% append 'age'
 	ee.age=0;
-  end
+	%% append projected location
+	if DD.switchs.distlimit
+		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
+	end
+end
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
 	sense=struct;
 	%% water column up: seeking anti cyclones; down: cyclones
 	if direc==-1
-		if all(zoom.fields.SSH(zoom.mask.inside) >= level )
+		if all(zoom.fields.SSH(zoom.mask.inslabindexe) >= level )
 			pass=true;
 			sense.str='AntiCyclonic';
 			sense.num=-1;
 		end
 	elseif direc==1
-		if all(zoom.fields.SSH(zoom.mask.inside) <= level )
+		if all(zoom.fields.SSH(zoom.mask.inslabindexe) <= level )
 			pass=true;
 			sense.str='Cyclonic';
 			sense.num=1;
@@ -182,7 +185,7 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	%% amplitude
 	[peak.amp.to_contour,peak.lin]=max(base(:));
 	[peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
-	peak.amp.to_mean.of_contour=peak.amp.to_contour - mean(base(:));
+	peak.amp.to_mean = z.fields.SSH(peak.lin)-peak.mean_SSH;
 	%% coordinates in full map
 	peak.y=peak.z.y+z.limits.y -1;
 	peak.x=peak.z.x+z.limits.x -1;
@@ -203,7 +206,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 end
 function [pass,chelt]=chelton_shape(z,ee,thresh)
 	% (diameter of circle with equal area)/(maximum distance between nodes)
-	%% get max dist in x | y	
+	%% get max dist in x | y
 	x.min=min(z.coor.int.x);
 	y.min=min(z.coor.int.y);
 	x.max=max(z.coor.int.x);
@@ -220,7 +223,7 @@ function [pass,isoper]=IsopQuo(ee,thresh)
 	isoper=12.5664*ee.area.total/ee.circum.si^2;
 	if isoper >= thresh, pass=true; else pass=false; end
 end
-function [pass]=CR_2dEddy(coor)
+function [pass]=CR_2dEDDy(coor)
 	if (max(coor.x)-min(coor.x)<2) || (max(coor.y)-min(coor.y)<2)
 		pass=false;
 	else
@@ -241,21 +244,103 @@ function [pass]=CR_ClosedRing(ee)
 	end
 end
 %% others
+function UatDepthWanted=getRossbyPhaseSpeed(DD)
+	dWanted=DD.parameters.depthRossby;
+	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
+	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
+	[~,pos]=min(abs(d-dWanted));
+	UatDepthWanted=squeeze(U(pos,:,:));
+end
+function [centroid]=AreaCentroid(zoom,Y)
+	%% factor each grlabindex cell equally (compare to CenterOfVolume())
+	ssh=double(logical(zoom.SSH_BasePos));
+	%% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
+	[XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
+	y=sum(nansum(ssh.*YI));
+	x=sum(nansum(ssh.*XI));
+	yz=(y/nansum(ssh(:)));
+	xz=(x/nansum(ssh(:)));
+	y=yz + double(zoom.limits.y(1))-1;
+	x=xz + double(zoom.limits.x(1))-1;
+	centroid.xz=xz;
+	centroid.yz=yz;
+	centroid.x=x;
+	centroid.y=y;
+	centroid.lin=drop_2d_to_1d(y,x,Y);
+	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
+end
+function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
+	%% get tracking reference point
+	trackref=getTrackRef(ee,DD.parameters.trackingRef);
+	%% get rossby wave phase speed
+	rU=rossbyU(trackref.lin);
+	%% get projected distance (1.75 * dt*rU  as in chelton 2011)
+	dist.east=DD.parameters.minProjecDist;
+	dist.southnorth=dist.east;
+	dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
+	dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
+	%% get major/minor semi-axes [m]
+	ax.maj=sum([dist.east, dist.west])/2;
+	ax.min=DD.parameters.minProjecDist;
+	%% get dx/dy at that eddy pos
+	dx=cut.grids.DX(trackref.lin);
+	dy=cut.grids.DY(trackref.lin);
+	%% get major/minor semi-axes [increments]
+	ax.majinc=int16(ceil(ax.maj/dx));
+	ax.mininc=int16(ceil(ax.min/dy));
+	%% translate dist to increments
+	dist.eastInc=int16(ceil(dist.east/dx));
+	dist.westInc=int16(ceil(dist.west/dx));
+	dist.southnorthInc=int16(ceil(dist.southnorth/dy));
+	%% get positions of params
+	xi.f2=int16(ee.centroid.x);
+	yi.f2=int16(ee.centroid.y);
+	xi.center=xi.f2-int16(ax.majinc-dist.eastInc);
+	yi.center=yi.f2;
+	%% build x vector (major axis >= minor axis always!)
+	fullcirc=linspace(0,2*pi,4*numel((-dist.westInc:dist.eastInc)));
+	ellip.x=int16(double(ax.majinc) * cos(fullcirc)) + xi.center;
+	ellip.y=int16(double(ax.mininc) * sin(fullcirc)) + yi.center;
+	%% take care of out of bounds values
+	ellip.x(ellip.x<1)=1;
+	ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
+	ellip.y(ellip.y<1)=1;
+	ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
+	%% build boundary mask
+	mask.logical=sparse(false(struct2array(cut.dim)));
+	mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
+	mask.logical=sparse(imfill(full(mask.logical),'holes'));
+	mask.lin=find((mask.logical));
+	
+end
+function TR=getTrackRef(ee,tr)
+	switch tr
+		case 'centroid'
+			TR.lin=ee.centroid.lin;
+		case 'CenterOfVolume'
+			TR.lin=ee.volume.center.lin;
+		case 'peak'
+			TR.lin=ee.peak.lin;
+	end
+end
+function save_eddies(EE)
+	save(EE.filename,'-struct','EE')
+end
 function [area]=Area(z)
 	area=struct;
-	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
+	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inslabindexe + z.mask.rim_only/2);  % include 'half of rim'
 	area.total=sum(area.pixels(:));
 end
-function	[mask_out]=EddyPackMask(mask_in,limits,dims)
+function	[mask_out]=EDDyPackMask(mask_in,limits,dims)
 	mask_out=false(dims);
 	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2))=mask_in;
 end
-function [pass,amp] = EddyAmp2Ellipse(peak,zoom,thresh)
+function [pass,amp] = EDDyAmp2Ellipse(peak,zoom,thresh)
 	%% mean amplitude with respect to ellipse contour
 	amp=abs(zoom.fields.SSH(peak)-nanmean(zoom.fields.SSH(zoom.mask.ellipse)));
 	if amp>=thresh, pass=true; else pass=false; end
 end
-function [ellipse]=EddyEllipse(ee,mask)
+function [ellipse]=EDDyEllipse(ee,mask)
 	%% get center, minor and major axis for ellipse
 	xa=ee.radius.coor.Xwest;
 	xb=ee.radius.coor.Xeast;
@@ -279,7 +364,7 @@ function [ellipse]=EddyEllipse(ee,mask)
 	%% draw into mask
 	ellipse(xlin)=true;
 end
-function prof=EddyProfiles(ee,fields)
+function prof=EDDyProfiles(ee,fields)
 	%% detect meridional and zonal profiles shifted to baselevel of current level
 	offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
 	%%	zonal cut
@@ -291,7 +376,7 @@ function prof=EddyProfiles(ee,fields)
 	prof.y.U=fields.U(:,ee.peak.z.x) ;
 	prof.y.V=fields.V(:,ee.peak.z.x) ;
 end
-function radius=EddyRadiusFromUV(peak,prof,fields)
+function radius=EDDyRadiusFromUV(peak,prof,fields)
 	%% differentiate velocities to find first local extremata away from peak ie
 	%% maximum orbital speed
 	%% ie those distances at which the orbital velocity seizes to increase
@@ -351,8 +436,9 @@ function [volume]=CenterOfVolume(zoom,area,Y)
 	volume.center.x=x;
 	volume.center.y=y;
 	volume.center.lin=drop_2d_to_1d(y,x,Y);
+	volume.center.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
-function [circum]=EddyCircumference(z)
+function [circum]=EDDyCircumference(z)
 	%% get perimeter coor and check where x or y change
 	x=z.coor.int.x	;
 	y=z.coor.int.y;
@@ -360,16 +446,16 @@ function [circum]=EddyCircumference(z)
 	dy=[0 ;abs(double(logical(diff(y))))];
 	circum=sum(hypot(z.fields.DX(x).*dx,z.fields.DY(y).*dy)); %positive bias at bad resolution!
 end
-function mask=EddyCut_mask(zoom)
+function mask=EDDyCut_mask(zoom)
 	[Y,X]=size(zoom.fields.SSH);
 	mask.rim_only=false(Y,X);
 	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
 	mask.filled=logical(imfill(mask.rim_only,'holes'));
-	mask.inside= mask.filled & ~mask.rim_only;
+	mask.inslabindexe= mask.filled & ~mask.rim_only;
 	mask.size.Y=Y;
 	mask.size.X=X;
 end
-function fields_out=EddyCut_init(fields_in,zoom)
+function fields_out=EDDyCut_init(fields_in,zoom)
 	ya=zoom.limits.y(1);
 	yb=zoom.limits.y(2);
 	xa=zoom.limits.x(1);
@@ -393,10 +479,10 @@ function [z]=get_window_limits(coor,dim,enlargeFac)
 	z.coor.exact.y=z.coor.exact.y -double(z.limits.y(1))  +1;
 end
 function inout=enlarge_window(inout,factor,dim)
-	half_width =round((diff(inout.x)+1)*(factor-1)/2);
+	half_wlabindexth =round((diff(inout.x)+1)*(factor-1)/2);
 	half_height=round((diff(inout.y)+1)*(factor-1)/2);
-	inout.x(1)=max([1 inout.x(1)-half_width]);
-	inout.x(2)=min([dim.X inout.x(2)+half_width]);
+	inout.x(1)=max([1 inout.x(1)-half_wlabindexth]);
+	inout.x(2)=min([dim.X inout.x(2)+half_wlabindexth]);
 	inout.y(1)=max([1 inout.y(1)-half_height]);
 	inout.y(2)=min([dim.Y inout.y(2)+half_height]);
 end
@@ -417,7 +503,7 @@ function [EE]=eddies2struct(CC,thresh)
 		ii=ii+len+1; % jump to next eddy for next iteration
 	end
 end
-function [ee,cut]=CleanEddies(ee,cut)
+function [ee,cut]=CleanEDDies(ee,cut)
 	[cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);
 	for jj=1:numel(ee)
 		x=ee(jj).coordinates.int.x;

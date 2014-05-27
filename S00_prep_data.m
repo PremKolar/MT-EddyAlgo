@@ -17,8 +17,7 @@ function S00_prep_data
     spmd(DD.threads.num)
         spmd_body(DD);
     end
-    %% save info file
-    
+    %% save info file    
     DD.map.window.flag=[]; % redundant
     save_info(DD)
     
@@ -37,7 +36,7 @@ function [DD]=set_up
     %% thread distro
     DD.threads.lims=thread_distro(DD.threads.num,DD.time.span);
     %% start threads
-    init_threads(DD.threads.num)
+  DD.threads.num=init_threads(DD.threads.num);
 end
 function spmd_body(DD)
     %% distro chunks to threads
@@ -69,8 +68,8 @@ function [window,readable]=GetWindow(file,DD)
     window.size=WriteSize(window.limits);
 end
 function S=WriteSize(lims)
-    S.Y = lims.east-lims.west   +1;
-    S.X = lims.north-lims.south +1;
+    S.X = lims.east-lims.west   +1;
+    S.Y = lims.north-lims.south +1;
 end
 function [F,readable]=GetFields(file)
     F=struct;

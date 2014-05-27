@@ -16,6 +16,7 @@ function [DD]=get_input
 	DD.path.analyzedTracks.AC.name=[DD.path.analyzed.name,'AntiCyclones/'];
 	DD.path.analyzedTracks.C.name=[DD.path.analyzed.name,'Cyclones/'];
     DD.path.Rossby.name=[DD.path.root,'Rossby/'];
+	
    	%%	
     mkdirp(DD.path.code);
     mkdirp(DD.path.codesubs);
@@ -31,6 +32,8 @@ function [DD]=get_input
     system(['cp ./*.m ' DD.path.code]);
     system(['cp ./SUBS/*.m ' DD.path.codesubs]);
 	%%
+	 DD.path.protoMaps.file=[DD.path.root, 'protoMaps.mat'];
+	 DD.path.meanU.file=[DD.path.root, 'meanU.mat'];
 	DD.path.raw.files=dir([DD.path.raw.name,'*.nc']);
 	DD.path.cuts.files=dir([DD.path.cuts.name,'*.mat']);
 	DD.path.conts.files=dir([DD.path.conts.name,'*.mat']);

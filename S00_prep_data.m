@@ -17,8 +17,7 @@ function S00_prep_data
     spmd(DD.threads.num)
         spmd_body(DD);
     end
-    %% save info file
-    
+    %% save info file    
     DD.map.window.flag=[]; % redundant
     save_info(DD)
     

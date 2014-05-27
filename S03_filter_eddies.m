@@ -11,16 +11,13 @@ function S03_filter_eddies
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
- 	spmd(DD.threads.num)
+	spmd(DD.threads.num)
 		spmd_body(DD,rossbyU,labindex)
- 	end
+	end
 	%% update infofile
 	save_info(DD)
 end
 %% main functions
-function save_eddies(EE)
-	save(EE.filename,'-struct','EE')
-end
 function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
@@ -148,85 +145,6 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
 	end
 end
-function TR=getTrackRef(ee,tr)
-	switch tr
-		case 'centroid'
-			TR.lin=ee.centroid.lin;
-		case 'CenterOfVolume'
-			TR.lin=ee.volume.center.lin;
-		case 'peak'
-			TR.lin=ee.peak.lin;
-	end
-end
-function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
-	%% get tracking reference point
-	trackref=getTrackRef(ee,DD.parameters.trackingRef);
-	%% get rossby wave phase speed
-	rU=rossbyU(trackref.lin);
-	%% get projected distance (1.75 * dt*rU  as in chelton 2011)
-	dist.east=DD.parameters.minProjecDist;
-	dist.southnorth=dist.east;
-	dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
-	dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
-	%% get major/minor semi-axes [m]
-	ax.maj=sum([dist.east, dist.west])/2;
-	ax.min=DD.parameters.minProjecDist;
-	%% get dx/dy at that eddy pos
-	dx=cut.grids.DX(trackref.lin);
-	dy=cut.grids.DY(trackref.lin);
-	%% get major/minor semi-axes [increments]
-	ax.majinc=int16(ceil(ax.maj/dx));
-	ax.mininc=int16(ceil(ax.min/dy));
-	%% translate dist to increments
-	dist.eastInc=int16(ceil(dist.east/dx));
-	dist.westInc=int16(ceil(dist.west/dx));
-	dist.southnorthInc=int16(ceil(dist.southnorth/dy));
-	%% get positions of params
-	xi.f2=int16(ee.centroid.x);
-	yi.f2=int16(ee.centroid.y);
-	xi.center=xi.f2-int16(ax.majinc-dist.eastInc);
-	yi.center=yi.f2;
-	%% build x vector (major axis >= minor axis always!)
-	fullcirc=linspace(0,2*pi,4*numel((-dist.westInc:dist.eastInc)));
-	ellip.x=int16(double(ax.majinc) * cos(fullcirc)) + xi.center;
-	ellip.y=int16(double(ax.mininc) * sin(fullcirc)) + yi.center;
-	%% take care of out of bounds values
-	ellip.x(ellip.x<1)=1;
-	ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
-	ellip.y(ellip.y<1)=1;
-	ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
-	%% build boundary mask
-	mask.logical=sparse(false(struct2array(cut.dim)));
-	mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
-	mask.logical=sparse(imfill(full(mask.logical),'holes'));
-	mask.lin=find((mask.logical));
-	
-end
-function UatDepthWanted=getRossbyPhaseSpeed(DD)
-	dWanted=DD.parameters.depthRossby;
-	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
-	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
-	[~,pos]=min(abs(d-dWanted));
-	UatDepthWanted=squeeze(U(pos,:,:));
-end
-function [centroid]=AreaCentroid(zoom,Y)
-	%% factor each grlabindex cell equally (compare to CenterOfVolume())
-	ssh=double(logical(zoom.SSH_BasePos));
-	%% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
-	[XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
-	y=sum(nansum(ssh.*YI));
-	x=sum(nansum(ssh.*XI));
-	yz=(y/nansum(ssh(:)));
-	xz=(x/nansum(ssh(:)));
-	y=yz + double(zoom.limits.y(1))-1;
-	x=xz + double(zoom.limits.x(1))-1;
-	centroid.xz=xz;
-	centroid.yz=yz;
-	centroid.x=x;
-	centroid.y=y;
-	centroid.lin=drop_2d_to_1d(y,x,Y);
-	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
-end
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
@@ -326,6 +244,88 @@ function [pass]=CR_ClosedRing(ee)
 	end
 end
 %% others
+function UatDepthWanted=getRossbyPhaseSpeed(DD)
+	dWanted=DD.parameters.depthRossby;
+	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
+	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
+	[~,pos]=min(abs(d-dWanted));
+	UatDepthWanted=squeeze(U(pos,:,:));
+end
+function [centroid]=AreaCentroid(zoom,Y)
+	%% factor each grlabindex cell equally (compare to CenterOfVolume())
+	ssh=double(logical(zoom.SSH_BasePos));
+	%% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
+	[XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
+	y=sum(nansum(ssh.*YI));
+	x=sum(nansum(ssh.*XI));
+	yz=(y/nansum(ssh(:)));
+	xz=(x/nansum(ssh(:)));
+	y=yz + double(zoom.limits.y(1))-1;
+	x=xz + double(zoom.limits.x(1))-1;
+	centroid.xz=xz;
+	centroid.yz=yz;
+	centroid.x=x;
+	centroid.y=y;
+	centroid.lin=drop_2d_to_1d(y,x,Y);
+	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
+end
+function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
+	%% get tracking reference point
+	trackref=getTrackRef(ee,DD.parameters.trackingRef);
+	%% get rossby wave phase speed
+	rU=rossbyU(trackref.lin);
+	%% get projected distance (1.75 * dt*rU  as in chelton 2011)
+	dist.east=DD.parameters.minProjecDist;
+	dist.southnorth=dist.east;
+	dist.ro=abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
+	dist.west=max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
+	%% get major/minor semi-axes [m]
+	ax.maj=sum([dist.east, dist.west])/2;
+	ax.min=DD.parameters.minProjecDist;
+	%% get dx/dy at that eddy pos
+	dx=cut.grids.DX(trackref.lin);
+	dy=cut.grids.DY(trackref.lin);
+	%% get major/minor semi-axes [increments]
+	ax.majinc=int16(ceil(ax.maj/dx));
+	ax.mininc=int16(ceil(ax.min/dy));
+	%% translate dist to increments
+	dist.eastInc=int16(ceil(dist.east/dx));
+	dist.westInc=int16(ceil(dist.west/dx));
+	dist.southnorthInc=int16(ceil(dist.southnorth/dy));
+	%% get positions of params
+	xi.f2=int16(ee.centroid.x);
+	yi.f2=int16(ee.centroid.y);
+	xi.center=xi.f2-int16(ax.majinc-dist.eastInc);
+	yi.center=yi.f2;
+	%% build x vector (major axis >= minor axis always!)
+	fullcirc=linspace(0,2*pi,4*numel((-dist.westInc:dist.eastInc)));
+	ellip.x=int16(double(ax.majinc) * cos(fullcirc)) + xi.center;
+	ellip.y=int16(double(ax.mininc) * sin(fullcirc)) + yi.center;
+	%% take care of out of bounds values
+	ellip.x(ellip.x<1)=1;
+	ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
+	ellip.y(ellip.y<1)=1;
+	ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
+	%% build boundary mask
+	mask.logical=sparse(false(struct2array(cut.dim)));
+	mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
+	mask.logical=sparse(imfill(full(mask.logical),'holes'));
+	mask.lin=find((mask.logical));
+	
+end
+function TR=getTrackRef(ee,tr)
+	switch tr
+		case 'centroid'
+			TR.lin=ee.centroid.lin;
+		case 'CenterOfVolume'
+			TR.lin=ee.volume.center.lin;
+		case 'peak'
+			TR.lin=ee.peak.lin;
+	end
+end
+function save_eddies(EE)
+	save(EE.filename,'-struct','EE')
+end
 function [area]=Area(z)
 	area=struct;
 	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inslabindexe + z.mask.rim_only/2);  % include 'half of rim'

@@ -12,9 +12,9 @@ function S05_init_output_maps
 	%%
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find respective index for all grid points of input map
- 	spmd(DD.threads.num)
+%   	spmd(DD.threads.num)
 		idx=spmd_body(DD,MAP);	
-    end	
+%    end	
     %% merge composite	
 	spmd;	idxx=gop(@vertcat,idx,1);	end	
 	MAP.idx=sum(idxx{1});
@@ -29,7 +29,7 @@ function idx=spmd_body(DD,out)
 	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LON'));
 	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LAT'));
 	%% get codisp'ed indeces
-	lims=thread_distro(numlabs,numel(in.lon));
+	lims=thread_distro(DD.threads.num,numel(in.lon));
 	JJ=lims(labindex,1):lims(labindex,2);
 	%% 
 	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);

@@ -26,8 +26,8 @@ function U=input_vars
     U.thresh.life=5; % min num of living days for saving
 	 U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	 %% dims for map plots
-    U.dim.X=10*3+1;
-    U.dim.Y=10*3+1;
+    U.dim.X=10*1+1;
+    U.dim.Y=10*1+1;
     U.dim.west=-50;
     U.dim.east=-60;
     U.dim.south=30;

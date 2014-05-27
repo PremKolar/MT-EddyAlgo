@@ -15,12 +15,15 @@ function S06a_getMeanU
 	means=getMeans(d,pos,dim,file,DD); %#ok<NASGU>
 	%% save
 	save([DD.path.meanU.file], 'means')
+	disp(['done!'])
 end
 function means=getMeans(d,pos,dim,file,DD)
 	for kk=1:numel(file)
-		U(:,:,kk)=squeeze(nc_varget(file(1).U,'UVEL',dim.start,dim.length))/100; %#ok<*AGROW>
-		V(:,:,kk)=squeeze(nc_varget(file(1).V,'VVEL',dim.start,dim.length))/100;
+		disp(['found ' file(kk).U ' and ' file(kk).V])
+		U(:,:,kk)=squeeze(nc_varget(file(kk).U,'UVEL',dim.start,dim.length))/100; %#ok<*AGROW>
+		V(:,:,kk)=squeeze(nc_varget(file(kk).V,'VVEL',dim.start,dim.length))/100;
 	end
+	disp(['creating means'])
 	U(U<-1e33)=nan; % missing values
 	V(V<-1e33)=nan; % missing values
 	means.zonal=nanmean(U,3);

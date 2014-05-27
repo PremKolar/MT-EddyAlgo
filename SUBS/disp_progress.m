@@ -1,9 +1,10 @@
-function [T]=disp_progress(type,Tin,L,num_prints)
+function [T]=disp_progress(type,Tin,L,num_prints,silent)
 	warning('off','MATLAB:divideByZero')
 	if strcmp(type,'init')
 		T=init(Tin);
 	else
-		T=later(Tin,L,num_prints);
+		if nargin<5, silent=false;end
+		T=later(Tin,L,num_prints,silent);
 	end
 	warning('on','MATLAB:divideByZero') %#ok<*RMWRN>
 end
@@ -14,10 +15,10 @@ function T=init(Tin)
 	T.name=Tin;
 	T.tic=tic;
 end
-function T=later(T,L,num_prints)
+function T=later(T,L,num_prints,silent)
 	T.cc=T.cc+1;
 	%%
-	if mod(T.cc,ceil(L/num_prints))==0;
+	if mod(T.cc,ceil(L/num_prints))==0 && ~silent;
 		T=calcu(T,L);
 		printout(T,L);
 	end

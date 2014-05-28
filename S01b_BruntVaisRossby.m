@@ -14,14 +14,25 @@ function S01b_BruntVaisRossby
     %% set up
     [DD,lims]=set_up;
     %% spmd
-    spmd(DD.threads.num)
-        spmd_body(DD,lims);
-    end
+   main(DD,lims)
     %% make netcdf
     DD.path.Rossby=WriteNCfile(DD,lims);
     %% update DD
     save_info(DD);
 end
+
+function main(DD,lims)
+    if DD.debugmode
+        spmd_body(DD,lims);
+    else
+        spmd(DD.threads.num)
+            spmd_body(DD,lims);
+        end
+    end
+end
+
+
+
 function [DD,lims]=set_up
     %% init
     DD=initialise;

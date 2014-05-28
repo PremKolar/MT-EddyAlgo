@@ -8,18 +8,24 @@
 function S03_filter_eddies
 	%% init
 	DD=initialise('conts');
-	DD.threads.num=init_threads(DD.threads.num);
-	
-    rossbyU=getRossbyPhaseSpeed(DD);
-  
+	DD.threads.num=init_threads(DD.threads.num);	
+    rossbyU=getRossbyPhaseSpeed(DD);  
 	%% spmd
-% 	spmd(DD.threads.num)
-		spmd_body(DD,rossbyU,labindex)
-% 	end
+    main(DD,rossbyU)	
 	%% update infofile
 	save_info(DD)
 end
 
+
+function main(DD,rossbyU)
+ if DD.debugmode
+     spmd_body(DD,rossbyU,labindex)
+ else
+     spmd(DD.threads.num)
+         spmd_body(DD,rossbyU,labindex)
+     end
+ end
+end
 
 
 
@@ -106,7 +112,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% pre filter 'thin 1dimensional' eddies
 	pass=CR_2dEDDy(ee.coordinates.int);
 	if ~pass, return, end;
-	%% get coordinates for zoom cut
+ %% get coordinates for zoom cut
 	[zoom]=get_window_limits(ee.coordinates,cut.dim,4);
 	%% cut out rectangle encompassing eddy range only for further calcs
 	zoom.fields=EDDyCut_init(cut.grids,zoom);
@@ -142,7 +148,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	if ~pass, return, end;
 	%% append mask to ee in cut coordinates
 	[ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
-	%plots4debug(zoom,ee)
+	if DD.debugmode, plots4debug(zoom,ee); end
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
 	%% get area centroid (chelton style)
@@ -158,8 +164,6 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
      
     
 end
-
-
 
 
 %% checks

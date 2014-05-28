@@ -1,6 +1,7 @@
 function U=input_vars
     %% threads
     U.threads.num=12;
+    U.debugmode=0;
     %% time
      U.time.from.str='19941001';
      U.time.till.str='20000727';
@@ -13,17 +14,17 @@ function U=input_vars
   %    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
      U.path.raw.name='../dataAtl/RAW/';
   %    U.path.raw.name='/media/ROM/SSH_POP/';
-    U.path.root='../dataAtl/';
-    U.path.plots='../plotsAtl/';
+    U.path.root='../dataAtlchelt/';
+    U.path.plots='../plotsAtlchelt/';
     %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]
     U.thresh.amp=0.01; % [SI]
     U.thresh.shape.iq=0.3; % isoperimetric quotient
-    U.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
-    U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-    U.thresh.dist=.8*24*60^2; % max distance travelled per day
+    U.thresh.shape.chelt=0.1; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
+    U.thresh.corners=10; % min number of data points for the perimeter of an eddy
+    U.thresh.dist=.5*24*60^2; % max distance travelled per day
     U.thresh.life=5; % min num of living days for saving
 	 U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	 %% dims for map plots
@@ -36,8 +37,8 @@ function U=input_vars
     U.dim.NumOfDecimals=1;
     %% switches
     U.switchs.RossbyStuff=true;  % TODO
-    U.switchs.IQ=true;
-    U.switchs.chelt=false;
+    U.switchs.IQ=false;
+    U.switchs.chelt=true;
 	 U.switchs.distlimit=true;
 	 U.switchs.AmpAreaCheck=true;
     %% parameters

@@ -14,12 +14,22 @@ function S02_infer_fields
     DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
     %% spmd
-    spmd(DD.threads.num)
-    spmd_body(DD,RS)
-    end
+  main(DD,RS)
     %% save info file
     save_info(DD)
 end
+
+
+function main(DD,RS)
+    if DD.debugmode
+        spmd_body(DD,RS);
+    else
+        spmd(DD.threads.num)
+            spmd_body(DD,RS);
+        end
+    end
+end
+
 
 function [d,pos,dim]=getDims(file,dWanted,winsize)
     d=nc_varget(file,'Depth');

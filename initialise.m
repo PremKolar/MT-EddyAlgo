@@ -16,7 +16,7 @@ function DD=initialise(toCheck)
     rehash
     format shortg
     
-    if ~isfield(DD,'map')
+    if ~isfield(DD,'map') && ~isempty(DD.path.cuts.files)
         DD.map=map_vars;
         [DD.map.window]=GetWindow(DD);
     end
@@ -55,9 +55,10 @@ function checks = check_data(DD,toCheck)
             del_t(pp)=nan;  % nan out del_t for inexistent files
         end
         pp=pp+1;
-        current_day = all_time_steps_str(pp);
+        current_day = all_time_steps_str(pp,:); 
+        current_day
         % 		current_day = datestr(tt,'yyyymmdd');
-        if isempty(findstr(current_day,all_files_cat))
+        if isempty(findstr(current_day,all_files_cat))           
             continue
         end
         passed(pp)=true;

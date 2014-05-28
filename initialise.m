@@ -1,22 +1,4 @@
 function DD=initialise(toCheck)
-<<<<<<< HEAD
-	addpath(genpath('./'));
-	clc;
-	close all;
-	INPUT = get_input;
-	DDcheck=[INPUT.path.root, 'DD.mat'];
-	if ~exist('toCheck','var')
-		toCheck=false;
-	end
-	if exist(DDcheck,'file')
-		DD=catstruct(load(DDcheck),ini(toCheck,INPUT));
-	else
-		DD=ini(toCheck,INPUT);
-	end
-	dbstop if error
-	rehash
-     format shortg
-=======
     addpath(genpath('./'));
     clc;
     close all;
@@ -38,7 +20,6 @@ function DD=initialise(toCheck)
         DD.map=map_vars;
         [DD.map.window]=GetWindow(DD);
     end
->>>>>>> master
 end
 
 
@@ -75,7 +56,6 @@ function checks = check_data(DD,toCheck)
         end
         pp=pp+1;
         current_day = all_time_steps_str(pp,:); 
-        current_day
         % 		current_day = datestr(tt,'yyyymmdd');
         if isempty(findstr(current_day,all_files_cat))           
             continue

@@ -40,6 +40,7 @@ function [d,pos,dim]=getDims(file,DD)
 	dWanted=DD.parameters.depthRossby;
 	d=nc_varget(file(1).U,'depth_t');
 	[~,pos.z.start]=min(abs(d-dWanted));
+    pos.z.start=pos.z.start-1; %nc starts at 0
 	pos.z.length=1;
 	pos.x.start=DD.map.window.limits.west;
 	pos.x.length=DD.map.window.size.X;

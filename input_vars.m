@@ -1,19 +1,20 @@
 function U=input_vars
     %% threads
-    U.threads.num=2;
+    U.threads.num=12;
     %% time
-%     U.time.from.str='19941001';
-%     U.time.till.str='20061001';
-	 U.time.from.str='19940426';
-    U.time.till.str='19990501';
-    U.time.delta_t=1; % [days]!
+     U.time.from.str='19941001';
+     U.time.till.str='20000727';
+% 	 U.time.from.str='19940426';
+%     U.time.till.str='19990501';
+    U.time.delta_t=7; % [days]!
     %% dirs
-%      U.path.TempSalt.name='../TempSalt/';
-	 U.path.TempSalt.name='/media/ROM/TempSalt/';
-%      U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-     U.path.raw.name='/media/ROM/SSH_POP/';
-    U.path.root='../dataTINY/';
-    U.path.plots='../plotsTINY/';
+      U.path.TempSalt.name='../TempSalt/';
+%	 U.path.TempSalt.name='/media/ROM/TempSalt/';
+  %    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+     U.path.raw.name='../dataAtl/RAW/';
+  %    U.path.raw.name='/media/ROM/SSH_POP/';
+    U.path.root='../dataAtl/';
+    U.path.plots='../plotsAtl/';
     %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
@@ -26,15 +27,15 @@ function U=input_vars
     U.thresh.life=5; % min num of living days for saving
 	 U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	 %% dims for map plots
-    U.dim.X=10*1+1;
-    U.dim.Y=10*1+1;
-    U.dim.west=-60;
-    U.dim.east=-50;
-    U.dim.south=30;
-    U.dim.north=40;
+    U.dim.X=40*1+1;
+    U.dim.Y=50*1+1;
+    U.dim.west=-70;
+    U.dim.east=-30;
+    U.dim.south=0;
+    U.dim.north=50;
     U.dim.NumOfDecimals=1;
     %% switches
-    U.switchs.RossbyStuff=false;  % TODO
+    U.switchs.RossbyStuff=true;  % TODO
     U.switchs.IQ=true;
     U.switchs.chelt=false;
 	 U.switchs.distlimit=true;

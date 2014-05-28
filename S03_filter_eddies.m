@@ -9,14 +9,20 @@ function S03_filter_eddies
 	%% init
 	DD=initialise('conts');
 	DD.threads.num=init_threads(DD.threads.num);
-	rossbyU=getRossbyPhaseSpeed(DD);
+	
+    rossbyU=getRossbyPhaseSpeed(DD);
+  
 	%% spmd
-	spmd(DD.threads.num)
+% 	spmd(DD.threads.num)
 		spmd_body(DD,rossbyU,labindex)
-	end
+% 	end
 	%% update infofile
 	save_info(DD)
 end
+
+
+
+
 %% main functions
 function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
@@ -146,10 +152,16 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% append 'age'
 	ee.age=0;
 	%% append projected location
-	if DD.switchs.distlimit
+	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
 		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
-	end
+    end
+     
+    
 end
+
+
+
+
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
@@ -249,12 +261,16 @@ function [pass]=CR_ClosedRing(ee)
 	end
 end
 %% others
-function UatDepthWanted=getRossbyPhaseSpeed(DD)
-	dWanted=DD.parameters.depthRossby;
+function CatDepthWanted=getRossbyPhaseSpeed(DD)
+	if DD.switchs.RossbyStuff
+    dWanted=DD.parameters.depthRossby;
 	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
 	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
 	[~,pos]=min(abs(d-dWanted));
-	UatDepthWanted=squeeze(U(pos,:,:));
+	CatDepthWanted=squeeze(U(pos,:,:));
+    else
+      CatDepthWanted=[];
+    end
 end
 function [centroid]=AreaCentroid(zoom,Y)
 	%% factor each grlabindex cell equally (compare to CenterOfVolume())

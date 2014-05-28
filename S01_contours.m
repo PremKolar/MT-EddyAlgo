@@ -9,11 +9,11 @@ function S01_contours
     %% init
     DD=initialise('cuts');
     %% open pool
-    init_threads(DD.threads.num)
+   DD.threads.num=init_threads(DD.threads.num);
     %% spmd
-    spmd(DD.threads.num)
+ spmd(DD.threads.num)
         spmd_body(DD);
-    end
+     end
     %% save info
     save_info(DD)
 end

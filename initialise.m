@@ -88,5 +88,5 @@ end
 function [window]=GetWindow(DD)
     smplFile=[DD.path.cuts.name DD.path.cuts.files(1).name];
     load(smplFile,'window');
-    window.flag=[];
+    window.flag=[];    
 end

@@ -246,7 +246,7 @@ function dispNcInfo(ncIn)
     end
 end
 function dim=ncArrayDims(DD,lims,chnk)
-    j_indx_start = DD.map.window.limits.south;
+    j_indx_start = DD.map.window.limits.south-1;
     j_len = DD.map.window.size.Y;
     dim.fourD.start = [0 0 j_indx_start lims(chnk,1)-1];
     dim.fourD.length = 	[inf inf j_len diff(lims(chnk,:))+1];

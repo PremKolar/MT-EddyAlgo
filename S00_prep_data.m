@@ -14,12 +14,22 @@ function S00_prep_data
     %% set up
     [DD]=set_up;
     %% spmd
-    spmd(DD.threads.num)
-        spmd_body(DD);
-    end
-    %% save info file    
+    main(DD)
+    %% save info file
     DD.map.window.flag=[]; % redundant
 end
+
+function main(DD)
+    if DD.debugmode
+        spmd_body(DD);
+    else
+        spmd(DD.threads.num)
+            spmd_body(DD);
+        end
+    end
+end
+
+
 function [DD]=set_up
     %% init dependencies
     addpath(genpath('./'));
@@ -34,7 +44,7 @@ function [DD]=set_up
     %% thread distro
     DD.threads.lims=thread_distro(DD.threads.num,DD.time.span);
     %% start threads
-  DD.threads.num=init_threads(DD.threads.num);
+    DD.threads.num=init_threads(DD.threads.num);
 end
 function spmd_body(DD)
     %% distro chunks to threads
@@ -43,11 +53,11 @@ function spmd_body(DD)
     [T]=disp_progress('init','preparing raw data');
     TT=from_t:inc:till_t;
     for tt=TT
-         %% get data
+        %% get data
         [file,exists]=GetCurrentFile(tt,DD);
         if (~exists.in || exists.out), continue; end
-		 %%
-		  [T]=disp_progress('calc',T,numel(TT),10000);      
+        %%
+        [T]=disp_progress('calc',T,numel(TT),10000);
         %% cut data
         [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
         %% write data
@@ -76,7 +86,7 @@ function [F,readable]=GetFields(file)
     try
         F.LON = CorrectLongitude(nc_varget(file,'U_LON_2D')); %TODO: from user input AND: flexible varget function
         F.LAT = nc_varget(file,'U_LAT_2D');
-       F.SSH = squeeze(nc_varget(file,'SSH'));
+        F.SSH = squeeze(nc_varget(file,'SSH'));
     catch void
         readable=false;
         warning(void.identifier,	['cant read ',file,', skipping!'])

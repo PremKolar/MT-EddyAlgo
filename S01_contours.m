@@ -9,18 +9,24 @@ function S01_contours
     %% init
     DD=initialise('cuts');
     %% open pool
-   DD.threads.num=init_threads(DD.threads.num);
+    DD.threads.num=init_threads(DD.threads.num);
     %% spmd
- spmd(DD.threads.num)
-        spmd_body(DD);
-     end
+    main(DD)
     %% save info
     save_info(DD)
 end
+function main(DD)
+    if DD.debugmode
+        spmd_body(DD);
+    else
+        spmd(DD.threads.num)
+            spmd_body(DD);
+        end
+    end
+end
 function spmd_body(DD)
-    DD.id=labindex;
     %% loop over ssh cuts
-    JJ=DD.threads.lims(DD.id,1):DD.threads.lims(DD.id,2);
+    JJ=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2);
     II=struct;
     for jj=JJ
         %% contours
@@ -52,7 +58,7 @@ function [II,CONT]=init_get_contours(jj,dd,JJ,filename)
     CONT.all=[]; % init
     %% create level vector at chosen interval
     II.levels=nanmin(II.grids.SSH(:))-0.1:dd.contour.step:nanmax(II.grids.SSH(:))+0.1;
-    II.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(dd.id,1)),'/',sprintf('%03i',numel(JJ))]]);
+    II.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(labindex,1)),'/',sprintf('%03i',numel(JJ))]]);
     II.T.uplevel.togo=numel(JJ)-(jj-JJ(1));
     II.T.uplevel.perDone=[ num2str(round((jj+1-JJ(1))/numel(JJ)*100)),' %'];
     II.T.uplevel.l=(jj+1-(JJ(1)));

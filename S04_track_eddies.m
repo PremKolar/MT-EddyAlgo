@@ -11,13 +11,22 @@ function S04_track_eddies
 	%% rm old files
 	rmoldtracks(DD)
 	%% parallel!
-	init_threads(2);
-	spmd(2);
-		spmd_body(DD);
-	end
+	init_threads(2); 
+    main(DD)		
 	%% update infofile
 	save_info(DD);
 end
+
+function main(DD)
+ if DD.debugmode
+     spmd_body(DD)
+ else
+     spmd(2)
+		spmd_body(DD)
+     end
+ end
+end
+
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rmoldtracks(DD)
 	if ~isempty(DD.path.tracks.files)

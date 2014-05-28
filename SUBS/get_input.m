@@ -1,53 +1,84 @@
 function [DD]=get_input
-	%%
-	DD=input_vars;
-	%%
-	DD.time.from.num=datenum(DD.time.from.str,'yyyymmdd');
-	DD.time.till.num=datenum(DD.time.till.str,'yyyymmdd');
-	DD.time.span=DD.time.till.num-DD.time.from.num+1;
-	%%
-	DD.path.code=[DD.path.root, 'code/'];
-    DD.path.codesubs=[DD.path.root, 'code/SUBS/'];
-    DD.path.cuts.name=[DD.path.root, 'CUTS/'];
-	DD.path.conts.name=[DD.path.root, 'CONTS/'];
-	DD.path.eddies.name=[DD.path.root,'EDDIES/'];
-	DD.path.tracks.name=[DD.path.root,'TRACKS/'];
-	DD.path.analyzed.name=[DD.path.root,'ANALYZED/'];
-	DD.path.analyzedTracks.AC.name=[DD.path.analyzed.name,'AntiCyclones/'];
-	DD.path.analyzedTracks.C.name=[DD.path.analyzed.name,'Cyclones/'];
-    DD.path.Rossby.name=[DD.path.root,'Rossby/'];
-	
-   	%%	
-    mkdirp(DD.path.code);
-    mkdirp(DD.path.codesubs);
-	mkdirp(DD.path.cuts.name);
-	mkdirp(DD.path.conts.name);
-	mkdirp(DD.path.eddies.name);
-	mkdirp(DD.path.tracks.name);
-	mkdirp(DD.path.analyzed.name);	
-	mkdirp(DD.path.analyzedTracks.AC.name);	
-	mkdirp(DD.path.analyzedTracks.C.name);	
-    mkdirp(DD.path.Rossby.name);	
     %%
-    system(['cp ./*.m ' DD.path.code]);
-    system(['cp ./SUBS/*.m ' DD.path.codesubs]);
-	%%
-	 DD.path.protoMaps.file=[DD.path.root, 'protoMaps.mat'];
-	 DD.path.meanU.file=[DD.path.root, 'meanU.mat'];
-	DD.path.raw.files=dir([DD.path.raw.name,'*.nc']);
-	DD.path.cuts.files=dir([DD.path.cuts.name,'*.mat']);
-	DD.path.conts.files=dir([DD.path.conts.name,'*.mat']);
-	DD.path.eddies.files=dir([DD.path.eddies.name,'*.mat']);
-	DD.path.tracks.files=dir([DD.path.tracks.name,'*.mat']);
-	DD.path.analyzed.files=dir([DD.path.analyzed.name,'*.mat']);
-	DD.path.analyzedTracks.AC.files=dir([DD.path.analyzedTracks.AC.name,'*.mat']);
-	DD.path.analyzedTracks.C.files=dir([DD.path.analyzedTracks.C.name,'*.mat']);
-    DD.path.Rossby.files=dir([DD.path.Rossby.name,'*.nc']);
-	%%
-	DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat'; 
-	try
-		DD.path.TempSalt.files=dir([DD.path.TempSalt.name,'*.nc']);
-	catch  %#ok<CTCH>
-		disp('found no Salt/Temp data. Skipping Rossby calcs..')
-	end
+    DD=input_vars;
+    %%
+    DD.time=catstruct(DD.time, timestuff(DD.time));
+    %%
+    
+    DD.path=catstruct(DD.path,findfiles(DD.path));
+    %%
+    DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat';
+    %%
+       DD.path.TempSalt.files=tempsalt(DD);
+    %%
+    dispFileStatus(DD.path)
+    
+end
+function T=timestuff(T)  
+    T.from.num=datenum(T.from.str,'yyyymmdd');
+    T.till.num=datenum(T.till.str,'yyyymmdd');
+    T.span=T.till.num-T.from.num+1;
+end
+function mkDirs(Path)
+    %%
+    mkdirp(Path.code);
+    mkdirp(Path.codesubs);
+    mkdirp(Path.cuts.name);
+    mkdirp(Path.conts.name);
+    mkdirp(Path.eddies.name);
+    mkdirp(Path.tracks.name);
+    mkdirp(Path.analyzed.name);
+    mkdirp(Path.analyzedTracks.AC.name);
+    mkdirp(Path.analyzedTracks.C.name);
+    mkdirp(Path.Rossby.name);
+    %%
+    system(['cp ./*.m ' Path.code]);
+    system(['cp ./SUBS/*.m ' Path.codesubs]);
+end
+
+function Path=findfiles(Path)
+    Path.code=[Path.root, 'code/'];
+    Path.codesubs=[Path.root, 'code/SUBS/'];
+    Path.cuts.name=[Path.root, 'CUTS/'];
+    Path.conts.name=[Path.root, 'CONTS/'];
+    Path.eddies.name=[Path.root,'EDDIES/'];
+    Path.tracks.name=[Path.root,'TRACKS/'];
+    Path.analyzed.name=[Path.root,'ANALYZED/'];
+    Path.analyzedTracks.AC.name=[Path.analyzed.name,'AntiCyclones/'];
+    Path.analyzedTracks.C.name=[Path.analyzed.name,'Cyclones/'];
+    Path.Rossby.name=[Path.root,'Rossby/'];
+    %%
+    mkDirs(Path)
+    %%
+    Path.protoMaps.file=[Path.root, 'protoMaps.mat'];
+    Path.meanU.file=[Path.root, 'meanU.mat'];
+    Path.raw.files=dir([Path.raw.name,'*.nc']);
+    Path.cuts.files=dir([Path.cuts.name,'*.mat']);
+    Path.conts.files=dir([Path.conts.name,'*.mat']);
+    Path.eddies.files=dir([Path.eddies.name,'*.mat']);
+    Path.tracks.files=dir([Path.tracks.name,'*.mat']);
+    Path.analyzed.files=dir([Path.analyzed.name,'*.mat']);
+    Path.analyzedTracks.AC.files=dir([Path.analyzedTracks.AC.name,'*.mat']);
+    Path.analyzedTracks.C.files=dir([Path.analyzedTracks.C.name,'*.mat']);
+    Path.Rossby.files=dir([Path.Rossby.name,'*.nc']);
+end
+
+function files=tempsalt(DD)
+    try
+        files=dir([DD.path.TempSalt.name,'*.nc']);
+    catch  %#ok<CTCH>
+        disp('found no Salt/Temp data. Skipping Rossby calcs..')
+    end
+end
+function dispFileStatus(p)
+    disp(['found ' num2str(numel(p.raw.files)) ' files in ' p.raw.name])
+    disp(['found ' num2str(numel(p.cuts.files)) ' files in ' p.cuts.name])
+    disp(['found ' num2str(numel(p.conts.files)) ' files in ' p.conts.name])
+    disp(['found ' num2str(numel(p.eddies.files)) ' files in ' p.eddies.name])
+    disp(['found ' num2str(numel(p.tracks.files)) ' files in ' p.tracks.name])
+    disp(['found ' num2str(numel(p.Rossby.files)) ' files in ' p.Rossby.name])
+    disp(['found ' num2str(numel(p.analyzedTracks.AC.files)) ' files in ' p.analyzedTracks.AC.name])
+    disp(['found ' num2str(numel(p.analyzedTracks.C.files)) ' files in ' p.analyzedTracks.C.name])
+    disp(['found ' num2str(numel(p.analyzed.files)) ' files in ' p.analyzed.name])
+    
 end

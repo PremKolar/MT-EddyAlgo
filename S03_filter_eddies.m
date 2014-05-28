@@ -8,27 +8,44 @@
 function S03_filter_eddies
 	%% init
 	DD=initialise('conts');
-	DD.threads.num=init_threads(DD.threads.num);
-	rossbyU=getRossbyPhaseSpeed(DD);
+	DD.threads.num=init_threads(DD.threads.num);	
+    rossbyU=getRossbyPhaseSpeed(DD);  
 	%% spmd
-	spmd(DD.threads.num)
-		spmd_body(DD,rossbyU,labindex)
-	end
+    main(DD,rossbyU)	
 	%% update infofile
 	save_info(DD)
 end
+
+
+function main(DD,rossbyU)
+ if DD.debugmode
+     spmd_body(DD,rossbyU,labindex)
+ else
+     spmd(DD.threads.num)
+         spmd_body(DD,rossbyU,labindex)
+     end
+ end
+end
+
+
+
 %% main functions
 function spmd_body(DD,rossbyU,labindex)
 	Td=disp_progress('init','filtering contours');
 	for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242);
+		[EE,skip]=work_day(DD,rossbyU,jj);
 		%%
-		EE=work_day(DD,rossbyU,jj);
+		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
+		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);
 	end
 end
-function EE=work_day(DD,rossbyU,jj)
+function [EE,skip]=work_day(DD,rossbyU,jj)
+	%% check for exisiting data
+	skip=false;
+	EE.filename=[DD.path.eddies.name, regexprep(DD.path.conts.files(jj).name, 'CONT', 'EDDIE')];
+	if exist(EE.filename,'file'), skip=true; return; end
 	%% get ssh data
 	cut=read_fields(DD,jj,'cuts');
 	%% get contours
@@ -95,7 +112,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% pre filter 'thin 1dimensional' eddies
 	pass=CR_2dEDDy(ee.coordinates.int);
 	if ~pass, return, end;
-	%% get coordinates for zoom cut
+ %% get coordinates for zoom cut
 	[zoom]=get_window_limits(ee.coordinates,cut.dim,4);
 	%% cut out rectangle encompassing eddy range only for further calcs
 	zoom.fields=EDDyCut_init(cut.grids,zoom);
@@ -131,7 +148,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	if ~pass, return, end;
 	%% append mask to ee in cut coordinates
 	[ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
-	%plots4debug(zoom,ee)
+	if DD.debugmode, plots4debug(zoom,ee); end
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
 	%% get area centroid (chelton style)
@@ -141,10 +158,14 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% append 'age'
 	ee.age=0;
 	%% append projected location
-	if DD.switchs.distlimit
+	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
 		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
-	end
+    end
+     
+    
 end
+
+
 %% checks
 function [pass,sense]=CR_sense(zoom,direc,level)
 	pass=false;
@@ -244,12 +265,16 @@ function [pass]=CR_ClosedRing(ee)
 	end
 end
 %% others
-function UatDepthWanted=getRossbyPhaseSpeed(DD)
-	dWanted=DD.parameters.depthRossby;
+function CatDepthWanted=getRossbyPhaseSpeed(DD)
+	if DD.switchs.RossbyStuff
+    dWanted=DD.parameters.depthRossby;
 	d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
 	U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
 	[~,pos]=min(abs(d-dWanted));
-	UatDepthWanted=squeeze(U(pos,:,:));
+	CatDepthWanted=squeeze(U(pos,:,:));
+    else
+      CatDepthWanted=[];
+    end
 end
 function [centroid]=AreaCentroid(zoom,Y)
 	%% factor each grlabindex cell equally (compare to CenterOfVolume())

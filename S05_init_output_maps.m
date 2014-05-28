@@ -12,7 +12,7 @@ function S05_init_output_maps
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	CutOne=read_fields(DD,1,'cuts');
 	%%
-	%     init_threads(DD.threads.num);
+	    init_threads(DD.threads.num);
 	[MAP]=MakeMaps(DD,CutOne); %#ok<*NASGU>
 	%% save MAP
 	save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)

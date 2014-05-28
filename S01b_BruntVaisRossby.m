@@ -222,7 +222,7 @@ function temp=ChunkTemp(DD,dim)
 end
 function dispNcInfo(ncIn)
     %% works for the POP data...
-    try
+    try %#ok<*TRYNC>
         info=nc_info(ncIn);
         disp(info.Dataset(end-1).Name);
         disp(info.Dataset(end-1).Dimension);

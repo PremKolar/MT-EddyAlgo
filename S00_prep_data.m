@@ -68,7 +68,7 @@ end
 function [window,readable]=GetWindow(file,DD)
     disp('assuming identical LON/LAT for all files!!!')
     %% get data
-    [grids,readable]=GetFields(file.in); if ~readable, return; end
+    [grids,readable]=GetFields(file.in,DD.map.pattern); if ~readable, return; end
     %% find window mask
     window=FindWindowMask(grids,DD.map.geo);
     %% find rectangle enclosing all applicable data
@@ -80,13 +80,20 @@ function S=WriteSize(lims)
     S.X = lims.east-lims.west   +1;
     S.Y = lims.north-lims.south +1;
 end
-function [F,readable]=GetFields(file)
+function [F,readable]=GetFields(file,keys)
     F=struct;
     readable=true;
+    nc_getall(file)
     try
-        F.LON = CorrectLongitude(nc_varget(file,'U_LON_2D')); %TODO: from user input AND: flexible varget function
-        F.LAT = nc_varget(file,'U_LAT_2D');
-        F.SSH = squeeze(nc_varget(file,'SSH'));
+        F.LON = CorrectLongitude(nc_varget(file,keys.lat)); %TODO: from user input AND: flexible varget function
+        F.LAT = nc_varget(file,keys.lon);
+        F.SSH = squeeze(nc_varget(file,keys.ssh));
+        if numel(F.LON)~=numel(F.SSH)
+            F.SSH=F.SSH';
+           F.LON=repmat(F.LON',size(F.SSH,1),1);
+           F.LAT=repmat(F.LAT,1,size(F.SSH,2));
+        end
+        
     catch void
         readable=false;
         warning(void.identifier,	['cant read ',file,', skipping!'])

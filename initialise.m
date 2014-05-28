@@ -3,6 +3,7 @@ function DD=initialise(toCheck)
     clc;
     close all;
     INPUT = get_input;
+       INPUT.map=map_vars;
     DDcheck=[INPUT.path.root, 'DD.mat'];
     if ~exist('toCheck','var')
         toCheck=false;
@@ -16,8 +17,8 @@ function DD=initialise(toCheck)
     rehash
     format shortg
     
-    if ~isfield(DD,'map') && ~isempty(DD.path.cuts.files)
-        DD.map=map_vars;
+     
+    if   ~isempty(DD.path.cuts.files)
         [DD.map.window]=GetWindow(DD);
     end
 end

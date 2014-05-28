@@ -1,34 +1,34 @@
 function U=input_vars
 	%% threads
-	U.threads.num=12;
-	  U.debugmode=0;
+	U.threads.num=1;
+	  U.debugmode=1;
 	%% time
- 	U.time.from.str='19940930';
- 	U.time.till.str='20080101';
- 	U.time.delta_t=1; % [days]!
+ 	U.time.from.str='19921014';
+ 	U.time.till.str='20130807';
+ 	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
- 	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataWrld/';
-    U.path.plots='../plotswrld/';
+ 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+  	U.path.root='../dataAV/';
+    U.path.plots='../plotAV/';
  	%% thresholds
-	U.contour.step=0.005; % [SI]
+	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
-	U.thresh.amp=0.005; % [SI]
+	U.thresh.amp=0.01; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-	U.thresh.dist=.8*24*60^2; % max distance travelled per day
+	U.thresh.dist=.5*24*60^2; % max distance travelled per day
 	U.thresh.life=20; % min num of living days for saving
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% dims for map plots
-	U.dim.X=360*1+1;
- 	U.dim.Y=180*1+1;
- 	U.dim.west=-180;
- 	U.dim.east=180;
- 	U.dim.south=-90;
- 	U.dim.north=90;
+	U.dim.X=80*1+1;
+ 	U.dim.Y=50*1+1;
+ 	U.dim.west=-80;
+ 	U.dim.east=0;
+ 	U.dim.south=0;
+ 	U.dim.north=50;
     %% switches
     U.switchs.RossbyStuff=false;  % TODO
     U.switchs.IQ=true;

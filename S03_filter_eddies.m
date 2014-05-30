@@ -52,7 +52,7 @@ function [EE,skip]=work_day(DD,rossbyU,jj)
 	cont=read_fields(DD,jj,'conts');
 	%% put all eddies into a struct: ee(number of eddies).characteristica
 	ee=eddies2struct(cont.all,DD.thresh.corners);
-	%% avolabindex out of bounds integer coordinates close to boundaries
+	%% avoid out of bounds integer coordinates close to boundaries
 	[ee_clean,cut]=CleanEDDies(ee,cut);
 	%% find them
 	EE=find_eddies(ee_clean,rossbyU,cut,DD,jj);

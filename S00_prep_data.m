@@ -174,9 +174,13 @@ function [OUT]=AppendIfFullZonal(IN,window)
     %% append
     xadd=round(window.size.X/10);
     %OUT.window.flag=[OUT.window.flag,OUT.window.flag(:,1:xadd)];
-    OUT.grids.LON=[OUT.grids.LON	,OUT.grids.LON(:,1:xadd)];
-    OUT.grids.LAT=[OUT.grids.LAT  ,OUT.grids.LAT(:,1:xadd)];
-    OUT.grids.SSH=[OUT.grids.SSH  ,OUT.grids.SSH(:,1:xadd)];
+     OUT.grids.LON=OUT.grids.LON(:,[1:end, 1:xadd]);
+      OUT.grids.LAT=OUT.grids.LAT(:,[1:end, 1:xadd]);
+        OUT.grids.SSH=OUT.grids.SSH(:,[1:end, 1:xadd]);
+       
+%     OUT.grids.LON=[OUT.grids.LON	,OUT.grids.LON(:,1:xadd)];
+%     OUT.grids.LAT=[OUT.grids.LAT  ,OUT.grids.LAT(:,1:xadd)];
+%     OUT.grids.SSH=[OUT.grids.SSH  ,OUT.grids.SSH(:,1:xadd)];
 end
 function [OUT,window]=SeamCross(IN,window)
     Wflag=window.flag;

@@ -34,25 +34,15 @@ function main(DD,RS)
     end
 end
 
-
-
-
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-       RS.Lr=nc_varget(file,'RossbyPhaseSpeed');
-         %% append 10th if necessary
-        if DD.map.geo.east-DD.map.geo.west==360
-            xadd=round(DD.map.window.size.X/10);
-            RS.c=RS.c(:,[1:end 1:xadd]);
-            RS.Lr=RS.Lr(:,[1:end 1:xadd]);
-        end        
+       RS.Lr=nc_varget(file,'RossbyPhaseSpeed');    
     else
         RS=[];
     end
 end
-
 
 
 function spmd_body(DD,RS)

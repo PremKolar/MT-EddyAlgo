@@ -14,9 +14,7 @@ function S00_prep_data
     %% set up
     [DD]=set_up;
     %% spmd
-    main(DD)
-    %% save info file
-    DD.map.window.flag=[]; % redundant
+    main(DD)   
 end
 
 function main(DD)
@@ -29,7 +27,6 @@ function main(DD)
     end
 end
 
-
 function [DD]=set_up
     %% init dependencies
     addpath(genpath('./'));
@@ -39,30 +36,30 @@ function [DD]=set_up
     DD.map=map_vars;
     %% get sample window
     [DD.map.window]=GetWindow(SampleFile(DD),DD);
-    %% create out dir
-    [~,~]=mkdir(DD.path.cuts.name);
-    %% thread distro
-    DD.threads.lims=thread_distro(DD.threads.num,DD.time.span);
-    %% start threads
-    DD.threads.num=init_threads(DD.threads.num);
 end
+
 function spmd_body(DD)
     %% distro chunks to threads
-    [from_t,till_t,inc]=SetThreadVar(DD);
+     [TT]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
-    TT=from_t:inc:till_t;
-    for tt=TT
+    for tt=TT.daynums';
         %% get data
         [file,exists]=GetCurrentFile(tt,DD);
-        if (~exists.in || exists.out), continue; end
+        if (exists.out), continue; end
         %%
         [T]=disp_progress('calc',T,numel(TT),10000);
         %% cut data
-        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
+        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end   
         %% write data
         WriteFileOut(file.out,CUT);
-    end
+       end
+%      if labindex==1
+%          DD.map.window.flag=[]; % redundant
+%          DD.parameters =catstruct(DD.parameters, CUT.params);
+%         %% update infofile        
+%         save_info(DD)
+%      end
 end
 %% window functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window,readable]=GetWindow(file,DD)
@@ -166,21 +163,15 @@ function [OUT]=AppendIfFullZonal(IN,window)
     % S04_track_eddies is able to avoid counting 1 eddy twice
     ss=window.limits.south;
     nn=window.limits.north;
-    %% init
-    %OUT.window.flag=window.flag(ss:nn,:);
+    %% init  
     OUT.grids.LON=IN.LON(ss:nn,:);
     OUT.grids.LAT=IN.LAT(ss:nn,:);
     OUT.grids.SSH=IN.SSH(ss:nn,:);
     %% append
     xadd=round(window.size.X/10);
-    %OUT.window.flag=[OUT.window.flag,OUT.window.flag(:,1:xadd)];
-     OUT.grids.LON=OUT.grids.LON(:,[1:end, 1:xadd]);
+      OUT.grids.LON=OUT.grids.LON(:,[1:end, 1:xadd]);
       OUT.grids.LAT=OUT.grids.LAT(:,[1:end, 1:xadd]);
-        OUT.grids.SSH=OUT.grids.SSH(:,[1:end, 1:xadd]);
-       
-%     OUT.grids.LON=[OUT.grids.LON	,OUT.grids.LON(:,1:xadd)];
-%     OUT.grids.LAT=[OUT.grids.LAT  ,OUT.grids.LAT(:,1:xadd)];
-%     OUT.grids.SSH=[OUT.grids.SSH  ,OUT.grids.SSH(:,1:xadd)];
+        OUT.grids.SSH=OUT.grids.SSH(:,[1:end, 1:xadd]);       
 end
 function [OUT,window]=SeamCross(IN,window)
     Wflag=window.flag;
@@ -233,17 +224,11 @@ function file=SampleFile(DD)
     end
 end
 function [file,exists]=GetCurrentFile(tt,DD)
-    exists.in=true;
     exists.out=false;
     path=DD.path.raw;
-    pattern=DD.map.pattern.in;
-    timestr=datestr(DD.time.from.num+tt-1,'yyyymmdd');
+    pattern=DD.map.pattern.in;    
+    timestr=datestr(tt,'yyyymmdd');
     file.in=[path.name, strrep(pattern, 'yyyymmdd',timestr)];
-    %% check for file
-    if ~exist(file.in,'file')
-        disp([file.in,' doesnt exist!!!']); disp('skipping...')
-        exists.in=false;
-    end
     %% set up output file
     path=DD.path.cuts.name;
     geo=DD.map.geo;
@@ -257,8 +242,9 @@ end
 function WriteFileOut(file,CUT) %#ok<INUSD>
     save(file,'-struct','CUT')
 end
-function [from,till,inc]=SetThreadVar(IN)
+function [OUT]=SetThreadVar(IN)
     from=IN.threads.lims(labindex,1);
     till=IN.threads.lims(labindex,2);
-    inc=IN.time.delta_t;
+    OUT.daynums=IN.checks.passed.daynums(from:till);   
+%      OUT.files=IN.checks.passed.files(from:till);           
 end

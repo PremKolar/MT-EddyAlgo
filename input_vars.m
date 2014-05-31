@@ -4,18 +4,18 @@ function U=input_vars
 	  U.debugmode=0;
 	%% time
  	U.time.from.str='19940930';
- 	U.time.till.str='20080101';
- 	U.time.delta_t=7; % [days]!
+ 	U.time.till.str='19950101';
+ 	U.time.delta_t=4; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataSO/';
-    U.path.plots='../plotsSO/';
+  	U.path.root='../dataZON/';
+    U.path.plots='../plotsZON/';
  	%% thresholds
-	U.contour.step=0.005; % [SI]
+	U.contour.step=0.02; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]
-	U.thresh.amp=0.005; % [SI]
+	U.thresh.amp=0.02; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
 	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
@@ -24,11 +24,11 @@ function U=input_vars
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% dims for map plots
 	U.dim.X=360*1+1;
- 	U.dim.Y=70*1+1;
+ 	U.dim.Y=10*1+1;
  	U.dim.west=-180;
  	U.dim.east=180;
- 	U.dim.south=-70;
- 	U.dim.north=0;
+ 	U.dim.south=-60;
+ 	U.dim.north=-50;
     %% switches
     U.switchs.RossbyStuff=true;  % TODO
     U.switchs.IQ=true;
@@ -37,11 +37,12 @@ function U=input_vars
 	 U.switchs.AmpAreaCheck=false;
     %% parameters
 	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    U.parameters.depthRossby=4242424242; % depth from which to take rossby phase speed and radius
+    U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius
+    U.parameters.meanU=100; % depth from which to take mean U
 	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
 	 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits = 96; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 24; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

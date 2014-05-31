@@ -262,21 +262,19 @@ end
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
 	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-	r=nc_varget(Ro.file,'RossbyRadius');
-	Ro.large.radius=squeeze(r(end,:,:));
+	Ro.large.radius=nc_varget(Ro.file,'RossbyRadius');
 	Ro.large.radius(Ro.large.radius==0)=nan;
 	Ro.small.radius=MAP.proto.nan;
 	%%
-	dWanted=DD.parameters.depthRossby;
-	d=nc_varget(Ro.file,'Depth');
-	[~,pos]=min(abs(d-dWanted));
-	u=nc_varget(Ro.file,'RossbyPhaseSpeed');
-	Ro.large.phaseSpeed=squeeze(u(pos,:,:));
+	Ro.large.phaseSpeed=nc_varget(Ro.file,'RossbyPhaseSpeed');
 	Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
 	Ro.small.phaseSpeed=MAP.proto.nan;
 	%% nanmean to smaller map
-	lin=MAP.idx;
-	for li=unique(lin(lin~=0 & ~isnan(lin)))
+	lin=MAP.idx;   
+    T=disp_progress('init','reallocating rossby stuff indices to output map');
+    uni=unique(lin(lin~=0 & ~isnan(lin)));
+	for li=uni
+           T=disp_progress('show',T,numel(uni),10);
 		Ro.small.radius(li)=nanmean(Ro.large.radius(lin==li));
 		Ro.small.phaseSpeed(li)=nanmean(Ro.large.phaseSpeed(lin==li));
 	end

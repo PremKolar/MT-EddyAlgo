@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S07_drawPlots
     %% init
-    DD.threads.num=init_threads(4242);
+    DD.threads.num=init_threads(12);
     [DD,threadData]=inits;
     %%	set ticks here!
     ticks.rez=300;
@@ -51,7 +51,7 @@ function mainDB(DD,IN,ticks)
         TPd(DD,ticks,IN.tracks,sen);
         TPe(DD,ticks,IN.tracks,sen);
         TPf(DD,ticks,IN.tracks,sen);
-        TPg(DD,ticks,IN.tracks,sen);
+%         TPg(DD,ticks,IN.tracks,sen);
     end
     batch(  velZonmeans(DD,IN,ticks))
     batch(  scaleZonmeans(DD,IN,ticks))
@@ -127,40 +127,6 @@ function [DD,OUT]=inits
     OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);
 end
 function histstuff(vecs,DD,ticks)
-<<<<<<< HEAD
-	senses={'Cycs','AntiCycs'};
-	for sense=senses;sen=sense{1};
-		%%
-		if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end
-		range.(sen).lat=round(nanmin(vecs.(sen).lat)):round(nanmax(vecs.(sen).lat));
-		%%
-		range.(sen).age=round(nanmin(vecs.(sen).age)):round(nanmax(vecs.(sen).age));
-		%%
-		range.(sen).cum=range.(sen).age;
-		%%
-		[hc.(sen).lat]=numPerLat(vecs.(sen).lat,DD,ticks,range.(sen).lat,sen);
-		%%
-		[hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
-	end
-	
-	%%
-	ratioBar(hc,'lat',range,ticks);
-	tit='ratio of cyclones to anticyclones as function of latitude';
-	title(tit)
-	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatLat']);
-	%%
-	ratioBar(hc,'age',range,ticks);
-	tit='ratio of cyclones to anticyclones as function of age';
-	xlab='age [d] - gray scale indicates total number of eddies available';
-	title(tit);
-	xlabel(xlab)   ;
-	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sen,'_LatNum']);
-	%%
-	ratioBar(hc,'cum',range,ticks);
-	tit='ratio of cyclones to anticyclones as upper tail cum. of age';
-	title(tit);
-	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge']);
-=======
     senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
         %%
@@ -194,7 +160,6 @@ function histstuff(vecs,DD,ticks)
     title(tit);
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['RatCumAge']);
     
->>>>>>> master
 end
 function mapstuff(maps,vecs,DD,ticks,lo,la)
     aut=autumn;

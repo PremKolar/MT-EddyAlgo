@@ -52,7 +52,7 @@ function [EE,skip]=work_day(DD,rossbyU,jj)
     cont=read_fields(DD,jj,'conts');
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
-    %% avolabindex out of bounds integer coordinates close to boundaries
+    %% avoid out of bounds integer coordinates close to boundaries
     [ee_clean,cut]=CleanEDDies(ee,cut);
     %% find them
     EE=find_eddies(ee_clean,rossbyU,cut,DD,jj);
@@ -152,6 +152,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     if ~pass, return, end;
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
+	%%
     if DD.debugmode, plots4debug(zoom,ee); end
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
@@ -269,24 +270,22 @@ function [pass]=CR_ClosedRing(ee)
     end
 end
 %% others
-function U=getRossbyPhaseSpeed(DD)
+
+function CatDepthWanted=getRossbyPhaseSpeed(DD)
+fghndfghndhngf
+
     if DD.switchs.RossbyStuff
-        %         dWanted=DD.parameters.depthRossby;
-        %         d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
+        dWanted=DD.parameters.depthRossby;
+        d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
         U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
-        %         [~,pos]=min(abs(d-dWanted));
-        %         CatDepthWanted=squeeze(U(pos,:,:));
-        if numel(U)~=prod(struct2array(DD.map.window.size))
-            U=downsize(U,DD.map.window.size.X,DD.map.window.size.Y);
-        end
-        if DD.map.geo.east-DD.map.geo.west==360
-            xadd=round(DD.map.window.size.X/10);
-            U=U(:,[1:end 1:xadd]);
-        end
+        [~,pos]=min(abs(d-dWanted));
+        CatDepthWanted=squeeze(U(pos,:,:));
     else
-        U=[];
+        CatDepthWanted=[];
     end
 end
+
+
 function [centroid]=AreaCentroid(zoom,Y)
     %% factor each grlabindex cell equally (compare to CenterOfVolume())
     ssh=double(logical(zoom.SSH_BasePos));
@@ -544,8 +543,9 @@ function [ee,cut]=CleanEDDies(ee,cut)
     for jj=1:numel(ee)
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
+        %% the following also takes care of the overlap from S00 in the global case
+        x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
         x(x<1)=1;
-        x(x>cut.dim.X)=cut.dim.X;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;
         ee(jj).coordinates.int.x=x;

@@ -43,8 +43,7 @@ function [DD,lims]=set_up
     %% find temp and salt files
     [DD.path.TempSalt.salt,DD.path.TempSalt.temp]=tempsalt(DD);
     %% set dimension for splitting (files dont fit in memory)
-    
-    X=DD.map.window.size.X;
+    X=DD.map.window.size.X;    
     %% map chunks
     lims.data=thread_distro(splits,X) + DD.map.window.limits.west-1;
     %% distro chunks to threads
@@ -176,6 +175,7 @@ function [c1,c1floor]=calcC_one(dWanted,CK,cc)
 %     end
 %     
     [~,pos]=min(abs(CK.DEPTH-dWanted));
+    pos=pos-1;
      c1(:,:)=-double(squeeze(nansum(M.depthdiff(1:pos,:,:).*CK.BRVA(1:pos,:,:),1))/pi);
  c1floor(:,:)=-double(squeeze(nansum(M.depthdiff(1:end,:,:).*CK.BRVA(1:end,:,:),1))/pi);
     

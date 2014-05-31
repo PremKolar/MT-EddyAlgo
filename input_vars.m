@@ -38,7 +38,8 @@ function U=input_vars
 	 U.switchs.AmpAreaCheck=true;
     %% parameters
 	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    U.parameters.depthRossby=100; % depth from which to take rossby phase speed and radius
+    U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius
+    U.parameters.meanU=100; % depth from which to take mean U
 	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
 	 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params

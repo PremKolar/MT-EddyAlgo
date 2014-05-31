@@ -20,7 +20,6 @@ function S02_infer_fields
     save_info(DD)
 end
 
-
 function main(DD,RS)
     if DD.debugmode
         spmd_body(DD,RS);
@@ -31,46 +30,15 @@ function main(DD,RS)
     end
 end
 
-
-function [dim]=getDims(winsize)
-    pos.x.start=0;
-    pos.x.length=winsize.X;
-    pos.y.start=0;
-    pos.y.length=winsize.Y;
-    dim.start = [ pos.y.start pos.x.start];
-    dim.length = 	[ pos.y.length pos.x.length ];
-end
-
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-        RS.Lr=nc_varget(file,'RossbyRadius');
-        
-        
-        
-        
-%         
-%         
-%         
-%         
-%         if numel(RS.c)~=prod(struct2array(DD.map.window.size))
-%             RS.c=downsize(RS.c,DD.map.window.size.X,DD.map.window.size.Y);
-%             RS.Lr=downsize(RS.Lr,DD.map.window.size.X,DD.map.window.size.Y);
-%         end
-%         
-%         if DD.map.geo.east-DD.map.geo.west==360
-%             xadd=round(DD.map.window.size.X/10);
-%             RS.c=RS.c(:,[1:end 1:xadd]);
-%             RS.Lr=RS.Lr(:,[1:end 1:xadd]);
-%         end
-%         
-        
+       RS.Lr=nc_varget(file,'RossbyRadius');    
     else
         RS=[];
     end
 end
-
 
 
 function spmd_body(DD,RS)
@@ -80,9 +48,10 @@ function spmd_body(DD,RS)
     for jj=JJ
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
-        cut=LoadCut(jj,DD);
+        cut=LoadCut(jj,DD);      
+   coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,DD.coriolis,RS);
+        grids=geostrophy(cut.grids,coriolis,RS);
         
         %% write
         write_fields(DD,jj,'cuts',grids);

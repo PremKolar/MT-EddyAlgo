@@ -43,11 +43,9 @@ function II=get_contours(jj,dd,JJ,II)
     [II,CONT]=init_get_contours(jj,dd,JJ,outFile);
     %% loop over levels
     for level=II.levels
-        II.T=disp_progress('disp',II.T,numel(II.levels),3);
-        CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];
-        
-    end
-    
+        II.T=disp_progress('disp',II.T,numel(II.levels),10);
+        CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];        
+    end    
     %% save data
     save(CONT.filename,'-struct','CONT');
 end

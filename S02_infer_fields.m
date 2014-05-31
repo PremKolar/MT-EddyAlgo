@@ -19,11 +19,6 @@ function S02_infer_fields
     save_info(DD)
 end
 
-
-
-
-
-
 function main(DD,RS)
     if DD.debugmode
         spmd_body(DD,RS);
@@ -55,8 +50,7 @@ function spmd_body(DD,RS)
         cut=LoadCut(jj,DD);      
    coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,coriolis,RS);
-        
+        grids=geostrophy(cut.grids,coriolis,RS);        
         %% write
         write_fields(DD,jj,'cuts',grids);
         write_fields(DD,jj,'conts',grids);

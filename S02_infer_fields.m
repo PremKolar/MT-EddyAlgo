@@ -14,7 +14,7 @@ function S02_infer_fields
     DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
     %% spmd
-  main(DD,RS)
+    main(DD,RS)
     %% save info file
     save_info(DD)
 end
@@ -31,29 +31,37 @@ function main(DD,RS)
 end
 
 
-function [d,pos,dim]=getDims(file,dWanted,winsize)
-    d=nc_varget(file,'Depth');
-    [~,pos.z.start]=min(abs(d-dWanted));
-    pos.z.start=pos.z.start-1; %nc starts at 0
-    pos.z.length=1;
+function [dim]=getDims(winsize)
     pos.x.start=0;
     pos.x.length=winsize.X;
     pos.y.start=0;
     pos.y.length=winsize.Y;
-    dim.start = [pos.z.start pos.y.start pos.x.start];
-    dim.length = 	[pos.z.length pos.y.length pos.x.length ];
+    dim.start = [ pos.y.start pos.x.start];
+    dim.length = 	[ pos.y.length pos.x.length ];
 end
 
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
-        [RS.depth,RS.depthpos,dim]= getDims(file,DD.parameters.depthRossby,DD.map.window.size);        
-        RS.c=nc_varget(file,'RossbyPhaseSpeed',dim.start ,dim.length);
-        RS.N=nc_varget(file,'BruntVaisala',dim.start ,dim.length);
-        RS.Lr_at_pos=nc_varget(file,'RossbyRadius',dim.start ,dim.length);
-        [~,~,dimBottom]= getDims(file,424242,DD.map.window.size);
-        RS.Lr_at_bottom=nc_varget(file,'RossbyRadius',dimBottom.start,dimBottom.length);
-       else
+        RS.c=nc_varget(file,'RossbyPhaseSpeed');
+        RS.Lr=nc_varget(file,'RossbyRadius');
+        
+        
+        
+        
+        if numel(RS.c)~=prod(struct2array(DD.map.window.size))
+            RS.c=downsize(RS.c,DD.map.window.size.X,DD.map.window.size.Y);
+            RS.Lr=downsize(RS.Lr,DD.map.window.size.X,DD.map.window.size.Y);
+        end
+        
+        if DD.map.geo.east-DD.map.geo.west==360
+            xadd=round(DD.map.window.size.X/10);
+            RS.c=RS.c(:,[1:end 1:xadd]);
+            RS.Lr=RS.Lr(:,[1:end 1:xadd]);
+        end
+        
+        
+    else
         RS=[];
     end
 end
@@ -92,14 +100,16 @@ function gr=geostrophy(gr,corio,RS)
     %% okubo weiss
     gr.OW=.5*(-gr.vorticity.*2+gr.divergence.*2+gr.stretch.*2+gr.shear.*2);
     %% assuming Ro=1
-    gr.L=gr.absUV./corio.f;
-    kinVis=1e-6;
-    gr.Re=gr.absUV.*gr.L/kinVis;
-    gr.Ro=ones(size(gr.L));
-    gr.Rrhines=earthRadius./gr.L;
-    gr.Lrhines=sqrt(gr.absUV./corio.beta);
-    gr.L_R=abs(RS.c./corio.f);
-    gr.Bu=(gr.L_R./gr.L).^2;
+    if ~isempty(RS)
+        gr.L=gr.absUV./corio.f;
+        kinVis=1e-6;
+        gr.Re=gr.absUV.*gr.L/kinVis;
+        gr.Ro=ones(size(gr.L));
+        gr.Rrhines=earthRadius./gr.L;
+        gr.Lrhines=sqrt(gr.absUV./corio.beta);
+        gr.L_R=abs(RS.c./corio.f);
+        gr.Bu=(gr.L_R./gr.L).^2;
+    end
 end
 function def=deformation(grids)
     %% calc U gradients

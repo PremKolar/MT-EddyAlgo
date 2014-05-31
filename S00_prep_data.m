@@ -83,17 +83,14 @@ end
 function [F,readable]=GetFields(file,keys)
     F=struct;
     readable=true;
-    nc_getall(file)
-    try
-        F.LON = CorrectLongitude(nc_varget(file,keys.lat)); %TODO: from user input AND: flexible varget function
-        F.LAT = nc_varget(file,keys.lon);
+   try
+        F.LON = CorrectLongitude(nc_varget(file,keys.lon)); %TODO: from user input AND: flexible varget function
+        F.LAT = nc_varget(file,keys.lat);
         F.SSH = squeeze(nc_varget(file,keys.ssh));
         if numel(F.LON)~=numel(F.SSH)
-            F.SSH=F.SSH';
-           F.LON=repmat(F.LON',size(F.SSH,1),1);
+          F.LON=repmat(F.LON',size(F.SSH,1),1);
            F.LAT=repmat(F.LAT,1,size(F.SSH,2));
-        end
-        
+        end        
     catch void
         readable=false;
         warning(void.identifier,	['cant read ',file,', skipping!'])
@@ -131,7 +128,7 @@ end
 function [CUT,readable]=CutMap(file,DD)
     CUT=struct;
     %% get data
-    [raw_fields,readable]=GetFields(file.in); if ~readable, return; end
+    [raw_fields,readable]=GetFields(file.in,DD.map.pattern); if ~readable, return; end
     %% cut
     [CUT]=SeamOrGlobe(raw_fields,DD.map.window);
     %% nan out land and make SI

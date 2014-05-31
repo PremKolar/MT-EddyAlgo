@@ -38,8 +38,15 @@ function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-       RS.Lr=nc_varget(file,'RossbyPhaseSpeed');    
-    else
+       RS.Lr=nc_varget(file,'RossbyRadius'); 
+     
+%        if prod(struct2array(DD.map.window.size))~=numel(RS.c)
+%               x=DD.map.window.size.X;
+%               y=DD.map.window.size.Y;
+%              RS.c=downsize(RS.c,x,y);
+%              RS.Lr=downsize(RS.Lr,x,y);            
+%        end
+      else
         RS=[];
     end
 end

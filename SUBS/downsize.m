@@ -1,8 +1,8 @@
 function [OUT]=downsize(IN,xout,yout)
-
-	[ydim,xdim]=size(IN);
-xinc=max([round(xdim/xout),1]);
-yinc=max([round(ydim/yout),1]);
-OUT=IN(1:yinc:end,1:xinc:end);
+[ydim,xdim]=size(IN);
+xinc=round(linspace(1,xdim,xout));
+yinc=round(linspace(1,ydim,yout))';
+[X,Y]=meshgrid(xinc,yinc);
+lininc=drop_2d_to_1d(Y(:),X(:),ydim);
+OUT=reshape(IN(lininc),yout,xout);
 end
-

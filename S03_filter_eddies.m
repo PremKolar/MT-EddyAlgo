@@ -69,8 +69,10 @@ end
 function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
+    Tac=disp_progress('init','checking eddies');
     for kk=1:numel(ee)
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);
+       Tac=disp_progress('disp',Tac,numel(ee),10);
         if PASS(kk), pp=pp+1;
             %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
@@ -86,8 +88,10 @@ end
 function Cyc=cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at highest eddies, downwards
+     Tc=disp_progress('init','checking eddies');
     for kk=numel(ee):-1:1
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);
+        Tc=disp_progress('disp',Tc,numel(ee),10);
         if PASS(kk),	pp=pp+1;
             %% append healthy found eddy
             Cyc(pp)=ee_out;
@@ -266,15 +270,11 @@ function [pass]=CR_ClosedRing(ee)
     end
 end
 %% others
-function CatDepthWanted=getRossbyPhaseSpeed(DD)
-    if DD.switchs.RossbyStuff
-        dWanted=DD.parameters.depthRossby;
-        d=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'Depth');
+function U=getRossbyPhaseSpeed(DD)
+    if DD.switchs.RossbyStuff       
         U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
-        [~,pos]=min(abs(d-dWanted));
-        CatDepthWanted=squeeze(U(pos,:,:));
     else
-        CatDepthWanted=[];
+        U=[];
     end
 end
 function [centroid]=AreaCentroid(zoom,Y)

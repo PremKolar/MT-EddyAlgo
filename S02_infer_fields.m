@@ -14,10 +14,14 @@ function S02_infer_fields
     DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
     %% spmd
-  main(DD,RS)
+    main(DD,RS)
     %% save info file
     save_info(DD)
 end
+
+
+
+
 
 
 function main(DD,RS)
@@ -30,34 +34,15 @@ function main(DD,RS)
     end
 end
 
-
-function [d,pos,dim]=getDims(file,dWanted,winsize)
-    d=nc_varget(file,'Depth');
-    [~,pos.z.start]=min(abs(d-dWanted));
-    pos.z.start=pos.z.start-1; %nc starts at 0
-    pos.z.length=1;
-    pos.x.start=0;
-    pos.x.length=winsize.X;
-    pos.y.start=0;
-    pos.y.length=winsize.Y;
-    dim.start = [pos.z.start pos.y.start pos.x.start];
-    dim.length = 	[pos.z.length pos.y.length pos.x.length ];
-end
-
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
-        [RS.depth,RS.depthpos,dim]= getDims(file,DD.parameters.depthRossby,DD.map.window.size);        
-        RS.c=nc_varget(file,'RossbyPhaseSpeed',dim.start ,dim.length);
-        RS.N=nc_varget(file,'BruntVaisala',dim.start ,dim.length);
-        RS.Lr_at_pos=nc_varget(file,'RossbyRadius',dim.start ,dim.length);
-        [~,~,dimBottom]= getDims(file,424242,DD.map.window.size);
-        RS.Lr_at_bottom=nc_varget(file,'RossbyRadius',dimBottom.start,dimBottom.length);
-       else
+        RS.c=nc_varget(file,'RossbyPhaseSpeed');
+       RS.Lr=nc_varget(file,'RossbyPhaseSpeed');    
+    else
         RS=[];
     end
 end
-
 
 
 function spmd_body(DD,RS)
@@ -67,9 +52,10 @@ function spmd_body(DD,RS)
     for jj=JJ
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
-        cut=LoadCut(jj,DD);
+        cut=LoadCut(jj,DD);      
+   coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,DD.coriolis,RS);
+        grids=geostrophy(cut.grids,coriolis,RS);
         
         %% write
         write_fields(DD,jj,'cuts',grids);

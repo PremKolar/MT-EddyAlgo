@@ -30,18 +30,19 @@ function U=input_vars
  	U.dim.south=0;
  	U.dim.north=50;
     %% switches
-    U.switchs.RossbyStuff=false;  % TODO
+    U.switchs.RossbyStuff=true;  % TODO
     U.switchs.IQ=true;
     U.switchs.chelt=false;
 	 U.switchs.distlimit=false;
 	 U.switchs.AmpAreaCheck=false;
     %% parameters
 	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    U.parameters.depthRossby=100; % depth from which to take rossby phase speed and radius
+    U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius
+    U.parameters.meanU=100; % depth from which to take mean U
 	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
 	 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits = 64; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 24; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

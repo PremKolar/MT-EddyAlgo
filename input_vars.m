@@ -1,17 +1,17 @@
 function U=input_vars
 	%% threads
-	U.threads.num=1;
-	  U.debugmode=0;
+	U.threads.num=12;
+	  U.debugmode=1;
 	%% time
  	U.time.from.str='19921014';
 %  	U.time.till.str='20130807';
-  	U.time.till.str='19950807';
+  	U.time.till.str='19931212';
  	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
-  	U.path.root='../dataAV/';
-    U.path.plots='../plotAV/';
+  	U.path.root='../dataTIN/';
+    U.path.plots='../plotTIN/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -28,8 +28,8 @@ function U=input_vars
  	U.dim.Y=50*1+1;
  	U.dim.west=-180;
  	U.dim.east=180;
- 	U.dim.south=-90;
- 	U.dim.north=90;
+ 	U.dim.south=-50;
+ 	U.dim.north=-10;
     %% switches
     U.switchs.RossbyStuff=true;  % TODO
     U.switchs.IQ=false;
@@ -42,7 +42,7 @@ function U=input_vars
 	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
 	 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits = 64; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 24; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

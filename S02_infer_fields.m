@@ -13,6 +13,7 @@ function S02_infer_fields
     DD.coriolis=coriolisStuff(cut1.grids);
     DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
+    
     %% spmd
     main(DD,RS)
     %% save info file
@@ -49,17 +50,21 @@ function RS=getRossbyStuff(DD)
         
         
         
-        if numel(RS.c)~=prod(struct2array(DD.map.window.size))
-            RS.c=downsize(RS.c,DD.map.window.size.X,DD.map.window.size.Y);
-            RS.Lr=downsize(RS.Lr,DD.map.window.size.X,DD.map.window.size.Y);
-        end
-        
-        if DD.map.geo.east-DD.map.geo.west==360
-            xadd=round(DD.map.window.size.X/10);
-            RS.c=RS.c(:,[1:end 1:xadd]);
-            RS.Lr=RS.Lr(:,[1:end 1:xadd]);
-        end
-        
+%         
+%         
+%         
+%         
+%         if numel(RS.c)~=prod(struct2array(DD.map.window.size))
+%             RS.c=downsize(RS.c,DD.map.window.size.X,DD.map.window.size.Y);
+%             RS.Lr=downsize(RS.Lr,DD.map.window.size.X,DD.map.window.size.Y);
+%         end
+%         
+%         if DD.map.geo.east-DD.map.geo.west==360
+%             xadd=round(DD.map.window.size.X/10);
+%             RS.c=RS.c(:,[1:end 1:xadd]);
+%             RS.Lr=RS.Lr(:,[1:end 1:xadd]);
+%         end
+%         
         
     else
         RS=[];

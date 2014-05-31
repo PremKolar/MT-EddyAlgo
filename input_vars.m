@@ -1,10 +1,11 @@
 function U=input_vars
 	%% threads
-	U.threads.num=1;
-	  U.debugmode=1;
+	U.threads.num=12;
+	  U.debugmode=0;
 	%% time
  	U.time.from.str='19921014';
  	U.time.till.str='20130807';
+    U.time.till.str='19930101';
  	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
@@ -17,7 +18,7 @@ function U=input_vars
 	U.thresh.radius=0; % [SI]
 	U.thresh.amp=0.01; % [SI]
 	U.thresh.shape.iq=0.3; % isoperimetric quotient
-	U.thresh.shape.chelt=0.5; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
+	U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ) 
 	U.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=.5*24*60^2; % max distance travelled per day
 	U.thresh.life=20; % min num of living days for saving
@@ -25,16 +26,16 @@ function U=input_vars
 	%% dims for map plots
 	U.dim.X=80*1+1;
  	U.dim.Y=50*1+1;
- 	U.dim.west=-80;
- 	U.dim.east=0;
- 	U.dim.south=0;
- 	U.dim.north=50;
+ 	U.dim.west=-180;
+ 	U.dim.east=180;
+ 	U.dim.south=-80;
+ 	U.dim.north=80;
     %% switches
     U.switchs.RossbyStuff=true;  % TODO
-    U.switchs.IQ=true;
-    U.switchs.chelt=false;
-	 U.switchs.distlimit=false;
-	 U.switchs.AmpAreaCheck=false;
+    U.switchs.IQ=false;
+    U.switchs.chelt=true;
+	 U.switchs.distlimit=true;
+	 U.switchs.AmpAreaCheck=true;
     %% parameters
 	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius

@@ -3,14 +3,15 @@ function U=input_vars
 U.threads.num=12;
 U.debugmode=0;
 %% time
-  U.time.from.str='20000101';
-   U.time.till.str='20000112';
+  U.time.from.str='19940102';
+   U.time.till.str='20061231';
+
   U.time.delta_t=1; % [days]!
 %% dirs
 U.path.TempSalt.name='../TempSalt/';
 U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-   U.path.root='../dataWORLD/';
-    U.path.plots='../plotWORLD/';
+   U.path.root='../dataWrld/';
+    U.path.plots='../plotWrld/';
   %% thresholds
 U.contour.step=0.1; % [SI]
 U.thresh.ssh_filter_size=1;
@@ -24,11 +25,11 @@ U.thresh.life=20; % min num of living days for saving
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 %% dims for map plots
 U.dim.X=360*1+1;
-  U.dim.Y=160*1+1;
+  U.dim.Y=180*1+1;
   U.dim.west=-180;
   U.dim.east=180;
-  U.dim.south=-80;
-  U.dim.north=80;
+  U.dim.south=-90;
+  U.dim.north=90;
     %% switches
     U.switchs.RossbyStuff=true; % TODO
     U.switchs.IQ=true;
@@ -42,7 +43,7 @@ U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used.
 U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 U.parameters.trackingRef='centroid'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits = 24; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits = 112; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

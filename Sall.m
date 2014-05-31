@@ -1,5 +1,5 @@
-% S00_prep_data
-% S01_contours
+ S00_prep_data
+ S01_contours
 S01b_BruntVaisRossby
 S02_infer_fields
 S03_filter_eddies

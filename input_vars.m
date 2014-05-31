@@ -5,12 +5,12 @@ function U=input_vars
 	%% time
  	U.time.from.str='19940930';
  	U.time.till.str='20080101';
- 	U.time.delta_t=1; % [days]!
+ 	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-  	U.path.root='../dataWrld/';
-    U.path.plots='../plotswrld/';
+  	U.path.root='../dataSO/';
+    U.path.plots='../plotsSO/';
  	%% thresholds
 	U.contour.step=0.005; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -24,11 +24,11 @@ function U=input_vars
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% dims for map plots
 	U.dim.X=360*1+1;
- 	U.dim.Y=180*1+1;
+ 	U.dim.Y=70*1+1;
  	U.dim.west=-180;
  	U.dim.east=180;
- 	U.dim.south=-90;
- 	U.dim.north=90;
+ 	U.dim.south=-70;
+ 	U.dim.north=0;
     %% switches
     U.switchs.RossbyStuff=true;  % TODO
     U.switchs.IQ=true;

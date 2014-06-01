@@ -55,12 +55,6 @@ function spmd_body(DD)
         %% write data
         WriteFileOut(file.out,CUT);
        end
-%      if labindex==1
-%          DD.map.window.flag=[]; % redundant
-%          DD.parameters =catstruct(DD.parameters, CUT.params);
-%         %% update infofile        
-%         save_info(DD)
-%      end
 end
 %% window functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window,readable]=GetWindow(file,DD)

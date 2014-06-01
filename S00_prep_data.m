@@ -14,7 +14,9 @@ function S00_prep_data
     %% set up
     [DD]=set_up;
     %% spmd
-    main(DD)   
+    main(DD)
+    %% save info
+    save_info(DD)
 end
 
 function main(DD)
@@ -41,7 +43,7 @@ end
 
 function spmd_body(DD)
     %% distro chunks to threads
-     [TT]=SetThreadVar(DD);
+    [TT]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
     for tt=TT.daynums';
@@ -51,10 +53,10 @@ function spmd_body(DD)
         %%
         [T]=disp_progress('calc',T,numel(TT),10000);
         %% cut data
-        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end   
+        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
         %% write data
         WriteFileOut(file.out,CUT);
-       end
+    end
 end
 %% window functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window,readable]=GetWindow(file,DD)
@@ -103,7 +105,7 @@ end
 function window=FindWindowMask(F,M)
     %% tag all grid points fullfilling all desired lat/lon limits
     if M.east>M.west
-        window.flag=F.LON>=M.west & F.LON<=M.east & F.LAT>=M.south & F.LAT<=M.north ;
+        window.flag= F.LON>=M.west & F.LON<=M.east & F.LAT>=M.south & F.LAT<=M.north ;
     elseif M.west>M.east  %crossing 180 meridian
         window.flag=((F.LON>=M.west & F.LON<=180) | (F.LON>=-180 & F.LON<=M.east)) & F.LAT>=M.south & F.LAT<=M.north ;
     end
@@ -162,15 +164,15 @@ function [OUT]=AppendIfFullZonal(IN,window)
     % S04_track_eddies is able to avoid counting 1 eddy twice
     ss=window.limits.south;
     nn=window.limits.north;
-    %% init  
+    %% init
     OUT.grids.LON=IN.LON(ss:nn,:);
     OUT.grids.LAT=IN.LAT(ss:nn,:);
     OUT.grids.SSH=IN.SSH(ss:nn,:);
     %% append
     xadd=round(window.size.X/10);
-      OUT.grids.LON=OUT.grids.LON(:,[1:end, 1:xadd]);
-      OUT.grids.LAT=OUT.grids.LAT(:,[1:end, 1:xadd]);
-        OUT.grids.SSH=OUT.grids.SSH(:,[1:end, 1:xadd]);       
+    OUT.grids.LON=OUT.grids.LON(:,[1:end, 1:xadd]);
+    OUT.grids.LAT=OUT.grids.LAT(:,[1:end, 1:xadd]);
+    OUT.grids.SSH=OUT.grids.SSH(:,[1:end, 1:xadd]);
 end
 function [OUT,window]=SeamCross(IN,window)
     Wflag=window.flag;
@@ -225,7 +227,7 @@ end
 function [file,exists]=GetCurrentFile(tt,DD)
     exists.out=false;
     path=DD.path.raw;
-    pattern=DD.map.pattern.in;    
+    pattern=DD.map.pattern.in;
     timestr=datestr(tt,'yyyymmdd');
     file.in=[path.name, strrep(pattern, 'yyyymmdd',timestr)];
     %% set up output file
@@ -244,6 +246,6 @@ end
 function [OUT]=SetThreadVar(IN)
     from=IN.threads.lims(labindex,1);
     till=IN.threads.lims(labindex,2);
-    OUT.daynums=IN.checks.passed.daynums(from:till);   
-%      OUT.files=IN.checks.passed.files(from:till);           
+    OUT.daynums=IN.checks.passed.daynums(from:till);
+    %      OUT.files=IN.checks.passed.files(from:till);
 end

@@ -27,16 +27,15 @@ function spmd_body(DD)
     JJ=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2);
     T=disp_progress('init','truncating overlap');
     for jj=JJ
-       T=disp_progress('disp',T,numel(JJ),100);
-        %%
         cutOff(jj,DD);
+        T=disp_progress('disp',T,numel(JJ),100);
     end
 end
 function cutOff(jj,dd)
-   %% get data
+    %% get data
     [fname,CUT]=getData(jj,dd);
-    FN=fieldnames(CUT.grids);    
-    if ~CUT.params.full_globe.x, return; end
+    FN=fieldnames(CUT.grids);
+    if ~CUT.params.full_globe.x,disp('no need!'); return; end
     %% get actual xsize
     X.right=CUT.window.size.X;
     for fn=FN';fn=fn{1};

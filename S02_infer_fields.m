@@ -7,11 +7,10 @@
 % calculates geostrophic data from SSH
 function S02_infer_fields
     %% init
-    DD=initialise('conts');
+    DD=initialise('cuts');
     %% read input file
     cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
     DD.coriolis=coriolisStuff(cut1.grids);
-    DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
@@ -33,28 +32,25 @@ function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-       RS.Lr=nc_varget(file,'RossbyRadius');  
-       jzf
+        RS.Lr=nc_varget(file,'RossbyRadius');
     else
         RS=[];
     end
 end
 
-
 function spmd_body(DD,RS)
-    %% loop
-    JJ=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2);
+    %% distro chunks to threads
+    [JJ]=SetThreadVar(DD);
     T=disp_progress('init','infering fields');
-    for jj=JJ
+    for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
-        cut=LoadCut(jj,DD);      
-   coriolis=coriolisStuff(cut.grids);
+        cut=load(JJ(jj).files);
+        coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,coriolis,RS);        
+        grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
-        write_fields(DD,jj,'cuts',grids);
-        write_fields(DD,jj,'conts',grids);
+        save(JJ(jj).files,'grids','-append');
     end
 end
 function gr=geostrophy(gr,corio,RS)
@@ -73,14 +69,16 @@ function gr=geostrophy(gr,corio,RS)
     %% okubo weiss
     gr.OW=.5*(-gr.vorticity.*2+gr.divergence.*2+gr.stretch.*2+gr.shear.*2);
     %% assuming Ro=1
-    gr.L=gr.absUV./corio.f;
-    kinVis=1e-6;
-    gr.Re=gr.absUV.*gr.L/kinVis;
-    gr.Ro=ones(size(gr.L));
-    gr.Rrhines=earthRadius./gr.L;
-    gr.Lrhines=sqrt(gr.absUV./corio.beta);
-    gr.L_R=abs(RS.c./corio.f);
-    gr.Bu=(gr.L_R./gr.L).^2;
+    if ~isempty(RS)
+        gr.L=gr.absUV./corio.f;
+        kinVis=1e-6;
+        gr.Re=gr.absUV.*gr.L/kinVis;
+        gr.Ro=ones(size(gr.L));
+        gr.Rrhines=earthRadius./gr.L;
+        gr.Lrhines=sqrt(gr.absUV./corio.beta);
+        gr.L_R=abs(RS.c./corio.f);
+        gr.Bu=(gr.L_R./gr.L).^2;
+    end
 end
 function def=deformation(grids)
     %% calc U gradients

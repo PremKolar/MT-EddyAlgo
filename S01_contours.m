@@ -8,8 +8,6 @@
 function S01_contours
     %% init
     DD=initialise('cuts');
-    %% open pool
-    DD.threads.num=init_threads(DD.threads.num);
     %% spmd
     main(DD)
     %% save info
@@ -26,52 +24,53 @@ function main(DD)
 end
 function spmd_body(DD)
     %% loop over ssh cuts
-    JJ=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2);
-    II=struct;
-    for jj=JJ
+    [TT]=SetThreadVar(DD);
+    for cc=1:numel(TT)
         %% contours
-        II=get_contours(jj,DD,JJ,II);
+        get_contours(DD,TT(cc));
     end
 end
-function II=get_contours(jj,dd,JJ,II)
+
+
+function II=get_contours(dd,TT)
+    %%
+    [II,CONT]=init_get_contours(dd,TT);
     %% check
-    outFile=[dd.path.conts.name regexprep(dd.path.cuts.files(jj).name, 'CUT', 'CONT')];
-    if exist(outFile,'file')
+    if exist(CONT.filename,'file')
+        disp([CONT.filename ' exists'])
         return
     end
-    %%
-    [II,CONT]=init_get_contours(jj,dd,JJ,outFile);
-    %% loop over levels
+    %% loop over levels    
     for level=II.levels
-        II.T=disp_progress('disp',II.T,numel(II.levels),3);
+        II.T=disp_progress('disp',II.T,numel(II.levels),10);
         CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];
-        
     end
-    
     %% save data
     save(CONT.filename,'-struct','CONT');
 end
-function [II,CONT]=init_get_contours(jj,dd,JJ,filename)
+
+function [II,CONT]=init_get_contours(dd,TT)
     %% load cut
-    II.file=get_file(jj,dd);
-    II.grids=getfield(load(II.file.full),'grids');
+    II.file=TT.files;
+    II.grids=getfield(load(II.file),'grids');
     %% calc contours
     disp('calculating contours... takes long time!')
     CONT.all=[]; % init
     %% create level vector at chosen interval
-    II.levels=nanmin(II.grids.SSH(:))-0.1:dd.contour.step:nanmax(II.grids.SSH(:))+0.1;
-    II.T=disp_progress('init',['contours of day: ',[sprintf('%03i',jj+1-dd.threads.lims(labindex,1)),'/',sprintf('%03i',numel(JJ))]]);
-    II.T.uplevel.togo=numel(JJ)-(jj-JJ(1));
-    II.T.uplevel.perDone=[ num2str(round((jj+1-JJ(1))/numel(JJ)*100)),' %'];
-    II.T.uplevel.l=(jj+1-(JJ(1)));
-    II.T.uplevel.L=numel(JJ);
+    floorlevel=floor(nanmin(II.grids.SSH(:))/dd.contour.step)*dd.contour.step;
+    ceillevel=ceil(nanmax(II.grids.SSH(:))/dd.contour.step)*dd.contour.step;
+    II.levels=floorlevel:dd.contour.step:ceillevel;
+    II.T=disp_progress('init',['contours of day: ' datestr(TT.daynums)]);    
     %% add info
-    CONT.filename=filename;
-end
-function file=get_file(jj,dd)
-    %% load cut
-    file.file=dd.path.cuts.files(jj).name;
-    file.base=dd.path.cuts.name;
-    file.full =[file.base, file.file ];
+    CONT.filename=[dd.path.conts.name dd.pattern.prefix.conts TT.protos];
 end
 
+
+function [OUT]=SetThreadVar(IN)
+    from=IN.threads.lims(labindex,1);
+    till=IN.threads.lims(labindex,2);
+    num=till-from+1;
+    [OUT(1:num).daynums]=IN.checks.passed(from:till).daynums;
+    [OUT(1:num).files]=IN.checks.passed(from:till).filenames;
+    [OUT(1:num).protos]=IN.checks.passed(from:till).protofilenames ;
+end

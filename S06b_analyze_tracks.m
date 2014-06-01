@@ -10,17 +10,23 @@ function S06b_analyze_tracks
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
-	DD.threads.num=init_threads(DD.threads.num);
-	spmd(DD.threads.num)
-		id=labindex;
-		[map,vecs,minMax]=spmd_body(DD,id);
-	end
+	[map,vecs,minMax]=main(DD);	
+	%%
 	seq_body(minMax,map,DD,vecs)
 end
+
+function [map,vecs,minMax]=main(DD)
+    if DD.debugmode
+       [map,vecs,minMax]=spmd_body(DD);
+    else        
+      [map,vecs,minMax]=spmd_body(DD);             
+    end
+end
+
 %% main functions
-function [MAP,V,MinMax]=spmd_body(DD,id)
+function [MAP,V,MinMax]=spmd_body(DD)
 	%% get stuff
-	[MAP,V,JJ,MinMax]=initAll(DD,id);
+	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');
 	for jj=JJ;
@@ -243,8 +249,8 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 	if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
 	if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
 end
-function [MAP,V,JJ,MinMax]=initAll(DD,id)
-	JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
+function [MAP,V,JJ,MinMax]=initAll(DD)
+	JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
 	MAP.AntiCycs=initMAP(DD);
 	MAP.Cycs=initMAP(DD);
 	V.AntiCycs.age=[];V.Cycs.age=[];V.AntiCycs.lat=[];V.Cycs.lat=[];
@@ -261,21 +267,19 @@ end
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
 	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-	r=nc_varget(Ro.file,'RossbyRadius');
-	Ro.large.radius=squeeze(r(end,:,:));
+	Ro.large.radius=nc_varget(Ro.file,'RossbyRadius');
 	Ro.large.radius(Ro.large.radius==0)=nan;
 	Ro.small.radius=MAP.proto.nan;
 	%%
-	dWanted=DD.parameters.depthRossby;
-	d=nc_varget(Ro.file,'Depth');
-	[~,pos]=min(abs(d-dWanted));
-	u=nc_varget(Ro.file,'RossbyPhaseSpeed');
-	Ro.large.phaseSpeed=squeeze(u(pos,:,:));
+	Ro.large.phaseSpeed=nc_varget(Ro.file,'RossbyPhaseSpeed');
 	Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
 	Ro.small.phaseSpeed=MAP.proto.nan;
 	%% nanmean to smaller map
-	lin=MAP.idx;
-	for li=unique(lin(lin~=0 & ~isnan(lin)))
+	lin=MAP.idx;   
+    T=disp_progress('init','reallocating rossby stuff indices to output map');
+    uni=unique(lin(lin~=0 & ~isnan(lin)));
+	for li=uni
+           T=disp_progress('show',T,numel(uni),10);
 		Ro.small.radius(li)=nanmean(Ro.large.radius(lin==li));
 		Ro.small.phaseSpeed(li)=nanmean(Ro.large.phaseSpeed(lin==li));
 	end

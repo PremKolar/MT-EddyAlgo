@@ -1,6 +1,7 @@
 function U=input_vars
 	%% threads
-	U.threads.num=2;
+	U.threads.num=12;
+	  U.debugmode=0;
 	%% time
 	U.time.from.str='19091231';
 	U.time.till.str='19160627';
@@ -28,29 +29,20 @@ function U=input_vars
 	U.thresh.dist=.5*24*60^2; % max distance travelled per day
 	U.thresh.life=10; % min num of living days for saving
 	U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-	
-	
-	
-	
-	%% best ignore all from here
-	%###########################################################################
-	%###########################################################################	
-	%% thresholds
-	U.thresh.ssh_filter_size=1;
-	U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)	
-	%% switches
-	U.switchs.IQ=true;	
-	U.switchs.RossbyStuff=false; 
-	U.switchs.chelt=false;		
-	 U.switchs.distlimit=false;
-	 U.switchs.AmpAreaCheck=false;
-	 %% parameters
-	 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    U.parameters.depthRossby=100; % depth from which to take rossby phase speed and radius
-	 U.parameters.minProjecDist=150e3; % minimum  linear_eccentricity*2 of ellipse (see chelton 2011)
-	 U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
+	    %% switches
+    U.switchs.RossbyStuff=false;  % TODO
+    U.switchs.IQ=true;
+    U.switchs.chelt=0;
+	 U.switchs.distlimit=0;
+	 U.switchs.AmpAreaCheck=0;
+    %% parameters
+U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
+    U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius
+    U.parameters.meanU=100; % depth from which to take mean U
+U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
+U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits = 12; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =36; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';
@@ -66,10 +58,12 @@ function U=input_vars
         'vel.traj';
         'vel.zonal';
         'vel.merid';
-		'amp.to_contour';
-        'amp.to_ellipse';
+'amp.to_contour';
+%         'amp.to_ellipse';
         'amp.to_mean';
-        };    
+        'amp.to_mean.of_contour';
+        };
+
     %% fields 4 colorcoded track plots
     U.FieldKeys.trackPlots= { ...
         'isoper';
@@ -80,9 +74,10 @@ function U=input_vars
         'age';
         'peak.amp.to_contour';
         'peak.amp.to_mean';
+%         'peak.amp.to_mean.of_contour';
         'peak.amp.to_ellipse';
         };
-    %% TODO 
+    %% TODO
     U.FieldKeys.senses= { ...
         'AntiCycs';
         'Cycs';

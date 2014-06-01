@@ -97,4 +97,3 @@ function [DY,DX]=DYDX(LAT,LON)
 	seamcrossflag=DX>100*median(DX(:));
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));
 end
-

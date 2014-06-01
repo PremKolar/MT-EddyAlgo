@@ -43,15 +43,14 @@ end
 
 function spmd_body(DD)
     %% distro chunks to threads
-    [TT]=SetThreadVar(DD);
+     [TT]=SetThreadVar(DD);   
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
-    for tt=TT.daynums';
-        %% get data
-        [file,exists]=GetCurrentFile(tt,DD);
-        if (exists.out), continue; end
+    for cc=1:numel(TT);
         %%
-        [T]=disp_progress('calc',T,numel(TT),10000);
+        [T]=disp_progress('calc',T,numel(TT),100);
+        %% get data
+        file=GetCurrentFile(TT(cc),DD)  ;     
         %% cut data
         [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
         %% write data
@@ -79,8 +78,8 @@ function [F,readable]=GetFields(file,keys)
     F=struct;
     readable=true;  
     try
-        F.LON = CorrectLongitude(nc_varget(file,keys.lat)); %TODO: from user input AND: flexible varget function
-        F.LAT = nc_varget(file,keys.lon);
+        F.LON = CorrectLongitude(nc_varget(file,keys.lon)); %TODO: from user input AND: flexible varget function
+        F.LAT = nc_varget(file,keys.lat);
         F.SSH = squeeze(nc_varget(file,keys.ssh));
         if numel(F.LON)~=numel(F.SSH)
             F.SSH=F.SSH';
@@ -226,12 +225,10 @@ function file=SampleFile(DD)
         error([file.in,' doesnt exist! choose other start date!'])
     end
 end
-function [file,exists]=GetCurrentFile(tt,DD)
+function [file,exists]=GetCurrentFile(TT,DD) 
     exists.out=false;
-    path=DD.path.raw;
-    pattern=DD.map.pattern.in;
-    timestr=datestr(tt,'yyyymmdd');
-    file.in=[path.name, strrep(pattern, 'yyyymmdd',timestr)];
+   file.in=TT.files;  
+   timestr=datestr(TT.daynums,'yyyymmdd');
     %% set up output file
     path=DD.path.cuts.name;
     geo=DD.map.geo;
@@ -248,6 +245,7 @@ end
 function [OUT]=SetThreadVar(IN)
     from=IN.threads.lims(labindex,1);
     till=IN.threads.lims(labindex,2);
-    OUT.daynums=IN.checks.passed.daynums(from:till);
-    %      OUT.files=IN.checks.passed.files(from:till);
+    num=till-from+1;
+    [OUT(1:num).daynums]=IN.checks.passed(from:till).daynums;
+    [OUT(1:num).files]=IN.checks.passed(from:till).filenames;
 end

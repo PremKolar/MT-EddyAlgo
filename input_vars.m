@@ -1,7 +1,7 @@
 function U=input_vars
 %% threads
 U.threads.num=12;
-U.debugmode=0;
+U.debugmode=1;
 %% time
   U.time.from.str='20000101';
    U.time.till.str='20000112';
@@ -9,8 +9,8 @@ U.debugmode=0;
 %% dirs
 U.path.TempSalt.name='../TempSalt/';
 U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-   U.path.root='../dataWORLD/';
-    U.path.plots='../plotWORLD/';
+   U.path.root='../dataTINY/';
+    U.path.plots='../plotTINY/';
   %% thresholds
 U.contour.step=0.1; % [SI]
 U.thresh.ssh_filter_size=1;
@@ -23,12 +23,12 @@ U.thresh.dist=.5*24*60^2; % max distance travelled per day
 U.thresh.life=20; % min num of living days for saving
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 %% dims for map plots
-U.dim.X=360*1+1;
-  U.dim.Y=160*1+1;
-  U.dim.west=-180;
-  U.dim.east=180;
-  U.dim.south=-80;
-  U.dim.north=80;
+U.dim.X=50*1+1;
+  U.dim.Y=50*1+1;
+  U.dim.west=-80;
+  U.dim.east=-30;
+  U.dim.south=0;
+  U.dim.north=50;
     %% switches
     U.switchs.RossbyStuff=true; % TODO
     U.switchs.IQ=true;

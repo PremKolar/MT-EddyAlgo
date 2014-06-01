@@ -33,7 +33,8 @@ function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-       RS.Lr=nc_varget(file,'RossbyPhaseSpeed');    
+       RS.Lr=nc_varget(file,'RossbyRadius');  
+       jzf
     else
         RS=[];
     end

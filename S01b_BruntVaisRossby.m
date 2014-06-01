@@ -61,9 +61,9 @@ function Calculations(DD,lims,chnk)
     disp('initialising..')
     CK=initCK(DD,lims,chnk);
     %% calculate Brunt-Väisälä f and potential vorticity
-    [CK.BRVA,CK.PVORT,CK.midDepth]=calcBrvaPvort(CK,cc);
+    [CK.BRVA]=calcBrvaPvort(CK,cc);
     %% integrate first baroclinic rossby wave phase speed
-    [CK.rossby.c1,CK.rossby.c1floor]=calcC_one(DD.parameters.depthRossby,CK,cc);
+    [CK.rossby.c1]=calcC_one(DD.parameters.depthRossby,CK,cc);
     %% rossby radius ie c1/f
     [CK.rossby.Ro1]=calcRossbyRadius(CK.rossby);
     %% save
@@ -160,41 +160,46 @@ function R=	calcRossbyRadius(rossby)
     %% lambda=c/f
 %     f=repmat(permute(rossby.f,[3 1 2]),[size(rossby.c1,1) 1 1]);    
 %     R=abs(rossby.c1./f);
-      R=double(abs(rossby.c1floor./rossby.f));
+      R=double(abs(rossby.c1./rossby.f));
 end
-function [c1,c1floor]=calcC_one(dWanted,CK,cc)
-%     c1=CK.rossby.c1;
-    c1=CK.rossby.c1floor;
-%     [ZZ,YY,XX]=size(c1);
+function [c1]=calcC_one(dWanted,CK,cc)
+    c1=CK.rossby.c1;
     [YY,XX]=size(c1);
     %% int_-h^0 N/pi dz
     disp(['integrating phase speed for chunk ',cc])
-    M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
-%     for zz=1:ZZ
-%         c1(zz,:,:)=-squeeze(nansum(M.depthdiff(1:zz,:,:).*CK.BRVA(1:zz,:,:),1))/pi;
-%     end
-%     
-    [~,pos]=min(abs(CK.DEPTH-dWanted));
-    pos=pos-1;
-     c1(:,:)=-double(squeeze(nansum(M.depthdiff(1:pos,:,:).*CK.BRVA(1:pos,:,:),1))/pi);
- c1floor(:,:)=-double(squeeze(nansum(M.depthdiff(1:end,:,:).*CK.BRVA(1:end,:,:),1))/pi);
+    
+     c1(:,:)=-double(squeeze(nansum(M.depthdiff.*CK.BRVA,1)))/pi;
+ c1(c1==0)=nan;
     
 end
-function [BRVA,PVORT,midDepth]=calcBrvaPvort(CK,cc)
+function [BRVA]=calcBrvaPvort(CK,cc)
     [ZZ,YY,XX]=size(CK.BRVA);
     disp(['calculating brunt väisälä, chunk ',cc]);
     %% get full matrices for all variables
-    M.depth=double(repmat(CK.DEPTH,[1,YY*XX]));
+    M.depth=double(repmat(CK.DEPTH.mid,[1,YY*XX]));
     M.lat=double(repmat(permute(CK.LAT(:),[2 1]), [ZZ+1,1]));
     M.pressure=double(reshape(sw_pres(M.depth(:),M.lat(:)),[ZZ+1,YY*XX]));
     M.salt=double(reshape(CK.SALT,[ZZ+1,YY*XX]));
     M.temp=double(reshape(CK.TEMP,[ZZ+1,YY*XX]));
     %% get brunt väisälä frequency and pot vort
-    [brva,pvort,md]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
-    midDepth=squeeze(md(:,1)); % uniform
-    BRVA=sqrt(reshape(brva,[ZZ,YY,XX]));
-    BRVA(abs(imag(BRVA))>0)=0;
-    PVORT=reshape(pvort,[ZZ,YY,XX]);
+%     [brva,pvort,md]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
+     M.dens=sw_dens(M.salt,M.temp,M.pressure);
+     ddens=diff(M.dens,1);
+    dz=diff(M.depth,1);
+    rho=1000;
+    g=9.81;
+    
+    N2= g/rho * ddens./dz;
+    N2(N2<0)=0;
+   BRVA=reshape(sqrt(N2),[ZZ, YY,XX]);
+    
+   
+    
+%     brva(brva<0)=nan;
+%     midDepthP=squeeze(md(:,1)); % uniform
+%     BRVA=sqrt(reshape(brva,[ZZ,YY,XX]));
+% %     BRVA(abs(imag(BRVA))>0)=0;
+%     PVORT=reshape(pvort,[ZZ,YY,XX]);
     
 end
 function [CK,DD]=initCK(DD,lims,chnk)
@@ -216,8 +221,6 @@ end
 function [rossby]=ChunkRossby(CK)
     day_sid=23.9344696*60*60;
     om=2*pi/(day_sid); % frequency earth
-%     rossby.Ro1=nan(size(CK.BRVA));
-%     rossby.c1=nan(size(CK.BRVA));
       rossby.Ro1=nan(size(CK.LAT));
     rossby.c1=nan(size(CK.LAT)); 
     rossby.c1floor=nan(size(CK.LAT)); 
@@ -236,13 +239,14 @@ function [lat,lon]=ChunkLatLon(DD,dim)
     lon=nc_varget(DD.path.TempSalt.temp,'U_LON_2D',dim.twoD.start, dim.twoD.length);
 end
 function depth=ChunkDepth(DD)
-    depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
+    depth.mid=nc_varget(DD.path.TempSalt.salt,'depth_t');
+    depth.nodes=nc_varget(DD.path.TempSalt.salt,'w_dep');
 end
 function salt=ChunkSalt(DD,dim)
     dispNcInfo(DD.path.TempSalt.salt)
     salt=squeeze(nc_varget(DD.path.TempSalt.salt,'SALT',dim.fourD.start,dim.fourD.length));
-    salt(salt==0)=nan;
-    salt=salt*1000; % to salinity unit. TODO: from input vars
+    salt(salt==0)=nan;   
+     salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 function temp=ChunkTemp(DD,dim)
     dispNcInfo(DD.path.TempSalt.temp)

@@ -24,8 +24,7 @@ function DD=initialise(toCheck)
     if   ~isempty(DD.path.cuts.files)
         [DD.map.window]=GetWindow(DD);
     end
-    
-   
+       
     DD.threads.num=init_threads(DD.threads.num   );
 end
 

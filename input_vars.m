@@ -3,19 +3,17 @@ function U=input_vars
 U.threads.num=12;
 U.debugmode=1;
 %% time
-%   U.time.from.str='19940102';
+   U.time.from.str='19940102';
 %    U.time.till.str='20061231';
   U.time.from.str='19940502';
-   U.time.till.str='19940506';
-
   U.time.delta_t=1; % [days]!
 %% dirs
-% U.path.TempSalt.name='../TempSalt/';
-U.path.TempSalt.name='/media/ROM/TempSalt/';
-% U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-U.path.raw.name='/media/ROM/SSH_POP/';
-   U.path.root='../dataTT/';
-    U.path.plots='../plotTT/';
+ U.path.TempSalt.name='../TempSalt/';
+% U.path.TempSalt.name='/media/ROM/TempSalt/';
+U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+% U.path.raw.name='/media/ROM/SSH_POP/';
+   U.path.root='../dataWrld/';
+    U.path.plots='../plotWrld/';
   %% thresholds
 U.contour.step=0.1; % [SI]
 U.thresh.ssh_filter_size=1;
@@ -30,10 +28,10 @@ U.thresh.life=20; % min num of living days for saving
 %% dims for map plots
 U.dim.X=360*1+1;
   U.dim.Y=180*1+1;
-  U.dim.west=-50;
-  U.dim.east=-30;
-  U.dim.south=0;
-  U.dim.north=10;
+  U.dim.west=-180;
+  U.dim.east=-180;
+  U.dim.south=-90;
+  U.dim.north=90;
     %% switches
     U.switchs.RossbyStuff=true; % TODO
     U.switchs.IQ=true;

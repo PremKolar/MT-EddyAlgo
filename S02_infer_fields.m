@@ -13,16 +13,12 @@ function S02_infer_fields
     DD.coriolis=coriolisStuff(cut1.grids);
     DD.threads.num=init_threads(DD.threads.num);
     RS=getRossbyStuff(DD);
+    
     %% spmd
     main(DD,RS)
     %% save info file
     save_info(DD)
 end
-
-
-
-
-
 
 function main(DD,RS)
     if DD.debugmode
@@ -39,14 +35,7 @@ function RS=getRossbyStuff(DD)
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
        RS.Lr=nc_varget(file,'RossbyRadius'); 
-     
-%        if prod(struct2array(DD.map.window.size))~=numel(RS.c)
-%               x=DD.map.window.size.X;
-%               y=DD.map.window.size.Y;
-%              RS.c=downsize(RS.c,x,y);
-%              RS.Lr=downsize(RS.Lr,x,y);            
-%        end
-      else
+    else
         RS=[];
     end
 end
@@ -85,14 +74,16 @@ function gr=geostrophy(gr,corio,RS)
     %% okubo weiss
     gr.OW=.5*(-gr.vorticity.*2+gr.divergence.*2+gr.stretch.*2+gr.shear.*2);
     %% assuming Ro=1
-    gr.L=gr.absUV./corio.f;
-    kinVis=1e-6;
-    gr.Re=gr.absUV.*gr.L/kinVis;
-    gr.Ro=ones(size(gr.L));
-    gr.Rrhines=earthRadius./gr.L;
-    gr.Lrhines=sqrt(gr.absUV./corio.beta);
-    gr.L_R=abs(RS.c./corio.f);
-    gr.Bu=(gr.L_R./gr.L).^2;
+    if ~isempty(RS)
+        gr.L=gr.absUV./corio.f;
+        kinVis=1e-6;
+        gr.Re=gr.absUV.*gr.L/kinVis;
+        gr.Ro=ones(size(gr.L));
+        gr.Rrhines=earthRadius./gr.L;
+        gr.Lrhines=sqrt(gr.absUV./corio.beta);
+        gr.L_R=abs(RS.c./corio.f);
+        gr.Bu=(gr.L_R./gr.L).^2;
+    end
 end
 function def=deformation(grids)
     %% calc U gradients

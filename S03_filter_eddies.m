@@ -88,11 +88,11 @@ end
 function Cyc=cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at highest eddies, downwards
-     Tc=disp_progress('init','checking eddies');
+    Tc=disp_progress('init','checking eddies');
     for kk=numel(ee):-1:1
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);
         Tc=disp_progress('disp',Tc,numel(ee),10);
-        if PASS(kk),	pp=pp+1;
+        if PASS(kk),	pp=pp+1;        
             %% append healthy found eddy
             Cyc(pp)=ee_out;
             %% nan out ssh where eddy was found
@@ -152,7 +152,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     if ~pass, return, end;
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
-    %%
+	%%
     if DD.debugmode, plots4debug(zoom,ee); end
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
@@ -277,6 +277,8 @@ function U=getRossbyPhaseSpeed(DD)
         U=[];
     end
 end
+
+
 function [centroid]=AreaCentroid(zoom,Y)
     %% factor each grlabindex cell equally (compare to CenterOfVolume())
     ssh=double(logical(zoom.SSH_BasePos));
@@ -537,7 +539,6 @@ function [ee,cut]=CleanEDDies(ee,cut)
         %% the following also takes care of the overlap from S00 in the global case
         x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
         x(x<1)=1;
-        % 		x(x>cut.dim.X)=cut.dim.X;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;
         ee(jj).coordinates.int.x=x;

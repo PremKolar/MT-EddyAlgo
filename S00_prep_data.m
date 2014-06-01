@@ -77,14 +77,14 @@ function S=WriteSize(lims)
 end
 function [F,readable]=GetFields(file,keys)
     F=struct;
-    readable=true;  
-    try
+    readable=true;
+   try
         F.LON = CorrectLongitude(nc_varget(file,keys.lon)); %TODO: from user input AND: flexible varget function
         F.LAT = nc_varget(file,keys.lat);
         F.SSH = squeeze(nc_varget(file,keys.ssh));
         if numel(F.LON)~=numel(F.SSH)
-            F.LON=repmat(F.LON',size(F.SSH,1),1);
-            F.LAT=repmat(F.LAT,1,size(F.SSH,2));
+          F.LON=repmat(F.LON',size(F.SSH,1),1);
+           F.LAT=repmat(F.LAT,1,size(F.SSH,2));
         end
     catch void
         readable=false;

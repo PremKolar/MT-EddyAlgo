@@ -191,8 +191,10 @@ function [BRVA,PVORT,midDepth]=calcBrvaPvort(CK,cc)
     M.temp=double(reshape(CK.TEMP,[ZZ+1,YY*XX]));
     %% get brunt väisälä frequency and pot vort
     [brva,pvort,md]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
+ 
     midDepth=squeeze(md(:,1)); % uniform
     BRVA=sqrt(reshape(brva,[ZZ,YY,XX]));
+    BRVA(abs(imag(BRVA))>0)=0;
     BRVA(abs(imag(BRVA))>0)=0;
     PVORT=reshape(pvort,[ZZ,YY,XX]);
     
@@ -236,7 +238,7 @@ function [lat,lon]=ChunkLatLon(DD,dim)
     lon=nc_varget(DD.path.TempSalt.temp,'U_LON_2D',dim.twoD.start, dim.twoD.length);
 end
 function depth=ChunkDepth(DD)
-    depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
+   depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
 end
 function salt=ChunkSalt(DD,dim)
     dispNcInfo(DD.path.TempSalt.salt)

@@ -18,11 +18,11 @@ function S07_drawPlots
     ticks.isoper=[DD.thresh.shape.iq,1,10];
     ticks.isoper=[.3,1,8];
     ticks.radius=[20,150,9];
-    ticks.radiusToRo=[.2,5,11];
+    ticks.radiusToRo=[0.2,5,11];
     ticks.amp=[1,20,7];
     %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
-    ticks.visitsunique=[1,5,11];
+    ticks.visitsunique=[1,3,3];
     ticks.dist=[-1500;500;11];
     %ticks.dist=[-100;50;16];
     ticks.disttot=[1;2000;14];
@@ -39,7 +39,7 @@ function S07_drawPlots
     
     %% close pool for printing
     matlabpool close
-    sleep(1*60)
+    sleep(3*60)
     mkdirp([DD.path.plots 'jammed'])
     system(['pdfjam -o ' [DD.path.plots 'jammed/'] datestr(now,'yyyymmdd-HHMM') '.pdf ' DD.path.plots '*pdf'])
     system(['pdfcrop ' [DD.path.plots 'jammed/'] datestr(now,'yyyymmdd-HHMM') '.pdf'])
@@ -98,11 +98,13 @@ function scaleZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.radius.mean.mean,'r')
     plot(IN.la(:,1),IN.maps.zonMean.Cycs.radius.mean.mean,'black')
     set(gca,'xtick',ticks.x	)
-    set(gca,'ytick',ticks.x	)
+    set(gca,'ytick',ticks.y	)
     legend('2 x Rossby Radius','anti-cyclones radius','cyclones radius')
     ylabel('[m]')
     xlabel('[latitude]')
     title(['scale - zonal means'])
+    maxr=max([IN.maps.zonMean.AntiCycs.radius.mean.mean(:) IN.maps.zonMean.Cycs.radius.mean.mean(:)]);
+    axis([min(IN.la(:,1)) max(IN.la(:,1)) 0 maxr])
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['scaleZonmean']);
 end
 function  job=taskfForMapAndHist(DD,IN,ticks)
@@ -424,7 +426,7 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast)
     cb=colorbar;
     if logornot
         zticks=linspace(log10(ticks.(field)(1)),log10(ticks.(field)(2)),ticks.(field)(3))';
-        zticklabel=num2str(round(10*exp(zticks))/10);
+        zticklabel=linspace((ticks.(field)(1)),(ticks.(field)(2)),ticks.(field)(3))';
     else
         zticks=linspace(ticks.(field)(1),ticks.(field)(2),ticks.(field)(3))';
         zticklabel=num2str(round(zticks*decim)/decim);

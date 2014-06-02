@@ -7,7 +7,11 @@ function [DD]=get_input
     
     DD.path=catstruct(DD.path,findfiles(DD.path));
     %%
-    DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat';
+    DD.pattern.in='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat';  
+    DD.pattern.prefix.cuts='CUT';
+    DD.pattern.prefix.conts='CONT';
+    DD.pattern.prefix.eddies='EDDIE';
+    DD.pattern.prefix.tracks='TRACK';
     %%
        DD.path.TempSalt.files=tempsalt(DD);
     %%

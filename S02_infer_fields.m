@@ -7,12 +7,11 @@
 % calculates geostrophic data from SSH
 function S02_infer_fields
     %% init
-    DD=initialise('conts');
+    DD=initialise('cuts');
     %% read input file
     cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
     DD.coriolis=coriolisStuff(cut1.grids);
-    DD.threads.num=init_threads(DD.threads.num);
-    RS=getRossbyStuff(DD);    
+    RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
     %% save info file
@@ -33,28 +32,25 @@ function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         file=[DD.path.Rossby.name DD.path.Rossby.files.name];
         RS.c=nc_varget(file,'RossbyPhaseSpeed');
-       RS.Lr=nc_varget(file,'RossbyRadius'); 
+        RS.Lr=nc_varget(file,'RossbyRadius');
     else
         RS=[];
     end
 end
 
-
 function spmd_body(DD,RS)
-    %% loop
-    JJ=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2);
+    %% distro chunks to threads
+    [JJ]=SetThreadVar(DD);
     T=disp_progress('init','infering fields');
-    for jj=JJ
+    for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
-        cut=LoadCut(jj,DD);      
-   coriolis=coriolisStuff(cut.grids);
+        cut=load(JJ(jj).files);
+        coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,coriolis,RS);
-        
+        grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
-        write_fields(DD,jj,'cuts',grids);
-        write_fields(DD,jj,'conts',grids);
+        save(JJ(jj).files,'grids','-append');
     end
 end
 function gr=geostrophy(gr,corio,RS)

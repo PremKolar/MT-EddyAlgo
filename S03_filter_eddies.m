@@ -30,10 +30,11 @@ end
 
 
 %% main functions
-function spmd_body(DD,rossbyU,labindex)
+function spmd_body(DD,rossbyU,labindex)   
+      [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=DD.threads.lims(labindex,1):DD.threads.lims(labindex,2)
-        [EE,skip]=work_day(DD,rossbyU,jj);
+    for jj=1:numel(JJ)
+        [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
         if skip,disp(['skipping ' num2str(jj)]);continue;end
@@ -41,26 +42,26 @@ function spmd_body(DD,rossbyU,labindex)
         save_eddies(EE);
     end
 end
-function [EE,skip]=work_day(DD,rossbyU,jj)
+function [EE,skip]=work_day(DD,JJ,rossbyU)
     %% check for exisiting data
     skip=false;
-    EE.filename=[DD.path.eddies.name, regexprep(DD.path.conts.files(jj).name, 'CONT', 'EDDIE')];
-    if exist(EE.filename,'file'), skip=true; return; end
+    EE.filename.cont=JJ.files;  
+    EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
+    EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
+  
+    if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
-    cut=read_fields(DD,jj,'cuts');
+    cut=load(EE.filename.cut);
     %% get contours
-    cont=read_fields(DD,jj,'conts');
+     cont=load(EE.filename.cont);   
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
     %% avoid out of bounds integer coordinates close to boundaries
-    [ee_clean,cut]=CleanEDDies(ee,cut);
+    [ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
     %% find them
-    EE=find_eddies(ee_clean,rossbyU,cut,DD,jj);
+    EE=find_eddies(EE,ee_clean,rossbyU,cut,DD);
 end
-function EE=find_eddies(ee_clean,rossbyU,cut,DD,jj)
-    %% init
-    EE=struct;
-    EE.filename=[DD.path.eddies.name, regexprep(DD.path.conts.files(jj).name, 'CONT', 'EDDIE')];
+function EE=find_eddies(EE,ee_clean,rossbyU,cut,DD)
     %% anti cyclones
     EE.anticyclones=anti_cyclones(ee_clean,rossbyU,cut,DD);
     %% cyclones
@@ -71,16 +72,15 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     %% loop over eddies, starting at deepest eddies, upwards
     Tac=disp_progress('init','checking eddies');
     for kk=1:numel(ee)
-        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);
-       Tac=disp_progress('disp',Tac,numel(ee),10);
+        Tac=disp_progress('disp',Tac,numel(ee),3);
+        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
             %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
         end
-    end
-    
+    end    
     if ~any(PASS)
         error('no anticyclones made it through the filter...')
     end
@@ -90,8 +90,8 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
     %% loop over eddies, starting at highest eddies, downwards
     Tc=disp_progress('init','checking eddies');
     for kk=numel(ee):-1:1
-        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);
-        Tc=disp_progress('disp',Tc,numel(ee),10);
+        Tc=disp_progress('disp',Tc,numel(ee),3);
+        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
             %% append healthy found eddy
             Cyc(pp)=ee_out;
@@ -348,7 +348,7 @@ function TR=getTrackRef(ee,tr)
     end
 end
 function save_eddies(EE)
-    save(EE.filename,'-struct','EE')
+     save(EE.filename.self,'-struct','EE')
 end
 function [area]=Area(z)
     area=struct;
@@ -527,9 +527,12 @@ function [EE]=eddies2struct(CC,thresh)
         ii=ii+len+1; % jump to next eddy for next iteration
     end
 end
-function [ee,cut]=CleanEDDies(ee,cut)
-    [cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);
-    for jj=1:numel(ee)
+function [ee,cut]=CleanEDDies(ee,cut,contstep)
+    [cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);    
+    %% if contours were done finer than desired now
+   tag=abs(cat(1,ee.level)/contstep-(round(cat(1,ee.level)/contstep))) > 1e3/flintmax; % TODO (mod not working.. no idea..)
+    ee(tag)=[];      
+    for jj=1:numel(ee)       
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
@@ -542,8 +545,8 @@ function [ee,cut]=CleanEDDies(ee,cut)
     end
 end
 function plots4debug(zoom,ee)
-    close all
-    figure('Position',[1926 250 560 420])
+%     close all
+%     figure('Position',[1926 250 560 420])
     subplot(1,2,1)
     contourf(zoom.fields.SSH)
     title(['area:',num2str(round(ee.area.total/1000000)),'  -isop:',num2str(round(ee.isoper*1000)/1000)])
@@ -553,5 +556,5 @@ function plots4debug(zoom,ee)
     pcolor(zoom.fields.SSH)
     hold on
     plot(zoom.coor.exact.x,zoom.coor.exact.y)
-    print('-dpng','-r100', [num2str(ee.circum.si),'-',num2str(ee.level)])
+%     print('-dpng','-r100', [num2str(ee.circum.si),'-',num2str(ee.level)])
 end

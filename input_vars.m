@@ -1,12 +1,12 @@
 function U=input_vars
 	%% threads
 	U.threads.num=12;
-	  U.debugmode=1;
+	  U.debugmode=0;
 	%% time
-%  	U.time.from.str='19921014';
+%   	U.time.from.str='19921014';
     U.time.from.str='19941228';
-    U.time.till.str='19951228';
-%   	U.time.till.str='20061227';
+%     U.time.till.str='19951228';
+   	U.time.till.str='20061227';
     
   %       	U.time.till.str='20130807';
 %   	U.time.till.str='19931212';

@@ -6,9 +6,9 @@ function MAP=map_vars
  	MAP.geo.north=90;
     MAP.time.delta_t = 1; % [days]
 	MAP.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-	MAP.pattern.in='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-    MAP.pattern.lat='U_LAT_2D';
-    MAP.pattern.lon='U_LON_2D';
-    MAP.pattern.ssh='SSH';
+	MAP.pattern.in='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
+    MAP.pattern.lat='lat';
+    MAP.pattern.lon='lon';
+    MAP.pattern.ssh='msla';
   end
 

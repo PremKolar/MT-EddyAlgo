@@ -12,7 +12,9 @@ function S06b_analyze_tracks
 	%%
 	[map,vecs,minMax]=main(DD);	
 	%%
-	seq_body(minMax,map,DD,vecs)
+	seq_body(minMax,map,DD,vecs);
+    %% close pool for printing
+    matlabpool close
 end
 
 function [map,vecs,minMax]=main(DD)

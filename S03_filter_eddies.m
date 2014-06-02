@@ -33,7 +33,7 @@ end
 function spmd_body(DD,rossbyU,labindex)   
       [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=1:numel(JJ)
+    for jj=1:numel(JJ)        
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
@@ -530,6 +530,7 @@ end
 function [ee,cut]=CleanEDDies(ee,cut,contstep)
     [cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);    
     %% if contours were done finer than desired now
+    
    tag=abs(cat(1,ee.level)/contstep-(round(cat(1,ee.level)/contstep))) > 1e3/flintmax; % TODO (mod not working.. no idea..)
     ee(tag)=[];      
     for jj=1:numel(ee)       

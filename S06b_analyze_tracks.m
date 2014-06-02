@@ -13,8 +13,7 @@ function S06b_analyze_tracks
     [map,vecs,minMax]=main(DD);
     %%
     seq_body(minMax,map,DD,vecs)
-     %% close pool for printing
-    matlabpool close
+   
 end
 
 function [map,vecs,minMax]=main(DD)
@@ -316,8 +315,8 @@ function zonMean=zonmeans(M,DD)
 end
 function OUT=weightedZonMean(MS,weight)
     weight(weight==0)=nan;
-    OUT.mean=nansum(MS.mean.*weight,2)./sum(weight,2);
-    OUT.std=nansum(MS.std.*weight,2)./sum(weight,2);
+    OUT.mean=nansum(MS.mean.*weight,2)./nansum(weight,2);
+    OUT.std=nansum(MS.std.*weight,2)./nansum(weight,2);
 end
 function [dist,count]=setupDist(MAP)
     A={'traj';'merid';'zonal'};

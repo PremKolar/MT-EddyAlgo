@@ -139,11 +139,13 @@ function R=	calcRossbyRadius(CK,cc)
 	R=abs(double((squeeze(nansum(M.depthdiff.*CK.BRVA,1))./CK.rossby.f)/pi));
 end
 function [c1]=calcC_one(CK,cc)
-	%    c=-beta/k^2
+	%    c=-beta/(k^2+(1/L_r)^2)
 	disp(['applying disp rel for c1 for chunk ',cc])
 	[ZZ,YY,XX]=size(CK.rossby.Ro1);
 	ksquared=(repmat(2*pi,[ZZ,YY,XX])./CK.rossby.Ro1).^2;
-	c1=-CK.rossby.beta./ksquared;
+    LrRecipSqurd=(ones(ZZ,YY,XX)./CK.rossby.Ro1).^2;    
+    denom=ksquared + LrRecipSqurd;
+	c1=-CK.rossby.beta./denom;
 end
 function [BRVA]=calcBrvaPvort(CK,cc)
 	[ZZ,YY,XX]=size(CK.TEMP);

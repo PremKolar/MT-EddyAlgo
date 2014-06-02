@@ -147,7 +147,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 end
 function archive(trck,path,jj,id)
 	%% write out file (one per eddy)
-	EoD=['TRACK', sprintf('%06i',id)];
+	EoD=['TRACK', sprintf('%9i',id)];
 	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
 	trck(end).filename=filename;
 	save(trck(end).filename,'trck');

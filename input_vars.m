@@ -1,17 +1,19 @@
 function U=input_vars
 	%% threads
 	U.threads.num=12;
-	  U.debugmode=1;
+	  U.debugmode=0;
 	%% time
- 	U.time.from.str='19921014';
-%  	U.time.till.str='20130807';
-  	U.time.till.str='19931212';
+%  	U.time.from.str='19921014';
+    U.time.from.str='19941228';
+  	U.time.till.str='20061227';
+  %       	U.time.till.str='20130807';
+%   	U.time.till.str='19931212';
  	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.TempSalt.name='../TempSalt/';
  	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
-  	U.path.root='../dataTIN/';
-    U.path.plots='../plotTIN/';
+  	U.path.root='../dataAV/';
+    U.path.plots='../plotAV/';
  	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -59,7 +61,7 @@ function U=input_vars
         'vel.traj';
         'vel.zonal';
         'vel.merid';
-		  'amp.to_contour';
+  'amp.to_contour';
         'amp.to_ellipse';
         'amp.to_mean';
         };

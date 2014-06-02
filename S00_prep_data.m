@@ -51,7 +51,7 @@ function spmd_body(DD)
         [file,exists]=GetCurrentFile(tt,DD);
         if (exists.out), continue; end
         %%
-        [T]=disp_progress('calc',T,numel(TT),10000);
+        [T]=disp_progress('calc',T,numel(TT.daynums),100);
         %% cut data
         [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
         %% write data
@@ -77,13 +77,13 @@ end
 function [F,readable]=GetFields(file,keys)
     F=struct;
     readable=true;
-   try
+    try
         F.LON = CorrectLongitude(nc_varget(file,keys.lon)); %TODO: from user input AND: flexible varget function
         F.LAT = nc_varget(file,keys.lat);
         F.SSH = squeeze(nc_varget(file,keys.ssh));
         if numel(F.LON)~=numel(F.SSH)
-          F.LON=repmat(F.LON',size(F.SSH,1),1);
-           F.LAT=repmat(F.LAT,1,size(F.SSH,2));
+            F.LON=repmat(F.LON',size(F.SSH,1),1);
+            F.LAT=repmat(F.LAT,1,size(F.SSH,2));
         end
     catch void
         readable=false;
@@ -247,5 +247,4 @@ function [OUT]=SetThreadVar(IN)
     from=IN.threads.lims(labindex,1);
     till=IN.threads.lims(labindex,2);
     OUT.daynums=IN.checks.passed.daynums(from:till);
-    %      OUT.files=IN.checks.passed.files(from:till);
 end

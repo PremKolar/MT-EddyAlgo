@@ -165,9 +165,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
-    end
-    
-    
+    end    
 end
 
 
@@ -277,8 +275,6 @@ function U=getRossbyPhaseSpeed(DD)
         U=[];
     end
 end
-
-
 function [centroid]=AreaCentroid(zoom,Y)
     %% factor each grlabindex cell equally (compare to CenterOfVolume())
     ssh=double(logical(zoom.SSH_BasePos));

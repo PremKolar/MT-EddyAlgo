@@ -10,18 +10,27 @@ function S06b_analyze_tracks
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
-	DD.threads.num=init_threads(DD.threads.num);
-	spmd(DD.threads.num)
-		id=labindex;
-		[map,vecs,minMax]=spmd_body(DD,id);
-	end
+	[map,vecs,minMax]=main(DD);	
 	%%
 	seq_body(minMax,map,DD,vecs)
 end
+
+function [map,vecs,minMax]=main(DD)
+    if DD.debugmode
+       [map,vecs,minMax]=spmd_body(DD);
+    else  
+        spmd
+      [map,vecs,minMax]=spmd_body(DD);  
+        end
+    end
+end
+
+
+
 %% main functions
-function [MAP,V,MinMax]=spmd_body(DD,id)
+function [MAP,V,MinMax]=spmd_body(DD)
 	%% get stuff
-	[MAP,V,JJ,MinMax]=initAll(DD,id);
+	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');
 	for jj=JJ;
@@ -57,7 +66,7 @@ function [ACs,Cs]=netVels(DD,map)
 velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
 		'means.small.zonal'),DD.dim.Y,DD.dim.X); 	
 ACs=	map.AntiCycs.vel.zonal.mean -velmean;
-Cs =	map.Cycs.vel.zonal.mean		 -velmean;
+Cs =	map.Cycs.vel.zonal.mean		-velmean;
 end
 function seq_body(minMax,map,DD,vecs)
 	[map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
@@ -244,8 +253,8 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 	if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
 	if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
 end
-function [MAP,V,JJ,MinMax]=initAll(DD,id)
-	JJ=DD.threads.tracks(id,1):DD.threads.tracks(id,2);
+function [MAP,V,JJ,MinMax]=initAll(DD)
+	JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
 	MAP.AntiCycs=initMAP(DD);
 	MAP.Cycs=initMAP(DD);
 	V.AntiCycs.age=[];V.Cycs.age=[];V.AntiCycs.lat=[];V.Cycs.lat=[];

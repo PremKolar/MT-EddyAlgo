@@ -12,8 +12,7 @@ function S02_infer_fields
     cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
     DD.coriolis=coriolisStuff(cut1.grids);
     DD.threads.num=init_threads(DD.threads.num);
-    RS=getRossbyStuff(DD);
-    
+    RS=getRossbyStuff(DD);    
     %% spmd
     main(DD,RS)
     %% save info file

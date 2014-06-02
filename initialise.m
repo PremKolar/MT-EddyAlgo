@@ -22,7 +22,8 @@ function DD=initialise(toCheck)
         [DD.map.window]=GetWindow(DD);
     end
     
-   
+    DD.threads.num=init_threads(DD.threads.num   );
+
 end
 
 

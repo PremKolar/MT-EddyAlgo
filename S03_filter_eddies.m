@@ -39,7 +39,8 @@ function spmd_body(DD,rossbyU,labindex)
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
         if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
-        save_eddies(EE);
+     
+		  save_eddies(EE);
     end
 end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
@@ -72,10 +73,11 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     %% loop over eddies, starting at deepest eddies, upwards
     Tac=disp_progress('init','checking eddies');
     for kk=1:numel(ee)
-        Tac=disp_progress('disp',Tac,numel(ee),3);
+        Tac=disp_progress('disp',Tac,numel(ee),4242);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
-            %% append healthy found eddy
+          jkf
+			  %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
@@ -90,10 +92,11 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
     %% loop over eddies, starting at highest eddies, downwards
     Tc=disp_progress('init','checking eddies');
     for kk=numel(ee):-1:1
-        Tc=disp_progress('disp',Tc,numel(ee),3);
+        Tc=disp_progress('disp',Tc,numel(ee),4242);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
-            %% append healthy found eddy
+           kuhc
+			  %% append healthy found eddy
             Cyc(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
@@ -153,7 +156,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%%
-    if DD.debugmode, plots4debug(zoom,ee); end
+%     if DD.debugmode, plots4debug(zoom,ee); end
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
     %% get area centroid (chelton style)

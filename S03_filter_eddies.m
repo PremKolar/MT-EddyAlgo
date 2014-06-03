@@ -16,7 +16,6 @@ function S03_filter_eddies
     save_info(DD)
 end
 
-
 function main(DD,rossbyU)
     if DD.debugmode
         spmd_body(DD,rossbyU,labindex)
@@ -27,17 +26,14 @@ function main(DD,rossbyU)
     end
 end
 
-
-
 %% main functions
 function spmd_body(DD,rossbyU,labindex)   
       [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=1:numel(JJ)  
-		 
+    for jj=1:numel(JJ) 		 
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
-        Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
+        Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
         if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
        save_eddies(EE);
@@ -48,8 +44,7 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     skip=false;
     EE.filename.cont=JJ.files;  
     EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
-    EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-  
+    EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];  
     if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     cut=load(EE.filename.cut);
@@ -71,17 +66,17 @@ end
 function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
-    Tac=disp_progress('init','checking eddies');
+    Tac=disp_progress('init','checking eddies...');
     for kk=1:numel(ee)
-        Tac=disp_progress('disp',Tac,numel(ee),4242);
+        Tac=disp_progress('disp',Tac,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
            %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
-        end
-    end    
+		  end
+	 end
     if ~any(PASS)
         error('no anticyclones made it through the filter...')
     end
@@ -89,9 +84,9 @@ end
 function Cyc=cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at highest eddies, downwards
-    Tc=disp_progress('init','checking eddies');
+    Tc=disp_progress('init','checking eddies...');
     for kk=numel(ee):-1:1
-        Tc=disp_progress('disp',Tc,numel(ee),4242);
+        Tc=disp_progress('disp',Tc,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
             %% append healthy found eddy

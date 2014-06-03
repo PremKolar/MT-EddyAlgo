@@ -1,3 +1,4 @@
+matlabpool close force local
 %S00_prep_data
 %S01_contours
 %S01a_deleteZonalOverlapInCuts

@@ -147,11 +147,11 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
     tracks(AIdxdead)=[];	% get rid of dead matter!
 end
 function archive(trck,path,jj,id)
-    %% write out file (one per eddy)
-    EoD=['TRACK', sprintf('%9i',id)];
-    filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
-    trck(end).filename=filename;
-    save(trck(end).filename,'trck');
+	%% write out file (one per eddy)
+	EoD=['TRACK', sprintf('%9i',id)];
+	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
+	trck(end).filename=filename;
+	save(trck(end).filename,'trck');
 end
 function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
     maxID=max(max([cat(2,tracks.ID) NEW.eddies.(sen).ID  OLD.eddies.(sen).ID]));

@@ -36,7 +36,6 @@ function S07_drawPlots
     else
         main(DD,threadData,ticks);
     end
-    
     %% close pool for printing
     matlabpool close
     sleep(3*60)

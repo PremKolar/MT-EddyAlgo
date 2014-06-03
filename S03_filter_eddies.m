@@ -33,7 +33,7 @@ end
 function spmd_body(DD,rossbyU,labindex)   
       [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=1:numel(JJ)
+    for jj=1:numel(JJ)        
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
@@ -165,9 +165,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
-    end
-    
-    
+    end    
 end
 
 
@@ -277,8 +275,6 @@ function U=getRossbyPhaseSpeed(DD)
         U=[];
     end
 end
-
-
 function [centroid]=AreaCentroid(zoom,Y)
     %% factor each grlabindex cell equally (compare to CenterOfVolume())
     ssh=double(logical(zoom.SSH_BasePos));
@@ -300,8 +296,9 @@ end
 function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     %% get tracking reference point
     trackref=getTrackRef(ee,DD.parameters.trackingRef);
-    %% get rossby wave phase speed
+     %% get rossby wave phase speed
     rU=rossbyU(trackref.lin);
+    rU(abs(rU)>1)=sign(rU)*1;  % put upper limit on rossby wave speed
     %% get projected distance (1.75 * dt*rU  as in chelton 2011)
     dist.east=DD.parameters.minProjecDist;
     dist.southnorth=dist.east;
@@ -314,41 +311,45 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     dx=cut.grids.DX(trackref.lin);
     dy=cut.grids.DY(trackref.lin);
     %% get major/minor semi-axes [increments]
-    ax.majinc=int16(ceil(ax.maj/dx));
-    ax.mininc=int16(ceil(ax.min/dy));
+    ax.majinc=ceil(ax.maj/dx);
+    ax.mininc=ceil(ax.min/dy);
     %% translate dist to increments
-    dist.eastInc=int16(ceil(dist.east/dx));
-    dist.westInc=int16(ceil(dist.west/dx));
-    dist.southnorthInc=int16(ceil(dist.southnorth/dy));
+    dist.eastInc=(ceil(dist.east/dx));
+    dist.westInc=(ceil(dist.west/dx));
+    dist.southnorthInc=(ceil(dist.southnorth/dy));
     %% get positions of params
-    xi.f2=int16(ee.centroid.x);
-    yi.f2=int16(ee.centroid.y);
-    xi.center=xi.f2-int16(ax.majinc-dist.eastInc);
-    yi.center=yi.f2;
+    xi.f2=(trackref.x);
+    yi.f2=(trackref.y);
+    xi.center=round(xi.f2-(ax.majinc-dist.eastInc));
+    yi.center=round(yi.f2);
     %% build x vector (major axis >= minor axis always!)
-    fullcirc=linspace(0,2*pi,4*numel((-dist.westInc:dist.eastInc)));
-    ellip.x=int16(double(ax.majinc) * cos(fullcirc)) + xi.center;
-    ellip.y=int16(double(ax.mininc) * sin(fullcirc)) + yi.center;
+    fullcirc=linspace(0,2*pi,4*numel(-dist.westInc:dist.eastInc));
+    ellip.x=round(ax.majinc * cos(fullcirc)) + xi.center;
+    ellip.y=round(ax.mininc * sin(fullcirc)) + yi.center;
+     ellip.lin=unique(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y));
     %% take care of out of bounds values
     ellip.x(ellip.x<1)=1;
     ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
     ellip.y(ellip.y<1)=1;
     ellip.y(ellip.y>cut.dim.Y)=cut.dim.Y;
+    xi.center(xi.center<1)=1;
+    xi.center(xi.center>cut.dim.X)=cut.dim.X;
+    yi.center(yi.center<1)=1;
+    yi.center(yi.center>cut.dim.Y)=cut.dim.Y;
     %% build boundary mask
-    mask.logical=sparse(false(struct2array(cut.dim)));
-    mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=sparse(true);
-    mask.logical=sparse(imfill(full(mask.logical),'holes'));
-    mask.lin=find((mask.logical));
-    
+    mask.logical=false(struct2array(cut.dim));
+    mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
+    mask.logical=imfill(mask.logical,[yi.center xi.center],4);
+    mask.lin=find(mask.logical);   
 end
 function TR=getTrackRef(ee,tr)
     switch tr
         case 'centroid'
-            TR.lin=ee.centroid.lin;
-        case 'CenterOfVolume'
-            TR.lin=ee.volume.center.lin;
+            TR=ee.centroid;
+             case 'CenterOfVolume'
+            TR=ee.volume.center;
         case 'peak'
-            TR.lin=ee.peak.lin;
+            TR=ee.peak;
     end
 end
 function save_eddies(EE)
@@ -531,11 +532,12 @@ function [EE]=eddies2struct(CC,thresh)
         ii=ii+len+1; % jump to next eddy for next iteration
     end
 end
-function [ee,cut]=CleanEDDies(ee,cut,contstep)
+function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
     [cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);    
     %% if contours were done finer than desired now
-   tag=abs(cat(1,ee.level)/contstep-(round(cat(1,ee.level)/contstep))) > 1e3/flintmax; % TODO (mod not working.. no idea..)
-    ee(tag)=[];      
+    % TODO
+%    tag=abs(cat(1,ee.level)/contstep-(round(cat(1,ee.level)/contstep))) > 1e3/flintmax; % TODO (mod not working.. no idea..)
+%     ee(tag)=[];      
     for jj=1:numel(ee)       
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;

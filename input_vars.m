@@ -65,8 +65,8 @@ U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolum
         'vel.traj';
         'vel.zonal';
         'vel.merid';
-'amp.to_contour';
-%         'amp.to_ellipse';
+  'amp.to_contour';
+        'amp.to_ellipse';
         'amp.to_mean';
         };
     

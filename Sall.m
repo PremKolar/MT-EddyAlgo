@@ -1,6 +1,7 @@
 %S00_prep_data
 %S01_contours
 %S01b_BruntVaisRossby
+ S01b_alternative
 S02_infer_fields
 %S03_filter_eddies
 % S04_track_eddies

@@ -12,12 +12,13 @@ U.debugmode=0;
 %  U.time.from.str='19940502';
   U.time.delta_t=1; % [days]!
 %% dirs
+  U.path.TempSalt.name='../TempSalt/';
+         U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+        U.path.root='../dataAV/';
+     U.path.plots='../plotAV/';
  U.path.TempSalt.name='../TempSalt/';
 % U.path.TempSalt.name='/media/ROM/TempSalt/';
-U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 % U.path.raw.name='/media/ROM/SSH_POP/';
-   U.path.root='../dataAtl/';
-    U.path.plots='../plotAtl/';
   %% thresholds
 U.contour.step=0.01; % [SI]
 U.thresh.ssh_filter_size=1;
@@ -30,18 +31,18 @@ U.thresh.dist=.5*24*60^2; % max distance travelled per day
 U.thresh.life=20; % min num of living days for saving
  U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 %% dims for map plots
-U.dim.X=60*1+1;
-  U.dim.Y=60*1+1;
-  U.dim.west=-80;
-  U.dim.east=-20;
-  U.dim.south=0;
-  U.dim.north=60;
+U.dim.X=360*1+1;
+  U.dim.Y=180*1+1;
+  U.dim.west=-180;
+  U.dim.east=-180;
+  U.dim.south=-90;
+  U.dim.north=90;
     %% switches
     U.switchs.RossbyStuff=true; % TODO
-    U.switchs.IQ=true;
-    U.switchs.chelt=false;
-U.switchs.distlimit=false;
-U.switchs.AmpAreaCheck=false;
+    U.switchs.IQ=false;
+    U.switchs.chelt=true;
+U.switchs.distlimit=true;
+U.switchs.AmpAreaCheck=true;
     %% parameters
 U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.depthRossby=4242424242; % depth for which to integrate rossby phase speed and radius

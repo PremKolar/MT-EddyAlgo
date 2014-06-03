@@ -33,14 +33,14 @@ end
 function spmd_body(DD,rossbyU,labindex)   
       [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=1:numel(JJ)        
+    for jj=1:numel(JJ)  
+		 
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
         if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
-     
-		  save_eddies(EE);
+       save_eddies(EE);
     end
 end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
@@ -76,8 +76,7 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
         Tac=disp_progress('disp',Tac,numel(ee),4242);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
-          jkf
-			  %% append healthy found eddy
+           %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
@@ -95,8 +94,7 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
         Tc=disp_progress('disp',Tc,numel(ee),4242);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
-           kuhc
-			  %% append healthy found eddy
+            %% append healthy found eddy
             Cyc(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
@@ -109,9 +107,6 @@ end
 function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% pre-nan-check
     pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
-    if ~pass, return, end;
-    %% corners-check
-    pass=CR_corners(ee.circum.length	,DD.thresh.corners);
     if ~pass, return, end;
     %% closed ring check
     [pass]=CR_ClosedRing(ee);
@@ -342,7 +337,7 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     %% build boundary mask
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
-    mask.logical=imfill(mask.logical,[yi.center xi.center],4);
+    mask.logical=sparse(imfill(mask.logical,[yi.center xi.center],4));
     mask.lin=find(mask.logical);   
 end
 function TR=getTrackRef(ee,tr)
@@ -523,7 +518,7 @@ function [EE]=eddies2struct(CC,thresh)
     ii=1;cc=0;
     while ii<size(CC,1);
         len=  CC(ii,2);% contourc saves the length of each contour before appending the next
-        if len>thresh
+        if len>=thresh
             cc=cc+1;
             EE(cc).level=CC(ii,1);
             EE(cc).circum.length= len;
@@ -545,7 +540,8 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
-        x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
+        x(x==cut.dim.X+1)=cut.dim.X;
+		  x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
         x(x<1)=1;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;

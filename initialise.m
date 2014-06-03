@@ -1,5 +1,6 @@
 function DD=initialise(toCheck)
-    addpath(genpath('./'));
+     dbstop if error
+	  addpath(genpath('./'));
     clc;
     close all;
     INPUT = get_input;
@@ -16,7 +17,7 @@ function DD=initialise(toCheck)
     
    
     
-    dbstop if error
+  
     rehash
     format shortg
     
@@ -45,8 +46,10 @@ function checks = check_data(DD,toCheck)
     TT = DD.time;
     all_time_steps = TT.from.num:TT.delta_t:TT.till.num;
     passed = false(numel(all_time_steps),1);
-    all_time_steps_str =datestr(all_time_steps,'yyyymmdd');    
-    all_files=extractfield(DD.path.(toCheck).files,'name');
+    
+	 all_time_steps_str =datestr(all_time_steps,'yyyymmdd');    
+   
+	 all_files=extractfield(DD.path.(toCheck).files,'name');
     %% cat numbers in filenames only for speed
     all_files_cat=cell2mat(regexp(cat(2,all_files{:}),'[0-9]','match'));
     %% init new delta t

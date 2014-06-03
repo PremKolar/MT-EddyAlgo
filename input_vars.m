@@ -5,10 +5,8 @@ U.debugmode=0;
 %% time
    U.time.from.str='19940105';
 %      U.time.from.str='20000102';
-%      U.time.till.str='20061231';
       U.time.till.str='20061231';
 %        U.time.till.str='19940202';
-
 %  U.time.from.str='19940502';
   U.time.delta_t=7; % [days]!
 %% dirs

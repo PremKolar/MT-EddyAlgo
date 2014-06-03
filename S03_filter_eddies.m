@@ -72,9 +72,7 @@ end
 function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
-    Tac=disp_progress('init','checking eddies...');
     for kk=1:numel(ee)
-        Tac=disp_progress('disp',Tac,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
            %% append healthy found eddy
@@ -90,9 +88,7 @@ end
 function Cyc=cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at highest eddies, downwards
-    Tc=disp_progress('init','checking eddies...');
     for kk=numel(ee):-1:1
-        Tc=disp_progress('disp',Tc,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
             %% append healthy found eddy

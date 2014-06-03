@@ -47,15 +47,13 @@ function idx=getIndicesForOutMaps(in,out,JJ,idx)
     T=disp_progress('init','allocating old indices to output indeces');
     locSize=numel(JJ);	out.proto=[]; % save mem
     %% loop over indeces
-    x=idx;
-    y=idx;
     for ii=JJ
         T=disp_progress('disp',T,locSize,100);
-        [idx(ii),x(ii),y(ii)]=rangeOp(in.lon(ii),in.lat(ii), out);
+        [idx(ii)]=rangeOp(in.lon(ii),in.lat(ii), out);
     end
     
 end
-function [lin,x,y]=rangeOp(inLon,inLat,out)
+function [lin]=rangeOp(inLon,inLat,out)
     %% scan for lat/lon within vicinity and use those only
     temp.lon=abs(out.lon-inLon)<=abs(2*(out.inc.x));
     temp.lat=abs(out.lat-inLat)<=abs(2*(out.inc.y));

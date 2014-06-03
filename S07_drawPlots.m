@@ -82,10 +82,11 @@ function job=taskfForZonMeans(DD,IN,ticks)
 end
 function velZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),2*IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
-    plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.vel.net.mean	,'r')
-    plot(IN.la(:,1),IN.maps.zonMean.Cycs.vel.net.mean,'black')
+    plot(IN.la(:,1),IN.maps.zonMean.AntiCycs.vel.zonal.mean	,'r')
+    plot(IN.la(:,1),IN.maps.zonMean.Cycs.vel.zonal.mean,'black')
     set(gca,'xtick',ticks.x	)
     set(gca,'ytick',ticks.x	)
+axis([0 60 0 .2])
     legend('Rossby-wave phase-speed','anti-cyclones net zonal velocity','cyclones net zonal velocity')
     ylabel('[cm/s]')
     xlabel('[latitude]')

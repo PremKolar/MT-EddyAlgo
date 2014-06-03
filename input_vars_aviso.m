@@ -3,14 +3,14 @@ function U=input_vars
 U.threads.num=12;
 U.debugmode=0;
 %% time
-   U.time.from.str='19940102';
+   U.time.from.str='19940105';
 %      U.time.from.str='20000102';
 %      U.time.till.str='20061231';
       U.time.till.str='20061231';
 %        U.time.till.str='19940202';
 
 %  U.time.from.str='19940502';
-  U.time.delta_t=1; % [days]!
+  U.time.delta_t=7; % [days]!
 %% dirs
   U.path.TempSalt.name='../TempSalt/';
          U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
@@ -23,7 +23,7 @@ U.debugmode=0;
 U.contour.step=0.01; % [SI]
 U.thresh.ssh_filter_size=1;
 U.thresh.radius=0; % [SI]
-U.thresh.amp=0.001; % [SI]
+U.thresh.amp=0.01; % [SI]
 U.thresh.shape.iq=0.3; % isoperimetric quotient
 U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 U.thresh.corners=4; % min number of data points for the perimeter of an eddy

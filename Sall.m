@@ -1,5 +1,6 @@
-S00_prep_data
-S01_contours
+%S00_prep_data
+%S01_contours
+%S01a_deleteZonalOverlapInCuts
 %S01b_BruntVaisRossby
 S01b_alternative
 S02_infer_fields

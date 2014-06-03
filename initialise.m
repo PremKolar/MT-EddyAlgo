@@ -84,6 +84,7 @@ function checks = check_data(DD,toCheck)
     for ts=timestr';cc=cc+1;
        if strcmp(toCheck,'raw')
          checks.passed(cc).filenames=[path.name, strrep(DD.map.pattern.in, 'yyyymmdd',ts{1})];
+        checks.passed(cc).protofilenames=[];
        else
         temp=[path.name, strrep(pattern, 'yyyymmdd',ts{1})];
         temp=strrep(temp	,'SSSS',sprintf('%04d',DD.map.geo.south) );

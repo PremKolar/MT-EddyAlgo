@@ -25,8 +25,6 @@ function [map,vecs,minMax]=main(DD)
     end
 end
 
-
-
 %% main functions
 function [MAP,V,MinMax]=spmd_body(DD)
     %% get stuff

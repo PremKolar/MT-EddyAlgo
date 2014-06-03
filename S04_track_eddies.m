@@ -306,9 +306,6 @@ function [MD]=get_min_dists(OLD,NEW,sen,DD)
     %% find min dists
     [MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
     [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
-    % 	%% nan indeces for out of bounds dists
-    % 	MD.(sen).new2old.idx(isnan(MD.(sen).new2old.dist))=nan;
-    % 	MD.(sen).old2new.idx(isnan(MD.(sen).old2new.dist))=nan;
 end
 function [LON, LAT]=get_geocoor(eddies,sen)
     LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');

@@ -37,7 +37,6 @@ function means=getMeans(d,pos,dim,file,DD)
     for li=unique(lin(lin~=0 & ~isnan(lin)))
         means.small.zonal(li)=nanmean(means.zonal(lin==li));
     end
-    
 end
 function [d,pos,dim]=getDims(file,DD)
     dWanted=DD.parameters.meanU;

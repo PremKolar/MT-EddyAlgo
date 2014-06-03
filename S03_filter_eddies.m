@@ -46,13 +46,19 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];  
     if exist(EE.filename.self,'file'), skip=true; return; end
-    %% get ssh data
-    cut=load(EE.filename.cut);
-    %% get contours
-     cont=load(EE.filename.cont);   
-    %% put all eddies into a struct: ee(number of eddies).characteristica
-    ee=eddies2struct(cont.all,DD.thresh.corners);
-    %% avoid out of bounds integer coordinates close to boundaries
+	 %% get ssh data
+	 try
+		 cut=load(EE.filename.cut);
+		 %% get contours
+		 cont=load(EE.filename.cont);
+	 catch %#ok<CTCH>
+		 % TODO update dt!!!
+		 skip=true;
+		 return
+	 end
+	 %% put all eddies into a struct: ee(number of eddies).characteristica
+	 ee=eddies2struct(cont.all,DD.thresh.corners);
+	 %% avoid out of bounds integer coordinates close to boundaries
     [ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
     %% find them
     EE=find_eddies(EE,ee_clean,rossbyU,cut,DD);

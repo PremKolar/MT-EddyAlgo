@@ -1,4 +1,5 @@
-function U=input_vars
+f
+nction U=input_vars
 %% threads
 U.threads.num=12;
 U.debugmode=0;

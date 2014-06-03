@@ -26,7 +26,6 @@ function DD=initialise(toCheck)
     end
        
     DD.threads.num=init_threads(DD.threads.num   );
-    
 end
 
 

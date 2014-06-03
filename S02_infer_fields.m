@@ -9,10 +9,9 @@ function S02_infer_fields
     %% init
     DD=initialise('cuts');
     %% read input file
-    cut1=load([DD.path.cuts.name DD.path.cuts.files(1).name]);
+   cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids);
     RS=getRossbyStuff(DD);
-    
     %% spmd
     main(DD,RS)
     %% save info file

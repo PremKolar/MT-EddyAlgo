@@ -178,8 +178,8 @@ function [rossby]=ChunkRossby(CK)
 end
 
 function [lat,lon]=ChunkLatLon(DD,dim)
-	lat=nc_varget(DD.path.TempSalt.temp,DD.map.pattern.lat,dim.start1d, dim.len1d);
-	lon=nc_varget(DD.path.TempSalt.temp,DD.map.pattern.lon,dim.start1d, dim.len1d);
+	lat=nc_varget(DD.path.TempSalt.temp,DD.map.in.pattern.lat,dim.start1d, dim.len1d);
+	lon=nc_varget(DD.path.TempSalt.temp,DD.map.in.pattern.lon,dim.start1d, dim.len1d);
 end
 function depth=ChunkDepth(DD)
 	depth=nc_varget(DD.path.TempSalt.salt,'depth_t');

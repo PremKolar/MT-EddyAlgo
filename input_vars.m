@@ -4,7 +4,7 @@ function U=input_vars
     U.debugmode=1;
     %% time
 	U.time.from.str='19091231';
-	U.time.till.str='19160627';
+	U.time.till.str='19110627';
 	U.time.delta_t=3; % [days]!
 	U.path.OutDirBaseName='MAD';
     U.path.TempSalt.name='../TempSalt/';

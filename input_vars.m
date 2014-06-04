@@ -2,21 +2,18 @@ function U=input_vars
     %% threads / debug
     U.threads.num=3;
     U.debugmode=1;
-    %% time
-    U.time.from.str='19940102';
-    %      U.time.from.str='20000102';
-    %      U.time.till.str='20061231';
-    %       U.time.till.str='20061231';
-    U.time.till.str='19940109';
-    %  U.time.from.str='19940502';
-    U.time.delta_t=1; % [days]!
+  %% time
+   U.time.from.str='19940105';
+%      U.time.from.str='20000102';
+      U.time.till.str='20061231';
+%        U.time.till.str='19940202';
+%  U.time.from.str='19940502';
+  U.time.delta_t=7; % [days]!
     %% dirs    
-    U.path.OutDirBaseName='IC';
+    U.path.OutDirBaseName='AVISO';
     U.path.TempSalt.name='../TempSalt/';
-    % U.path.TempSalt.name='/media/ROM/TempSalt/';
-    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-    % U.path.raw.name='/media/ROM/SSH_POP/';
-   %% output MAP STUFF   
+    U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+    %% output MAP STUFF   
     U.map.out.X=10*1+1;
     U.map.out.Y=10*1+1;
     U.map.out.west=-50;
@@ -30,10 +27,10 @@ function U=input_vars
     U.map.in.north=U.map.out.north;
     U.map.in.time.delta_t = 1; % [days]
     U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-    U.map.in.pattern.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-    U.map.in.pattern.lat='U_LAT_2D';
-    U.map.in.pattern.lon='U_LON_2D';
-    U.map.in.pattern.ssh='SSH';
+   U.map.in.pattern.in='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
+   U.map.in.pattern.lat='lat';
+    U.map.in.pattern.lon='lon';
+    U.map.in.pattern.ssh='msla';
     %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
@@ -47,10 +44,10 @@ function U=input_vars
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
     U.switchs.RossbyStuff=true; % TODO
-    U.switchs.IQ=true;
-    U.switchs.chelt=false;
-    U.switchs.distlimit=false;
-    U.switchs.AmpAreaCheck=false;
+    U.switchs.IQ=false;
+    U.switchs.chelt=true;
+U.switchs.distlimit=true;
+U.switchs.AmpAreaCheck=true;
     %% parameters
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U

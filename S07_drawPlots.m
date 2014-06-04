@@ -44,12 +44,12 @@ function S07_drawPlots
         main(DD,threadData,ticks);
         %% close pool for printing
         matlabpool close
-        sleep(15*60)
+%         sleep(15*60)
         dirname=[DD.path.plots 'jammed/'];
         mkdirp(dirname);
         fname= [datestr(now,'yyyymmdd-HHMM') '.pdf '];
-        system(['pdfjam -o ' dirname  fname DD.path.plots '*pdf']);
-        system(['pdfcrop ' dirname fname]);
+        system(['pdfjam -o --num 2x2 --a4paper ' dirname fname DD.path.plots '*pdf']);
+%         system(['pdfcrop ' dirname fname]);
     end
     
 end
@@ -220,7 +220,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
     je=jet;
     senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
-%         if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>
+         if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>
         %%
 % %         figure
 % %         b.la=vecs.(sen).birth.lat;

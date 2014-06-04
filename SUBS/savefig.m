@@ -8,10 +8,10 @@ function savefig(outdir,rez,xdim,ydim,tit)
     disp('yo')
 	fname=[outdir,tit];
      mkdirp([outdir,'old']);	
-	junkdir=[outdir,'old/', 'movedOn' datestr(now,'mmdd') '/'];
+% 	junkdir=[outdir,'old/', 'movedOn' datestr(now,'mmdd') '/'];
     mkdirp(outdir);	
-      mkdirp(junkdir);
-      system(['mv ' outdir '*pdf ' outdir '*png ' junkdir])
+%       mkdirp(junkdir);
+%       system(['mv ' outdir '*pdf ' outdir '*png ' junkdir])
 	if rez==42
 		%% quick hack
 		disp(['quick print to ' [fname,'.png']])

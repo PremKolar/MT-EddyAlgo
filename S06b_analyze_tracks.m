@@ -11,16 +11,16 @@ function S06b_analyze_tracks
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
 	[map,vecs,minMax]=main(DD);	
-	%%
-	seq_body(minMax,map,DD,vecs);  
+    %%
+    seq_body(minMax,map,DD,vecs);
 end
 
 function [map,vecs,minMax]=main(DD)
     if DD.debugmode
-       [map,vecs,minMax]=spmd_body(DD);
-    else  
+        [map,vecs,minMax]=spmd_body(DD);
+    else
         spmd
-      [map,vecs,minMax]=spmd_body(DD);  
+            [map,vecs,minMax]=spmd_body(DD);
         end
     end
 end
@@ -75,8 +75,8 @@ function seq_body(minMax,map,DD,vecs)
     %% build net vels
     [map.AntiCycs.vel.net.mean	,map.Cycs.vel.net.mean]=netVels(DD,map);
     %% build radius/rossbyRadius ratio
-    map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius/2;
-    map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius/2;
+    map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
+    map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;   
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
     save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');

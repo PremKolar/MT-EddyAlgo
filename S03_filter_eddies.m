@@ -16,7 +16,6 @@ function S03_filter_eddies
     save_info(DD)
 end
 
-
 function main(DD,rossbyU)
     if DD.debugmode
         spmd_body(DD,rossbyU,labindex)
@@ -27,19 +26,17 @@ function main(DD,rossbyU)
     end
 end
 
-
-
 %% main functions
 function spmd_body(DD,rossbyU,labindex)   
       [JJ]=SetThreadVar(DD);    
     Td=disp_progress('init','filtering contours');
-    for jj=1:numel(JJ)        
+    for jj=1:numel(JJ) 		 
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
-        Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,4242,skip);
+        Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
         if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
-        save_eddies(EE);
+       save_eddies(EE);
     end
 end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
@@ -47,16 +44,21 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     skip=false;
     EE.filename.cont=JJ.files;  
     EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
-    EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-  
+    EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];  
     if exist(EE.filename.self,'file'), skip=true; return; end
-    %% get ssh data
-    cut=load(EE.filename.cut);
-    %% get contours
-     cont=load(EE.filename.cont);   
-    %% put all eddies into a struct: ee(number of eddies).characteristica
-    ee=eddies2struct(cont.all,DD.thresh.corners);
-    %% avoid out of bounds integer coordinates close to boundaries
+	 %% get ssh data
+	 try
+		 cut=load(EE.filename.cut);
+		 %% get contours
+		 cont=load(EE.filename.cont);
+	 catch %#ok<CTCH>
+		 % TODO update dt!!!
+		 skip=true;
+		 return
+	 end
+	 %% put all eddies into a struct: ee(number of eddies).characteristica
+	 ee=eddies2struct(cont.all,DD.thresh.corners);
+	 %% avoid out of bounds integer coordinates close to boundaries
     [ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
     %% find them
     EE=find_eddies(EE,ee_clean,rossbyU,cut,DD);
@@ -70,17 +72,15 @@ end
 function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
-    Tac=disp_progress('init','checking eddies');
     for kk=1:numel(ee)
-        Tac=disp_progress('disp',Tac,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);     
         if PASS(kk), pp=pp+1;
-            %% append healthy found eddy
+           %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
             cut.grids.SSH(ee_out.mask)=nan;
-        end
-    end    
+		  end
+	 end
     if ~any(PASS)
         error('no anticyclones made it through the filter...')
     end
@@ -88,9 +88,7 @@ end
 function Cyc=cyclones(ee,rossbyU,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at highest eddies, downwards
-    Tc=disp_progress('init','checking eddies');
     for kk=numel(ee):-1:1
-        Tc=disp_progress('disp',Tc,numel(ee),3);
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);       
         if PASS(kk),	pp=pp+1;        
             %% append healthy found eddy
@@ -106,9 +104,6 @@ end
 function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% pre-nan-check
     pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
-    if ~pass, return, end;
-    %% corners-check
-    pass=CR_corners(ee.circum.length	,DD.thresh.corners);
     if ~pass, return, end;
     %% closed ring check
     [pass]=CR_ClosedRing(ee);
@@ -153,7 +148,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
 	%%
-    if DD.debugmode, plots4debug(zoom,ee); end
+%     if DD.debugmode, plots4debug(zoom,ee); end
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
     %% get area centroid (chelton style)
@@ -339,7 +334,7 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     %% build boundary mask
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
-    mask.logical=imfill(mask.logical,[yi.center xi.center],4);
+    mask.logical=sparse(imfill(mask.logical,[yi.center xi.center],4));
     mask.lin=find(mask.logical);   
 end
 function TR=getTrackRef(ee,tr)
@@ -520,7 +515,7 @@ function [EE]=eddies2struct(CC,thresh)
     ii=1;cc=0;
     while ii<size(CC,1);
         len=  CC(ii,2);% contourc saves the length of each contour before appending the next
-        if len>thresh
+        if len>=thresh
             cc=cc+1;
             EE(cc).level=CC(ii,1);
             EE(cc).circum.length= len;
@@ -542,7 +537,8 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
-        x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
+        x(x==cut.dim.X+1)=cut.dim.X;
+		  x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
         x(x<1)=1;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;

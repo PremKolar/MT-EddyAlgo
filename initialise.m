@@ -17,7 +17,6 @@ function DD=initialise(toCheck)
     if exist(DDcheck,'file')
         DD=catstruct(load(DDcheck),DD);
     end
-    
     %% in case DD was deleted after S00 was executed rehash window info from cut file
     if   ~isempty(DD.path.cuts.files)
         [DD.map.window]=GetWindow(DD);
@@ -41,7 +40,7 @@ end
 function TT=initChecks(DD,toCheck)
     TT = DD.time;
     TT.timesteps.n = TT.from.num:TT.delta_t:TT.till.num;
-    TT.passed = false(TT.span,1);
+    TT.passed = false(numel(TT.timesteps.n),1);
     TT.timesteps.s =datestr(TT.timesteps.n,'yyyymmdd');
     TT.existant.filesall=extractfield(DD.path.(toCheck).files,'name');
     %% cat numbers in filenames only for speed

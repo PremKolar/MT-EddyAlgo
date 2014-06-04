@@ -1,10 +1,11 @@
 function U=input_vars
   %% threads / debug
     U.threads.num=12;
-    U.debugmode=1;
+%     U.debugmode=true;
+    U.debugmode=false;
     %% time
 	U.time.from.str='19091231';
-	U.time.till.str='19110627';
+	U.time.till.str='19160627';
 	U.time.delta_t=3; % [days]!
 	U.path.OutDirBaseName='MAD';
     U.path.TempSalt.name='../TempSalt/';
@@ -35,8 +36,8 @@ function U=input_vars
     U.thresh.shape.iq=0.3; % isoperimetric quotient
     U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-    U.thresh.dist=5*24*60^2; % max distance travelled per day
-    U.thresh.life=3; % min num of living days for saving
+    U.thresh.dist=.5*24*60^2; % max distance travelled per day
+    U.thresh.life=20; % min num of living days for saving
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
     U.switchs.RossbyStuff=false; % TODO
@@ -44,6 +45,7 @@ function U=input_vars
     U.switchs.chelt=false;
     U.switchs.distlimit=false;
     U.switchs.AmpAreaCheck=false;
+    U.switchs.netUstuff=false;
     %% parameters
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U
@@ -69,7 +71,6 @@ function U=input_vars
         'amp.to_contour';
         'amp.to_ellipse';
         'amp.to_mean';
-        'amp.to_mean.of_contour';
         };
 
     %% fields 4 colorcoded track plots

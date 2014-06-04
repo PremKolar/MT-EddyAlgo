@@ -11,60 +11,61 @@ function S00_prep_data
     %% get user input
     DD = initialise;
     %% get madeleine's data
-    [MadFile,MF]=madsData('../psvar.cdf');
+    [MadFile,CUT]=madsData('../psvar.cdf');
     %% get geo stuff
-    [DD,MF]=geostuff(MF,DD);
+    [DD,CUT]=geostuff(CUT,DD);
     %% thread distro
-    DD.threads.lims=thread_distro(DD.threads.num,numel(MF.TIME));
+    DD.threads.lims=thread_distro(DD.threads.num,numel(CUT.TIME));
     %% create out dir
     [~,~]=mkdir(DD.path.cuts.name);
     %% spmd
-    main(DD,MadFile,MF)
+    main(DD,MadFile,CUT)
 end
 
-function main(DD,MadFile,MF)
+function main(DD,MadFile,CUT)
     if DD.debugmode
-        spmdBlock(DD,MadFile,MF)
+        spmdBlock(DD,MadFile,CUT)
     else
         spmd(DD.threads.num)
-            spmdBlock(DD,MadFile,MF)
+            spmdBlock(DD,MadFile,CUT)
         end
     end
 end
 
 
-function spmdBlock(DD,MadFile,MF)
+function spmdBlock(DD,MadFile,CUT)
     CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
     E325=nc_varget(MadFile,'E325');
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
     for cc=CC
         [T]=disp_progress('calc',T,numel(CC),4242);
-        operateDay(squeeze(E325(cc,:,:)),MF,DD,cc);
+        operateDay(squeeze(E325(cc,:,:)),CUT,DD,cc);
     end
 end
-function [MadFile,MF]=madsData(MadFile)
+function [MadFile,CUT]=madsData(MadFile)
     try
         nc_info(MadFile);
     catch
         error(['expecting  ' MadFile])
     end
-    MF.TIME=nc_varget(MadFile,'TIME')+datenum('1900','yyyy');
-    MF.XT_bnds=nc_varget(MadFile,'XT_bnds');
-    MF.YT_bnds=nc_varget(MadFile,'YT_bnds');
-    MF.XT=nc_varget(MadFile,'XT');
-    MF.YT=nc_varget(MadFile,'YT');
+    CUT.TIME=nc_varget(MadFile,'TIME')+datenum('1900','yyyy');
+    
+    CUT.XT_bnds=nc_varget(MadFile,'XT_bnds');
+    CUT.YT_bnds=nc_varget(MadFile,'YT_bnds');
+    CUT.XT=nc_varget(MadFile,'XT');
+    CUT.YT=nc_varget(MadFile,'YT');
 end
-function [DD,MF]=geostuff(MF,DD)
-    [MF.grids.XX,MF.grids.YY]=meshgrid(MF.XT,MF.YT);
-    MF.grids.LAT=rad2deg(MF.grids.YY./earthRadius);
-    MF.grids.LON=rad2deg(MF.grids.XX./(cosd(MF.grids.LAT)*earthRadius));
-    [MF.grids.DY,MF.grids.DX]=DYDX(MF.grids.LAT,MF.grids.LON);
-    DD.map.west=min(MF.grids.LON(:));
-    DD.map.east=max(MF.grids.LON(:));
-    DD.map.south=min(MF.grids.LAT(:));
-    DD.map.north=max(MF.grids.LAT(:));
-    [Y,X]=size(MF.grids.LON);
+function [DD,CUT]=geostuff(CUT,DD)
+    [CUT.grids.XX,CUT.grids.YY]=meshgrid(CUT.XT,CUT.YT);
+    CUT.grids.LAT=rad2deg(CUT.grids.YY./earthRadius);
+    CUT.grids.LON=rad2deg(CUT.grids.XX./(cosd(CUT.grids.LAT)*earthRadius));
+    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.LAT,CUT.grids.LON);
+    DD.map.west=min(CUT.grids.LON(:));
+    DD.map.east=max(CUT.grids.LON(:));
+    DD.map.south=min(CUT.grids.LAT(:));
+    DD.map.north=max(CUT.grids.LAT(:));
+    [Y,X]=size(CUT.grids.LON);
     DD.map.window.size.X=X;
     DD.map.window.size.Y=Y;
     DD.map.window.limits.west=1;
@@ -72,9 +73,9 @@ function [DD,MF]=geostuff(MF,DD)
     DD.map.window.limits.south=1;
     DD.map.window.limits.north=Y;
 end
-function operateDay(SSH,MF,DD,cc)
+function operateDay(SSH,CUT,DD,cc)
     %% set up output file
-    tt=MF.TIME(cc);
+    tt=CUT.TIME(cc);
     timestr=datestr(tt,'yyyymmdd');
     path=DD.path.cuts.name;
     geo=DD.map;
@@ -85,23 +86,25 @@ function operateDay(SSH,MF,DD,cc)
     file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
     if exist(file.out,'file'), return; end
     %% weird values on borders..
-    [Y,X]=size(MF.grids.LON);
+    [Y,X]=size(CUT.grids.LON);
     SSH(1:end,1)=SSH(1:end,2);
     SSH(1:end,X)=SSH(1:end,X-1);
     SSH(1,1:end)=SSH(2,1:end);
     SSH(Y,1:end)=SSH(Y-1,1:end);
     SSH(SSH>10000)=nan;
     SSH(SSH<-10000)=nan;
-    MF.grids.SSH=double(SSH/DD.map.in.SSH_unitFactor);
+    CUT.grids.SSH=double(SSH/DD.map.in.SSH_unitFactor);
     %%
     %% append 1/4th zonally to track eddies crossing open bndry
-    MF.params.full_globe.x=true;
-    for FN=fieldnames(MF.grids)';fn=FN{1};
-        MF.grids.(fn)= MF.grids.(fn)(:,[1:end 1:1/4*X]);
+    CUT.params.full_globe.x=true;
+    for FN=fieldnames(CUT.grids)';fn=FN{1};
+        CUT.grids.(fn)= CUT.grids.(fn)(:,[1:end 1:1/4*X]);
     end
-    
+    %% save actual size
+    CUT.window.size.X=X;
+    CUT.window.size.Y=Y;
     %%
-    save(file.out,'-struct','MF')
+    save(file.out,'-struct','CUT')
 end
 function [DY,DX]=DYDX(LAT,LON)
     %% grid increment sizes

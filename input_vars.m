@@ -1,6 +1,6 @@
 function U=input_vars
   %% threads / debug
-    U.threads.num=3;
+    U.threads.num=12;
     U.debugmode=1;
     %% time
 	U.time.from.str='19091231';
@@ -8,7 +8,7 @@ function U=input_vars
 	U.time.delta_t=3; % [days]!
 	U.path.OutDirBaseName='MAD';
     U.path.TempSalt.name='../TempSalt/';
-    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+    U.path.raw.name='../';
    %% output MAP STUFF   
 	U.map.out.X=46*1+1;
 	U.map.out.Y=37*1+1;		
@@ -23,7 +23,7 @@ function U=input_vars
     U.map.in.north=U.map.out.north;
     U.map.in.time.delta_t = 1; % [days]
     U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-    U.map.in.pattern.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
+    U.map.in.pattern.fname='psvar.cdf';
     U.map.in.pattern.lat='U_LAT_2D';
     U.map.in.pattern.lon='U_LON_2D';
     U.map.in.pattern.ssh='SSH';

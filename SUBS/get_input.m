@@ -4,7 +4,7 @@ function [DD]=get_input
     %%
     DD.time=catstruct(DD.time, timestuff(DD.time));
     %%
-    DD.path=catstruct(DD.path,findfiles(DD.path));
+    DD.path=catstruct(DD.path,findfiles(DD));
     %%
     DD.pattern.fname='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat';
     DD.pattern.prefix.cuts='CUT';
@@ -39,7 +39,8 @@ function mkDirs(path)
     system(['cp ./SUBS/*.m ' path.codesubs]);
 end
 
-function path=findfiles(path)
+function path=findfiles(DD)
+   path=DD.path
     path.root=['../data' path.OutDirBaseName '/'];
     path.plots=['./plot' path.OutDirBaseName '/'];
     path.code=[path.root, 'code/'];
@@ -54,10 +55,11 @@ function path=findfiles(path)
     path.Rossby.name=[path.root,'Rossby/'];
     %%
     mkDirs(path)
-    %%
+    %%    
+    [~,~,ext.raw]=fileparts(DD.map.in.pattern.fname);    
     path.protoMaps.file=[path.root, 'protoMaps.mat'];
     path.meanU.file=[path.root, 'meanU.mat'];
-    path.raw.files=dir([path.raw.name,'*.nc']);
+    path.raw.files=dir([path.raw.name,'*',ext.raw]);
     path.cuts.files=dir([path.cuts.name,'*.mat']);
     path.conts.files=dir([path.conts.name,'*.mat']);
     path.eddies.files=dir([path.eddies.name,'*.mat']);

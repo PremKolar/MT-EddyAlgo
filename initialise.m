@@ -40,7 +40,7 @@ end
 function TT=initChecks(DD,toCheck)
     TT = DD.time;
     TT.timesteps.n = TT.from.num:TT.delta_t:TT.till.num;
-    TT.passed = false(TT.span,1);
+    TT.passed = false(numel(TT.timesteps.n),1);
     TT.timesteps.s =datestr(TT.timesteps.n,'yyyymmdd');
     TT.existant.filesall=extractfield(DD.path.(toCheck).files,'name');
     %% cat numbers in filenames only for speed

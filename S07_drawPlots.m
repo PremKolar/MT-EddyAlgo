@@ -612,15 +612,15 @@ function overmain(ticks,DD)
         mainDB(DD,threadData,ticks);
     else
         job=main(DD,threadData,ticks);
-        
+        %% close pool for printing
+        matlabpool close
         for field=fieldnames(job)';ff=field{1};
             while ~all(strcmp({job.(ff)(:).State},'finished'))
                 job.(ff)(:)
                 sleep(5)
             end
         end
-        %% close pool for printing
-        matlabpool close
+       
         dirname=[DD.path.plots 'jammed/'];
         mkdirp(dirname);
         fname= [datestr(now,'yyyymmdd-HHMM') '.pdf '];

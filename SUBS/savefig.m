@@ -4,14 +4,14 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,rez,xdim,ydim,tit)
+function savefig(outdir,rez,xdim,ydim,tit,debug)
+    if nargin<6,debug=false;end
+    if debug
     disp('yo')
+    return
+    end
 	fname=[outdir,tit];
-     mkdirp([outdir,'old']);	
-% 	junkdir=[outdir,'old/', 'movedOn' datestr(now,'mmdd') '/'];
     mkdirp(outdir);	
-%       mkdirp(junkdir);
-%       system(['mv ' outdir '*pdf ' outdir '*png ' junkdir])
 	if rez==42
 		%% quick hack
 		disp(['quick print to ' [fname,'.png']])

@@ -5,21 +5,23 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06b_analyze_tracks
-	%% init
-	DD=initialise;
-	%%
-	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-	%%
-	[map,vecs,minMax]=main(DD);	
+    %% init
+    DD=initialise;
+    %%
+    DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+    %%
+    [map,vecs,minMax]=main(DD);
     %%
     seq_body(minMax,map,DD,vecs);
+    %%
+    conclude(DD);
 end
 
 function [map,vecs,minMax]=main(DD)
     if DD.debugmode
         [map,vecs,minMax]=spmd_body(DD);
     else
-        spmd
+        spmd(DD.threads.num)
             [map,vecs,minMax]=spmd_body(DD);
         end
     end
@@ -62,21 +64,25 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 end
 function [ACs,Cs]=netVels(DD,map)
     velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
-        'means.small.zonal'),DD.dim.Y,DD.dim.X);
+        'means.small.zonal'),DD.map.out.Y,DD.map.out.X);
     ACs=	map.AntiCycs.vel.zonal.mean -velmean;
     Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end
 function seq_body(minMax,map,DD,vecs)
     [map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
-    %% get rossby radius
-    map.Rossby=loadRossby(DD);
     %% build zonal means
     map.zonMean=zonmeans(map,DD);
     %% build net vels
-    [map.AntiCycs.vel.net.mean	,map.Cycs.vel.net.mean]=netVels(DD,map);
-    %% build radius/rossbyRadius ratio
-    map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
-    map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;   
+    if DD.switchs.netUstuff
+        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
+    end
+    %% get rossby radius
+    if DD.switchs.RossbyStuff
+        map.Rossby=loadRossby(DD);
+        %% build radius/rossbyRadius ratio
+        map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
+        map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
+    end
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
     save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
@@ -303,12 +309,14 @@ function zonMean=zonmeans(M,DD)
             zonMean.(sen)=setfield(zonMean.(sen),fields{1}{:},wms);
         end
     end
-    %%
-    zonMean.Rossby.small.radius=nanmean(M.Rossby.small.radius,2);
-    zonMean.Rossby.large.radius=nanmean(M.Rossby.large.radius,2);
-    %%
-    zonMean.Rossby.small.phaseSpeed=nanmean(M.Rossby.small.phaseSpeed,2);
-    zonMean.Rossby.large.phaseSpeed=nanmean(M.Rossby.large.phaseSpeed,2);
+    if DD.switchs.RossbyStuff
+        %%
+        zonMean.Rossby.small.radius=nanmean(M.Rossby.small.radius,2);
+        zonMean.Rossby.large.radius=nanmean(M.Rossby.large.radius,2);
+        %%
+        zonMean.Rossby.small.phaseSpeed=nanmean(M.Rossby.small.phaseSpeed,2);
+        zonMean.Rossby.large.phaseSpeed=nanmean(M.Rossby.large.phaseSpeed,2);
+    end
 end
 function OUT=weightedZonMean(MS,weight)
     weight(weight==0)=nan;
@@ -425,7 +433,11 @@ function ALL=spmdCase(MAP,DD)
     end
 end
 function [map,vecs]=mergeThreadData(minMax,map,DD,vecs)
-    minMax=minMax{1};
+    try
+        minMax=minMax{1};
+    catch
+        error('exit debug mode!')
+    end
     map=mergeMapData(map,DD);
     vecs=mergeVecData(vecs);
     map.minMax=minMax;

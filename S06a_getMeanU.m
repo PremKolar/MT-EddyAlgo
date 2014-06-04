@@ -22,6 +22,14 @@ function means=getMeans(d,pos,dim,file,DD)
         disp(['found ' file(kk).U ' and ' file(kk).V])
         U(:,:,kk)=squeeze(nc_varget(file(kk).U,'UVEL',dim.start,dim.length))/100; %#ok<*AGROW>
         V(:,:,kk)=squeeze(nc_varget(file(kk).V,'VVEL',dim.start,dim.length))/100;
+
+
+	x=DD.map.window.size.X;
+    y=DD.map.window.size.Y;
+    U=downsize(U,x,y);
+    V=downsize(V,x,y);
+
+        
     end
     disp(['creating means'])
     U(U<-1e33)=nan; % missing values

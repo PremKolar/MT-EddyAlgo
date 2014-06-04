@@ -40,9 +40,9 @@ function mkDirs(path)
 end
 
 function path=findfiles(DD)
-   path=DD.path
+   path=DD.path;
     path.root=['../data' path.OutDirBaseName '/'];
-    path.plots=['./plot' path.OutDirBaseName '/'];
+    path.plots=['../PLOTS/' path.OutDirBaseName '/'];
     path.code=[path.root, 'code/'];
     path.codesubs=[path.root, 'code/SUBS/'];
     path.cuts.name=[path.root, 'CUTS/'];

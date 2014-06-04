@@ -34,9 +34,7 @@ function [DD]=set_up
     %% init dependencies
     addpath(genpath('./'));
     %% get user input
-    DD = initialise('raw');
-    %% get user map input
-    DD.map=map_vars;
+    DD = initialise('raw');  
     %% get sample window
     [DD.map.window]=GetWindow(SampleFile(DD),DD);
 end
@@ -61,9 +59,9 @@ end
 function [window,readable]=GetWindow(file,DD)
     disp('assuming identical LON/LAT for all files!!!')
     %% get data
-    [grids,readable]=GetFields(file.in,DD.map.pattern); if ~readable, return; end
+    [grids,readable]=GetFields(file.in,DD.map.in.pattern); if ~readable, return; end
     %% find window mask
-    window=FindWindowMask(grids,DD.map.geo);
+    window=FindWindowMask(grids,DD.map.in);
     %% find rectangle enclosing all applicable data
     window.limits=FindRectangle(window.flag);
     %% size
@@ -121,11 +119,11 @@ end
 function [CUT,readable]=CutMap(file,DD)
     CUT=struct;
     %% get data
-    [raw_fields,readable]=GetFields(file.in,DD.map.pattern); if ~readable, return; end
+    [raw_fields,readable]=GetFields(file.in,DD.map.in.pattern); if ~readable, return; end
     %% cut
     [CUT]=SeamOrGlobe(raw_fields,DD.map.window);
     %% nan out land and make SI
-    CUT.grids.SSH=nanLand(CUT.grids.SSH,DD.map.SSH_unitFactor);
+    CUT.grids.SSH=nanLand(CUT.grids.SSH,DD.map.in.SSH_unitFactor);
     %% get distance fields
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.LAT,CUT.grids.LON);
 end
@@ -185,7 +183,6 @@ function [OUT,window]=SeamCross(IN,window)
     window.limits.west=westi;
     window.limits.east=easti;
     %% stitch 2 pieces 2g4
-    %OUT.window.flag=[Wflag(southi:northi,westi:end) Wflag(southi:northi,1:easti)];
     OUT.grids.LON =[IN.LON(southi:northi,westi:end) IN.LON(southi:northi,1:easti)];
     OUT.grids.LAT =[IN.LAT(southi:northi,westi:end) IN.LAT(southi:northi,1:easti)];
     OUT.grids.SSH =[IN.SSH(southi:northi,westi:end) IN.SSH(southi:northi,1:easti)];
@@ -193,7 +190,6 @@ end
 function OUT=AllGood(IN,Wlin)
     %% cut piece
     OUT.window.limits=Wlin;
-    %OUT.window.flag =Wflag(Wlin.south:Wlin.north,Wlin.west:Wlin.east);
     OUT.grids.LON =IN.LON(Wlin.south:Wlin.north,Wlin.west:Wlin.east);
     OUT.grids.LAT =IN.LAT(Wlin.south:Wlin.north,Wlin.west:Wlin.east);
     OUT.grids.SSH =IN.SSH(Wlin.south:Wlin.north,Wlin.west:Wlin.east);
@@ -216,7 +212,7 @@ function [DY,DX]=DYDX(LAT,LON)
 end
 function file=SampleFile(DD)
     dir_in =DD.path.raw;
-    pattern_in=DD.map.pattern.in;
+    pattern_in=DD.map.in.pattern.fname;
     sample_time=DD.time.from.str;
     file.in=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
     if ~exist(file.in,'file')
@@ -229,8 +225,8 @@ function [file,exists]=GetCurrentFile(TT,DD)
    timestr=datestr(TT.daynums,'yyyymmdd');
     %% set up output file
     path=DD.path.cuts.name;
-    geo=DD.map.geo;
-    file.out=strrep(DD.pattern.in	,'SSSS',sprintf('%04d',geo.south) );
+    geo=DD.map.in;
+    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
     file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
     file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
     file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );

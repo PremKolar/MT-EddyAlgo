@@ -41,7 +41,7 @@ function means=getMeans(d,pos,dim,file,DD)
     means.depth=d(pos.z.start);
     %%
     lin=extractfield(load(DD.path.protoMaps.file),'idx');
-    means.small.zonal=nan(DD.dim.Y,DD.dim.X);
+    means.small.zonal=nan(DD.map.out.Y,DD.map.out.X);
     for li=unique(lin(lin~=0 & ~isnan(lin)))
         means.small.zonal(li)=nanmean(means.zonal(lin==li));
     end

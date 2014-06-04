@@ -93,14 +93,14 @@ function [YY,XX]=yyxx(lon,lat,used)
 end
 function [MAP]=MakeMaps(DD)
     %% init output map dim
-    xvec=linspace(DD.dim.west,DD.dim.east,DD.dim.X);
-    yvec=linspace(DD.dim.south,DD.dim.north,DD.dim.Y);
+    xvec=linspace(DD.map.out.west,DD.map.out.east,DD.map.out.X);
+   yvec=linspace(DD.map.out.south,DD.map.out.north,DD.map.out.Y);
     [MAP.lon,MAP.lat]=meshgrid(xvec,yvec);
     MAP.proto.nan=nan(size(MAP.lon));
     MAP.proto.zeros=zeros(size(MAP.lon));
     MAP.dim.y=numel(yvec);
     MAP.dim.x=numel(xvec);
     MAP.dim.numel= MAP.dim.y * MAP.dim.x;
-    MAP.inc.x=(DD.dim.east-DD.dim.west)/(DD.dim.X-1);
-    MAP.inc.y=(DD.dim.north-DD.dim.south)/(DD.dim.Y-1);
+    MAP.inc.x=(DD.map.out.east-DD.map.out.west)/(DD.map.out.X-1);
+    MAP.inc.y=(DD.map.out.north-DD.map.out.south)/(DD.map.out.Y-1);
 end

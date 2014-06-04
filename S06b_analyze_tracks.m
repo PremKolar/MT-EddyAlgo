@@ -13,13 +13,15 @@ function S06b_analyze_tracks
 	[map,vecs,minMax]=main(DD);	
     %%
     seq_body(minMax,map,DD,vecs);
+    %%
+    conclude(DD);
 end
 
 function [map,vecs,minMax]=main(DD)
     if DD.debugmode
         [map,vecs,minMax]=spmd_body(DD);
     else
-        spmd
+        spmd(DD.threads.num)
             [map,vecs,minMax]=spmd_body(DD);
         end
     end
@@ -62,7 +64,7 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 end
 function [ACs,Cs]=netVels(DD,map)
     velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
-        'means.small.zonal'),DD.dim.Y,DD.dim.X);
+        'means.small.zonal'),DD.map.out.Y,DD.map.out.X);
     ACs=	map.AntiCycs.vel.zonal.mean -velmean;
     Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end

@@ -1,11 +1,12 @@
 function U=input_vars
   %% threads / debug
     U.threads.num=12;
-%     U.debugmode=true;
     U.debugmode=false;
+%     U.debugmode=true;
     %% time
 	U.time.from.str='19091231';
-	U.time.till.str='19160627';
+% 	U.time.till.str='19100130';
+ 	U.time.till.str='19160627';
 	U.time.delta_t=3; % [days]!
 	U.path.OutDirBaseName='MAD';
     U.path.TempSalt.name='../TempSalt/';
@@ -25,10 +26,10 @@ function U=input_vars
     U.map.in.time.delta_t = 1; % [days]
     U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     U.map.in.pattern.fname='psvar.cdf';
-    U.map.in.pattern.lat='U_LAT_2D';
-    U.map.in.pattern.lon='U_LON_2D';
+    U.map.in.pattern.lat='lat';
+    U.map.in.pattern.lon='lon';
     U.map.in.pattern.ssh='SSH';
-    %% thresholds
+	 %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]

@@ -9,8 +9,9 @@ function S07_drawPlots
 	%%	set ticks here!
 	ticks.rez=300;
 	%      ticks.rez=42;
-	ticks.width=297/25.4*ticks.rez/5;
-	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
+	ticks.width=297/25.4*ticks.rez;
+	ticks.height=ticks.width/5;
+% 	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
 	%         ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
@@ -43,7 +44,7 @@ end
 
 function mainDB(DD,IN,ticks)
 	disp('entering debug mode')
-	ticks.rez=42;
+	ticks.rez=200;
 	for sense=DD.FieldKeys.senses'; sen=sense{1};
 		TPa(DD,ticks,IN.tracks,sen);
 		TPb(DD,ticks,IN.tracks,sen);
@@ -67,9 +68,7 @@ function job=main(DD,IN,ticks)
 	job.tracks=trackPlots(DD,ticks,IN.tracks);
 end
 function job=taskfForZonMeans(DD,IN,ticks)
-	if DD.switchs.netUstuff
-		job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
-	end
+	job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
 	job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
 	diary(job(1), 'jobzonmean1.txt')
 	diary(job(2), 'jobzonmean2.txt')

@@ -1,8 +1,8 @@
 function U=input_vars
     %% threads / debug
     U.threads.num=12;
-    U.debugmode=false;
-%     U.debugmode=true;
+%     U.debugmode=false;
+    U.debugmode=true;
     %% time
 %     U.time.from.str='19940102';
 	 U.time.from.str='19940425';

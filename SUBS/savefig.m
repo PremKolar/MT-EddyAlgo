@@ -6,10 +6,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,rez,xdim,ydim,tit,debug)
     if nargin<6,debug=false;end
-    if debug
-    disp('yo')
-    return
-    end
+%     if debug
+%     disp('yo')
+%     return
+%     end
 	fname=[outdir,tit];
     mkdirp(outdir);	
 	if rez==42

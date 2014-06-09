@@ -4,15 +4,17 @@ function U=input_vars
     U.debugmode=false;
 %     U.debugmode=true;
     %% time
-    U.time.from.str='19940102';
-   U.time.till.str='20061231';
+%     U.time.from.str='19940102';
+	 U.time.from.str='19940425';
+    U.time.till.str='19941023';
+   % 	 U.time.till.str='20061231';
    U.time.delta_t=1; % [days]!
     %% dirs    
-    U.path.OutDirBaseName='globalTest';
+    U.path.OutDirBaseName='zon';
     U.path.TempSalt.name='../TempSalt/';
-    % U.path.TempSalt.name='/media/ROM/TempSalt/';
-    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-    % U.path.raw.name='/media/ROM/SSH_POP/';
+    U.path.TempSalt.name='/media/ROM/TempSalt/';
+%     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+    U.path.raw.name='/media/ROM/SSH_POP/';
    %% output MAP STUFF   
     U.map.out.X=360*1+1;
     U.map.out.Y=180*1+1;

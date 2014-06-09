@@ -27,7 +27,7 @@ function S07_drawPlots
 	ticks.disttot=[10;1000;13];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
-	ticks.axis=[175 181 DD.map.out.south DD.map.out.north];
+	ticks.axis=[-180 -175 DD.map.out.south DD.map.out.north];
 	ticks.lat=[ticks.axis(3:4),5];
 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
 	

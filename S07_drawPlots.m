@@ -9,8 +9,8 @@ function S07_drawPlots
 	%%	set ticks here!
 	ticks.rez=300;
 	ticks.width=297/25.4*ticks.rez*2;
-%  	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
-	         ticks.height=ticks.width/sqrt(2); % Din a4
+	%  	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
+	ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
 	ticks.age=[1,2*365,10];
@@ -27,7 +27,7 @@ function S07_drawPlots
 	ticks.disttot=[10;1000;13];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
-											ticks.axis=[175 181 DD.map.out.south DD.map.out.north];
+	ticks.axis=[175 181 DD.map.out.south DD.map.out.north];
 	ticks.lat=[ticks.axis(3:4),5];
 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
 	
@@ -60,7 +60,7 @@ function mainDB(DD,IN,ticks)
 end
 
 function job=main(DD,IN,ticks)
-% 	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
+	% 	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
 	%%
 	job.maphist= taskfForMapAndHist(DD,IN,ticks);
 	%%
@@ -69,9 +69,6 @@ end
 function job=taskfForZonMeans(DD,IN,ticks)
 	job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
 	job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
-	diary(job(1), 'jobzonmean1.txt')
-	diary(job(2), 'jobzonmean2.txt')
-	disp(['see jobzonmean1.txt and jobzonmean2.txt'])
 end
 function velZonmeans(DD,IN,ticks)
 	acv=squeeze(nanmean(IN.maps.AntiCycs.vel.zonal.mean,2));
@@ -113,9 +110,6 @@ end
 function  job=taskfForMapAndHist(DD,IN,ticks)
 	job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
 	job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
-	diary(job(1), 'jobzMH1.txt')
-	diary(job(2), 'jobzMH2.txt')
-	disp(['see jobzMH(1:2).txt'])
 end
 function [OUT]=inits(DD)
 	disp(['loading maps'])
@@ -332,13 +326,6 @@ function job=trackPlots(DD,ticks,tracks)
 		job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
 		job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
 		job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
-		diary(job(1), [sen 'jobzTP1.txt'])
-		diary(job(2), [sen 'jobzTP2.txt'])
-		diary(job(3), [sen 'jobzTP3.txt'])
-		diary(job(4), [sen 'jobzTP4.txt'])
-		diary(job(5), [sen 'jobzTP5.txt'])
-		diary(job(6), [sen 'jobzTP6.txt'])
-		disp(['see ' sen 'jobzTP(1:6).txt'])
 	end
 end
 function TPa(DD,ticks,tracks,sen)
@@ -619,19 +606,30 @@ function overmain(ticks,DD)
 	if DD.debugmode
 		mainDB(DD,threadData,ticks);
 	else
+		disp('commencing plotting')
 		job=main(DD,threadData,ticks);
+		disp('plotting done!')
 		%% close pool for printing
 		matlabpool close
 		for field=fieldnames(job)';ff=field{1};
 			while ~all(strcmp({job.(ff)(:).State},'finished'))
+				disp('waiting for plots to finish')
 				job.(ff)(:)
 				sleep(5)
 			end
 		end
-		
+		disp('done!')
 		dirname=[DD.path.plots 'jammed/'];
 		mkdirp(dirname);
-		fname= [datestr(now,'yyyymmdd-HHMM') '.pdf '];
-		system(['pdfjam --nup 2x2 --a4paper -o ' dirname fname ' ' DD.path.plots '*pdf']);
+		fnamebase= [datestr(now,'yyyymmdd-HHMM')];
+		fnamecompact=[fnamebase '_compact.pdf'];
+		fname=[fnamebase '_compact.pdf'];
+		disp(['pdfjamming all to ' dirname fname])
+		system(['pdfjam --nup 2x2 --a4paper -o ' dirname fnamecompact ' ' DD.path.plots '*pdf']);
+		system(['pdfjam --a4paper -o ' dirname fname ' ' DD.path.plots '*pdf']);
+		disp(['cropping'])
+		system(['pdfcrop  ' dirname fnamecompact]);
+		system(['pdfcrop  ' dirname fname]);
+		
 	end
 end

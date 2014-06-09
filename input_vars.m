@@ -10,7 +10,7 @@ function U=input_vars
    % 	 U.time.till.str='20061231';
    U.time.delta_t=3; % [days]!
     %% dirs    
-    U.path.OutDirBaseName='zon';
+    U.path.OutDirBaseName='lap';
     U.path.TempSalt.name='../TempSalt/';
 %     U.path.TempSalt.name='/media/ROM/TempSalt/';
     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';

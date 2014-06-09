@@ -8,9 +8,9 @@ function S07_drawPlots
 	DD=initialise;
 	%%	set ticks here!
 	ticks.rez=300;
-	ticks.width=297/25.4*ticks.rez                      *    3;
- 	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
-	%         ticks.height=ticks.width/sqrt(2); % Din a4
+	ticks.width=297/25.4*ticks.rez*2;
+%  	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
+	         ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
 	ticks.age=[1,2*365,10];
@@ -27,6 +27,7 @@ function S07_drawPlots
 	ticks.disttot=[10;1000;13];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
+											ticks.axis=[175 181 DD.map.out.south DD.map.out.north];
 	ticks.lat=[ticks.axis(3:4),5];
 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
 	

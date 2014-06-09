@@ -7,13 +7,13 @@
 function S07_drawPlots
 	DD=initialise;
 	%%	set ticks here!
-	ticks.rez=400;
+	ticks.rez=100;
 	ticks.width=297/25.4*ticks.rez;
 	%  	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
 	ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
-	ticks.age=[1,2*365,10];
+	ticks.age=[1,30,30];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
 	ticks.isoper=[.3,1,8];
 	ticks.radius=[20,150,9];
@@ -607,14 +607,18 @@ function overmain(ticks,DD)
 		mainDB(DD,threadData,ticks);
 	else
 		disp('commencing plotting')
+		%#ok<*WNOFF>
+		%#ok<*WNON>
+		warning('off') 
 		job=main(DD,threadData,ticks);
+		warning('on') 
 		disp('plotting done!')
 		%% close pool for printing
 		matlabpool close
 		for field=fieldnames(job)';ff=field{1};
 			while ~all(strcmp({job.(ff)(:).State},'finished'))
 				disp('waiting for plots to finish')
-				job.(ff)(:)
+				disp(job.(ff)(:))
 				sleep(5)
 			end
 		end

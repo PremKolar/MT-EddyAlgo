@@ -8,10 +8,8 @@ function S07_drawPlots
 	DD=initialise;
 	%%	set ticks here!
 	ticks.rez=300;
-	%      ticks.rez=42;
 	ticks.width=297/25.4*ticks.rez;
-	ticks.height=ticks.width/5;
-% 	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
+ 	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *2;
 	%         ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
@@ -44,7 +42,7 @@ end
 
 function mainDB(DD,IN,ticks)
 	disp('entering debug mode')
-	ticks.rez=200;
+	ticks.rez=42;
 	for sense=DD.FieldKeys.senses'; sen=sense{1};
 		TPa(DD,ticks,IN.tracks,sen);
 		TPb(DD,ticks,IN.tracks,sen);
@@ -61,7 +59,7 @@ function mainDB(DD,IN,ticks)
 end
 
 function job=main(DD,IN,ticks)
-	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
+% 	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
 	%%
 	job.maphist= taskfForMapAndHist(DD,IN,ticks);
 	%%

@@ -617,9 +617,9 @@ function overmain(ticks,DD)
 		matlabpool close
 		for field=fieldnames(job)';ff=field{1};
 			while ~all(strcmp({job.(ff)(:).State},'finished'))
-				disp('waiting for plots to finish')
-				disp(job.(ff)(:))
+				disp('waiting for plots to finish')				
 				sleep(5)
+				disp(job.(ff)(:))
 			end
 		end
 		disp('done!')

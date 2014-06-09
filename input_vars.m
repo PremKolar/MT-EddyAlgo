@@ -6,7 +6,7 @@ function U=input_vars
     %% time
 %     U.time.from.str='19940102';
 	 U.time.from.str='19940425';
-    U.time.till.str='19940530';
+    U.time.till.str='19940730';
    % 	 U.time.till.str='20061231';
    U.time.delta_t=3; % [days]!
     %% dirs    

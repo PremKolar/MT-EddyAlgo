@@ -23,6 +23,7 @@ function T=timestuff(T)
 end
 function mkDirs(path)
     %%
+	 mkdirp(path.root);
     mkdirp(path.plots);
     mkdirp(path.code);
     mkdirp(path.codesubs);

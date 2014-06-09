@@ -1,20 +1,20 @@
 function U=input_vars
     %% threads / debug
     U.threads.num=2;
-%     U.debugmode=false;
-    U.debugmode=true;
+    U.debugmode=false;
+%     U.debugmode=true;
     %% time
 %     U.time.from.str='19940102';
 	 U.time.from.str='19940425';
-    U.time.till.str='19940730';
+    U.time.till.str='19940501';
    % 	 U.time.till.str='20061231';
-   U.time.delta_t=3; % [days]!
+   U.time.delta_t=1; % [days]!
     %% dirs    
-    U.path.OutDirBaseName='lap';
+    U.path.OutDirBaseName='tmp';
 %     U.path.TempSalt.name='../TempSalt/';
     U.path.TempSalt.name='/media/ROM/TempSalt/';
-    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-%     U.path.raw.name='/media/ROM/SSH_POP/';
+%     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+    U.path.raw.name='/media/ROM/SSH_POP/';
    %% output MAP STUFF   
     U.map.out.X=360*1+1;
     U.map.out.Y=5*1+1;
@@ -50,7 +50,7 @@ function U=input_vars
     U.switchs.chelt=false;
     U.switchs.distlimit=false;
     U.switchs.AmpAreaCheck=false;
-	 U.switchs.netUstuff=true;
+	 U.switchs.netUstuff=false;
     %% parameters
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U

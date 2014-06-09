@@ -9,11 +9,11 @@ function S07_drawPlots
 	%%	set ticks here!
 	ticks.rez=100;
 	ticks.width=297/25.4*ticks.rez;
-	%  	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
-	ticks.height=ticks.width/sqrt(2); % Din a4
+	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
+% 	ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;
-	ticks.age=[1,30,30];
+	ticks.age=[1,2*365,10];
 	ticks.isoper=[DD.thresh.shape.iq,1,10];
 	ticks.isoper=[.3,1,8];
 	ticks.radius=[20,150,9];
@@ -27,7 +27,7 @@ function S07_drawPlots
 	ticks.disttot=[10;1000;13];
 	ticks.vel=[-30;20;6];
 	ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
-	ticks.axis=[-180 -175 DD.map.out.south DD.map.out.north];
+% 	ticks.axis=[-180 -175 DD.map.out.south DD.map.out.north];
 	ticks.lat=[ticks.axis(3:4),5];
 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
 	
@@ -58,13 +58,10 @@ function mainDB(DD,IN,ticks)
 	histstuff(IN.vecs,DD,ticks)
 	mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
-
 function job=main(DD,IN,ticks)
-	% 	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
-	%%
 	job.maphist= taskfForMapAndHist(DD,IN,ticks);
-	%%
 	job.tracks=trackPlots(DD,ticks,IN.tracks);
+	job.zonmeans=taskfForZonMeans(DD,IN,ticks);
 end
 function job=taskfForZonMeans(DD,IN,ticks)
 	job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
@@ -624,7 +621,9 @@ function overmain(ticks,DD)
 		end
 		disp('done!')
 		dirname=[DD.path.plots 'jammed/'];
+		dirname_cropped=[DD.path.plots 'cropped/'];
 		mkdirp(dirname);
+		mkdirp(dirname_cropped);
 		fnamebase= [datestr(now,'yyyymmdd-HHMM')];
 		fnamecompact=[fnamebase '_compact.pdf'];
 		fname=[fnamebase '_compact.pdf'];
@@ -634,6 +633,6 @@ function overmain(ticks,DD)
 		disp(['cropping'])
 		system(['pdfcrop  ' dirname fnamecompact]);
 		system(['pdfcrop  ' dirname fname]);
-		
+		system(['mv ' dirname '*crop*.pdf ' dirname_cropped]);
 	end
 end

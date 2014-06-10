@@ -70,19 +70,19 @@ function [ACs,Cs]=netVels(DD,map)
 end
 function seq_body(minMax,map,DD,vecs)
     [map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
-    %% build zonal means
-    map.zonMean=zonmeans(map,DD);
-    %% build net vels
-    if DD.switchs.netUstuff
-        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
-    end
     %% get rossby radius
     if DD.switchs.RossbyStuff
         map.Rossby=loadRossby(DD);
         %% build radius/rossbyRadius ratio
         map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
         map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
-    end
+	 end
+	     %% build zonal means
+    map.zonMean=zonmeans(map,DD);
+    %% build net vels
+    if DD.switchs.netUstuff
+        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
+	 end	 
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
     save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
@@ -363,7 +363,7 @@ function [param,count]=protoInit(proto,type)
     count=proto.zeros;
 end
 function ALL=mergeMapData(MAP,DD)
-    if DD.threads.num>1
+    if DD.threads.num>1 && ~DD.debugmode
         ALL=spmdCase(MAP,DD);
     else
         ALL=MAP{1};

@@ -6,7 +6,7 @@ function U=input_vars
     %% time
 %     U.time.from.str='19940102';
 	 U.time.from.str='19940425';
-     U.time.till.str='19940331';
+     U.time.till.str='19940531';
 	 %     U.time.till.str='19960730';
 %    	 U.time.till.str='20061231';
    U.time.delta_t=1; % [days]!
@@ -58,7 +58,7 @@ function U=input_vars
     U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits =4; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =24; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

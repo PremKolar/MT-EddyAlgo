@@ -4,24 +4,23 @@ function U=input_vars
     U.debugmode=false;
 %     U.debugmode=true;
     %% time
-%     U.time.from.str='19940102';
-	 U.time.from.str='19940425';
-     U.time.till.str='19940531';
-	 %     U.time.till.str='19960730';
-%    	 U.time.till.str='20061231';
+    U.time.from.str='19940102';
+% 	 U.time.from.str='19940425';
+%     U.time.till.str='19960730';
+   	 U.time.till.str='20061231';
    U.time.delta_t=1; % [days]!
     %% dirs    
-    U.path.OutDirBaseName='rp';
+    U.path.OutDirBaseName='zonLONG';
     U.path.TempSalt.name='../TempSalt/';
-    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 %     U.path.TempSalt.name='/media/ROM/TempSalt/';
+    U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 %     U.path.raw.name='/media/ROM/SSH_POP/';
    %% output MAP STUFF   
-    U.map.out.X=30*1+1;
-    U.map.out.Y=5*1+1;
+    U.map.out.X=2*360*1+1;
+    U.map.out.Y=2*5*1+1;
     U.map.out.west=-180;
     U.map.out.south=-60;
-    U.map.out.east=-150;   
+    U.map.out.east=180;   
     U.map.out.north=-55;
     %% input MAP STUFF   
     U.map.in.west=U.map.out.west;
@@ -39,11 +38,11 @@ function U=input_vars
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]
     U.thresh.amp=0.01; % [SI]
-    U.thresh.shape.iq=0.01; % isoperimetric quotient
+    U.thresh.shape.iq=0.1; % isoperimetric quotient
     U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
     U.thresh.dist=1*24*60^2; % max distance travelled per day
-    U.thresh.life=3; % min num of living days for saving
+    U.thresh.life=20; % min num of living days for saving
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
     U.switchs.RossbyStuff=true; % TODO
@@ -58,7 +57,7 @@ function U=input_vars
     U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits =24; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

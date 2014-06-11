@@ -16,6 +16,7 @@ function S01b_BruntVaisRossby
 	main(DD,lims)
 	%% make netcdf
 	DD.path.Rossby=WriteNCfile(DD,lims);
+    
 	%% update DD
 	save_info(DD);
 end
@@ -36,9 +37,11 @@ function [DD,lims]=set_up
 	%% threads
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find temp and salt files
-	[DD.path.TempSalt.salt,DD.path.TempSalt.temp]=tempsalt(DD);
-	%% set dimension for splitting (files dont fit in memory)
-	X=DD.map.window.size.X;
+	[DD.path.TempSalt.salt,DD.path.TempSalt.temp]=tempsalt(DD);	
+    [DD.TS.window,~,grids]=GetWindow(DD.path.TempSalt.salt,DD,DD.map.TS.pattern)     
+    [CUT]=ZonalProblem(grids,DD.TS.window);
+    %% set dimension for splitting (files dont fit in memory)
+	X=DD.TS.window.size.X;
 	%% map chunks
 	lims.data=thread_distro(splits,X) + DD.map.window.limits.west-1;
 	%% distro chunks to threads
@@ -178,8 +181,8 @@ function [rossby]=ChunkRossby(CK)
 end
 
 function [lat,lon]=ChunkLatLon(DD,dim)
-	lat=nc_varget(DD.path.TempSalt.temp,DD.map.in.pattern.lat,dim.start1d, dim.len1d);
-	lon=nc_varget(DD.path.TempSalt.temp,DD.map.in.pattern.lon,dim.start1d, dim.len1d);
+	lat=nc_varget(DD.path.TempSalt.temp,DD.map.TS.pattern.lat,dim.start1d, dim.len1d);
+	lon=nc_varget(DD.path.TempSalt.temp,DD.map.TS.pattern.lon,dim.start1d, dim.len1d);
 end
 function depth=ChunkDepth(DD)
 	depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
@@ -216,10 +219,10 @@ end
 function [fileS,fileT]=tempsalt(DD)
 	%% find the temp and salt files
 	for kk=1:numel(DD.path.TempSalt.files)
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'SALT'))
+		if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'SALT'))
 			fileS=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
 		end
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'TEMP'))
+		if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'TEMP'))
 			fileT=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
 		end
 	end

@@ -1,35 +1,40 @@
 function U=input_vars
 	%% threads / debug
 	U.threads.num=12;
-	U.debugmode=0;
+	U.debugmode=1;
 	%% time
-	U.time.from.str='19940105';
-	%      U.time.from.str='20000102';
-	U.time.till.str='20061231';
-	%        U.time.till.str='19940202';
-	%  U.time.from.str='19940502';
-	U.time.delta_t=7; % [days]!
+%     U.time.from.str='19920114';  % min aviso
+%     U.time.till.str='20130807'; % max aviso
+% 	U.time.from.str='19940105';  % min pop
+% 	U.time.till.str='20061231'; % max pop   
+    U.time.from.str='19940105';  % min pop
+	U.time.till.str='19960105'; % max pop   
+    U.time.delta_t=7; % [days]!
 	%% dirs
-	U.path.OutDirBaseName='AVISO-0611';
+	U.path.OutDirBaseName='avitest';
 	U.path.TempSalt.name='../TempSalt/';
 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
 	%% output MAP STUFF
-	U.map.out.X=10*1+1;
-	U.map.out.Y=10*1+1;
-	U.map.out.west=-50;
-	U.map.out.east=-40;
-	U.map.out.south=30;
-	U.map.out.north=40;
+	U.map.out.X=360*1+1;
+	U.map.out.Y=30*1+1;
+	U.map.out.west=-180;
+	U.map.out.east=180;
+	U.map.out.south=-70;
+	U.map.out.north=-40;
+    %% input MAP STUFF
 	U.map.in.west=U.map.out.west;
 	U.map.in.east=U.map.out.east;
 	U.map.in.south=U.map.out.south;
 	U.map.in.north=U.map.out.north;
 	U.map.in.time.delta_t = 1; % [days]
 	U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-	U.map.in.pattern.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
+    %% input patterns
+    U.map.in.pattern.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
 	U.map.in.pattern.lat='lat';
 	U.map.in.pattern.lon='lon';
-	U.map.in.pattern.ssh='msla';
+	U.map.in.pattern.ssh='msla'; 
+    U.map.TS.pattern.lat='U_LAT_2D';
+    U.map.TS.pattern.lon='U_LON_2D';  
 	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
@@ -47,7 +52,7 @@ function U=input_vars
 	U.switchs.chelt=false;
 	U.switchs.distlimit=0;
 	U.switchs.AmpAreaCheck=0;
-	U.switchs.netUstuff=0;
+	U.switchs.netUstuff=1;
 	%% parameters
 	U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	U.parameters.meanU=100; % depth from which to take mean U

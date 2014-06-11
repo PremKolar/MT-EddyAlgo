@@ -56,7 +56,7 @@ function [CUT,readable]=CutMap(file,DD)
     addpath(genpath('./'));
     CUT=struct;
     %% get data
-    [raw_fields,readable]=GetFields(file.in,DD.map.in.pattern); if ~readable, return; end
+    [raw_fields]=GetFields(file.in,DD.map.in.keys);
     %% cut
     [CUT]=ZonalProblem(raw_fields,DD.map.window);
     %% nan out land and make SI

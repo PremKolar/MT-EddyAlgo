@@ -151,7 +151,7 @@ function [BRVA]=calcBrvaPvort(CK,cc)
 	disp(['calculating brunt väisälä, chunk ',cc]);
 	%% get full matrices for all variables
 	M.depth=double(repmat(CK.DEPTH,[1,YY*XX]));
-	M.lat=double(repmat(permute(CK.LAT(:),[2 1]), [ZZ,1]));
+	M.lat=double(repmat(permute(CK.lat(:),[2 1]), [ZZ,1]));
 	M.pressure=double(reshape(sw_pres(M.depth(:),M.lat(:)),[ZZ,YY*XX]));
 	M.salt=double(reshape(CK.SALT,[ZZ,YY*XX]));
 	M.temp=double(reshape(CK.TEMP,[ZZ,YY*XX]));
@@ -170,14 +170,14 @@ function [CK,DD]=initCK(DD,lims,chnk)
 	disp('getting depth..')
 	CK.DEPTH=ChunkDepth(DD);
 	disp('getting geo info..')
-	[CK.LAT,CK.LON]=ChunkLatLon(DD,dim);
+	[CK.lat,CK.lon]=ChunkLatLon(DD,dim);
 	[CK.rossby]=ChunkRossby(CK);
 end
 function [rossby]=ChunkRossby(CK)
 	day_sid=23.9344696*60*60;
 	om=2*pi/(day_sid); % frequency earth
-	rossby.f=2*om*sind(CK.LAT);
-	rossby.beta=2*om/earthRadius*cosd(CK.LAT);
+	rossby.f=2*om*sind(CK.lat);
+	rossby.beta=2*om/earthRadius*cosd(CK.lat);
 end
 
 function [lat,lon]=ChunkLatLon(DD,dim)

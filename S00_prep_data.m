@@ -60,9 +60,9 @@ function [CUT,readable]=CutMap(file,DD)
     %% cut
     [CUT]=ZonalProblem(raw_fields,DD.map.window);
     %% nan out land and make SI
-    CUT.grids.SSH=nanLand(CUT.grids.SSH,DD.map.in.SSH_unitFactor);
+    CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.map.in.ssh_unitFactor);
     %% get distance fields
-    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.LAT,CUT.grids.LON);
+    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end
 function out=nanLand(in,fac)
     %% nan and SI

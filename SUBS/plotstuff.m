@@ -96,8 +96,8 @@ GRD=nan(180,360);
 [A,O]=size(GRD);
 EDDY_SPEEDS.ANTICYC.MEAN_SPEED=cell(size(GRD));
 EDDY_SPEEDS.CYC.MEAN_SPEED=cell(size(GRD));
-EDDY_SPEEDS.GRID.LAT=(-89:1:90);
-EDDY_SPEEDS.GRID.LON=(-179:1:180);
+EDDY_SPEEDS.GRID.lon=(-89:1:90);
+EDDY_SPEEDS.GRID.lon=(-179:1:180);
 
 [VELOCITIES_mean,VELOCITIES_median,vel_daily_total,LIFESPAN,LAT_mean,LON_mean]=get_eddy_statistics(POSITIONS,LAT,LON,radius_earth,TIMES);
 
@@ -125,8 +125,8 @@ end
 
 
 
-for la= EDDY_SPEEDS.GRID.LAT
-    for lo= EDDY_SPEEDS.GRID.LON
+for la= EDDY_SPEEDS.GRID.lon
+    for lo= EDDY_SPEEDS.GRID.lon
         
         jj=find(LAT_mean{s}==la & LON_mean{s}==lo);
         
@@ -411,7 +411,7 @@ plotm(lat, long,'r','linewidth',1)
 hold on
 plot3m(LAT_stepped{1},LON_stepped{1},VEL_stepped{1},'.')
 
-pcolorm(EDDY_SPEEDS.grid.lat,EDDY_SPEEDS.grid.lon,  EDDY_SPEEDS.anticyclonic.speeds_mean)
+pcolorm(EDDY_SPEEDS.grid.lon,EDDY_SPEEDS.grid.lon,  EDDY_SPEEDS.anticyclonic.speeds_mean)
 
 
 

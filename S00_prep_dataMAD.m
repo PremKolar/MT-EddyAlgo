@@ -50,14 +50,14 @@ function [MadFile,MF]=madsData(DD)
 end
 function [DD,MF]=geostuff(MF,DD)
 	[MF.grids.XX,MF.grids.YY]=meshgrid(MF.XT,MF.YT);
-	MF.grids.LAT=rad2deg(MF.grids.YY./earthRadius);
-	MF.grids.LON=rad2deg(MF.grids.XX./(cosd(MF.grids.LAT)*earthRadius));
-	[MF.grids.DY,MF.grids.DX]=DYDX(MF.grids.LAT,MF.grids.LON);
-	DD.map.west=min(MF.grids.LON(:));
-	DD.map.east=max(MF.grids.LON(:));
-	DD.map.south=min(MF.grids.LAT(:));
-	DD.map.north=max(MF.grids.LAT(:));
-	[Y,X]=size(MF.grids.LON);
+	MF.grids.lat=rad2deg(MF.grids.YY./earthRadius);
+	MF.grids.lon=rad2deg(MF.grids.XX./(cosd(MF.grids.lat)*earthRadius));
+	[MF.grids.DY,MF.grids.DX]=DYDX(MF.grids.lat,MF.grids.lon);
+	DD.map.west=min(MF.grids.lon(:));
+	DD.map.east=max(MF.grids.lon(:));
+	DD.map.south=min(MF.grids.lat(:));
+	DD.map.north=max(MF.grids.lat(:));
+	[Y,X]=size(MF.grids.lon);
 	DD.map.window.size.X=X;
 	DD.map.window.size.Y=Y;
 	DD.map.window.limits.west=1;
@@ -80,7 +80,7 @@ function operateDay(SSH,MF,DD,cc)
 	%%
 	SSH(SSH>10000)=nan;
 	SSH(SSH<-10000)=nan;
-	MF.grids.SSH=double(SSH/DD.map.SSH_unitFactor);
+	MF.grids.ssh=double(SSH/DD.map.ssh_unitFactor);
 	%%
 	MF.params.full_globe.x=false;
 	%%

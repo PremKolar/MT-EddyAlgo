@@ -197,7 +197,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
 	aut=autumn;
 	win=winter;
 	ho=hot;
-	je=jet;
+	je=jet; %#ok<NASGU>
 	senses={'Cycs','AntiCycs'};
 	for sense=senses;sen=sense{1};
 		if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>

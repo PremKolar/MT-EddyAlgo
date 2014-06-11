@@ -34,9 +34,8 @@ function [DD]=set_up
     DD = initialise('raw');  
     %% get sample window
      file=SampleFile(DD);
-    [DD.map.window]=GetWindow(file,DD);
+    [DD.map.window]=GetWindow(file,DD,DD.map.in.keys);
 end
-
 function spmd_body(DD)
     %% distro chunks to threads
      [TT]=SetThreadVar(DD);   
@@ -53,38 +52,6 @@ function spmd_body(DD)
         WriteFileOut(file.out,CUT);
     end
 end
-
-function [file,exists]=GetCurrentFile(TT,DD) 
-    exists.out=false;
-   file.in=TT.files;  
-   timestr=datestr(TT.daynums,'yyyymmdd');
-    %% set up output file
-    path=DD.path.cuts.name;
-    geo=DD.map.in;
-    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
-    file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
-    file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
-    file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
-    file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
-    if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
-end
-function WriteFileOut(file,CUT) %#ok<INUSD>
-    save(file,'-struct','CUT')
-end
-
-
-function file=SampleFile(DD)
-    dir_in =DD.path.raw;
-    pattern_in=DD.map.in.pattern.fname;
-    sample_time=DD.time.from.str;
-    file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
-    if ~exist(file,'file')
-        error([file,' doesnt exist! choose other start date!'])
-    end
-end
-
-
-
 function [CUT,readable]=CutMap(file,DD)
     addpath(genpath('./'));
     CUT=struct;
@@ -113,4 +80,30 @@ function [DY,DX]=DYDX(LAT,LON)
     seamcrossflag=DX>100*median(DX(:));
     DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));
 end
-
+%=========================================================================%
+function WriteFileOut(file,CUT) %#ok<INUSD>
+    save(file,'-struct','CUT')
+end
+function file=SampleFile(DD)
+    dir_in =DD.path.raw;
+    pattern_in=DD.map.in.fname;
+    sample_time=DD.time.from.str;
+    file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
+    if ~exist(file,'file')
+        error([file,' doesnt exist! choose other start date!'])
+    end
+end
+function [file,exists]=GetCurrentFile(TT,DD) 
+    exists.out=false;
+   file.in=TT.files;  
+   timestr=datestr(TT.daynums,'yyyymmdd');
+    %% set up output file
+    path=DD.path.cuts.name;
+    geo=DD.map.in;
+    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
+    file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
+    file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
+    file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
+    file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
+    if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
+end

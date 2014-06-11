@@ -9,14 +9,14 @@
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
+% NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
 function S01b_BruntVaisRossby
 	%% set up
 	[DD,lims]=set_up;
 	%% spmd
 	main(DD,lims)
 	%% make netcdf
-	DD.path.Rossby=WriteNCfile(DD,lims);
-    
+	DD.path.Rossby=WriteNCfile(DD,lims);    
 	%% update DD
 	save_info(DD);
 end
@@ -38,12 +38,12 @@ function [DD,lims]=set_up
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find temp and salt files
 	[DD.path.TempSalt.salt,DD.path.TempSalt.temp]=tempsalt(DD);	
-    [DD.TS.window,~,grids]=GetWindow(DD.path.TempSalt.salt,DD,DD.map.TS.pattern)     
+    [DD.TS.window,grids]=GetWindow(DD.path.TempSalt.salt,DD,DD.map.TS.pattern);
     [CUT]=ZonalProblem(grids,DD.TS.window);
     %% set dimension for splitting (files dont fit in memory)
 	X=DD.TS.window.size.X;
 	%% map chunks
-	lims.data=thread_distro(splits,X) + DD.map.window.limits.west-1;
+	lims.data=thread_distro(splits,X) + DD.TS.window.limits.west-1;
 	%% distro chunks to threads
 	lims.loop=thread_distro(DD.threads.num,splits);
 end
@@ -188,13 +188,13 @@ function depth=ChunkDepth(DD)
 	depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
 end
 function salt=ChunkSalt(DD,dim)
-	dispNcInfo(DD.path.TempSalt.salt)
+% 	dispNcInfo(DD.path.TempSalt.salt)
 	salt=squeeze(nc_varget(DD.path.TempSalt.salt,'SALT',dim.start2d,dim.len2d));
 	salt(salt==0)=nan;
 	salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 function temp=ChunkTemp(DD,dim)
-	dispNcInfo(DD.path.TempSalt.temp)
+% 	dispNcInfo(DD.path.TempSalt.temp)
 	temp=squeeze(nc_varget(DD.path.TempSalt.temp,'TEMP',dim.start2d,dim.len2d));
 	temp(temp==0)=nan;
 end

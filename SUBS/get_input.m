@@ -57,7 +57,7 @@ function path=findfiles(DD)
     %%
     mkDirs(path)
     %%    
-    [~,~,ext.raw]=fileparts(DD.map.in.pattern.fname);    
+    [~,~,ext.raw]=fileparts(DD.map.in.fname);    
     path.protoMaps.file=[path.root, 'protoMaps.mat'];
     path.meanU.file=[path.root, 'meanU.mat'];
     path.raw.files=dir([path.raw.name,'*',ext.raw]);

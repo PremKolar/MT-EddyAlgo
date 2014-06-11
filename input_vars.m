@@ -11,14 +11,14 @@ function U=input_vars
 	U.time.till.str='19960105'; % max pop   
     U.time.delta_t=7; % [days]!
 	%% dirs
-	U.path.OutDirBaseName='avitest';
+	U.path.OutDirBaseName='avitestTiny';
 	U.path.TempSalt.name='../TempSalt/';
 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
 	%% output MAP STUFF
-	U.map.out.X=360*1+1;
+	U.map.out.X=20*1+1;
 	U.map.out.Y=30*1+1;
-	U.map.out.west=-180;
-	U.map.out.east=180;
+	U.map.out.west=-160;
+	U.map.out.east=-140;
 	U.map.out.south=-70;
 	U.map.out.north=-40;
     %% input MAP STUFF
@@ -29,13 +29,16 @@ function U=input_vars
 	U.map.in.time.delta_t = 1; % [days]
 	U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     %% input patterns
-    U.map.in.pattern.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
-	U.map.in.pattern.lat='lat';
-	U.map.in.pattern.lon='lon';
-	U.map.in.pattern.ssh='msla'; 
-    U.map.TS.pattern.lat='U_LAT_2D';
-    U.map.TS.pattern.lon='U_LON_2D';  
-	%% thresholds
+    U.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
+	U.map.in.keys.lat='lat';
+	U.map.in.keys.lon='lon';
+	U.map.in.keys.ssh='msla'; 
+    U.map.TS.keys.lat='U_LAT_2D';
+    U.map.TS.keys.lon='U_LON_2D';  
+    U.map.TS.keys.salt='SALT';
+    U.map.TS.keys.temp='TEMP';  
+    U.map.TS.keys.depth='depth_t';  
+    %% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;
 	U.thresh.radius=0; % [SI]

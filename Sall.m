@@ -1,4 +1,4 @@
-function Sall
+
 S00_prep_data
  S01_contours
  S01a_deleteZonalOverlapInCuts
@@ -11,4 +11,3 @@ S00_prep_data
  S06a_getMeanU
 S06b_analyze_tracks
 S07_drawPlots
-end

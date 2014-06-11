@@ -38,8 +38,8 @@ function [DD,lims]=set_up
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find temp and salt files
 	[DD.path.TempSalt.salt,DD.path.TempSalt.temp]=tempsalt(DD);	
-    [DD.TS.window,grids]=GetWindow(DD.path.TempSalt.salt,DD,DD.map.TS.pattern);
-    [CUT]=ZonalProblem(grids,DD.TS.window);
+    file=DD.path.TempSalt.salt;
+    [DD.TS.window,~]=GetWindow(file,DD.map.in,DD.TS.keys);
     %% set dimension for splitting (files dont fit in memory)
 	X=DD.TS.window.size.X;
 	%% map chunks
@@ -103,7 +103,7 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	%% init
 	CK=loadChunk(DD,chnk);
 	[Z,Y,X]=size(CK.BRVA);
-	strt=lims.data(chnk,1)-DD.map.window.limits.west;
+	strt=lims.data(chnk,1)-DD.TS.window.limits.west;
 	dim.start2d  = [  0 strt];
 	dim.len2d = [Y X];
 	dim.start1d   = [0];
@@ -111,8 +111,8 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	%% add dimensions to netcdf
 	if chnk==1
 		nc_adddim(nc_file_name,'depth_diff',Z);
-		nc_adddim(nc_file_name,'i_index',DD.map.window.size.X	);
-		nc_adddim(nc_file_name,'j_index',DD.map.window.size.Y);
+		nc_adddim(nc_file_name,'i_index',DD.TS.window.size.X	);
+		nc_adddim(nc_file_name,'j_index',DD.TS.window.size.Y);
 	end
 	%% Ro1
 	varstruct.Name = 'RossbyRadius';
@@ -160,9 +160,9 @@ function [BRVA]=calcBrvaPvort(CK,cc)
 	brva(brva<0)=nan;
 	BRVA=sqrt(reshape(brva,[ZZ-1,YY,XX]));
 end
-function [CK,DD]=initCK(DD,lims,chnk)
-	CK.chunk=chnk;
-	dim=ncArrayDims(DD,lims,chnk);
+function [CK,DD]=initCK(DD,lims,chunk)
+	CK.chunk=chunk;
+	dim=ncArrayDims(DD,lims,chunk);
 	disp('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,dim);
 	disp('getting salt..')
@@ -181,8 +181,8 @@ function [rossby]=ChunkRossby(CK)
 end
 
 function [lat,lon]=ChunkLatLon(DD,dim)
-	lat=nc_varget(DD.path.TempSalt.temp,DD.map.TS.pattern.lat,dim.start1d, dim.len1d);
-	lon=nc_varget(DD.path.TempSalt.temp,DD.map.TS.pattern.lon,dim.start1d, dim.len1d);
+	lat=nc_varget(DD.path.TempSalt.temp,DD.TS.keys.lat,dim.start1d, dim.len1d);
+	lon=nc_varget(DD.path.TempSalt.temp,DD.TS.keys.lon,dim.start1d, dim.len1d);
 end
 function depth=ChunkDepth(DD)
 	depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
@@ -209,8 +209,8 @@ function dispNcInfo(ncIn)
 	end
 end
 function dim=ncArrayDims(DD,lims,chnk)
-	j_indx_start = DD.map.window.limits.south-1;
-	j_len = DD.map.window.size.Y;
+	j_indx_start = DD.TS.window.limits.south-1;
+	j_len = DD.TS.window.size.Y;
 	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
 	dim.len2d = 	[inf inf j_len diff(lims(chnk,:))+1];
 	dim.start1d = [j_indx_start lims(chnk,1)-1];

@@ -27,17 +27,17 @@ function U=input_vars
 	U.map.in.south=U.map.out.south;
 	U.map.in.north=U.map.out.north;
 	U.map.in.time.delta_t = 1; % [days]
-	U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+	U.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     %% input patterns
     U.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
 	U.map.in.keys.lat='lat';
 	U.map.in.keys.lon='lon';
 	U.map.in.keys.ssh='msla'; 
-    U.map.TS.keys.lat='U_LAT_2D';
-    U.map.TS.keys.lon='U_LON_2D';  
-    U.map.TS.keys.salt='SALT';
-    U.map.TS.keys.temp='TEMP';  
-    U.map.TS.keys.depth='depth_t';  
+    U.TS.keys.lat='U_LAT_2D';
+    U.TS.keys.lon='U_LON_2D';  
+    U.TS.keys.salt='SALT';
+    U.TS.keys.temp='TEMP';  
+    U.TS.keys.depth='depth_t';  
     %% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;

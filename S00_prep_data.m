@@ -34,7 +34,7 @@ function [DD]=set_up
     DD = initialise('raw');  
     %% get sample window
      file=SampleFile(DD);
-    [DD.map.window]=GetWindow(file,DD,DD.map.in.keys);
+    [DD.map.window]=GetWindow(file,DD.map.in,DD.map.in.keys);
 end
 function spmd_body(DD)
     %% distro chunks to threads
@@ -47,14 +47,13 @@ function spmd_body(DD)
         %% get data
         file=GetCurrentFile(TT(cc),DD)  ;     
         %% cut data
-        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
+        [CUT]=CutMap(file,DD);
         %% write data
         WriteFileOut(file.out,CUT);
     end
 end
-function [CUT,readable]=CutMap(file,DD)
+function [CUT]=CutMap(file,DD)
     addpath(genpath('./'));
-    CUT=struct;
     %% get data
     [raw_fields]=GetFields(file.in,DD.map.in.keys);
     %% cut

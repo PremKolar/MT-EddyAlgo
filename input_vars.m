@@ -20,7 +20,6 @@ function U=input_vars
     U.map.out.east=-40;
     U.map.out.south=30;
     U.map.out.north=40;
-    %% input MAP STUFF   
     U.map.in.west=U.map.out.west;
     U.map.in.east=U.map.out.east;
     U.map.in.south=U.map.out.south;
@@ -36,11 +35,11 @@ function U=input_vars
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]
     U.thresh.amp=0.01; % [SI]
-    U.thresh.shape.iq=0.01; % isoperimetric quotient
+    U.thresh.shape.iq=0.1; % isoperimetric quotient
     U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
-    U.thresh.dist=5*24*60^2; % max distance travelled per day
-    U.thresh.life=3; % min num of living days for saving
+    U.thresh.dist=1*24*60^2; % max distance travelled per day
+    U.thresh.life=20; % min num of living days for saving
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
     U.switchs.RossbyStuff=true; % TODO
@@ -48,13 +47,14 @@ function U=input_vars
     U.switchs.chelt=true;
 U.switchs.distlimit=true;
 U.switchs.AmpAreaCheck=true;
+	 U.switchs.netUstuff=true;
     %% parameters
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U
     U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits =36; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

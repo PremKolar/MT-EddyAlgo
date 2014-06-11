@@ -8,9 +8,9 @@ function S07_drawPlots
 	DD=initialise;
 	%%	set ticks here!
 	ticks.rez=300;
-	ticks.width=297/25.4*ticks.rez*sqrt(2)*4;
+	ticks.width=297/25.4*ticks.rez*sqrt(2);
 	ticks.height=ticks.width/4;
-	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
+% 	ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X            *3;
 % 	ticks.height=ticks.width/sqrt(2); % Din a4
 	ticks.y= 0;
 	ticks.x= 0;

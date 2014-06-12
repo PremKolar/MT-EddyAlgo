@@ -1,7 +1,7 @@
 function U=input_vars
 	%% threads / debug
 	U.threads.num=12;
-	U.debugmode=1;
+	U.debugmode=0;
 	%% time
 %     U.time.from.str='19920114';  % min aviso
 %     U.time.till.str='20130807'; % max aviso

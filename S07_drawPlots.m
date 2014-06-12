@@ -14,18 +14,18 @@ function S07_drawPlots
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
     ticks.x= 0;
-    ticks.age=[1,2*365,10];
-    ticks.isoper=[DD.thresh.shape.iq,1,10];
-    ticks.isoper=[.3,1,8];
+    ticks.age=[1,3*365,10];
+%     ticks.isoper=[DD.thresh.shape.iq,1,10];
+	 ticks.isoper=[.6,1,10];
     ticks.radius=[20,150,9];
     ticks.radiusToRo=[0.2,5,11];
     ticks.amp=[1,20,7];
     %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
     ticks.visitsunique=[1,3,3];
-    ticks.dist=[-1200;800;11];
+    ticks.dist=[-1700;1000;14];
     %ticks.dist=[-100;50;16];
-    ticks.disttot=[1;1500;16];
+    ticks.disttot=[1;2000;10];
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
@@ -342,28 +342,28 @@ function TPa(DD,ticks,tracks,sen)
     colorbar
     xlabel('IQ repr. by thickness; latitude repr. by color')
     axis equal
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['defletcs' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['defletcs' sen],DD.debugmode,'dpng',1);
 end
 function TPb(DD,ticks,tracks,sen)
     field='age';
     drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
     decorate(field,ticks,DD,sen,field,'d',1,1);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode,'dpng',1);
 end
 function TPc(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
     decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode,'dpng',1);
 end
 function TPd(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
     decorate('radius',ticks,DD,sen,'Radius','km',0,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode,'dpng',1);
 end
 function TPe(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
     decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
     
 end
 function TPf(DD,ticks,tracks,sen)
@@ -401,7 +401,7 @@ function [lat]=numPerLat(latin,DD,ticks,range,sen)
     semilogy(range,lat);
     tit=['number of ',sen,' per 1deg lat'];
     title([tit]);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
 end
 function [age,cum]=ageCum(agein,DD,ticks,range,sen)
     figure

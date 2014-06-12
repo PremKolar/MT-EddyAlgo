@@ -4,14 +4,17 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,rez,xdim,ydim,tit,debug,vectorGr)
+function savefig(outdir,rez,xdim,ydim,tit,debug,frmt,saveFig)
     if nargin<6,debug=false;end
     if debug
     disp('yo')
     return
 	 end
 	 if nargin < 7
-		 vectorGr='dpng';
+		 frmt='dpng';
+	 end
+	 if nargin < 8
+		 saveFig=false;
 	 end
 	fname=[outdir,tit];
     mkdirp(outdir);	
@@ -27,14 +30,17 @@ function savefig(outdir,rez,xdim,ydim,tit,debug,vectorGr)
 		xdim=xdim*rez/resolution;
 		ydim=ydim*rez/resolution;
 		set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
-		if strcmp(vectorGr,'dpdf')
+		if strcmp(frmt,'dpdf')
 		eval(['print ',[fname,'.eps'] , ' -f -r',num2str(rez),' -depsc ;'])
 		system(['epstopdf ' fname '.eps']);
 		system(['rm ' fname '.eps']);
 		else
-			eval(['print ',[fname,vectorGr(2:end)] , ' -f -r',num2str(rez),' -',vectorGr,';'])
+			eval(['print ',[fname,'.',frmt(2:end)] , ' -f -r',num2str(rez),' -',frmt,';'])
 		end
 	end
-	close(gcf);
+	if saveFig
+		save(gcf,[fname,'.mat'])
+	end
+		close(gcf);
 end
 

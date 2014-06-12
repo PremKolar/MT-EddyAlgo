@@ -13,11 +13,11 @@ function U=input_vars
 	%% dirs
 	U.path.OutDirBaseName='avitestTiny';
 	
-	U.path.TempSalt.name='../TempSalt/';
-	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+% 	U.path.TempSalt.name='../TempSalt/';
+% 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
 	
-	% U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
-	% U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
+	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
+	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
 	U.map.out.X=20*1+1;
 	U.map.out.Y=30*1+1;

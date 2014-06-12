@@ -12,14 +12,15 @@ function U=input_vars
     U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.OutDirBaseName='avitestTiny';
-	U.path.TempSalt.name='../TempSalt/';
+% 	U.path.TempSalt.name='../TempSalt/';
+	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
 	%% output MAP STUFF
 	U.map.out.X=20*1+1;
 	U.map.out.Y=30*1+1;
-	U.map.out.west=-160;
-	U.map.out.east=-140;
-	U.map.out.south=-70;
+	U.map.out.west=170;
+	U.map.out.east=180;
+	U.map.out.south=-60;
 	U.map.out.north=-40;
     %% input MAP STUFF
 	U.map.in.west=U.map.out.west;
@@ -62,7 +63,7 @@ function U=input_vars
 	U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
 	%% technical params
-	U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
+	U.RossbyStuff.splits =4; % number of chunks for brunt väis calculations
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';

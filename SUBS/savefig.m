@@ -4,12 +4,15 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,rez,xdim,ydim,tit,debug)
+function savefig(outdir,rez,xdim,ydim,tit,debug,vectorGr)
     if nargin<6,debug=false;end
     if debug
     disp('yo')
     return
-    end
+	 end
+	 if nargin < 7
+		 vectorGr='dpng';
+	 end
 	fname=[outdir,tit];
     mkdirp(outdir);	
 	if rez==42
@@ -24,12 +27,13 @@ function savefig(outdir,rez,xdim,ydim,tit,debug)
 		xdim=xdim*rez/resolution;
 		ydim=ydim*rez/resolution;
 		set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
-% 		disp(['printing' fname ' to ps']);
-% 		print(gcf, '-dpsc2', [fname,'.ps'])
+		if strcmp(vectorGr,'dpdf')
 		eval(['print ',[fname,'.eps'] , ' -f -r',num2str(rez),' -depsc ;'])
 		system(['epstopdf ' fname '.eps']);
-% 		system(['pdfcrop ' fname '.pdf ' fname 'Crpd.pdf']);
 		system(['rm ' fname '.eps']);
+		else
+			eval(['print ',[fname,vectorGr(2:end)] , ' -f -r',num2str(rez),' -',vectorGr,';'])
+		end
 	end
 	close(gcf);
 end

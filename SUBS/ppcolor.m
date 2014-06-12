@@ -1,4 +1,5 @@
 function fig=ppcolor(in)
+	figure
 	%% if too large, downscale; keep ratio; make double
 		[a,b,c]=size(in);
 	if a==1 && b~=1 && c~=1

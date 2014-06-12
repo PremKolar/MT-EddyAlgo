@@ -106,12 +106,12 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	strt=lims.data(chnk,1)-DD.TS.window.limits.west;
 	dim.start2d  = [  0 strt];
 	dim.len2d = [Y X];
-	dim.start1d   = [0];
-	dim.len1d = [Z];
+% 	dim.start1d   = [0];
+% 	dim.len1d = [Z];
 	%% add dimensions to netcdf
 	if chnk==1
 		nc_adddim(nc_file_name,'depth_diff',Z);
-		nc_adddim(nc_file_name,'i_index',DD.TS.window.size.X	);
+		nc_adddim(nc_file_name,'i_index',DD.TS.window.size.X);
 		nc_adddim(nc_file_name,'j_index',DD.TS.window.size.Y);
 	end
 	%% Ro1
@@ -126,6 +126,18 @@ function catChunks2NetCDF(DD,lims,chnk,nc_file_name)
 	varstruct.Dimension ={'j_index','i_index' };
 	if chnk==1,nc_addvar(nc_file_name,varstruct); end
 	nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.start2d, dim.len2d);
+	%% lat
+	varstruct.Name = 'lat';
+	varstruct.Nctype = 'double';
+	varstruct.Dimension ={'j_index','i_index' };
+	if chnk==1,nc_addvar(nc_file_name,varstruct); end
+	nc_varput(nc_file_name,'lat',CK.lat	,dim.start2d, dim.len2d);
+	%% lon
+	varstruct.Name = 'lon';
+	varstruct.Nctype = 'double';
+	varstruct.Dimension ={'j_index','i_index' };
+	if chnk==1,nc_addvar(nc_file_name,varstruct); end
+	nc_varput(nc_file_name,'lon',CK.lon	,dim.start2d, dim.len2d);
 end
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>
 	file_out=[DD.path.TempSalt.name,'BVRf_',sprintf('%03d',chnk),'.mat'];

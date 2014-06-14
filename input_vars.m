@@ -8,7 +8,7 @@ function U=input_vars
 	% 	U.time.from.str='19940105';  % min pop
 	% 	U.time.till.str='20061231'; % max pop
 	U.time.from.str='19940105';  % min pop
-	U.time.till.str='19960105'; % max pop
+	U.time.till.str='20040105'; % max pop
 	U.time.delta_t=7; % [days]!
 	%% dirs
 	U.path.OutDirBaseName='avitestTiny';
@@ -20,9 +20,9 @@ function U=input_vars
 	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
 	U.map.out.X=20*1+1;
-	U.map.out.Y=30*1+1;
-	U.map.out.west=170;
-	U.map.out.east=180;
+	U.map.out.Y=20*1+1;
+	U.map.out.west=-120;
+	U.map.out.east=-100;
 	U.map.out.south=-60;
 	U.map.out.north=-40;
 	%% input MAP STUFF

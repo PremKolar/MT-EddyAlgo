@@ -4,24 +4,24 @@ function U=input_vars
     U.debugmode=false;
 %     U.debugmode=true;
     %% time
+      U.time.delta_t=1; % [days]!
     U.time.from.str='19940102';
 % 	 U.time.from.str='19940425';
 %     U.time.till.str='19960730';
-   	 U.time.till.str='20061231';
-   U.time.delta_t=1; % [days]!
+   	 U.time.till.str='20001231'; 
     %% dirs    
-    U.path.OutDirBaseName='zonLONG';
+    U.path.OutDirBaseName='easterislands';
     U.path.TempSalt.name='../TempSalt/';
 %     U.path.TempSalt.name='/media/ROM/TempSalt/';
     U.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 %     U.path.raw.name='/media/ROM/SSH_POP/';
-   %% output MAP STUFF   
-    U.map.out.X=2*360*1+1;
-    U.map.out.Y=2*5*1+1;
-    U.map.out.west=-180;
-    U.map.out.south=-60;
-    U.map.out.east=180;   
-    U.map.out.north=-55;
+ %% output MAP STUFF
+	U.map.out.X=20*1+1;
+	U.map.out.Y=20*1+1;
+	U.map.out.west=-120;
+	U.map.out.east=-100;
+	U.map.out.south=-60;
+	U.map.out.north=-40;
     %% input MAP STUFF   
     U.map.in.west=U.map.out.west;
     U.map.in.east=U.map.out.east;
@@ -38,14 +38,14 @@ function U=input_vars
     U.thresh.ssh_filter_size=1;
     U.thresh.radius=0; % [SI]
     U.thresh.amp=0.01; % [SI]
-    U.thresh.shape.iq=0.1; % isoperimetric quotient
+    U.thresh.shape.iq=0.3; % isoperimetric quotient
     U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     U.thresh.corners=6; % min number of data points for the perimeter of an eddy
     U.thresh.dist=1*24*60^2; % max distance travelled per day
-    U.thresh.life=20; % min num of living days for saving
+    U.thresh.life=10; % min num of living days for saving
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
-    U.switchs.RossbyStuff=true; % TODO
+    U.switchs.RossbyStuff=true; 
     U.switchs.IQ=true;
     U.switchs.chelt=false;
     U.switchs.distlimit=false;

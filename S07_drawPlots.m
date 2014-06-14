@@ -7,9 +7,10 @@
 function S07_drawPlots
     DD=initialise;
     %%	set ticks here!
-    ticks.rez=200;
+%     ticks.rez=200;
+	 ticks.rez=get(0,'ScreenPixelsPerInch');
 %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez;
+    ticks.width=297/25.4*ticks.rez*5;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -23,7 +24,7 @@ function S07_drawPlots
     %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
     ticks.visitsunique=[1,3,3];
-    ticks.dist=[-1700;1000;14];
+    ticks.dist=[-1500;1000;21];
     %ticks.dist=[-100;50;16];
     ticks.disttot=[1;2000;10];
     ticks.vel=[-30;20;6];
@@ -336,9 +337,9 @@ end
 function TPa(DD,ticks,tracks,sen)
     drawColorLinem(ticks,tracks.(sen),'lat','isoper') ;
     title([sen '- deflections'])
-    axis([-1500 300 -300 300])
-    set(gca,'ytick',[-200 0 200])
-    set(gca,'xtick',[-1000 0 200])
+    axis([-2500 1500 -500 500])
+    set(gca,'ytick',[-500 0 500])
+    set(gca,'xtick',[-2500 0 1500])
     colorbar
     xlabel('IQ repr. by thickness; latitude repr. by color')
     axis equal

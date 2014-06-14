@@ -32,7 +32,7 @@ end
 
 function [DD]=set_up
     %% init dependencies
-    agp
+   addpath(genpath('./'))
     %% get user input
     DD = initialise('raw');  
     %% get sample window

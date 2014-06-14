@@ -30,12 +30,22 @@ function savefig(outdir,rez,xdim,ydim,tit,debug,frmt,saveFig)
 		xdim=xdim*rez/resolution;
 		ydim=ydim*rez/resolution;
 		set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
+	%	xoy=xdim/ydim;
+		xa4=11.692*resolution;
+% 		ya4=xa4/xoy;			
+		fsScaled=round(14/xa4*xdim)		;
+% 			set(gcf,'paperunits','inch','position',[0 0 [xdim ydim]]);
+set(gca,'FontSize',fsScaled)
+set(findall(gcf,'type','text'),'FontSize',fsScaled)
+	
 		if strcmp(frmt,'dpdf')
 		eval(['print ',[fname,'.eps'] , ' -f -r',num2str(rez),' -depsc ;'])
 		system(['epstopdf ' fname '.eps']);
 		system(['rm ' fname '.eps']);
 		else
-			eval(['print ',[fname,'.',frmt(2:end)] , ' -f -r',num2str(rez),' -',frmt,';'])
+			fnfull=[fname,'.',frmt(2:end)];
+			eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt,';'])
+			system(['convert -density ' num2str(rez) 'x' num2str(rez) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
 		end
 	end
 	if saveFig

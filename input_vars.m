@@ -1,7 +1,7 @@
 function U=input_vars
 	%% threads / debug
 	U.threads.num=12;
-	U.debugmode=0;
+	U.debugmode=1;
 	%% time
 	%     U.time.from.str='19920114';  % min aviso
 	%     U.time.till.str='20130807'; % max aviso
@@ -13,11 +13,11 @@ function U=input_vars
 	%% dirs
 	U.path.OutDirBaseName='avitestTiny';
 	
-% 	U.path.TempSalt.name='../TempSalt/';
-% 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+	U.path.TempSalt.name='../TempSalt/';
+	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
 	
-	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
-	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
+% 	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
+% 	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
 	U.map.out.X=20*1+1;
 	U.map.out.Y=20*1+1;
@@ -66,7 +66,7 @@ function U=input_vars
 	U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
 	%% technical params
-	U.RossbyStuff.splits =4; % number of chunks for brunt väis calculations
+	U.RossbyStuff.splits =1; % number of chunks for brunt väis calculations
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';

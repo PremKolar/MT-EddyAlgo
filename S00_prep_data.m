@@ -84,6 +84,10 @@ end
 function WriteFileOut(file,CUT) %#ok<INUSD>
     save(file,'-struct','CUT')
 end
+%=========================================================================%
+function WriteFileOut(file,CUT) %#ok<INUSD>
+    save(file,'-struct','CUT')
+end
 function file=SampleFile(DD)
     dir_in =DD.path.raw;
     pattern_in=DD.map.in.fname;

@@ -1,14 +1,14 @@
 function U=input_vars
     %% threads / debug
     U.threads.num=12;
-%     U.debugmode=false;
-    U.debugmode=true;
+    U.debugmode=false;
+%     U.debugmode=true;
     %% time
       U.time.delta_t=1; % [days]!
     U.time.from.str='19940102';
 % 	 U.time.from.str='19940425';
 %     U.time.till.str='19960730';
-   	 U.time.till.str='19951231'; 
+   	 U.time.till.str='19981231'; 
     %% dirs    
     U.path.OutDirBaseName='easterislands';
     U.path.TempSalt.name='../TempSalt/';
@@ -28,11 +28,17 @@ function U=input_vars
     U.map.in.south=U.map.out.south;
     U.map.in.north=U.map.out.north;
     U.map.in.time.delta_t = 1; % [days]
-    U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-    U.map.in.pattern.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-    U.map.in.pattern.lat='U_LAT_2D';
-    U.map.in.pattern.lon='U_LON_2D';
-    U.map.in.pattern.ssh='SSH';
+    U.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+    U.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
+    U.map.in.keys.lat='U_LAT_2D';
+    U.map.in.keys.lon='U_LON_2D';
+    U.map.in.keys.ssh='SSH';
+    U.TS.keys.lat='U_LAT_2D';
+ 	U.TS.keys.lon='U_LON_2D';
+ 	U.TS.keys.salt='SALT';
+ 	U.TS.keys.temp='TEMP';
+ 	U.TS.keys.depth='depth_t';
+
     %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
@@ -58,7 +64,7 @@ function U=input_vars
     U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits =24; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

@@ -32,8 +32,8 @@ function idx=main(DD,MAP)
 end
 function idx=spmd_body(DD,out)
     %% get input example lon/lat
-    in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LON'));
-    in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LAT'));
+    in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
+    in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
     %% get codisp'ed indeces
     lims=thread_distro(DD.threads.num,numel(in.lon));
     JJ=lims(labindex,1):lims(labindex,2);

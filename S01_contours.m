@@ -43,7 +43,7 @@ function II=get_contours(dd,TT)
     %% loop over levels    
     for level=II.levels
         II.T=disp_progress('disp',II.T,numel(II.levels),10);
-        CONT.all=[CONT.all; contourc(II.grids.SSH,[level level])'];
+        CONT.all=[CONT.all; contourc(II.grids.ssh,[level level])'];
     end
     %% save data
     save(CONT.filename,'-struct','CONT');
@@ -57,8 +57,8 @@ function [II,CONT]=init_get_contours(dd,TT)
     disp('calculating contours... takes long time!')
     CONT.all=[]; % init
     %% create level vector at chosen interval
-    floorlevel=floor(nanmin(II.grids.SSH(:))/dd.contour.step)*dd.contour.step;
-    ceillevel=ceil(nanmax(II.grids.SSH(:))/dd.contour.step)*dd.contour.step;
+    floorlevel=floor(nanmin(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
+    ceillevel=ceil(nanmax(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
     II.levels=floorlevel:dd.contour.step:ceillevel;
     II.T=disp_progress('init',['contours of day: ' datestr(TT.daynums)]);    
     %% add info

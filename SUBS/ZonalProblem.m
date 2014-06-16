@@ -15,7 +15,7 @@ function [OUT]=ZonalProblem(IN,window)
     %% seam crossing?
     seam=false;
     if ~full_globe.x
-        if (Wlin.west==1  && Wlin.east==size(IN.lon,2)) % ie not full globe but both seam ends are within desired window
+        if (Wlin.west>Wlin.east) % ie not full globe but both seam ends are within desired window
             seam=true; % piece crosses long seam
             [OUT,window]=SeamCross(IN,window);
         else % desired piece is within global fields, not need for stitching

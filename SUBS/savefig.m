@@ -4,12 +4,18 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,rez,xdim,ydim,tit,debug)
+function savefig(outdir,rez,xdim,ydim,tit,debug,frmt,saveFig)
     if nargin<6,debug=false;end
-%     if debug
-%     disp('yo')
-%     return
-%     end
+    if debug
+    disp('yo')
+    return
+	 end
+	 if nargin < 7
+		 frmt='dpng';
+	 end
+	 if nargin < 8
+		 saveFig=false;
+	 end
 	fname=[outdir,tit];
     mkdirp(outdir);	
 	if rez==42
@@ -24,13 +30,27 @@ function savefig(outdir,rez,xdim,ydim,tit,debug)
 		xdim=xdim*rez/resolution;
 		ydim=ydim*rez/resolution;
 		set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
-% 		disp(['printing' fname ' to ps']);
-% 		print(gcf, '-dpsc2', [fname,'.ps'])
+	%	xoy=xdim/ydim;
+		xa4=11.692*resolution;
+% 		ya4=xa4/xoy;			
+		fsScaled=round(14/xa4*xdim)		;
+% 			set(gcf,'paperunits','inch','position',[0 0 [xdim ydim]]);
+set(gca,'FontSize',fsScaled)
+set(findall(gcf,'type','text'),'FontSize',fsScaled)
+	
+		if strcmp(frmt,'dpdf')
 		eval(['print ',[fname,'.eps'] , ' -f -r',num2str(rez),' -depsc ;'])
 		system(['epstopdf ' fname '.eps']);
-% 		system(['pdfcrop ' fname '.pdf ' fname 'Crpd.pdf']);
 		system(['rm ' fname '.eps']);
+		else
+			fnfull=[fname,'.',frmt(2:end)];
+			eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt,';'])
+			system(['convert -density ' num2str(rez) 'x' num2str(rez) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
+		end
 	end
-	close(gcf);
+	if saveFig
+		save(gcf,[fname,'.mat'])
+	end
+		close(gcf);
 end
 

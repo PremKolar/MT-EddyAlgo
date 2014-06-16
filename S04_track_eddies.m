@@ -114,7 +114,7 @@ function [NEW]=set_up_today(DD,jj,sen)
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
-    [NEW.LON,NEW.LAT]=get_geocoor(NEW.eddies,sen);
+    [NEW.lon,NEW.lat]=get_geocoor(NEW.eddies,sen);
 end
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     %% determine whether double eddies might be present due to full lon
@@ -123,7 +123,7 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     eddies=read_fields(DD,1,'eddies');
     [tracks,OLD.eddies]=init_day_one(eddies,sen);
     %% append geo-coor vectors for min_dist function
-    [OLD.LON,OLD.LAT]=get_geocoor(OLD.eddies,sen);
+    [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies,sen);
 end
 function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
     %% collect all ID's in archive
@@ -237,16 +237,16 @@ function [TDB]=tracked_dead_born(MD,sen)
 end
 function [inout]=kill_phantoms(inout,sen)
     %% search for identical eddies
-    [LOM.a,LOM.b]=meshgrid(inout.LON.(sen),inout.LON.(sen));
-    [LAM.a,LAM.b]=meshgrid(inout.LAT.(sen),inout.LAT.(sen));
-    LONDIFF=abs(LOM.a - LOM.b);
-    DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(LONDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
+    [LOM.a,LOM.b]=meshgrid(inout.lon.(sen),inout.lon.(sen));
+    [LAM.a,LAM.b]=meshgrid(inout.lat.(sen),inout.lat.(sen));
+    lonDIFF=abs(LOM.a - LOM.b);
+    DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(lonDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
     DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
     [Y,~] = find(DIST==0);
     %% kill
     inout.eddies.(sen)(Y)=[];
-    inout.LON.(sen)(Y)=[];
-    inout.LAT.(sen)(Y)=[];
+    inout.lon.(sen)(Y)=[];
+    inout.lat.(sen)(Y)=[];
 end
 function closeEnough=checkForWithinEllipse(NEW,OLD)
     %% get locations of new eddies
@@ -290,8 +290,8 @@ function [LOM,LAM]=checkAmpAreaBounds(OLD,NEW,sen,ampArea,LOM,LAM)
 end
 function [MD]=get_min_dists(OLD,NEW,sen,DD)
     %% build geo loc matrices
-    [LOM.new,LOM.old]=meshgrid(NEW.LON.(sen),OLD.LON.(sen));
-    [LAM.new,LAM.old]=meshgrid(NEW.LAT.(sen),OLD.LAT.(sen));
+    [LOM.new,LOM.old]=meshgrid(NEW.lon.(sen),OLD.lon.(sen));
+    [LAM.new,LAM.old]=meshgrid(NEW.lat.(sen),OLD.lat.(sen));
     %% nan out of bounds indeces
     if DD.switchs.distlimit
         [LOM,LAM]=nanOutOfBounds(LOM,LAM,NEW.eddies.(sen),OLD.eddies.(sen));
@@ -301,14 +301,14 @@ function [MD]=get_min_dists(OLD,NEW,sen,DD)
         [LOM,LAM]=checkAmpAreaBounds(OLD,NEW,sen,DD.thresh.ampArea,LOM,LAM);
     end
     %% calc distances between all from new to all from old
-    LONDIFF=abs(LOM.new - LOM.old);
-    DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(LONDIFF)))*earthRadius;
+    lonDIFF=abs(LOM.new - LOM.old);
+    DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
     %% find min dists
     [MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
     [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
 end
-function [LON, LAT]=get_geocoor(eddies,sen)
-    LON.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
-    LAT.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
+function [lon, lat]=get_geocoor(eddies,sen)
+    lon.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
+    lat.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
 end
 

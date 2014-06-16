@@ -19,7 +19,7 @@ function DD=initialise(toCheck)
     end
     %% in case DD was deleted after S00 was executed rehash window info from cut file
     if   ~isempty(DD.path.cuts.files)
-        [DD.map.window]=GetWindow(DD);
+        [DD.map.window]=GetWin(DD);
     end
     %% load workers   
     DD.threads.num=init_threads(DD.threads.num);
@@ -96,7 +96,7 @@ function del_t=newDt(TT,DD)
     end
     
 end
-function [window]=GetWindow(DD)
+function [window]=GetWin(DD)
     smplFile=[DD.path.cuts.name DD.path.cuts.files(1).name];
     load(smplFile,'window');
     window.flag=[];
@@ -109,7 +109,7 @@ function passed=getFnames(DD,checks,toCheck)
     cc=0;
     for ts=timestr';cc=cc+1;
         if strcmp(toCheck,'raw')
-            passed(cc).filenames=[path.name, strrep(DD.map.in.pattern.fname, 'yyyymmdd',ts{1})];
+            passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts{1})];
             passed(cc).protofilenames=[];
         else
             temp=[path.name, strrep(pattern, 'yyyymmdd',ts{1})];

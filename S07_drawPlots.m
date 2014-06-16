@@ -70,9 +70,7 @@ end
 function job=taskfForZonMeans(DD,IN,ticks)
     job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
     job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
-    diary(job(1), 'jobzonmean1.txt')
-    diary(job(2), 'jobzonmean2.txt')
-    disp(['see jobzonmean1.txt and jobzonmean2.txt'])
+     disp(['see jobzonmean1.txt and jobzonmean2.txt'])
 end
 function velZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),2*IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
@@ -106,8 +104,7 @@ end
 function  job=taskfForMapAndHist(DD,IN,ticks)
     job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
     job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
-    diary(job(1), 'jobzMH1.txt')
-    diary(job(2), 'jobzMH2.txt')
+   
     disp(['see jobzMH(1:2).txt'])
 end
 function [OUT]=inits(DD)
@@ -325,13 +322,7 @@ function job=trackPlots(DD,ticks,tracks)
         job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
         job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
         job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
-        diary(job(1), [sen 'jobzTP1.txt'])
-        diary(job(2), [sen 'jobzTP2.txt'])
-        diary(job(3), [sen 'jobzTP3.txt'])
-        diary(job(4), [sen 'jobzTP4.txt'])
-        diary(job(5), [sen 'jobzTP5.txt'])
-        diary(job(6), [sen 'jobzTP6.txt'])
-        disp(['see ' sen 'jobzTP(1:6).txt'])
+         disp(['see ' sen 'jobzTP(1:6).txt'])
     end
 end
 function TPa(DD,ticks,tracks,sen)
@@ -612,7 +603,9 @@ function overmain(ticks,DD)
     if DD.debugmode
         mainDB(DD,threadData,ticks);
     else
+        warning('off') %#ok<*WNOFF>
         job=main(DD,threadData,ticks);
+         warning('on') %#ok<*WNON>
         %% close pool for printing
         matlabpool close
         for field=fieldnames(job)';ff=field{1};

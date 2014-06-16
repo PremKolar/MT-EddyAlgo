@@ -78,7 +78,7 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
            %% append healthy found eddy
             ACyc(pp)=ee_out;  %#ok<AGROW>
             %% nan out ssh where eddy was found
-            cut.grids.SSH(ee_out.mask)=nan;
+            cut.grids.ssh(ee_out.mask)=nan;
 		  end
 	 end
     if ~any(PASS)
@@ -94,7 +94,7 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
             %% append healthy found eddy
             Cyc(pp)=ee_out;
             %% nan out ssh where eddy was found
-            cut.grids.SSH(ee_out.mask)=nan;
+            cut.grids.ssh(ee_out.mask)=nan;
         end
     end
     if ~any(PASS)
@@ -103,7 +103,7 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
 end
 function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% pre-nan-check
-    pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.SSH);
+    pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
     if ~pass, return, end;
     %% closed ring check
     [pass]=CR_ClosedRing(ee);
@@ -131,7 +131,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     [pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
     if ~pass, return, end;
     %% get peak position and amplitude w.r.t contour
-    [pass,ee.peak,zoom.SSH_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
+    [pass,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass, return, end;
     %% get profiles
     [ee.profiles]=EDDyProfiles(ee,zoom.fields);
@@ -146,7 +146,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     [pass,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
     if ~pass, return, end;
     %% append mask to ee in cut coordinates
-    [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.SSH)));
+    [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
 	%%
 %     if DD.debugmode, plots4debug(zoom,ee); end
     %% get center of 'volume'
@@ -170,13 +170,13 @@ function [pass,sense]=CR_sense(zoom,direc,level)
     sense=struct;
     %% water column up: seeking anti cyclones; down: cyclones
     if direc==-1
-        if all(zoom.fields.SSH(zoom.mask.inslabindexe) >= level )
+        if all(zoom.fields.ssh(zoom.mask.inslabindexe) >= level )
             pass=true;
             sense.str='AntiCyclonic';
             sense.num=-1;
         end
     elseif direc==1
-        if all(zoom.fields.SSH(zoom.mask.inslabindexe) <= level )
+        if all(zoom.fields.ssh(zoom.mask.inslabindexe) <= level )
             pass=true;
             sense.str='Cyclonic';
             sense.num=1;
@@ -186,9 +186,9 @@ end
 function pass=CR_radius(radius,thresh)
     if radius>=thresh, pass=true; else pass=false; end
 end
-function pass=CR_RimNan(coor, Y, SSH)
+function pass=CR_RimNan(coor, Y, ssh)
     pass=true;
-    if any(isnan(SSH(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
+    if any(isnan(ssh(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
 end
 function pass=CR_corners(corners,thresh)
     pass=true;
@@ -197,14 +197,14 @@ end
 function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
     pass=false;
     %%
-    peak.mean_SSH=mean(z.fields.SSH(z.mask.filled));
+    peak.mean_ssh=mean(z.fields.ssh(z.mask.filled));
     %% make current level zero level and zero out everything else
-    base=poslin(-ee.sense.num*(z.fields.SSH-ee.level));
+    base=poslin(-ee.sense.num*(z.fields.ssh-ee.level));
     base(~z.mask.filled)=0;
     %% amplitude
     [peak.amp.to_contour,peak.lin]=max(base(:));
     [peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
-    peak.amp.to_mean = z.fields.SSH(peak.lin)-peak.mean_SSH;
+    peak.amp.to_mean = z.fields.ssh(peak.lin)-peak.mean_ssh;
     %% coordinates in full map
     peak.y=peak.z.y+z.limits.y -1;
     peak.x=peak.z.x+z.limits.x -1;
@@ -250,7 +250,7 @@ function [pass]=CR_2dEDDy(coor)
     end
 end
 function [pass]=CR_Nan(z)
-    ssh=z.fields.SSH(z.mask.filled);
+    ssh=z.fields.ssh(z.mask.filled);
     if ~any(isnan(ssh(:))), pass=true; else pass=false; end
 end
 function [pass]=CR_ClosedRing(ee)
@@ -264,15 +264,15 @@ function [pass]=CR_ClosedRing(ee)
 end
 %% others
 function U=getRossbyPhaseSpeed(DD)
-    if DD.switchs.RossbyStuff       
-        U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
-    else
+    if DD.switchs.RossbyStuff 
+     U=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+       else
         U=[];
     end
 end
 function [centroid]=AreaCentroid(zoom,Y)
     %% factor each grlabindex cell equally (compare to CenterOfVolume())
-    ssh=double(logical(zoom.SSH_BasePos));
+    ssh=double(logical(zoom.ssh_BasePos));
     %% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
     [XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
     y=sum(nansum(ssh.*YI));
@@ -361,7 +361,7 @@ function	[mask_out]=EDDyPackMask(mask_in,limits,dims)
 end
 function [pass,amp] = EDDyAmp2Ellipse(peak,zoom,thresh)
     %% mean amplitude with respect to ellipse contour
-    amp=abs(zoom.fields.SSH(peak)-nanmean(zoom.fields.SSH(zoom.mask.ellipse)));
+    amp=abs(zoom.fields.ssh(peak)-nanmean(zoom.fields.ssh(zoom.mask.ellipse)));
     if amp>=thresh, pass=true; else pass=false; end
 end
 function [ellipse]=EDDyEllipse(ee,mask)
@@ -392,11 +392,11 @@ function prof=EDDyProfiles(ee,fields)
     %% detect meridional and zonal profiles shifted to baselevel of current level
     offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
     %%	zonal cut
-    prof.x.ssh=fields.SSH(ee.peak.z.y,:) + offset_term;
+    prof.x.ssh=fields.ssh(ee.peak.z.y,:) + offset_term;
     prof.x.U=fields.U(ee.peak.z.y,:) ;
     prof.x.V=fields.V(ee.peak.z.y,:) ;
     %% meridional cut
-    prof.y.ssh=fields.SSH(:,ee.peak.z.x) + offset_term;
+    prof.y.ssh=fields.ssh(:,ee.peak.z.x) + offset_term;
     prof.y.U=fields.U(:,ee.peak.z.x) ;
     prof.y.V=fields.V(:,ee.peak.z.x) ;
 end
@@ -439,13 +439,13 @@ end
 function [geo]=geocoor(zoom,volume)
     xz=volume.center.xz;
     yz=volume.center.yz;
-    geo.lat=interp2(zoom.fields.LAT,xz,yz);
-    geo.lon=interp2(zoom.fields.LON,xz,yz);
+    geo.lat=interp2(zoom.fields.lat,xz,yz);
+    geo.lon=interp2(zoom.fields.lon,xz,yz);
     
 end
 function [volume]=CenterOfVolume(zoom,area,Y)
     %% get "volume" of eddy
-    ssh=zoom.SSH_BasePos;
+    ssh=zoom.ssh_BasePos;
     volume.total=mean(ssh(:))*area;
     %% get center of volume  formula:   COVs = \frac{1}{M} \sum_{i=1}^n m_i \vec{x}_i,
     [XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
@@ -471,7 +471,7 @@ function [circum]=EDDyCircumference(z)
     circum=sum(hypot(z.fields.DX(x).*dx,z.fields.DY(y).*dy)); %positive bias at bad resolution!
 end
 function mask=EDDyCut_mask(zoom)
-    [Y,X]=size(zoom.fields.SSH);
+    [Y,X]=size(zoom.fields.ssh);
     mask.rim_only=false(Y,X);
     mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
     mask.filled=logical(imfill(mask.rim_only,'holes'));
@@ -528,17 +528,14 @@ function [EE]=eddies2struct(CC,thresh)
     end
 end
 function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
-    [cut.dim.Y,cut.dim.X]=size(cut.grids.SSH);    
-    %% if contours were done finer than desired now
-    % TODO
-%    tag=abs(cat(1,ee.level)/contstep-(round(cat(1,ee.level)/contstep))) > 1e3/flintmax; % TODO (mod not working.. no idea..)
-%     ee(tag)=[];      
+    [cut.dim.Y,cut.dim.X]=size(cut.grids.ssh);    
     for jj=1:numel(ee)       
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
-        x(x==cut.dim.X+1)=cut.dim.X;
-		  x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
+      % x(x==cut.dim.X+1)=cut.dim.X;
+		x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
+         y(y>cut.dim.Y)=cut.dim.Y;
         x(x<1)=1;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;
@@ -550,12 +547,12 @@ function plots4debug(zoom,ee)
 %     close all
 %     figure('Position',[1926 250 560 420])
     subplot(1,2,1)
-    contourf(zoom.fields.SSH)
+    contourf(zoom.fields.ssh)
     title(['area:',num2str(round(ee.area.total/1000000)),'  -isop:',num2str(round(ee.isoper*1000)/1000)])
     hold on
     plot(zoom.coor.int.x,zoom.coor.int.y)
     subplot(1,2,2)
-    pcolor(zoom.fields.SSH)
+    pcolor(zoom.fields.ssh)
     hold on
     plot(zoom.coor.exact.x,zoom.coor.exact.y)
 %     print('-dpng','-r100', [num2str(ee.circum.si),'-',num2str(ee.level)])

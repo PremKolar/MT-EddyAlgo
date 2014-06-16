@@ -13,7 +13,7 @@ east=12;
 from='19940430';
 till='19950102';
 
-path_in=('/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/');
+path_in=('/scratch/uni/ifmto/u241194/DAILY/EULERIAN/ssh/');
 
 
 
@@ -25,14 +25,14 @@ EddiesAC=[];
 
 fs=dir([path_in, '*.nc']);
 file=[path_in, fs(round(length(fs)/2)).name];
-[SSH_c,LON_c,LAT_c,DY_c,DX_c,YDim,XDim,ystart,yend,xstart,xend,F]=get_geocoor(file, south, north, west, east, radius_earth);
+[ssh_c,lon_c,lat_c,DY_c,DX_c,YDim,XDim,ystart,yend,xstart,xend,F]=get_geocoor(file, south, north, west, east, radius_earth);
 
-LON = ncread(file,'U_LON_2D')';
-LAT = ncread(file,'U_LAT_2D')';
-SSH  = ncread(file,'SSH')';
+lon = ncread(file,'U_lon_2D')';
+lat = ncread(file,'U_lat_2D')';
+ssh  = ncread(file,'ssh')';
  
-    SSH_min=min(SSH_c(:));
-    SSH_max=max(SSH_c(:));
+    ssh_min=min(ssh_c(:));
+    ssh_max=max(ssh_c(:));
 
 
 % Set up axes
@@ -49,30 +49,30 @@ plotm(lat, long,'r','linewidth',3)
 scalefac=20;
 
 hold on
-plotm(LAT_c(1:scalefac:end,1:scalefac:end),LON_c(1:scalefac:end,1:scalefac:end),'-','markersize',0.0002,'color','blue')
-plotm(LAT_c(1:scalefac:end,1:scalefac:end)',LON_c(1:scalefac:end,1:scalefac:end)','-','markersize',0.0002,'color','blue')
+plotm(lat_c(1:scalefac:end,1:scalefac:end),lon_c(1:scalefac:end,1:scalefac:end),'-','markersize',0.0002,'color','blue')
+plotm(lat_c(1:scalefac:end,1:scalefac:end)',lon_c(1:scalefac:end,1:scalefac:end)','-','markersize',0.0002,'color','blue')
 
-% surfm(LAT(1:scalefac:end,1:scalefac:end),LON(1:scalefac:end,1:scalefac:end),SSH(1:scalefac:end,1:scalefac:end))
+% surfm(lat(1:scalefac:end,1:scalefac:end),lon(1:scalefac:end,1:scalefac:end),ssh(1:scalefac:end,1:scalefac:end))
 % 
-%  LAT_w=LAT(:,end-10:end) ;
-%  LAT_e=LAT(:,1:10) ;
-%  LON_e=LON(:,1:10) ;
-%  LON_w=LON(:,end-10:end) ; 
-%  plotm(LAT_w,LON_w,'color','blue')
-%  plotm(LAT_e,LON_e,'color','red')
-%   plotm(LAT_w',LON_w','color','blue')
-%  plotm(LAT_e',LON_e','color','red')
+%  lat_w=lat(:,end-10:end) ;
+%  lat_e=lat(:,1:10) ;
+%  lon_e=lon(:,1:10) ;
+%  lon_w=lon(:,end-10:end) ; 
+%  plotm(lat_w,lon_w,'color','blue')
+%  plotm(lat_e,lon_e,'color','red')
+%   plotm(lat_w',lon_w','color','blue')
+%  plotm(lat_e',lon_e','color','red')
  
  scalefac=10;
- SSH(SSH==0)=nan;
-%pcolor(SSH(1:scalefac:end,1:scalefac:end));
-% pcolorm(LAT(1:scalefac:end,1:scalefac:end),LON(1:scalefac:end,1:scalefac:end),SSH(1:scalefac:end,1:scalefac:end));
+ ssh(ssh==0)=nan;
+%pcolor(ssh(1:scalefac:end,1:scalefac:end));
+% pcolorm(lat(1:scalefac:end,1:scalefac:end),lon(1:scalefac:end,1:scalefac:end),ssh(1:scalefac:end,1:scalefac:end));
 %  
-% pcolor(LON(1:scalefac:end,1:scalefac:end)); shading interp; colorbar
+% pcolor(lon(1:scalefac:end,1:scalefac:end)); shading interp; colorbar
 % 
 % 
-% lonmin=min(LON(:))
-% lonmax=max(LON(:))
+% lonmin=min(lon(:))
+% lonmax=max(lon(:))
 
 
 
@@ -96,15 +96,15 @@ GRD=nan(180,360);
 [A,O]=size(GRD);
 EDDY_SPEEDS.ANTICYC.MEAN_SPEED=cell(size(GRD));
 EDDY_SPEEDS.CYC.MEAN_SPEED=cell(size(GRD));
-EDDY_SPEEDS.GRID.LAT=(-89:1:90);
-EDDY_SPEEDS.GRID.LON=(-179:1:180);
+EDDY_SPEEDS.GRID.lon=(-89:1:90);
+EDDY_SPEEDS.GRID.lon=(-179:1:180);
 
-[VELOCITIES_mean,VELOCITIES_median,vel_daily_total,LIFESPAN,LAT_mean,LON_mean]=get_eddy_statistics(POSITIONS,LAT,LON,radius_earth,TIMES);
+[VELOCITIES_mean,VELOCITIES_median,vel_daily_total,LIFESPAN,lat_mean,lon_mean]=get_eddy_statistics(POSITIONS,lat,lon,radius_earth,TIMES);
 
 
 for s=1:2
-    LA=round(LAT_mean{s});
-    LO=round(LON_mean{s});
+    LA=round(lat_mean{s});
+    LO=round(lon_mean{s});
     VE=VELOCITIES_mean{s};
     
     %
@@ -125,10 +125,10 @@ end
 
 
 
-for la= EDDY_SPEEDS.GRID.LAT
-    for lo= EDDY_SPEEDS.GRID.LON
+for la= EDDY_SPEEDS.GRID.lon
+    for lo= EDDY_SPEEDS.GRID.lon
         
-        jj=find(LAT_mean{s}==la & LON_mean{s}==lo);
+        jj=find(lat_mean{s}==la & lon_mean{s}==lo);
         
         if ~isempty(jj)
             sdfg
@@ -193,7 +193,7 @@ lvec=(round(south):1:round(north));
 VEL_mean_binned=cell(1,2);
 VEL_std_binned=cell(1,2);
 for s=1:2
-    L=round(LAT_mean{s});
+    L=round(lat_mean{s});
     V=VELOCITIES_mean{s};
     V(V==inf)=nan;
     Vb=nan(size(lvec));
@@ -209,7 +209,7 @@ for s=1:2
     figure
     
     hold on
-    plot(LAT_mean{s},VELOCITIES_mean{s},'.','color','black','markersize',1)
+    plot(lat_mean{s},VELOCITIES_mean{s},'.','color','black','markersize',1)
     VEL_mean_binned{s}=Vb;
     VEL_std_binned{s}=Vs;
     plot(lvec,Vb,lvec,Vb+Vs,'r',lvec,Vb-Vs,'r')
@@ -250,9 +250,9 @@ hist(vel_daily_total,1000)
 
 
 
-% get last SSH
+% get last ssh
 
-SSH  = ncread(RESULTS.fileinfo.file,'SSH')'; SSH = SSH(y_start:y_end,x_start:x_end);
+ssh  = ncread(RESULTS.fileinfo.file,'ssh')'; ssh = ssh(y_start:y_end,x_start:x_end);
 figure(20)
 % resize for plot
 
@@ -263,9 +263,9 @@ YDim_new=sqrt(pixels/horvar_ratio);
 XDim_new=pixels/YDim_new;
 Y_inc=round(YDim/YDim_new);
 X_inc=round(XDim/XDim_new);
-SSH_plot=SSH(1:Y_inc:end,1:X_inc:end);
-LAT_plot=LAT(1:Y_inc:end,1:X_inc:end);
-LON_plot=LON(1:Y_inc:end,1:X_inc:end);
+ssh_plot=ssh(1:Y_inc:end,1:X_inc:end);
+lat_plot=lat(1:Y_inc:end,1:X_inc:end);
+lon_plot=lon(1:Y_inc:end,1:X_inc:end);
 
 DX_plot=DX(1:Y_inc:end,1:X_inc:end);
 DY_plot=DY(1:Y_inc:end,1:X_inc:end);
@@ -273,18 +273,18 @@ DY_plot=DY(1:Y_inc:end,1:X_inc:end);
 
 
 
-south=min(LAT(:));
-north=max(LAT(:));
+south=min(lat(:));
+north=max(lat(:));
 
-west=min(LON(:));
-east=max(LON(:));
+west=min(lon(:));
+east=max(lon(:));
 ppp=figure(111);
 
 projec='blub';
 
 axesm('MapProjection',projec,'MapLatLimit',[south north],'MapLonLimit',[west east])
-contourfm(LAT,LON,SSH,(min(SSH(:)):1:max(SSH(:))));
-%contourfm_ssh(LAT_plot,LON_plot,SSH_plot,south,north,west,east,111,projec)
+contourfm(lat,lon,ssh,(min(ssh(:)):1:max(ssh(:))));
+%contourfm_ssh(lat_plot,lon_plot,ssh_plot,south,north,west,east,111,projec)
 
 
 figure
@@ -313,7 +313,7 @@ for s=1:2
     
     for n=1:length(POS(1,:))
         t = find(POS(:,n),1,'last');
-        plotm(LAT(POS(2:t,n)),LON(POS(2:t,n)),'linewidth',1.5,'color','black')
+        plotm(lat(POS(2:t,n)),lon(POS(2:t,n)),'linewidth',1.5,'color','black')
     end
     
     
@@ -327,7 +327,7 @@ for s=1:2
     %         eddy_start=k+1;
     %         eddy_end  =k+length_eddy;
     %         hold on;
-    %         plotm(LAT(Rims_all{s}(eddy_start:eddy_end)),LON(Rims_all{s}(eddy_start:eddy_end)),'-','linewidth',2,'color',co)
+    %         plotm(lat(Rims_all{s}(eddy_start:eddy_end)),lon(Rims_all{s}(eddy_start:eddy_end)),'-','linewidth',2,'color',co)
     %         k=k+length_eddy+1;
     %     end
     %
@@ -338,7 +338,7 @@ for s=1:2
     %         if t==size(P,1)
     %             x1d=full(P(t,n));
     %             hold on
-    %             plotm(LAT(x1d),LON(x1d),'b*','markersize',7);
+    %             plotm(lat(x1d),lon(x1d),'b*','markersize',7);
     %         end
     %     end
     %
@@ -350,7 +350,7 @@ for s=1:2
     %
     %       plot_tracks(111,POSITIONS{s})
     %         plot_eddy_perimeters(111,Rims_all{s},sense)
-    %    plot_eddy_peaks(POSITIONS{s},LAT_plot,LON_plot,1)
+    %    plot_eddy_peaks(POSITIONS{s},lat_plot,lon_plot,1)
     %      tag_eddy(POSITIONS{s},111,sense)
     %     showaxes
     %
@@ -409,9 +409,9 @@ axesm ('mercator','Grid', 'on');
 load coast
 plotm(lat, long,'r','linewidth',1)
 hold on
-plot3m(LAT_stepped{1},LON_stepped{1},VEL_stepped{1},'.')
+plot3m(lat_stepped{1},lon_stepped{1},VEL_stepped{1},'.')
 
-pcolorm(EDDY_SPEEDS.grid.lat,EDDY_SPEEDS.grid.lon,  EDDY_SPEEDS.anticyclonic.speeds_mean)
+pcolorm(EDDY_SPEEDS.grid.lon,EDDY_SPEEDS.grid.lon,  EDDY_SPEEDS.anticyclonic.speeds_mean)
 
 
 

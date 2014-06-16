@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% calculates geostrophic data from SSH
+% calculates geostrophic data from ssh
 function S02_infer_fields
     %% init
     DD=initialise('cuts');
@@ -30,9 +30,8 @@ end
 
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-        file=[DD.path.Rossby.name DD.path.Rossby.files.name];
-        RS.c=nc_varget(file,'RossbyPhaseSpeed');
-        RS.Lr=nc_varget(file,'RossbyRadius');
+        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
+        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
     else
         RS=[];
     end
@@ -54,11 +53,11 @@ function spmd_body(DD,RS)
     end
 end
 function gr=geostrophy(gr,corio,RS)
-    %% SSH gradient
-    [gr.SSHgrad_x,gr.SSHgrad_y]=dSSHdxi(gr.SSH,gr.DX,gr.DY);
+    %% ssh gradient
+    [gr.sshgrad_x,gr.sshgrad_y]=dsshdxi(gr.ssh,gr.DX,gr.DY);
     %% velocities
-    gr.U=-corio.GOverF.*gr.SSHgrad_y;
-    gr.V= corio.GOverF.*gr.SSHgrad_x;
+    gr.U=-corio.GOverF.*gr.sshgrad_y;
+    gr.V= corio.GOverF.*gr.sshgrad_x;
     gr.absUV=hypot(abs(gr.U),abs(gr.V));
     %% deformation
     def=deformation(gr);
@@ -93,20 +92,20 @@ function cut=LoadCut(jj,dd)
     file =[file_b, file_f ];
     cut=load(file);
 end
-function [dSSHdx,dSSHdy]=dSSHdxi(SSH,DX,DY)
-    %% calc SSH gradients
-    dSSHdx=[diff(SSH,1,2), nan(size(SSH,1),1)] ./ DX;
-    dSSHdy=[diff(SSH,1,1); nan(1,size(SSH,2))] ./ DY;
+function [dsshdx,dsshdy]=dsshdxi(ssh,DX,DY)
+    %% calc ssh gradients
+    dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
+    dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
 end
 function out=coriolisStuff(fields)
     %% omega
     out.Omega=angularFreqEarth;
     %% f
-    out.f=2*out.Omega*sind(fields.LAT);
+    out.f=2*out.Omega*sind(fields.lat);
     %% beta
-    out.beta=2*out.Omega/earthRadius*cosd(fields.LAT);
+    out.beta=2*out.Omega/earthRadius*cosd(fields.lat);
     %% gravity
-    out.g=sw_g(fields.LAT,zeros(size(fields.LAT)));
+    out.g=sw_g(fields.lat,zeros(size(fields.lat)));
     %% g/f
     out.GOverF=out.g./out.f;
 end

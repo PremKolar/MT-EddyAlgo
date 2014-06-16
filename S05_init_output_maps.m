@@ -32,8 +32,8 @@ function idx=main(DD,MAP)
 end
 function idx=spmd_body(DD,out)
     %% get input example lon/lat
-    in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LON'));
-    in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.LAT'));
+    in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
+    in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
     %% get codisp'ed indeces
     lims=thread_distro(DD.threads.num,numel(in.lon));
     JJ=lims(labindex,1):lims(labindex,2);
@@ -42,55 +42,7 @@ function idx=spmd_body(DD,out)
     %% get Indices For Out Maps
     idx=getIndicesForOutMaps(in,out,JJ,idx);
 end
-function idx=getIndicesForOutMaps(in,out,JJ,idx)
-    %% allocate indices to be calculated by worker
-    T=disp_progress('init','allocating old indices to output indeces');
-    locSize=numel(JJ);	out.proto=[]; % save mem
-    %% loop over indeces
-    for ii=JJ
-        T=disp_progress('disp',T,locSize,100);
-        [idx(ii)]=rangeOp(in.lon(ii),in.lat(ii), out);
-    end
-    
-end
-function [lin]=rangeOp(inLon,inLat,out)
-    %% scan for lat/lon within vicinity and use those only
-    temp.lon=abs(out.lon-inLon)<=abs(2*(out.inc.x));
-    temp.lat=abs(out.lat-inLat)<=abs(2*(out.inc.y));
-    used.flag=temp.lon & temp.lat;
-    %% out of bounds
-    if ~any(used.flag(:)), lin=nan;	return;	end
-    %% set lon/lat to be inter-distance checked
-    [yi,xi]=find(used.flag);
-    used.lat=out.lat(used.flag);
-    used.lon=out.lon(used.flag);
-    %% find best fit between new/old
-    [used.idx]=TransferIdx(inLon,inLat,used);
-    %% reset to full size
-    y=yi(used.idx.y);
-    x=xi(used.idx.x);
-    lin=drop_2d_to_1d(y,x,out.dim.y);
-end
-function [idx]=TransferIdx(lon,lat,used)
-    %% build lon/lat matrices
-    [yy,xx]=yyxx(lon,lat,used);
-    %% take norm2 (sufficient for small distances)
-    H=hypot(yy,xx);
-    %% find pos of min
-    [~,pos]=min(H(:));
-    %% raise to 2d to find respective x/y
-    [idx.y,idx.x]=raise_1d_to_2d(size(H,1),pos);
-end
-function [YY,XX]=yyxx(lon,lat,used)
-    %% zonal dists
-    [A,B]=meshgrid(lon,used.lon);
-    xx=abs(A-B)*cosd(lat);
-    %% merid dist
-    [A,B]=meshgrid(lat,used.lat);
-    yy=abs(A-B);
-    %%
-    [XX,YY]=meshgrid(xx,yy);
-end
+
 function [MAP]=MakeMaps(DD)
     %% init output map dim
     xvec=linspace(DD.map.out.west,DD.map.out.east,DD.map.out.X);

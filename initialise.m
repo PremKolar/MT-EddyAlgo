@@ -109,7 +109,7 @@ function passed=getFnames(DD,checks,toCheck)
     cc=0;
     for ts=timestr';cc=cc+1;
         if strcmp(toCheck,'raw')
-            passed(cc).filenames=[path.name, strrep(DD.map.in.pattern.fname, 'yyyymmdd',ts{1})];
+            passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts{1})];
             passed(cc).protofilenames=[];
         else
             temp=[path.name, strrep(pattern, 'yyyymmdd',ts{1})];

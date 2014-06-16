@@ -34,9 +34,8 @@ function [DD]=set_up
     DD = initialise('raw');  
     %% get sample window
      file=SampleFile(DD);
-    [DD.map.window]=GetWindow(file,DD);
+    [DD.map.window]=GetWindow(file,DD.map.in,DD.map.in.keys);
 end
-
 function spmd_body(DD)
     %% distro chunks to threads
      [TT]=SetThreadVar(DD);   
@@ -48,54 +47,21 @@ function spmd_body(DD)
         %% get data
         file=GetCurrentFile(TT(cc),DD)  ;     
         %% cut data
-        [CUT,readable]=CutMap(file,DD); if ~readable, continue; end
+        [CUT]=CutMap(file,DD);
         %% write data
         WriteFileOut(file.out,CUT);
     end
 end
-
-function [file,exists]=GetCurrentFile(TT,DD) 
-    exists.out=false;
-   file.in=TT.files;  
-   timestr=datestr(TT.daynums,'yyyymmdd');
-    %% set up output file
-    path=DD.path.cuts.name;
-    geo=DD.map.in;
-    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
-    file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
-    file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
-    file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
-    file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
-    if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
-end
-function WriteFileOut(file,CUT) %#ok<INUSD>
-    save(file,'-struct','CUT')
-end
-
-
-function file=SampleFile(DD)
-    dir_in =DD.path.raw;
-    pattern_in=DD.map.in.pattern.fname;
-    sample_time=DD.time.from.str;
-    file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
-    if ~exist(file,'file')
-        error([file,' doesnt exist! choose other start date!'])
-    end
-end
-
-
-
-function [CUT,readable]=CutMap(file,DD)
+function [CUT]=CutMap(file,DD)
     addpath(genpath('./'));
-    CUT=struct;
     %% get data
-    [raw_fields,readable]=GetFields(file.in,DD.map.in.pattern); if ~readable, return; end
+    [raw_fields]=GetFields(file.in,DD.map.in.keys);
     %% cut
     [CUT]=ZonalProblem(raw_fields,DD.map.window);
     %% nan out land and make SI
-    CUT.grids.SSH=nanLand(CUT.grids.SSH,DD.map.in.SSH_unitFactor);
+    CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.map.in.ssh_unitFactor);
     %% get distance fields
-    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.LAT,CUT.grids.LON);
+    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end
 function out=nanLand(in,fac)
     %% nan and SI
@@ -113,4 +79,30 @@ function [DY,DX]=DYDX(LAT,LON)
     seamcrossflag=DX>100*median(DX(:));
     DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));
 end
-
+%=========================================================================%
+function WriteFileOut(file,CUT) %#ok<INUSD>
+    save(file,'-struct','CUT')
+end
+function file=SampleFile(DD)
+    dir_in =DD.path.raw;
+    pattern_in=DD.map.in.fname;
+    sample_time=DD.time.from.str;
+    file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
+    if ~exist(file,'file')
+        error([file,' doesnt exist! choose other start date!'])
+    end
+end
+function [file,exists]=GetCurrentFile(TT,DD) 
+    exists.out=false;
+   file.in=TT.files;  
+   timestr=datestr(TT.daynums,'yyyymmdd');
+    %% set up output file
+    path=DD.path.cuts.name;
+    geo=DD.map.in;
+    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
+    file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
+    file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
+    file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
+    file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
+    if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
+end

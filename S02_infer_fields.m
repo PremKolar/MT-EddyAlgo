@@ -55,10 +55,10 @@ function spmd_body(DD,RS)
 end
 function gr=geostrophy(gr,corio,RS)
     %% SSH gradient
-    [gr.SSHgrad_x,gr.SSHgrad_y]=dSSHdxi(gr.SSH,gr.DX,gr.DY);
+    [gr.sshgrad_x,gr.sshgrad_y]=dSSHdxi(gr.ssh,gr.DX,gr.DY);
     %% velocities
-    gr.U=-corio.GOverF.*gr.SSHgrad_y;
-    gr.V= corio.GOverF.*gr.SSHgrad_x;
+    gr.U=-corio.GOverF.*gr.sshgrad_y;
+    gr.V= corio.GOverF.*gr.sshgrad_x;
     gr.absUV=hypot(abs(gr.U),abs(gr.V));
     %% deformation
     def=deformation(gr);
@@ -102,11 +102,11 @@ function out=coriolisStuff(fields)
     %% omega
     out.Omega=angularFreqEarth;
     %% f
-    out.f=2*out.Omega*sind(fields.LAT);
+    out.f=2*out.Omega*sind(fields.lat);
     %% beta
-    out.beta=2*out.Omega/earthRadius*cosd(fields.LAT);
+    out.beta=2*out.Omega/earthRadius*cosd(fields.lat);
     %% gravity
-    out.g=sw_g(fields.LAT,zeros(size(fields.LAT)));
+    out.g=sw_g(fields.lat,zeros(size(fields.lat)));
     %% g/f
     out.GOverF=out.g./out.f;
 end

@@ -1,40 +1,47 @@
 function U=input_vars
 	%% threads / debug
 	U.threads.num=12;
-	U.debugmode=1;
+	U.debugmode=0;
 	%% time
-%     U.time.from.str='19920114';  % min aviso
-%     U.time.till.str='20130807'; % max aviso
-% 	U.time.from.str='19940105';  % min pop
-% 	U.time.till.str='20061231'; % max pop   
-    U.time.from.str='19940105';  % min pop
-	U.time.till.str='19960105'; % max pop   
-    U.time.delta_t=7; % [days]!
+	%     U.time.from.str='19920114';  % min aviso
+	%     U.time.till.str='20130807'; % max aviso
+	% 	U.time.from.str='19940105';  % min pop
+	% 	U.time.till.str='20061231'; % max pop
+	U.time.from.str='19940105';  % min pop
+	U.time.till.str='19960105'; % max pop
+	U.time.delta_t=7; % [days]!
 	%% dirs
-	U.path.OutDirBaseName='avitest';
+	U.path.OutDirBaseName='avitestTiny';
+	
 	U.path.TempSalt.name='../TempSalt/';
 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+	
+% 	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
+% 	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
-	U.map.out.X=360*1+1;
+	U.map.out.X=20*1+1;
 	U.map.out.Y=30*1+1;
-	U.map.out.west=-180;
+	U.map.out.west=170;
 	U.map.out.east=180;
-	U.map.out.south=-70;
+	U.map.out.south=-60;
 	U.map.out.north=-40;
-    %% input MAP STUFF
+	%% input MAP STUFF
 	U.map.in.west=U.map.out.west;
 	U.map.in.east=U.map.out.east;
 	U.map.in.south=U.map.out.south;
 	U.map.in.north=U.map.out.north;
 	U.map.in.time.delta_t = 1; % [days]
-	U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-    %% input patterns
-    U.map.in.pattern.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
-	U.map.in.pattern.lat='lat';
-	U.map.in.pattern.lon='lon';
-	U.map.in.pattern.ssh='msla'; 
-    U.map.TS.pattern.lat='U_LAT_2D';
-    U.map.TS.pattern.lon='U_LON_2D';  
+	U.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+	%% input patterns
+	U.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.333deg__yyyymmdd.nc';
+	U.map.in.keys.lat='lat';
+	U.map.in.keys.lon='lon';
+	U.map.in.keys.ssh='msla';
+	U.TS.keys.lat='U_LAT_2D';
+	U.TS.keys.lon='U_LON_2D';
+	U.TS.keys.salt='SALT';
+	U.TS.keys.temp='TEMP';
+	U.TS.keys.depth='depth_t';
 	%% thresholds
 	U.contour.step=0.01; % [SI]
 	U.thresh.ssh_filter_size=1;

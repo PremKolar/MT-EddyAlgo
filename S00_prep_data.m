@@ -108,12 +108,39 @@ function window=FindWindowMask(F,M)
     end
 end
 function limits=FindRectangle(flag)
-    %% find index limits
-    [rows,cols]=find(flag);
-    limits.west=min(cols);
-    limits.east=max(cols);
-    limits.north=max(rows);
-    limits.south=min(rows);
+    %% sum flag in both dirs
+    cols=sum(flag,1);
+    rows=sum(flag,2);
+    %% find zonal edges
+    xa=find(cols==0,1,'first');
+    xb=find(cols==0,1,'last');
+    %% cases
+    if cols(xa+1)>0
+        %% normal case
+        limits.west=xa+1;
+        limits.east=xb-1;
+    elseif cols(xa+1)==0
+        %% box crosses zonal bndry
+        limits.west=xb+1;
+        limits.east=xa-1;
+    elseif isempty(cols)
+        %% continuous in x
+        limits.west=1;
+        limits.east=length(cols);
+    elseif xb==length(cols)
+        %% box begins at western edge of map
+        limits.west=1;
+        limits.east=xa-1;
+    elseif xa==1
+        %% box ends on eastern edge
+        limits.west=1;
+        limits.east=xa+1;
+    else
+        error('map problems')
+    end
+    %% north/south
+    limits.north=find(rows,1,'last');
+    limits.south=find(rows,1,'first');
 end
 %% Cutting functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT,readable]=CutMap(file,DD)
@@ -144,7 +171,7 @@ function [OUT]=SeamOrGlobe(IN,window)
     %% seam crossing?
     seam=false;
     if ~full_globe.x
-        if (Wlin.west==1  && Wlin.east==size(IN.LON,2)) % ie not full globe but both seam ends are within desired window
+        if (Wlin.west > Wlin.east) % ie not full globe but both seam ends are within desired window
             seam=true; % piece crosses long seam
             [OUT,window]=SeamCross(IN,window);
         else % desired piece is within global fields, not need for stitching
@@ -183,7 +210,7 @@ function [OUT,window]=SeamCross(IN,window)
     window.limits.west=westi;
     window.limits.east=easti;
     %% stitch 2 pieces 2g4
-    OUT.grids.LON =[IN.LON(southi:northi,westi:end) IN.LON(southi:northi,1:easti)];
+    OUT.grids.LON =[IN.LON(southi:northi,westi:end) IN.LON(southi:northi,1:easti)]; % TODO
     OUT.grids.LAT =[IN.LAT(southi:northi,westi:end) IN.LAT(southi:northi,1:easti)];
     OUT.grids.SSH =[IN.SSH(southi:northi,westi:end) IN.SSH(southi:northi,1:easti)];
 end

@@ -1,14 +1,14 @@
 function U=input_vars
     %% threads / debug
     U.threads.num=12;
-    U.debugmode=false;
-%     U.debugmode=true;
+%     U.debugmode=false;
+    U.debugmode=true;
     %% time
       U.time.delta_t=1; % [days]!
     U.time.from.str='19940102';
 % 	 U.time.from.str='19940425';
 %     U.time.till.str='19960730';
-   	 U.time.till.str='20001231'; 
+   	 U.time.till.str='19951231'; 
     %% dirs    
     U.path.OutDirBaseName='easterislands';
     U.path.TempSalt.name='../TempSalt/';
@@ -45,19 +45,20 @@ function U=input_vars
     U.thresh.life=10; % min num of living days for saving
     U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
-    U.switchs.RossbyStuff=true; 
+    U.switchs.RossbyStuff=false; 
     U.switchs.IQ=true;
     U.switchs.chelt=false;
     U.switchs.distlimit=false;
     U.switchs.AmpAreaCheck=false;
 	 U.switchs.netUstuff=true;
     %% parameters
+    U.parameters.contiInZonal=false; % o
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U
     U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     %% technical params
-    U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
+    U.RossbyStuff.splits =24; % number of chunks for brunt väis calculations
     %% fields that must end with .mean and .std - for output plot maps
     U.FieldKeys.MeanStdFields= { ...
         'age';

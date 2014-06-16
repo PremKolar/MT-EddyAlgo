@@ -29,7 +29,7 @@ function main(DD)
 end
 function [DD]=set_up
     %% init dependencies
-    addpath(genpath('./'));
+   addpath(genpath('./'))
     %% get user input
     DD = initialise('raw');  
     %% get sample window

@@ -55,7 +55,7 @@ function U=input_vars
 	U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
 	U.switchs.RossbyStuff=true; % TODO
-	U.switchs.IQ=false;
+	U.switchs.IQ=true;
 	U.switchs.chelt=false;
 	U.switchs.distlimit=0;
 	U.switchs.AmpAreaCheck=0;

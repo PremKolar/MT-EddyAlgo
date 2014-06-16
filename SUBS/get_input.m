@@ -68,7 +68,7 @@ function path=findfiles(DD)
     path.analyzed.files=dir([path.analyzed.name,'*.mat']);
     path.analyzedTracks.AC.files=dir([path.analyzedTracks.AC.name,'*.mat']);
     path.analyzedTracks.C.files=dir([path.analyzedTracks.C.name,'*.mat']);
-    path.Rossby.files=dir([path.Rossby.name,'*.nc']);
+    path.Rossby.files=[dir([path.Rossby.name,'*.nc']); dir([path.Rossby.name,'*.mat'])];    
 end
 function files=tempsalt(DD)
     try

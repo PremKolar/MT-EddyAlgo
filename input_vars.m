@@ -19,8 +19,8 @@ function U=input_vars
 % 	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
 % 	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
-	U.map.out.X=20*1+1;
-	U.map.out.Y=30*1+1;
+	U.map.out.X=10*2+1;
+	U.map.out.Y=20*2+1;
 	U.map.out.west=170;
 	U.map.out.east=180;
 	U.map.out.south=-60;

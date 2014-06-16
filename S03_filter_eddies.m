@@ -264,9 +264,9 @@ function [pass]=CR_ClosedRing(ee)
 end
 %% others
 function U=getRossbyPhaseSpeed(DD)
-    if DD.switchs.RossbyStuff       
-        U=nc_varget([DD.path.Rossby.name DD.path.Rossby.files.name],'RossbyPhaseSpeed');
-    else
+    if DD.switchs.RossbyStuff 
+     U=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+       else
         U=[];
     end
 end

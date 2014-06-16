@@ -30,9 +30,8 @@ end
 
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-        file=[DD.path.Rossby.name DD.path.Rossby.files.name];
-        RS.c=nc_varget(file,'RossbyPhaseSpeed');
-        RS.Lr=nc_varget(file,'RossbyRadius');
+        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
+        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
     else
         RS=[];
     end

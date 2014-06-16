@@ -8,10 +8,10 @@ function U=input_vars
 	% 	U.time.from.str='19940105';  % min pop
 	% 	U.time.till.str='20061231'; % max pop
 	U.time.from.str='19940105';  % min pop
-	U.time.till.str='19960105'; % max pop
+	U.time.till.str='19950105'; % max pop
 	U.time.delta_t=7; % [days]!
 	%% dirs
-	U.path.OutDirBaseName='avitestTiny';
+	U.path.OutDirBaseName='aviwrld';
 	
 	U.path.TempSalt.name='../TempSalt/';
 	U.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
@@ -19,12 +19,12 @@ function U=input_vars
 % 	U.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
 % 	U.path.raw.name='/home/niko/ROMnew/SSH_POP/';
 	%% output MAP STUFF
-	U.map.out.X=10*2+1;
-	U.map.out.Y=20*2+1;
-	U.map.out.west=170;
+	U.map.out.X=360*1+1;
+	U.map.out.Y=160*1+1;
+	U.map.out.west=-180;
 	U.map.out.east=180;
-	U.map.out.south=-60;
-	U.map.out.north=-40;
+	U.map.out.south=-80;
+	U.map.out.north=80;
 	%% input MAP STUFF
 	U.map.in.west=U.map.out.west;
 	U.map.in.east=U.map.out.east;
@@ -48,25 +48,25 @@ function U=input_vars
 	U.thresh.radius=0; % [SI]
 	U.thresh.amp=0.01; % [SI]
 	U.thresh.shape.iq=0.1; % isoperimetric quotient
-	U.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
+	U.thresh.shape.chelt=0.1; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	U.thresh.corners=4; % min number of data points for the perimeter of an eddy
 	U.thresh.dist=1*24*60^2; % max distance travelled per day
 	U.thresh.life=3; % min num of living days for saving
 	U.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
 	U.switchs.RossbyStuff=true; % TODO
-	U.switchs.IQ=true;
-	U.switchs.chelt=false;
-	U.switchs.distlimit=0;
-	U.switchs.AmpAreaCheck=0;
-	U.switchs.netUstuff=1;
+	U.switchs.IQ=false;
+	U.switchs.chelt=true;
+	U.switchs.distlimit=true;
+	U.switchs.AmpAreaCheck=true;
+	U.switchs.netUstuff=true;
 	%% parameters
 	U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	U.parameters.meanU=100; % depth from which to take mean U
 	U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
 	%% technical params
-	U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
+	U.RossbyStuff.splits =128; % number of chunks for brunt väis calculations
 	%% fields that must end with .mean and .std - for output plot maps
 	U.FieldKeys.MeanStdFields= { ...
 		'age';

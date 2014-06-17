@@ -70,8 +70,7 @@ end
 function job=taskfForZonMeans(DD,IN,ticks)
     job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
     job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
-     disp(['see jobzonmean1.txt and jobzonmean2.txt'])
-end
+  end
 function velZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),2*IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
     acv=squeeze(nanmean(IN.maps.AntiCycs.vel.zonal.mean,2));
@@ -104,9 +103,7 @@ end
 function  job=taskfForMapAndHist(DD,IN,ticks)
     job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
     job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
-   
-    disp(['see jobzMH(1:2).txt'])
-end
+   end
 function [OUT]=inits(DD)
     disp(['loading maps'])
     OUT.maps=load([DD.path.analyzed.name, 'maps.mat']);
@@ -322,7 +319,6 @@ function job=trackPlots(DD,ticks,tracks)
         job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
         job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
         job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
-         disp(['see ' sen 'jobzTP(1:6).txt'])
     end
 end
 function TPa(DD,ticks,tracks,sen)

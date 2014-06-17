@@ -108,14 +108,6 @@ end
 
 function [CK]=initNcChunk(DD,chnk)
     CK=loadChunk(DD,chnk);
-%     [dim.Z,dim.Y,dim.X]=size(CK.BRVA);
-%     temp=lims.data;
-%     temp(:,2)=temp(:,2)+1
-%     cumdiff=[0;  cumsum(diff(temp,1,2))]
-%     strt=cumdiff(chnk)
-%     strt=lims.data(chnk,1)-DD.TS.window.limits.west;
-%     dim.start2d  = CK.dim.new.start2d;
-%     dim.len2d = [dim.Y dim.X];
 end
 
 function [idx,out]=reallocCase(DD,nc_file_name)
@@ -153,7 +145,7 @@ function nc2mat(DD,nc_file_name)
         %% get pop data
         in.currVar=nc_varget(nc_file_name,fn);
         temp=in.currVar; %#ok<NASGU>
-        save([DD.path.Rossby.name, fn,'.mat'],'temp');
+        save([DD.path.Rossby.name, fn,'.mat'],'-struct','temp');
         if reallocIdx
             downscalePop(in,fn,nan(size(out.lat)),DD,idx)
         end
@@ -195,7 +187,7 @@ function  downscalePop(in,fn,out,DD,idx)
         T=disp_progress('show',T,numel(uni),10);
         out(li)=nanmean(  in.currVar(idx==li));
     end
-    save([DD.path.Rossby.name, fn,'.mat'],'out');
+    save([DD.path.Rossby.name, fn,'.mat'],'-struct','out');
 end
 
 function	nc_file_name = initNC(DD)
@@ -226,8 +218,7 @@ function catChunks2NetCDF(nc_file_name,dim,CK)
     nc_varput(nc_file_name,'lon',CK.lon	,dim.start, dim.len);
 end
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>
-    file_out=[DD.path.Rossby.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
-  
+    file_out=[DD.path.Rossby.name,'BVRf_',sprintf('%03d',chnk),'.mat'];  
     save(file_out,'-struct','CK');
 end
 function CK=loadChunk(DD,chnk)

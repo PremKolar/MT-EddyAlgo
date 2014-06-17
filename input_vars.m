@@ -1,8 +1,8 @@
 function U=input_vars
 	%% threads / debug
-	U.threads.num=12;
-	U.debugmode=false;
-	%     U.debugmode=true;
+	U.threads.num=2;
+% 	U.debugmode=false;
+	    U.debugmode=true;
 	%% time
 	U.time.delta_t=1; % [days]!
 	U.time.from.str='19940102';
@@ -13,7 +13,7 @@ function U=input_vars
 	U.path.OutDirBaseName='mad';
 	U.path.TempSalt.name='../TempSalt/';
 	%     U.path.TempSalt.name='/media/ROM/TempSalt/';
-	U.path.raw.name='../';
+	U.path.raw.name='../madDaily/';
 	%     U.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
 	U.map.out.X=46*1+1;

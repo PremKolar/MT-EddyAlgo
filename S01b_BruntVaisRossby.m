@@ -144,8 +144,8 @@ function nc2mat(DD,nc_file_name)
     for fn=fns';fn=fn{1};
         %% get pop data
         in.currVar=nc_varget(nc_file_name,fn);
-        temp=in.currVar; %#ok<NASGU>
-        save([DD.path.Rossby.name, fn,'.mat'],'-struct','temp');
+        out=in.currVar; %#ok<NASGU>
+        save([DD.path.Rossby.name, fn,'.mat'],'out');
         if reallocIdx
             downscalePop(in,fn,nan(size(out.lat)),DD,idx)
         end
@@ -187,7 +187,7 @@ function  downscalePop(in,fn,out,DD,idx)
         T=disp_progress('show',T,numel(uni),10);
         out(li)=nanmean(  in.currVar(idx==li));
     end
-    save([DD.path.Rossby.name, fn,'.mat'],'-struct','out');
+    save([DD.path.Rossby.name, fn,'.mat'],'out');
 end
 
 function	nc_file_name = initNC(DD)

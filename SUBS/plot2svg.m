@@ -2693,7 +2693,7 @@ fprintf(fid,'    </g>\n');
 fprintf(fid,'  </g>\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% converts LATEX strings into SVG strings
+% converts latEX strings into SVG strings
 function returnvalue = latex2svg(StringText, font, size, style)
 returnvalue = StringText;
 try

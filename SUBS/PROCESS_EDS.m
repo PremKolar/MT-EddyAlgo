@@ -33,8 +33,8 @@ end
 
 %% calc stats
 [STATS]=posteddies_getstats(GLOBAL_VARS,I);
-DIM.LAT=GLOBAL_VARS.LAT;
-DIM.LON=GLOBAL_VARS.LON;
+DIM.lon=GLOBAL_VARS.lon;
+DIM.lon=GLOBAL_VARS.lon;
 disp('saving')
 OUTAC = rmfield(STATS(1),{'POS';'TIME';'DIAM';'AREA';'AGE'});
 OUTC = rmfield(STATS(2),{'POS';'TIME';'DIAM';'AREA';'AGE'});
@@ -81,12 +81,12 @@ ncdisp(BVfile)
 BV=ncread(BVfile,'Brunt Vaisala squared');
 load('/scratch/uni/ifmto/u300065/c_phase_one.mat');
 BV=permute(BV,[2,1,3]);
-c1=c1'; LAT=LAT';
+c1=c1'; lat=lat';
 c1lonm=nanmean(c1,2);
-f=(2*sind(STATS(1).DIM.LAT)*2*pi/(23.9344696*60*60));
-beta=(2*cosd(STATS(1).DIM.LAT)*2*pi/(23.9344696*60*60))/earthRadius;
+f=(2*sind(STATS(1).DIM.lon)*2*pi/(23.9344696*60*60));
+beta=(2*cosd(STATS(1).DIM.lon)*2*pi/(23.9344696*60*60))/earthRadius;
 Ro=c1./f;
-eqflag=abs(STATS(1).DIM.LAT)<5;
+eqflag=abs(STATS(1).DIM.lon)<5;
 Ro(eqflag)=sqrt(c1(eqflag)/2./beta(eqflag));
 pcolor(sqrt(abs(Ro(1:10:end,1:10:end))/1000));shading flat;cb=colorbar;
 caxis([0 sqrt(300)])
@@ -95,7 +95,7 @@ set(cb,'yticklabel',[1 10 50 100 150 200 250 300]')
 figure
 [c,h]=contour(abs(Ro(1:10:end,1:10:end))/1000,[0 10 50 100 150 250]);shading flat;colorbar;clabel(c,h)
 
-Ro_rempd=remap(STATS(1).DIM.LON(:),STATS(1).DIM.LAT(:),STATS(1).DIM.GLO,STATS(1).DIM.GLA,Ro);
+Ro_rempd=remap(STATS(1).DIM.lon(:),STATS(1).DIM.lon(:),STATS(1).DIM.GLO,STATS(1).DIM.GLA,Ro);
 beta=(2*cosd(STATS(1).DIM.GLA)*2*pi/(23.9344696*60*60))/earthRadius;
 
 CR1l=- beta.*Ro_rempd.^2;
@@ -303,12 +303,12 @@ close all
 
 minage=50;
 D=GLOBAL_VARS.ARCHV;
-LO=GLOBAL_VARS.LON;
-LA=GLOBAL_VARS.LAT;
+LO=GLOBAL_VARS.lon;
+LA=GLOBAL_VARS.lon;
 PAC=[D.ANTI_CYC.DATA{2} ];
 TAC=[D.ANTI_CYC.DATA{1} ];
-PC=[D.CYCLONAL.DATA{2} ];
-TC=[D.CYCLONAL.DATA{1} ];
+PC=[D.CYClonAL.DATA{2} ];
+TC=[D.CYClonAL.DATA{1} ];
 ageflagAC=cell2mat(cellfun(@(x) numel(x)<minage, PAC,'UniformOutput',false));
 ageflagC=cell2mat(cellfun(@(x) numel(x)<minage, PC,'UniformOutput',false));
 PAC(ageflagAC)=[];
@@ -394,8 +394,8 @@ for ss=1:2
     dd=cell2mat(extractfield(STATS(ss).processed,'dist'));
     xx=cellfun(@(ff) cumsum(ff),{dd.x},'UniformOutput',false);
     yy=cellfun(@(ff) cumsum(ff),{dd.y},'UniformOutput',false);
-    lat=cellfun(@(x) (x(2:end)),{STATS(ss).processed(:).lat},'UniformOutput',false);
-    %latone=cellfun(@(x) ones(length(x)-1,1)*x(1),{STATS(ss).processed(:).lat},'UniformOutput',false);
+    lat=cellfun(@(x) (x(2:end)),{STATS(ss).processed(:).lon},'UniformOutput',false);
+    %latone=cellfun(@(x) ones(length(x)-1,1)*x(1),{STATS(ss).processed(:).lon},'UniformOutput',false);
     lon=cellfun(@(x) (x(2:end)),{STATS(ss).processed(:).lon},'UniformOutput',false);
     
     ageflag=cell2mat(cellfun(@(x) numel(x)<minage,xx,'UniformOutput',false));
@@ -699,8 +699,8 @@ ydim=900;
 resolution=get(0,'ScreenPixelsPerInch');
 xdim=xdim*rez/resolution;
 ydim=ydim*rez/resolution;
-LO=GLOBAL_VARS.LON;
-LA=GLOBAL_VARS.LAT;
+LO=GLOBAL_VARS.lon;
+LA=GLOBAL_VARS.lon;
 landareas = shaperead('landareas.shp','UseGeoCoords',true);
 for ss=1:2
     close all
@@ -847,11 +847,11 @@ end
 load('/scratch/uni/ifmto/u300065/Ro_one.mat');
 dirIn='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/MEANS/';
 fileS=[dirIn,'SALT_1995.nc'];
-LAT=ncread(fileS,'U_LAT_2D');
-LON=ncread(fileS,'U_LON_2D');
-LATr=10000*round(10^DIM.round*LAT(:))/10^DIM.round;
-LONr=round(10^DIM.round*LON(:))/10^DIM.round;
-LALO=LATr+LONr;
+lat=ncread(fileS,'U_lat_2D');
+lon=ncread(fileS,'U_lon_2D');
+latr=10000*round(10^DIM.round*lat(:))/10^DIM.round;
+lonr=round(10^DIM.round*lon(:))/10^DIM.round;
+LALO=latr+lonr;
 [a,b,c]=unique(LALO);
 %
 IDX=nan(size(DIM.GLA));

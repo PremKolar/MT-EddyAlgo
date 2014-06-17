@@ -275,11 +275,11 @@ end
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
 	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-	Ro.large.radius=load([DD.path.Rossby.name 'RossbyRadius.mat']);
+	Ro.large.radius=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
 	Ro.large.radius(Ro.large.radius==0)=nan;
 	Ro.small.radius=MAP.proto.nan;
 	%%
-	Ro.large.phaseSpeed=load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']);
+	Ro.large.phaseSpeed=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
 	Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
 	Ro.small.phaseSpeed=MAP.proto.nan;
 	%% nanmean to smaller map

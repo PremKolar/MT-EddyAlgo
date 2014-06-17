@@ -16,7 +16,8 @@ function S06b_analyze_tracks
 	%%
 	conclude(DD);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,vecs,minMax]=main(DD)
 	if DD.debugmode
 		[map,vecs,minMax]=spmd_body(DD);
@@ -26,8 +27,9 @@ function [map,vecs,minMax]=main(DD)
 		end
 	end
 end
-
-%% main functions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% main functions
 function [MAP,V,MinMax]=spmd_body(DD)
 	%% get stuff
 	[MAP,V,JJ,MinMax]=initAll(DD);
@@ -50,6 +52,7 @@ function [MAP,V,MinMax]=spmd_body(DD)
 	%% get global extrms
 	MinMax=globalExtr(MinMax);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	[MAP.strctr, eddy]=TRstructure(MAP,eddy,DD);
 	if isempty(eddy.trck),return;end % out of bounds
@@ -62,12 +65,14 @@ function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
 	MAP=comboMS(MAP,NEW,DD);
 	[V]=getVecs(eddy,V);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACs,Cs]=netVels(DD,map)
 	velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
 		'means.small.zonal'),DD.map.out.Y,DD.map.out.X);
 	ACs=	map.AntiCycs.vel.zonal.mean -velmean;
 	Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(minMax,map,DD,vecs)
 	[map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
 	%% get rossby radius
@@ -87,6 +92,7 @@ function seq_body(minMax,map,DD,vecs)
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinMax=resortTracks(DD,MinMax,TT)
 	subfields=DD.FieldKeys.trackPlots;
 	track= TT.eddy.trck;
@@ -108,6 +114,7 @@ function MinMax=resortTracks(DD,MinMax,TT)
 	%% save
 	save(outfile,'-struct','TT');
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [V]=getVecs(eddy,V)
 	V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
 	V.age=[V.age eddy.trck(end).age];
@@ -118,6 +125,7 @@ function [V]=getVecs(eddy,V)
 	V.birth.lat=[ V.birth.lat cat(1,birth.lat)];
 	V.birth.lon=[ V.birth.lon cat(1,birth.lon)];
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TT]=getTrack(DD,jj)
 	TT.fname=DD.path.tracks.files(jj).name;
 	TT.filename = [DD.path.tracks.name  TT.fname];
@@ -130,7 +138,10 @@ function [TT]=getTrack(DD,jj)
 	end
 	TT.sense=TT.eddy.trck(1).sense.num;
 end
-%% TRs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% TRs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[strctr, eddy]=TRstructure(MAP,eddy,DD)
 	switch DD.parameters.trackingRef
 		case 'CenterOfVolume'
@@ -148,6 +159,7 @@ function	[strctr, eddy]=TRstructure(MAP,eddy,DD)
 	tracklen=numel(eddy.trck);
 	strctr.length=(1:tracklen);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [age]=TRage(MAP,eddy)
 	[age,count]=protoInit(MAP.proto);
 	for tt=MAP.strctr.length
@@ -158,6 +170,7 @@ function [age]=TRage(MAP,eddy)
 		age.std(idx)=stdOnFly(age.std(idx), age_now, count(idx));
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	amp=TRamp(MAP,eddy)
 	[amp.to_mean,count]=protoInit(MAP.proto);
 	[amp.to_contour,~]=protoInit(MAP.proto);
@@ -170,6 +183,7 @@ function	amp=TRamp(MAP,eddy)
 		amp.to_ellipse.mean(idx)=meanOnFly(	amp.to_ellipse.mean(idx), eddy.trck(tt).peak.amp.to_ellipse,count(idx));
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(MAP,eddy)
 	A={'mean';'meridional';'zonal'};
 	for a=A'
@@ -185,6 +199,7 @@ function	radius=TRradius(MAP,eddy)
 		end
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	vel=TRvel(MAP,eddy)
 	A={'traj';'merid';'zonal'};
 	for a=A'
@@ -202,6 +217,7 @@ function	vel=TRvel(MAP,eddy)
 		end
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[dist,eddy]=TRdist(MAP,eddy)
 	%% set up
 	[dist,count]=setupDist(MAP);
@@ -236,6 +252,7 @@ function	[dist,eddy]=TRdist(MAP,eddy)
 		dist.merid.tillDeath.std(idx)=stdOnFly(dist.merid.tillDeath.std(idx),newValue , count(idx));
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [count,singlecount]=TRvisits(MAP)
 	count=MAP.proto.zeros;
 	singlecount=MAP.proto.zeros;
@@ -246,7 +263,8 @@ function [count,singlecount]=TRvisits(MAP)
 	sidx=unique(MAP.strctr.idx);
 	singlecount(sidx)=singlecount(sidx) + 1;
 end
-%% others
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% others
 function [TT,MinMax]=getStats(TT,MinMax,cf)
 	%% local
 	TT.max.(cf)=nanmax(TT.(cf));
@@ -257,6 +275,7 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 	if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
 	if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP,V,JJ,MinMax]=initAll(DD)
 	JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
 	MAP.AntiCycs=initMAP(DD);
@@ -272,6 +291,7 @@ function [MAP,V,JJ,MinMax]=initAll(DD)
 		MinMax.min.(collapsedField)=inf;
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Ro=loadRossby(DD)
 	MAP=initMAP(DD);
 	Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
@@ -292,6 +312,7 @@ function Ro=loadRossby(DD)
 		Ro.small.phaseSpeed(li)=nanmean(Ro.large.phaseSpeed(lin==li));
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinMax=globalExtr(MinMax)
 	%% collect high-scores for all tracks from threads
 	for cf=fieldnames(MinMax.max)'; cf=cf{1};
@@ -299,6 +320,7 @@ function MinMax=globalExtr(MinMax)
 		MinMax.min.(cf)=gop(@min, MinMax.min.(cf)) ;
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function zonMean=zonmeans(M,DD)
 	zonMean=M;
 	for sense=DD.FieldKeys.senses'; sen=sense{1};
@@ -318,11 +340,13 @@ function zonMean=zonmeans(M,DD)
 		zonMean.Rossby.large.phaseSpeed=nanmean(M.Rossby.large.phaseSpeed,2);
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT=weightedZonMean(MS,weight)
 	weight(weight==0)=nan;
 	OUT.mean=nansum(MS.mean.*weight,2)./nansum(weight,2);
 	OUT.std=nansum(MS.std.*weight,2)./nansum(weight,2);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dist,count]=setupDist(MAP)
 	A={'traj';'merid';'zonal'};
 	B={'fromBirth';'tillDeath'};
@@ -332,6 +356,7 @@ function [dist,count]=setupDist(MAP)
 		end
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [d,drct]=diststuff(geo)
 	geo=[geo(1,:); geo];
 	%%
@@ -356,12 +381,14 @@ function [d,drct]=diststuff(geo)
 	d.merid.fromBirth = cumsum(d.merid.m);
 	d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [param,count]=protoInit(proto,type)
 	if nargin < 2, type='nan'; end
 	param.mean=proto.(type);
 	param.std=proto.(type);
 	count=proto.zeros;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ALL=mergeMapData(MAP,DD)
 	if DD.threads.num>1 && ~DD.debugmode
 		ALL=spmdCase(MAP,DD);
@@ -369,9 +396,11 @@ function ALL=mergeMapData(MAP,DD)
 		ALL=MAP{1};
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	vecs=mergeVecData(vecs)
 	vecs=vecs{1};
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function old=comboMS(old,new,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
 	for ff=1:numel(subfieldstrings)
@@ -396,6 +425,7 @@ function old=comboMS(old,new,DD)
 	old.visits.all=old.visits.all + new.visits.all;
 	old.visits.single=old.visits.single + new.visits.single;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ALL=spmdCase(MAP,DD)
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
 	map=MAP{1};
@@ -432,6 +462,7 @@ function ALL=spmdCase(MAP,DD)
 		end
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,vecs]=mergeThreadData(minMax,map,DD,vecs)
 	try
 		minMax=minMax{1};
@@ -443,6 +474,7 @@ function [map,vecs]=mergeThreadData(minMax,map,DD,vecs)
 	map.minMax=minMax;
 	vecs.minMax=minMax;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MAP=initMAP(DD)
 	MAP=load([DD.path.root,'protoMaps.mat']);
 	subfieldstrings=DD.FieldKeys.MeanStdFields;
@@ -457,3 +489,4 @@ function MAP=initMAP(DD)
 	MAP.visits.single=MAP.proto.zeros;
 	MAP.visits.all=MAP.proto.zeros;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

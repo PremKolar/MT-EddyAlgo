@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Madeleine Version
-function S00_prep_data
+function S00_prep_data %#ok<FNDEF>
 	%% init dependencies
 	addpath(genpath('./'));
 	%% get user input
@@ -24,21 +24,23 @@ function S00_prep_data
 	[~,~]=mkdir(DD.path.cuts.name);
 	%% spmd
 	spmd
-	spmdBlock(DD,MadFile,MF);
+		spmdBlock(DD,MadFile,MF);
 	end
 	%% save info
 	save_info(DD);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdBlock(DD,MadFile,MF)
-		CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
-		E325=nc_varget(MadFile,'E325');
-		%% loop over files
-		[T]=disp_progress('init','preparing raw data');
-		for cc=CC			
-			[T]=disp_progress('calc',T,numel(CC),4242);
-			operateDay(squeeze(E325(cc,:,:)),MF,DD,cc);
-		end	
+	CC=(DD.threads.lims(labindex,1):DD.threads.lims(labindex,2));
+	E325=nc_varget(MadFile,'E325');
+	%% loop over files
+	[T]=disp_progress('init','preparing raw data');
+	for cc=CC
+		[T]=disp_progress('calc',T,numel(CC),4242);
+		operateDay(squeeze(E325(cc,:,:)),MF,DD,cc);
+	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MadFile,MF]=madsData(DD)
 	MadFile=[DD.path.root	,'psvar.cdf'];
 	nc_info(MadFile);
@@ -48,6 +50,7 @@ function [MadFile,MF]=madsData(DD)
 	MF.XT=nc_varget(MadFile,'XT');
 	MF.YT=nc_varget(MadFile,'YT');
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD,MF]=geostuff(MF,DD)
 	[MF.grids.XX,MF.grids.YY]=meshgrid(MF.XT,MF.YT);
 	MF.grids.lat=rad2deg(MF.grids.YY./earthRadius);
@@ -65,6 +68,7 @@ function [DD,MF]=geostuff(MF,DD)
 	DD.map.window.limits.south=1;
 	DD.map.window.limits.north=Y;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function operateDay(SSH,MF,DD,cc)
 	%% set up output file
 	tt=MF.TIME(cc);
@@ -76,7 +80,7 @@ function operateDay(SSH,MF,DD,cc)
 	file.out=strrep(file.out, 'WWWW',sprintf('%04d',round(geo.west) ));
 	file.out=strrep(file.out, 'EEEE',sprintf('%04d',round(geo.east)) );
 	file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
-	 if exist(file.out,'file'), return; end
+	if exist(file.out,'file'), return; end
 	%%
 	SSH(SSH>10000)=nan;
 	SSH(SSH<-10000)=nan;
@@ -86,6 +90,7 @@ function operateDay(SSH,MF,DD,cc)
 	%%
 	save(file.out,'-struct','MF')
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DY,DX]=DYDX(LAT,LON)
 	%% grid increment sizes
 	DY=deg2rad(abs(diff(double(LAT),1,1)))*earthRadius;
@@ -97,3 +102,4 @@ function [DY,DX]=DYDX(LAT,LON)
 	seamcrossflag=DX>100*median(DX(:));
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(LAT(seamcrossflag)));
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

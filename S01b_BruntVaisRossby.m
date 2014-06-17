@@ -14,17 +14,19 @@ function S01b_BruntVaisRossby
     %% set up
     [DD,lims]=set_up;
     %% spmd
+   if DD.TS.overwrite
     main(DD,lims)
+   end
     %% make netcdf
-    DD.path.Rossby=WriteNCfile(DD);
+   WriteNCfile(DD,lims);
     %% update DD
     save_info(DD);
 end
-function main(DD,lims)
+function main(DD,lims)      
     if DD.debugmode
         spmd_body(DD,lims);
     else
-        spmd(DD.threads.num)
+        spmd(DD.threads.num)         
             spmd_body(DD,lims);
         end
     end
@@ -32,6 +34,8 @@ end
 function [DD,lims]=set_up
     %% init
     DD=initialise;
+    %% check if exists already
+     [DD.path.Rossby , DD.TS.overwrite] = initNC(DD);   
     %% set number of chunks to split large data (see input_vars.m)
     splits=DD.RossbyStuff.splits;
     %% threads
@@ -52,7 +56,7 @@ function [DD,lims]=set_up
     temp(find(td)-1,2)=DD.TS.window.fullsize(2)-1; % let the one before finish at end(x-index) 
     lims.data=temp;
     %% distro chunks to threads
-    lims.loop=thread_distro(DD.threads.num,splits);
+    lims.loop=thread_distro(DD.threads.num,splits);    
 end
 function spmd_body(DD,lims)
     id=labindex;
@@ -78,32 +82,32 @@ function Calculations(DD,lims,chnk)
     saveChunk(CK,DD,chnk);
 end
 
-function initNcFile(DD,nc_file_name)
+function initNcFile(DD)
     CK=loadChunk(DD,1);
     [dim.Z,dim.Y,dim.X]=size(CK.BRVA);
-    nc_adddim(nc_file_name,'depth_diff',dim.Z);
-    nc_adddim(nc_file_name,'i_index',DD.TS.window.size.X);
-    nc_adddim(nc_file_name,'j_index',DD.TS.window.size.Y);
+    nc_adddim(DD.path.Rossby,'depth_diff',dim.Z);
+    nc_adddim(DD.path.Rossby,'i_index',DD.TS.window.size.X);
+    nc_adddim(DD.path.Rossby,'j_index',DD.TS.window.size.Y);
     %% Ro1
     varstruct.Name = 'RossbyRadius';
     varstruct.Nctype = 'double';
     varstruct.Dimension = {'j_index','i_index' };
-    nc_addvar(nc_file_name,varstruct)
+    nc_addvar(DD.path.Rossby,varstruct)
     %% c1
     varstruct.Name = 'RossbyPhaseSpeed';
     varstruct.Nctype = 'double';
     varstruct.Dimension ={'j_index','i_index' };
-    nc_addvar(nc_file_name,varstruct)
+    nc_addvar(DD.path.Rossby,varstruct)
     %% lat
     varstruct.Name = 'lat';
     varstruct.Nctype = 'double';
     varstruct.Dimension ={'j_index','i_index' };
-    nc_addvar(nc_file_name,varstruct)
+    nc_addvar(DD.path.Rossby,varstruct)
     %% lon
     varstruct.Name = 'lon';
     varstruct.Nctype = 'double';
     varstruct.Dimension ={'j_index','i_index' };
-    nc_addvar(nc_file_name,varstruct)
+    nc_addvar(DD.path.Rossby,varstruct)
 end
 
 function [CK]=initNcChunk(DD,chnk)
@@ -118,7 +122,7 @@ function [CK]=initNcChunk(DD,chnk)
 %     dim.len2d = [dim.Y dim.X];
 end
 
-function [idx,out]=reallocCase(DD,nc_file_name)
+function [idx,out]=reallocCase(DD)
     
     out=load([DD.path.cuts.name DD.path.cuts.files(1).name],'grids');
     out.lat=out.grids.lat;
@@ -127,8 +131,8 @@ function [idx,out]=reallocCase(DD,nc_file_name)
     out.inc.y=max(mean(diff(out.lat,1,1),2));
     [out.dim.y,out.dim.x]=size(out.lat);
     out.grids=[];
-    in.lat=nc_varget(nc_file_name,'lat');
-    in.lon=nc_varget(nc_file_name,'lon');
+    in.lat=nc_varget(DD.path.Rossby,'lat');
+    in.lon=nc_varget(DD.path.Rossby,'lon');
     
     %% get codisp'ed indeces
     lims=thread_distro(DD.threads.num,numel(in.lon));
@@ -141,17 +145,16 @@ function [idx,out]=reallocCase(DD,nc_file_name)
     idx=sum(idxx{1});
 end
 
-function nc2mat(DD,nc_file_name)
-    fns=fieldnames(nc_getall(nc_file_name));
-    in.currVar=nc_varget(nc_file_name,fns{1});
-     reallocIdx=false;
+function nc2mat(DD)
+    fns=fieldnames(nc_getall(DD.path.Rossby));
+    in.currVar=nc_varget(DD.path.Rossby,fns{1});
     if numel(in.currVar)~=prod(struct2array(DD.map.window.size))
         reallocIdx=true;
-        [idx,out]=reallocCase(DD,nc_file_name);
+        [idx,out]=reallocCase(DD,DD.path.Rossby);
     end
     for fn=fns';fn=fn{1};
         %% get pop data
-        in.currVar=nc_varget(nc_file_name,fn);
+        in.currVar=nc_varget(DD.path.Rossby,fn);
         temp=in.currVar; %#ok<NASGU>
         save([DD.path.Rossby.name, fn,'.mat'],'temp');
         if reallocIdx
@@ -162,20 +165,19 @@ end
 
 
 
-function nc_file_name = WriteNCfile(DD)
+function WriteNCfile(DD,lims)
     %% init
-    nc_file_name=initNC(DD);
     splits=DD.RossbyStuff.splits;
-    initNcFile(DD,nc_file_name)
+    initNcFile(DD)
     T=disp_progress('init','creating netcdf');
     for chnk=1:splits
         T=disp_progress('disp',T,splits,100);
         %% put chunks back 2g4
-         [CK]=initNcChunk(DD,chnk);
-        catChunks2NetCDF(nc_file_name,CK.dim.new,CK);
+        [CK,dim]=initNcChunk(DD,chnk,lims);
+        catChunks2NetCDF(DD.path.Rossby,dim,CK);
     end
     %% make also mat files
-    nc2mat(DD,nc_file_name)
+    nc2mat(DD,DD.path.Rossby)
 end
 
 
@@ -198,32 +200,15 @@ function  downscalePop(in,fn,out,DD,idx)
     save([DD.path.Rossby.name, fn,'.mat'],'out');
 end
 
-function	nc_file_name = initNC(DD)
-    nc_file_name=[DD.path.Rossby.name, 'BVRf_all.nc'];
-    overwriteornot(nc_file_name)
+function	[outfilename,overwrite] = initNC(DD)
+   outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
+    overwrite=NCoverwriteornot(outfilename);
 end
-function overwriteornot(nc_file_name)
-    %% test if file exists already
-    try
-        nc_create_empty(nc_file_name,'noclobber')
-    catch me
-        disp(me.message)
-        reply = input('Do you want to overwrite? Y/N [Y]: ', 's');
-        if isempty(reply)
-            reply = 'Y';
-        end
-        if strcmp(reply,'Y')
-            nc_create_empty(nc_file_name,'clobber')
-        else
-            error('exiting')
-        end
-    end
-end
-function catChunks2NetCDF(nc_file_name,dim,CK)
-    nc_varput(nc_file_name,'RossbyRadius',CK.rossby.Ro1,dim.start, dim.len);
-    nc_varput(nc_file_name,'RossbyPhaseSpeed',CK.rossby.c1,dim.start, dim.len);
-    nc_varput(nc_file_name,'lat',CK.lat	,dim.start, dim.len);
-    nc_varput(nc_file_name,'lon',CK.lon	,dim.start, dim.len);
+function catChunks2NetCDF(DD,dim,CK)
+    nc_varput(DD.path.Rossby,'RossbyRadius',CK.rossby.Ro1,dim.start2d, dim.len2d);
+    nc_varput(DD.path.Rossby,'RossbyPhaseSpeed',CK.rossby.c1,dim.start2d, dim.len2d);
+    nc_varput(DD.path.Rossby,'lat',CK.lat	,dim.start2d, dim.len2d);
+    nc_varput(DD.path.Rossby,'lon',CK.lon	,dim.start2d, dim.len2d);
 end
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>
     file_out=[DD.path.Rossby.name,'BVRf_',sprintf('%03d',chnk),'.mat'];

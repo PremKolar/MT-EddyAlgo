@@ -204,6 +204,7 @@ function	[outfilename,overwrite] = initNC(DD)
    outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
     overwrite=NCoverwriteornot(outfilename);
 end
+
 function catChunks2NetCDF(DD,dim,CK)
     nc_varput(DD.path.Rossby,'RossbyRadius',CK.rossby.Ro1,dim.start2d, dim.len2d);
     nc_varput(DD.path.Rossby,'RossbyPhaseSpeed',CK.rossby.c1,dim.start2d, dim.len2d);

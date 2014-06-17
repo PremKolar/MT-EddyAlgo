@@ -25,10 +25,14 @@ function idx=main(DD,MAP)
         spmd(DD.threads.num)
             idx=spmd_body(DD,MAP) ;
             %% merge composite
-            idxx=gop(@vertcat,idx,1);
+
+size(idx)
+
+    idxx=gop(@vertcat,idx,1);
         end
-        idx=sum(idxx{1});
-    end
+numel(idx);
+idx=sum(idxx{1});
+   end
 end
 function idx=spmd_body(DD,out)
     %% get input example lon/lat
@@ -41,6 +45,7 @@ function idx=spmd_body(DD,out)
     idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
     %% get Indices For Out Maps
     idx=getIndicesForOutMaps(in,out,JJ,idx);
+gsfndh
 end
 
 function [MAP]=MakeMaps(DD)

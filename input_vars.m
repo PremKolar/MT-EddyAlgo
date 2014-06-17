@@ -1,6 +1,6 @@
 function U=input_vars
     %% threads / debug
-    U.threads.num=12;
+    U.threads.num=2;
     U.debugmode=false;
 %     U.debugmode=true;
     %% time

@@ -7,25 +7,26 @@
 function S07_drawPlots
     DD=initialise;
     %%	set ticks here!
-    ticks.rez=300;
-    %      ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez/5;
+%     ticks.rez=200;
+	 ticks.rez=get(0,'ScreenPixelsPerInch');
+%           ticks.rez=42;
+    ticks.width=297/25.4*ticks.rez*5;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
     ticks.x= 0;
-    ticks.age=[1,2*365,10];
-    ticks.isoper=[DD.thresh.shape.iq,1,10];
-    ticks.isoper=[.3,1,8];
+    ticks.age=[1,3*365,10];
+%     ticks.isoper=[DD.thresh.shape.iq,1,10];
+	 ticks.isoper=[.6,1,10];
     ticks.radius=[20,150,9];
     ticks.radiusToRo=[0.2,5,11];
     ticks.amp=[1,20,7];
     %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
     ticks.visitsunique=[1,3,3];
-    ticks.dist=[-800;200;11];
+    ticks.dist=[-1500;1000;21];
     %ticks.dist=[-100;50;16];
-    ticks.disttot=[10;1000;13];
+    ticks.disttot=[1;2000;10];
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
@@ -69,9 +70,7 @@ end
 function job=taskfForZonMeans(DD,IN,ticks)
     job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
     job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
-    diary(job(1), 'jobzonmean1.txt')
-    diary(job(2), 'jobzonmean2.txt')
-    disp(['see jobzonmean1.txt and jobzonmean2.txt'])
+     disp(['see jobzonmean1.txt and jobzonmean2.txt'])
 end
 function velZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),2*IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
@@ -105,8 +104,7 @@ end
 function  job=taskfForMapAndHist(DD,IN,ticks)
     job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
     job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
-    diary(job(1), 'jobzMH1.txt')
-    diary(job(2), 'jobzMH2.txt')
+   
     disp(['see jobzMH(1:2).txt'])
 end
 function [OUT]=inits(DD)
@@ -324,46 +322,40 @@ function job=trackPlots(DD,ticks,tracks)
         job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
         job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
         job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
-        diary(job(1), [sen 'jobzTP1.txt'])
-        diary(job(2), [sen 'jobzTP2.txt'])
-        diary(job(3), [sen 'jobzTP3.txt'])
-        diary(job(4), [sen 'jobzTP4.txt'])
-        diary(job(5), [sen 'jobzTP5.txt'])
-        diary(job(6), [sen 'jobzTP6.txt'])
-        disp(['see ' sen 'jobzTP(1:6).txt'])
+         disp(['see ' sen 'jobzTP(1:6).txt'])
     end
 end
 function TPa(DD,ticks,tracks,sen)
     drawColorLinem(ticks,tracks.(sen),'lat','isoper') ;
     title([sen '- deflections'])
-    axis([-1500 300 -300 300])
-    set(gca,'ytick',[-200 0 200])
-    set(gca,'xtick',[-1000 0 200])
+    axis([-2500 1500 -500 500])
+    set(gca,'ytick',[-500 0 500])
+    set(gca,'xtick',[-2500 0 1500])
     colorbar
     xlabel('IQ repr. by thickness; latitude repr. by color')
     axis equal
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['defletcs' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['defletcs' sen],DD.debugmode,'dpng',1);
 end
 function TPb(DD,ticks,tracks,sen)
     field='age';
     drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
     decorate(field,ticks,DD,sen,field,'d',1,1);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode,'dpng',1);
 end
 function TPc(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
     decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode,'dpng',1);
 end
 function TPd(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
     decorate('radius',ticks,DD,sen,'Radius','km',0,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode,'dpng',1);
 end
 function TPe(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
     decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
     
 end
 function TPf(DD,ticks,tracks,sen)
@@ -401,7 +393,7 @@ function [lat]=numPerLat(latin,DD,ticks,range,sen)
     semilogy(range,lat);
     tit=['number of ',sen,' per 1deg lat'];
     title([tit]);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
 end
 function [age,cum]=ageCum(agein,DD,ticks,range,sen)
     figure
@@ -611,7 +603,9 @@ function overmain(ticks,DD)
     if DD.debugmode
         mainDB(DD,threadData,ticks);
     else
+        warning('off') %#ok<*WNOFF>
         job=main(DD,threadData,ticks);
+         warning('on') %#ok<*WNON>
         %% close pool for printing
         matlabpool close
         for field=fieldnames(job)';ff=field{1};

@@ -20,17 +20,22 @@ function U=input_vars
     U.map.out.south=-90;
     U.map.out.east=180;   
     U.map.out.north=90;
-    %% input MAP STUFF   
-    U.map.in.west=U.map.out.west;
-    U.map.in.east=U.map.out.east;
-    U.map.in.south=U.map.out.south;
-    U.map.in.north=U.map.out.north;
-    U.map.in.time.delta_t = 1; % [days]
-    U.map.in.SSH_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-    U.map.in.pattern.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-    U.map.in.pattern.lat='U_LAT_2D';
-    U.map.in.pattern.lon='U_LON_2D';
-    U.map.in.pattern.ssh='SSH';
+  	%% input MAP STUFF
+	U.map.in.west=U.map.out.west;
+	U.map.in.east=U.map.out.east;
+	U.map.in.south=U.map.out.south;
+	U.map.in.north=U.map.out.north;
+	U.map.in.time.delta_t = 1; % [days]
+	U.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+	U.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
+	U.map.in.keys.lat='U_LAT_2D';
+	U.map.in.keys.lon='U_LON_2D';
+	U.map.in.keys.ssh='SSH';
+	U.TS.keys.lat='U_LAT_2D';
+	U.TS.keys.lon='U_LON_2D';
+	U.TS.keys.salt='SALT';
+	U.TS.keys.temp='TEMP';
+	U.TS.keys.depth='depth_t';
     %% thresholds
     U.contour.step=0.01; % [SI]
     U.thresh.ssh_filter_size=1;
@@ -48,6 +53,7 @@ function U=input_vars
     U.switchs.chelt=false;
     U.switchs.distlimit=false;
     U.switchs.AmpAreaCheck=false;
+	 U.switchs.netUstuff=true;
     %% parameters
     U.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     U.parameters.meanU=100; % depth from which to take mean U

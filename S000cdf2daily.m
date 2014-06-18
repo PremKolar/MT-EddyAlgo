@@ -99,7 +99,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapInfo(Y,X,map)
 	sprintf('built %ix%i grid',Y,X);
-	disp(['built ', [num2mstr(Y), 'x', num2mstr(X)], ' grid']);
 	sprintf('spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN',map.west,map.east,map.south,map.north);
 	sleep(2);
 end

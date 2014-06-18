@@ -150,7 +150,7 @@ function [in,out]=getlatlon(DD)
     in.lon=nc_varget(DD.path.Rossby.NCfile,'lon');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  downscalePop(in,fn,out,DD,idx)
+function  downscalePop(data,fn,out,DD,idx)
     %% move pop sized file to another name
     system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
     %% get geo info for output
@@ -159,7 +159,7 @@ function  downscalePop(in,fn,out,DD,idx)
     T=disp_progress('init',['remapping ' fn ' from pop data']);
     for li=uni
         T=disp_progress('show',T,numel(uni),10);
-        out(li)=nanmean(in(idx==li));
+        out(li)=nanmean(data(idx==li));
     end
     %% save
     save([DD.path.Rossby.name, fn,'.mat'],'out');
@@ -167,10 +167,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function nc2matSave(DD,fn,idx,reallocIdx)
     %% get pop data
-    out=nc_varget(DD.path.Rossby.NCfile,fn);
-    save([DD.path.Rossby.name, fn,'.mat'],'out'); % save pop version either way
+    in=nc_varget(DD.path.Rossby.NCfile,fn);
+    %% save pop version either way
+    out=in; %#ok<NASGU>
+    save([DD.path.Rossby.name, fn,'.mat'],'out'); 
+    %% remap
     if reallocIdx
-        downscalePop(out,fn,nan(size(out)),DD,idx)
+        protoout=nan(DD.map.window.size.Y,DD.map.window.size.X);
+        downscalePop(in,fn,protoout,DD,idx)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,9 +196,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function nc2mat(DD)
     %% test for remap
-    fns=fieldnames(nc_getall(DD.path.Rossby.NCfile));
-    out=nc_varget(DD.path.Rossby.NCfile,fns{1});
-    if numel(out)~=prod(struct2array(DD.map.window.size))
+    fns=ncfieldnames(DD.path.Rossby.NCfile);
+    in=nc_varget(DD.path.Rossby.NCfile,fns{1});
+    if numel(in)~=prod(struct2array(DD.map.window.size))
         reallocIdx=true;
         [idx,~]=reallocCase(DD);
     end

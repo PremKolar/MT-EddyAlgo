@@ -9,10 +9,10 @@ function DD=input_vars
 	DD.time.from.str=datestr(now,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+3*20,'yyyymmdd');
+	DD.time.till.str=datestr(now+424242,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='mad';
+	DD.path.OutDirBaseName='mad3';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../madDaily/';
@@ -24,13 +24,13 @@ function DD=input_vars
 	DD.map.out.east=46;
 	DD.map.out.south=10;
 	DD.map.out.north=47;
-    %% output MAP STUFF
-	DD.map.out.X=10*1+1;
-	DD.map.out.Y=10*1+1;
-	DD.map.out.west=20;
-	DD.map.out.east=30;
-	DD.map.out.south=10;
-	DD.map.out.north=20;
+%     %% output MAP STUFF
+% 	DD.map.out.X=10*1+1;
+% 	DD.map.out.Y=10*1+1;
+% 	DD.map.out.west=20;
+% 	DD.map.out.east=30;
+% 	DD.map.out.south=10;
+% 	DD.map.out.north=20;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;

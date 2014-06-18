@@ -42,36 +42,36 @@ function [limits,type]=FindRectangle(flag)
     xb.z=find(cols==0,1,'last');
     xa.nz=find(cols~=0,1,'first');
     xb.nz=find(cols~=0,1,'last');
-    %% cases
-    if (xa.z==1 && xb.z==X)
-        if all(cols~=0)
-            %% continuous in x
-            limits.west=1;
-            limits.east=length(cols);
-            type='globe';
-        else
+    %% cases    
+    if all(cols~=0)
+        %% continuous in x
+        limits.west=1;
+        limits.east=length(cols);
+        type='globe';
+    else
+        if (xa.z==1 && xb.z==X)
             %% normal case
             limits.west=xa.nz;
             limits.east=xb.nz;
             type='normal';
+        elseif (xa.nz==1 && xb.nz==X && any(cols==0))
+            %% box crosses zonal bndry
+            limits.west=xb.z+1;
+            limits.east=xa.z-1;
+            type='zonCross';
+        elseif xa.nz==1 && xb.nz~=X && xb.z==X
+            %% box begins at western edge of map
+            limits.west=1;
+            limits.east=xb.nz;
+            type='beginsAtWesternBndry';
+        elseif xa.nz~=1 && xb.nz==X && xb.z==1
+            %% box ends on eastern edge
+            limits.west=xa.nz;
+            limits.east=X;
+            type='beginsAtEasternBndry';
+        else
+            error('map problems')
         end
-    elseif (xa.nz==1 && xb.nz==X && any(cols==0))
-        %% box crosses zonal bndry
-        limits.west=xb.z+1;
-        limits.east=xa.z-1;
-        type='zonCross';
-    elseif xa.nz==1 && xb.nz~=X && xb.z==X
-        %% box begins at western edge of map
-        limits.west=1;
-        limits.east=xb.nz;
-        type='beginsAtWesternBndry';
-    elseif xa.nz~=1 && xb.nz==X && xb.z==1
-        %% box ends on eastern edge
-        limits.west=xa.nz;
-        limits.east=X;
-        type='beginsAtEasternBndry';
-    else
-        error('map problems')
     end
     %% north/south
     limits.north=find(rows,1,'last');

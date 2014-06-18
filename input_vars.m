@@ -13,8 +13,8 @@ function DD=input_vars
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='mad';
-	% 	DD.path.TempSalt.name='../TempSalt/';
-	DD.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
+		DD.path.TempSalt.name='../TempSalt/';
+% 	DD.path.TempSalt.name='/home/niko/ROMnew/TempSalt/';
 	%     DD.path.TempSalt.name='/media/ROM/TempSalt/';
 	DD.path.raw.name='../madDaily/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
@@ -50,7 +50,7 @@ function DD=input_vars
 	DD.thresh.shape.iq=0.3; % isoperimetric quotient
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=6; % min number of data points for the perimeter of an eddy
-	DD.thresh.dist=.9*24*60^2; % max distance travelled per day
+	DD.thresh.dist=.5*24*60^2; % max distance travelled per day
 	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches

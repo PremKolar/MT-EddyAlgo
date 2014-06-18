@@ -1,4 +1,4 @@
-S00_prep_data
+%S00_prep_data
 S01_contours
 S02_infer_fields
 S03_filter_eddies

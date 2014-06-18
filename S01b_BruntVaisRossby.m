@@ -14,9 +14,7 @@ function S01b_BruntVaisRossby
 	%% set up
 	[DD,lims]=set_up;
 	%% spmd
-	if DD.TS.overwrite
-		main(DD,lims)
-	end
+	main(DD,lims)
 	%% make netcdf
 	WriteNCfile(DD,lims);
 	%% update DD
@@ -37,7 +35,7 @@ function [DD,lims]=set_up
 	%% init
 	DD=initialise;
 	%% check if exists already
-	[DD.path.Rossby.NCfile , DD.TS.overwrite] = initNC(DD);
+	[DD.path.Rossby.NCfile] = initNC(DD);
 	%% set number of chunks to split large data (see input_vars.m)
 	splits=DD.RossbyStuff.splits;
 	%% threads
@@ -65,8 +63,6 @@ function spmd_body(DD,lims)
 	id=labindex;
 	%% loop over chunks
 	for chnk=lims.loop(id,1):lims.loop(id,2)
-		file_out=[DD.path.Rossby.name,'BVRf_',sprintf('%03d',chnk),'.mat'];
-		if exist(file_out,'file'), disp([num2str(chnk) ' exists']);continue;end
 		Calculations(DD,lims.data,chnk);
 	end
 end
@@ -89,29 +85,29 @@ end
 function initNcFile(DD)
 	CK=loadChunk(DD,1);
 	[dim.Z,dim.Y,dim.X]=size(CK.BRVA);
-	nc_adddim(DD.path.Rossby,'depth_diff',dim.Z);
-	nc_adddim(DD.path.Rossby,'i_index',DD.TS.window.size.X);
-	nc_adddim(DD.path.Rossby,'j_index',DD.TS.window.size.Y);
+	nc_adddim(DD.path.Rossby.NCfile,'depth_diff',dim.Z);
+	nc_adddim(DD.path.Rossby.NCfile,'i_index',DD.TS.window.size.X);
+	nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);
 	%% Ro1
 	varstruct.Name = 'RossbyRadius';
 	varstruct.Nctype = 'double';
 	varstruct.Dimension = {'j_index','i_index' };
-	nc_addvar(DD.path.Rossby,varstruct)
+	nc_addvar(DD.path.Rossby.NCfile,varstruct)
 	%% c1
 	varstruct.Name = 'RossbyPhaseSpeed';
 	varstruct.Nctype = 'double';
 	varstruct.Dimension ={'j_index','i_index' };
-	nc_addvar(DD.path.Rossby,varstruct)
+	nc_addvar(DD.path.Rossby.NCfile,varstruct)
 	%% lat
 	varstruct.Name = 'lat';
 	varstruct.Nctype = 'double';
 	varstruct.Dimension ={'j_index','i_index' };
-	nc_addvar(DD.path.Rossby,varstruct)
+	nc_addvar(DD.path.Rossby.NCfile,varstruct)
 	%% lon
 	varstruct.Name = 'lon';
 	varstruct.Nctype = 'double';
 	varstruct.Dimension ={'j_index','i_index' };
-	nc_addvar(DD.path.Rossby,varstruct)
+	nc_addvar(DD.path.Rossby.NCfile,varstruct)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=initNcChunk(DD,chnk)
@@ -192,9 +188,9 @@ function  downscalePop(in,fn,out,DD,idx)
 	save([DD.path.Rossby.name, fn,'.mat'],'out');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[outfilename,overwrite] = initNC(DD)
+function	[outfilename] = initNC(DD)
 	outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-	overwrite=NCoverwriteornot(outfilename);
+	NCoverwriteornot(outfilename);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function catChunks2NetCDF(file,dim,CK)

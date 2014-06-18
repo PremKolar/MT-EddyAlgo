@@ -1,4 +1,4 @@
-% get 2d-coordinate from 1d-coordinate pair.
+% get 2d-coordinate pair from 1d-coordinate.
 % columns are stacked on top of one another
 % V=[1, 2, 3, 4]
 % Vx = 3
@@ -7,6 +7,8 @@ function [y,x]=raise_1d_to_2d(Y,x1d)
 	if isempty(x1d)
 		y=[];x=[];return
 	end
-	x=int32(ceil((double(x1d))/double(Y)));
-	y=int32(x1d - (x-1)*Y);
+	x=(ceil((double(x1d))/double(Y)));
+	y=(x1d - (x-1)*Y);
+    x=int32(x);
+    y=int32(y);
 end

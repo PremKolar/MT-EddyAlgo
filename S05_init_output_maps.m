@@ -6,60 +6,61 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S05_init_output_maps
 	%% init
-	DD=initialise('cuts');
+	DD=initialise('');
 	%%
-	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-	DD.CutOne=read_fields(DD,1,'cuts');
-	%%
-	init_threads(DD.threads.num);
 	[MAP]=MakeMaps(DD);
+	%%
+	DD.threads.num=init_threads(DD.threads.num);
+	%% find respective index for all grid points of input map
+	MAP.idx=main(DD,MAP);
 	%% save MAP
 	save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
-	DD.OutMapStuff=MAP;
 	%% update infofile
 	save_info(DD)
 end
-
-function [MAP]=MakeMaps(DD)
-	%% init output map dims
-	
-	xvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.west,DD.dim.east,DD.dim.X))/10^DD.dim.NumOfDecimals;
-	yvec=round(10^DD.dim.NumOfDecimals*linspace(DD.dim.south,DD.dim.north,DD.dim.Y))/10^DD.dim.NumOfDecimals;
-	[MAP.GLO,MAP.GLA]=meshgrid(xvec,yvec);
-	MAP.proto.nan=nan(size(MAP.GLO));
-	MAP.proto.zeros=zeros(size(MAP.GLO));
-	%% find respective index for all grid points of input map
-	MAP.idx=getIndicesForOutMaps(DD.CutOne.grids,MAP,DD.threads.num);
-end
-function idx_out=getIndicesForOutMaps(grids,MAP,threads)
-	[Y,X]=size(grids.LAT);
-	idx=zeros(Y*X,1);
-	%% copy onto stack for performance
-	LON=deg2rad(grids.LON);
-	LAT=deg2rad(grids.LAT);
-	LONout=deg2rad(MAP.GLO);
-	LATout=deg2rad(MAP.GLA);
-	lims=thread_distro(threads,numel(idx));
-	spmd
-		%% allocate indices to be calculated by worker
-		idcs=(lims(labindex,1):lims(labindex,2));
-		T=disp_progress('init','allocating old indices to output indeces');
-		for ii=idcs
-			T=disp_progress('disp',T,numel(idcs),10);
-			idx(ii)=TransferIdx(LON(ii),LAT(ii),LONout,LATout);
-		end
-		%% sum vectors from all workers
-		idx_out=gplus(idx,1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx=main(DD,MAP)
+	if DD.debugmode
+		idx=spmd_body(DD,MAP);
+	else
+		idx=mainSpmd(DD,MAP);
 	end
-	
-	%% send distributed vector to master
-	idx_out=idx_out{1};
 end
-function [idx]=TransferIdx(lon,lat,LONout,LATout)
-	[A,B]=meshgrid(lon,LONout);
-	xx=abs(A-B)*cos(lat);
-	[A,B]=meshgrid(lat,LATout);
-	yy=abs(A-B);
-	[~,idx]=min(hypot(xx,yy)) ;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx=mainSpmd(DD,MAP)
+	spmd(DD.threads.num)
+		idx=spmd_body(DD,MAP);
+		%% merge composite
+		idxx=gop(@vertcat,idx,1);
+	end
+	numel(idx);
+	idx=sum(idxx{1});
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx=spmd_body(DD,out)
+	%% get input example lon/lat
+	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
+	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
+	%% get codisp'ed indeces
+	lims=thread_distro(DD.threads.num,numel(in.lon));
+	JJ=lims(labindex,1):lims(labindex,2);
+	%%
+	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
+	%% get Indices For Out Maps
+	idx=getIndicesForOutMaps(in,out,JJ,idx);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [MAP]=MakeMaps(DD)
+	%% init output map dim
+	xvec=linspace(DD.map.out.west,DD.map.out.east,DD.map.out.X);
+	yvec=linspace(DD.map.out.south,DD.map.out.north,DD.map.out.Y);
+	[MAP.lon,MAP.lat]=meshgrid(xvec,yvec);
+	MAP.proto.nan=nan(size(MAP.lon));
+	MAP.proto.zeros=zeros(size(MAP.lon));
+	MAP.dim.y=numel(yvec);
+	MAP.dim.x=numel(xvec);
+	MAP.dim.numel= MAP.dim.y * MAP.dim.x;
+	MAP.inc.x=(DD.map.out.east-DD.map.out.west)/(DD.map.out.X-1);
+	MAP.inc.y=(DD.map.out.north-DD.map.out.south)/(DD.map.out.Y-1);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,8 +1,8 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-% 		DD.debugmode=false;
-	DD.debugmode=true;
+		DD.debugmode=false;
+% 	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
@@ -13,8 +13,8 @@ function DD=input_vars
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='mad';
-% 		DD.path.TempSalt.name='../TempSalt/';
-	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
+		DD.path.TempSalt.name='../TempSalt/';
+% 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../madDaily/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
@@ -24,6 +24,13 @@ function DD=input_vars
 	DD.map.out.east=46;
 	DD.map.out.south=10;
 	DD.map.out.north=47;
+    %% output MAP STUFF
+	DD.map.out.X=10*1+1;
+	DD.map.out.Y=10*1+1;
+	DD.map.out.west=20;
+	DD.map.out.east=30;
+	DD.map.out.south=10;
+	DD.map.out.north=20;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;

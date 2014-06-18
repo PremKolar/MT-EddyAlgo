@@ -1,21 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Created: 10-Oct-2013 16:53:06
+% Computer:  GLNX86
+% Matlab:  7.9
+% Author:  NK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=initialise(toCheck)
     %% very first settings
     addpath(genpath('./'));  %#ok<*MCAP>
-	 warning on backtrace;
-	 dbstop if error; 
-	 rehash; clc; close all;
-	 format shortg;	
+    warning on backtrace;
+    dbstop if error;
+    rehash; clc; close all;
+    format shortg;
     %% get user input
     DD = get_input;
+    if DD.debugmode, dbstop if warning; end
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
     if ~exist('toCheck','var')
         toCheck=false;
     end
     if toCheck
-       DD=ini(DD,toCheck);
-    else
-
+        DD=ini(DD,toCheck);
+    else        
     end
     %% if exist append new info from ini() but keep info not overwritten by ini()
     if exist(DDcheck,'file')
@@ -25,13 +31,16 @@ function DD=initialise(toCheck)
     if   ~isempty(DD.path.cuts.files)
         [DD.map.window]=GetWin(DD);
     end
-    %% load workers   
+    %% load workers
     DD.threads.num=init_threads(DD.threads.num);
     if DD.threads.num>DD.time.span/DD.time.delta_t
         error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
+    %% performance stuff
     DD.tic=tic;
+    dispmem;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)
     %% check data for consistency
     DD.checks = check_data(DD,toCheck);
@@ -40,7 +49,7 @@ function DD=ini(DD,toCheck)
     threads=min([maxthreads, DD.threads.num]);
     DD.threads.lims = thread_distro(threads,DD.checks.passedTotal);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TT=initChecks(DD,toCheck)
     TT = DD.time;
     TT.timesteps.n = TT.from.num:TT.delta_t:TT.till.num;
@@ -52,6 +61,7 @@ function TT=initChecks(DD,toCheck)
     %% init new delta t
     TT.del_t = nan(size(TT.passed));
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function checks = check_data(DD,toCheck)
     %% init
     TT=initChecks(DD,toCheck);
@@ -70,6 +80,7 @@ function checks = check_data(DD,toCheck)
     %% disp found files
     filedisps(checks)
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)
     sleep(1)
     disp(['found '])
@@ -78,6 +89,7 @@ function filedisps(checks)
     end
     disp(['total of ' num2str(numel(checks.passed))])
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function pass=checkForFiles(TT)
     pass=TT.passed;
     for tt = 1:numel(TT.passed);
@@ -86,6 +98,7 @@ function pass=checkForFiles(TT)
         end
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function del_t=newDt(TT,DD)
     del_t=nan(TT.span,1);
     tempdelt=DD.time.delta_t;
@@ -100,11 +113,13 @@ function del_t=newDt(TT,DD)
     end
     
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window]=GetWin(DD)
     smplFile=[DD.path.cuts.name DD.path.cuts.files(1).name];
     load(smplFile,'window');
     window.flag=[];
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function passed=getFnames(DD,checks,toCheck)
     passed=checks.passed;
     path=DD.path.(toCheck);
@@ -127,6 +142,7 @@ function passed=getFnames(DD,checks,toCheck)
         end
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

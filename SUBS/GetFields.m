@@ -2,6 +2,7 @@ function [F,unreadable]=GetFields(file,keys)
     F=struct;    
     unreadable.is=false;
     for field=fieldnames(keys)';ff=field{1};
+       if isempty(ff),continue;end
         if strcmpi(ff,'lon')
             F.(ff) = CorrectLongitude(squeeze(nc_varget(file,keys.(ff))));
         else
@@ -13,6 +14,7 @@ function [F,unreadable]=GetFields(file,keys)
                 disp('skipping');
                 disp(uc);
                 disp(uc.message);
+                disp(uc.getReport);
                 return
             end
         end

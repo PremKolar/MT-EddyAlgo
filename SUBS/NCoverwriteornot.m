@@ -4,35 +4,25 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=NCoverwriteornot(nc_file_name,ow)
+function NCoverwriteornot(nc_file_name)
 	%% test if file exists already
-	out=false;
-	if nargin < 2
-		ask(nc_file_name)
-	elseif ow
-		out=true;
-		notask(nc_file_name)
-	end
+	GiveTime(nc_file_name);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ask(nc_file_name)
+function GiveTime(nc_file_name)
 	try
 		nc_create_empty(nc_file_name,'noclobber');
 	catch me
 		disp(me.message)
-		reply = input('Do you want to overwrite? Y/N [Y]: ', 's');
-		if isempty(reply)
-			reply = 'Y';
+		tt= 5;
+		while tt>0
+			disp('cancel if you dont want to overwrite!')
+			disp(datestr(sec2day(tt),'SS'))
+			tt=tt-1;
+			sleep(1)
 		end
-		if strcmp(reply,'Y')
-			nc_create_empty(nc_file_name,'clobber');
-		else
-			error('exiting');
-		end
+		disp('overwriting')
+		nc_create_empty(nc_file_name,'clobber');
 	end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function notask(nc_file_name)
-	nc_create_empty(nc_file_name,'clobber');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

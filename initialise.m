@@ -1,6 +1,10 @@
 function DD=initialise(toCheck)
     %% very first settings
-    warning on backtrace; dbstop if error; addpath(genpath('./')); rehash; clc; close all; format shortg
+    addpath(genpath('./'));  %#ok<*MCAP>
+	 warning on backtrace;
+	 dbstop if error; 
+	 rehash; clc; close all;
+	 format shortg;	
     %% get user input
     DD = get_input;
     %% check whether info file exists already
@@ -24,7 +28,7 @@ function DD=initialise(toCheck)
     %% load workers   
     DD.threads.num=init_threads(DD.threads.num);
     if DD.threads.num>DD.time.span/DD.time.delta_t
-        error('too many threads for not enough timesteps!!!')
+        error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
     DD.tic=tic;
 end

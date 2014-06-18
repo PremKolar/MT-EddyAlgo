@@ -37,7 +37,7 @@ function [DD,lims]=set_up
 	%% init
 	DD=initialise;
 	%% check if exists already
-	[DD.path.Rossby , DD.TS.overwrite] = initNC(DD);
+	[DD.path.Rossby.NCfile , DD.TS.overwrite] = initNC(DD);
 	%% set number of chunks to split large data (see input_vars.m)
 	splits=DD.RossbyStuff.splits;
 	%% threads
@@ -168,7 +168,7 @@ function WriteNCfile(DD,lims)
 		T=disp_progress('disp',T,splits,100);
 		%% put chunks back 2g4
 		[CK,dim]=initNcChunk(DD,chnk,lims);
-		catChunks2NetCDF(DD.path.Rossby,dim,CK);
+		catChunks2NetCDF(DD.path.Rossby.NCfile,dim,CK);
 	end
 	%% make also mat files
 	nc2mat(DD,DD.path.Rossby)
@@ -197,11 +197,11 @@ function	[outfilename,overwrite] = initNC(DD)
 	overwrite=NCoverwriteornot(outfilename);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function catChunks2NetCDF(DD,dim,CK)
-	nc_varput(DD.path.Rossby,'RossbyRadius',CK.rossby.Ro1,dim.start2d, dim.len2d);
-	nc_varput(DD.path.Rossby,'RossbyPhaseSpeed',CK.rossby.c1,dim.start2d, dim.len2d);
-	nc_varput(DD.path.Rossby,'lat',CK.lat	,dim.start2d, dim.len2d);
-	nc_varput(DD.path.Rossby,'lon',CK.lon	,dim.start2d, dim.len2d);
+function catChunks2NetCDF(file,dim,CK)
+	nc_varput(file,'RossbyRadius',CK.rossby.Ro1,dim.start2d, dim.len2d);
+	nc_varput(file,'RossbyPhaseSpeed',CK.rossby.c1,dim.start2d, dim.len2d);
+	nc_varput(file,'lat',CK.lat	,dim.start2d, dim.len2d);
+	nc_varput(file,'lon',CK.lon	,dim.start2d, dim.len2d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveChunk(CK,DD,chnk) %#ok<*INUSL>

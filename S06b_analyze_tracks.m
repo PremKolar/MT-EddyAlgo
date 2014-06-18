@@ -342,6 +342,7 @@ function zonMean=zonmeans(M,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT=weightedZonMean(MS,weight)
+	warning('MATLAB:divideByZero','off')
 	weight(weight==0)=nan;
 	OUT.mean=nansum(MS.mean.*weight,2)./nansum(weight,2);
 	OUT.std=nansum(MS.std.*weight,2)./nansum(weight,2);

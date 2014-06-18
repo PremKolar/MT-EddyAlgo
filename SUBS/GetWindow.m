@@ -3,9 +3,7 @@ function [window,lonlat]=GetWindow(file,mapin,filePattern)
     disp('assuming identical lon/lat for all files!!!')
     %% get data
     % only need lon and lat
-    patt.lon=filePattern.lon;
-    patt.lat=filePattern.lat;
-    [lonlat]=GetFields(file,patt);  
+   [lonlat]=GetFields(file,filePattern);  
     %% find window mask
     window=FindWindowMask(lonlat,mapin);
     %% full size
@@ -50,7 +48,7 @@ function [limits,type]=FindRectangle(flag)
         limits.west=xb+1;
         limits.east=xa-1;
         type='zonCross';
-    elseif isempty(cols)
+    elseif all(cols~=0)
         %% continuous in x
         limits.west=1;
         limits.east=length(cols);

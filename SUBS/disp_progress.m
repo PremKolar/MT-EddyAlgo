@@ -1,3 +1,9 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Created: 18-Oct-2013 11:58:41
+% Computer:  GLNX86
+% Matlab:  7.9
+% Author:  NK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [T]=disp_progress(type,Tin,L,num_prints,silent)
 	warning('off','MATLAB:divideByZero')
 	if strcmp(type,'init')
@@ -6,15 +12,16 @@ function [T]=disp_progress(type,Tin,L,num_prints,silent)
 		if nargin<5, silent=false;end
 		T=later(Tin,L,num_prints,silent);
 	end
-	warning('on','MATLAB:divideByZero') %#ok<*RMWRN>
+	warning('on','MATLAB:divideByZero')
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=init(Tin)
 	T.cc=0;
 	T.time=0;
 	T.name=Tin;
 	T.tic=tic;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=later(T,L,num_prints,silent)
 	T.cc=T.cc+1;
 	%%
@@ -23,6 +30,7 @@ function T=later(T,L,num_prints,silent)
 		printout(T,L);
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function printout(T,L)
 	disp('####')
 	disp(['-',T.name,'-']);
@@ -44,12 +52,12 @@ function printout(T,L)
 	%%
 	
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=spmdwaitbar(frac,len)
 	out=['[',repmat('-',1,floor(frac*len)),'>',repmat(' ',1,ceil((1-frac)*len)),']'];
 	disp(out);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=calcu(T,L)
 	T.time=toc(T.tic);
 	T.prcnt_done=((T.cc-1)/L);
@@ -59,6 +67,7 @@ function T=calcu(T,L)
 		T.uplevel.full_time_to_go=(T.time_to_go + T.time)*T.uplevel.togo;
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 

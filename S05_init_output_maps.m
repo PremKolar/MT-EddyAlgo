@@ -23,17 +23,18 @@ function idx=main(DD,MAP)
 	if DD.debugmode
 		idx=spmd_body(DD,MAP);
 	else
-		spmd(DD.threads.num)
-			idx=spmd_body(DD,MAP) ;
-			%% merge composite
-			
-			size(idx)
-			
-			idxx=gop(@vertcat,idx,1);
-		end
-		numel(idx);
-		idx=sum(idxx{1});
+		idx=mainSpmd(DD,MAP);
 	end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx=mainSpmd(DD,MAP)
+	spmd(DD.threads.num)
+		idx=spmd_body(DD,MAP);
+		%% merge composite
+		idxx=gop(@vertcat,idx,1);
+	end
+	numel(idx);
+	idx=sum(idxx{1});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=spmd_body(DD,out)
@@ -47,7 +48,6 @@ function idx=spmd_body(DD,out)
 	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
 	%% get Indices For Out Maps
 	idx=getIndicesForOutMaps(in,out,JJ,idx);
-	gsfndh
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP]=MakeMaps(DD)

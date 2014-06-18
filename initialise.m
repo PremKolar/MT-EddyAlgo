@@ -1,6 +1,6 @@
 function DD=initialise(toCheck)
     %% very first settings
-    dbstop if error; addpath(genpath('./')); rehash; clc; close all; format shortg
+    warning on backtrace; dbstop if error; addpath(genpath('./')); rehash; clc; close all; format shortg
     %% get user input
     DD = get_input;
     %% check whether info file exists already

@@ -12,7 +12,7 @@
 % structure.
 function S00_prep_data
 	%% set up
-	[DD]=set_up;
+	[DD]=set_up;	
 	%% spmd
 	main(DD)
 	%% save info

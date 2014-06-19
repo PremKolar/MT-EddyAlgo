@@ -12,7 +12,7 @@ function DD=input_vars
 	DD.time.till.str=datestr(now+120,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='NewCdf';
+	DD.path.OutDirBaseName='NewCdf2';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';
@@ -37,7 +37,7 @@ function DD=input_vars
 	DD.map.in.south=DD.map.out.south;
 	DD.map.in.north=DD.map.out.north;
 	DD.map.in.time.delta_t = 1; % [days]
-	DD.map.in.ssh_unitFactor = 10; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+	DD.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
 	DD.map.in.fname='RAWyyyymmdd.nc';
 	DD.map.in.cdfName='new.cdf';
 	DD.map.in.keys.lat='U_LAT_2D';
@@ -74,6 +74,7 @@ function DD=input_vars
 	%% technical params
 	DD.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
 	%% only relevant for S000
+    DD.parameters.SSHAdepth=50;
 	DD.parameters.boxlims.south=10;
 	DD.parameters.boxlims.west=0;
 end

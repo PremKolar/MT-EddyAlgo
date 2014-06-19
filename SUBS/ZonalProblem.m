@@ -23,9 +23,9 @@ function [OUT]=ZonalProblem(IN,window)
         end
     end
     %% append params
-    OUT.window				 =window;
+    OUT.window	 =window;
     OUT.params.full_globe =full_globe;
-    OUT.params.seam       =seam;
+    OUT.params.seam   =seam;
 end
 function [OUT]=AppendIfFullZonal(IN,window)
     %% append 1/10 of map to include eddies on seam

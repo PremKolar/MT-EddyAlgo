@@ -7,13 +7,13 @@
 function DD=initialise(toCheck)
     %% very first settings
     addpath(genpath('./'));  %#ok<*MCAP>
-%    warning on backtrace;
+    warning on backtrace;
     dbstop if error;
     rehash; clc; close all;
     format shortg;
     %% get user input
     DD = get_input;
-    if DD.debugmode, dbstop if warning; end
+  %  if DD.debugmode, dbstop if warning; end
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
     if ~exist('toCheck','var')

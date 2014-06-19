@@ -1,21 +1,21 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-		DD.debugmode=false;
-% 	DD.debugmode=true;
+% 		DD.debugmode=false;
+	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
 	DD.time.from.str=datestr(now,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+424242,'yyyymmdd');
+	DD.time.till.str=datestr(now+30,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='mad3';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
-	DD.path.raw.name='../madDaily/';
+	DD.path.raw.name='/home/niko/ROMnew/newCdfDataMad/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
 	DD.map.out.X=46*1+1;
@@ -39,7 +39,7 @@ function DD=input_vars
 	DD.map.in.time.delta_t = 1; % [days]
 	DD.map.in.ssh_unitFactor = 10; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
 	DD.map.in.fname='RAWyyyymmdd.nc';
-	DD.map.in.cdfName='psvar.cdf';
+	DD.map.in.cdfName='mad.cdf';
 	DD.map.in.keys.lat='U_LAT_2D';
 	DD.map.in.keys.lon='U_LON_2D';
 	DD.map.in.keys.ssh='SSH';

@@ -40,7 +40,7 @@ function spmd_body(DD,MF)
 	%% loop over files
 	[T]=disp_progress('init','preparing raw data');
 	for cc=CC
-		MF.E325=squeeze(nc_varget(MF.file.in,'E325',[cc-1,0,0],[1,inf,inf]));
+		MF.SSH=squeeze(nc_varget(MF.file.in,'SSHA',[cc-1,0,0],[1,inf,inf]));
 		[T]=disp_progress('calc',T,numel(CC),100);
 		operateDay(MF,DD,cc);
 	end
@@ -49,12 +49,16 @@ end
 function [MF]=cdfData(DD)
 	MF.file.in=[DD.path.raw.name	,DD.map.in.cdfName	];
 	MF.nc_info=nc_info(MF.file.in);
+disp(MF.nc_info)
+MF.allNoData=nc_getall(MF.file.in)
+disp(MF.allNoData)
+MF.allNoData.SSHA
 	disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
 	startTime=DD.time.from.num;
 	MF.TIME=nc_varget(MF.file.in,'TIME');
 	MF.TIME=MF.TIME-MF.TIME(1)+startTime;
-	MF.XT_bnds=nc_varget(MF.file.in,'XT_bnds');
-	MF.YT_bnds=nc_varget(MF.file.in,'YT_bnds');
+%	MF.XT_bnds=nc_varget(MF.file.in,'XT_bnds');
+%	MF.YT_bnds=nc_varget(MF.file.in,'YT_bnds');
 	MF.XT=nc_varget(MF.file.in,'XT');
 	MF.YT=nc_varget(MF.file.in,'YT');
 end

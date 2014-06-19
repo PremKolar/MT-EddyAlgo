@@ -7,7 +7,7 @@
 function DD=initialise(toCheck)
     %% very first settings
     addpath(genpath('./'));  %#ok<*MCAP>
-    warning on backtrace;
+%    warning on backtrace;
     dbstop if error;
     rehash; clc; close all;
     format shortg;

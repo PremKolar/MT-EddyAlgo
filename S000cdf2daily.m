@@ -49,7 +49,6 @@ end
 function [MF]=cdfData(DD)
 	MF.file.in=[DD.path.raw.name	,DD.map.in.cdfName	];
 	MF.nc_info=nc_info(MF.file.in);
-	MF.nc_info=nc_getall(MF.file.in);
 	disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
 	startTime=DD.time.from.num;
 	MF.TIME=nc_varget(MF.file.in,'TIME');

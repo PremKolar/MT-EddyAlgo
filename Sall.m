@@ -1,5 +1,5 @@
-S000cdf2daily
-S00_prep_data
+%S000cdf2daily
+%S00_prep_data
  S01_contours
 S01a_deleteZonalOverlapInCuts
 %S01b_BruntVaisRossby

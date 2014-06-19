@@ -12,7 +12,7 @@ function DD=input_vars
 	DD.time.till.str=datestr(now+424242,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='mad3';
+	DD.path.OutDirBaseName='mad4';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../madDaily/';
@@ -53,19 +53,19 @@ function DD=input_vars
 	DD.thresh.ssh_filter_size=1;
 	DD.thresh.radius=0; % [SI]
 	DD.thresh.amp=0.01; % [SI]
-	DD.thresh.shape.iq=0.3; % isoperimetric quotient
+	DD.thresh.shape.iq=0.1; % isoperimetric quotient
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	DD.thresh.dist=.5*24*60^2; % max distance travelled per day
 	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
-	DD.switchs.RossbyStuff=true;
+	DD.switchs.RossbyStuff=false;
 	DD.switchs.IQ=true;
-	DD.switchs.chelt=0;
-	DD.switchs.distlimit=true;
-	DD.switchs.AmpAreaCheck=true;
-	DD.switchs.netUstuff=true;
+	DD.switchs.chelt=false;
+	DD.switchs.distlimit=false;
+	DD.switchs.AmpAreaCheck=false;
+	DD.switchs.netUstuff=false;
 	%% parameters
 	DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	DD.parameters.meanU=100; % depth from which to take mean U
@@ -77,3 +77,20 @@ function DD=input_vars
 	DD.parameters.boxlims.south=10;
 	DD.parameters.boxlims.west=0;
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -16,6 +16,7 @@ function S04_track_eddies
 	%% update infofile
 	save_info(DD);
 end
+test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
 	disp(['using all eddies from ' DD.path.eddies.name, ' !!!'])

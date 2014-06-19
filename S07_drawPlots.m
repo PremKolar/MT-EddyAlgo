@@ -66,7 +66,6 @@ function job=main(DD,IN,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=taskfForZonMeans(DD,IN,ticks)
-	ukjghf
 	job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
 	job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
 	disp(['see jobzonmean1.txt and jobzonmean2.txt'])

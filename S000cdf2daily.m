@@ -104,7 +104,7 @@ function mapInfo(Y,X,map)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveMF(DD,MF)
-	NCoverwriteornot(MF.file.out,1);
+	NCoverwriteornot(MF.file.out);
 	nc_adddim(MF.file.out,'i_index',DD.map.window.size.X);
 	nc_adddim(MF.file.out,'j_index',DD.map.window.size.Y);
 	%% lat

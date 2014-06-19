@@ -14,7 +14,7 @@ function GiveTime(nc_file_name)
 		nc_create_empty(nc_file_name,'noclobber');
 	catch me
 		disp(me.message)
-		tt= 5;
+		tt= 1;
 		while tt>0
 			disp('cancel if you dont want to overwrite!')
 			disp(datestr(sec2day(tt),'SS'))

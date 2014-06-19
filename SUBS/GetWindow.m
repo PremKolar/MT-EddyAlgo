@@ -64,7 +64,7 @@ function [limits,type]=FindRectangle(flag)
             limits.west=1;
             limits.east=xb.nz;
             type='beginsAtWesternBndry';
-        elseif xa.nz~=1 && xb.nz==X && xb.z==1
+        elseif xa.nz~=1 && xb.nz==X && xa.z==1
             %% box ends on eastern edge
             limits.west=xa.nz;
             limits.east=X;

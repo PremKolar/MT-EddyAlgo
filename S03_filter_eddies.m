@@ -565,7 +565,6 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
 		x=ee(jj).coordinates.int.x;
 		y=ee(jj).coordinates.int.y;
 		%% the following also takes care of the overlap from S00 in the global case
-		% x(x==cut.dim.X+1)=cut.dim.X;
 		x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
 		y(y>cut.dim.Y)=cut.dim.Y;
 		x(x<1)=1;

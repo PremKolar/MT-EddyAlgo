@@ -1,18 +1,18 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-%	DD.debugmode=false;
-	DD.debugmode=true;
+	DD.debugmode=false;
+% 	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
 	DD.time.from.str=datestr(now,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+120,'yyyymmdd');
+	DD.time.till.str=datestr(now+4242424,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='NewCdf2';
+	DD.path.OutDirBaseName='NewCdf3';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';
@@ -20,7 +20,7 @@ function DD=input_vars
 	%% output MAP STUFF
 	DD.map.out.X=46*1+1;
 	DD.map.out.Y=37*1+1;
-	DD.map.out.west=0;
+	DD.map.out.west=0; % avoids nan values on western bndry
 	DD.map.out.east=46;
 	DD.map.out.south=10;
 	DD.map.out.north=47;
@@ -60,12 +60,12 @@ function DD=input_vars
 	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
-	DD.switchs.RossbyStuff=true;
+	DD.switchs.RossbyStuff=false;
 	DD.switchs.IQ=true;
 	DD.switchs.chelt=0;
-	DD.switchs.distlimit=true;
-	DD.switchs.AmpAreaCheck=true;
-	DD.switchs.netUstuff=true;
+	DD.switchs.distlimit=false;
+	DD.switchs.AmpAreaCheck=false;
+	DD.switchs.netUstuff=false;
 	%% parameters
 	DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	DD.parameters.meanU=100; % depth from which to take mean U

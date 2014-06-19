@@ -38,7 +38,7 @@ function cutOff(jj,dd)
 	%% get data
 	[fname,CUT]=getData(jj,dd);
 	FN=fieldnames(CUT.grids);
-	if ~CUT.params.full_globe.x,disp('no need!'); return; end
+	if ~strcmp(CUT.window.type,'globe'),disp('no need!'); return; end
 	%% get actual xsize
 	X.right=CUT.window.size.X;
 	for fn=FN';fn=fn{1};

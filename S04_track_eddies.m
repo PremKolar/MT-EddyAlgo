@@ -123,8 +123,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% determine whether double eddies might be present due to full lon
-	phantoms=logical(cell2mat(extractdeepfield(read_fields(DD,1,'cuts'),'params.full_globe.x')));
-	%% read eddies
+	phantoms=strcmp(DD.map.window.type,'globe');    
+    %% read eddies
 	eddies=read_fields(DD,1,'eddies');
 	[tracks,OLD.eddies]=init_day_one(eddies,sen);
 	%% append geo-coor vectors for min_dist function

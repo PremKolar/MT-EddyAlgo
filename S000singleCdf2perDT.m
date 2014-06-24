@@ -22,7 +22,7 @@ function S000singleCdf2perDT
 	%% spmd
 	main(DD,raw)
 	%% save brunt väisälä
-	DD.path.Rossby.Nfile=saveN(DD,raw);
+	DD.Nfile=saveN(DD,raw);
 	%% save info
 	save_info(DD);
 end

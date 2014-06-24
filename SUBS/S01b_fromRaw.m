@@ -41,7 +41,7 @@ function [DD]=set_up
     %% find temp and salt files
 %     [DD.path.TempSalt]=tempsalt(DD);
     %% get window according to user input
-    [DD.TS.window,~]=GetWindow(DD.path.Rossby.Nfile,DD.map.in,DD.map.in.keys);
+    [DD.TS.window,~]=GetWindow(DD.Nfile,DD.map.in,DD.map.in.keys);
     %% distro X lims to chunks
 %     DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
     %% distro chunks to threads

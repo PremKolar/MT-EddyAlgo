@@ -142,7 +142,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;
 	%%  write to 'heap'
-	if any(pass)
+	if any(pass)		
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
 		for pa=find(pass)'; ll=ll+1;
@@ -157,7 +157,7 @@ function archive(trck,path,jj,id)
 	%% write out file (one per eddy)
 	EoD=['TRACK', sprintf('%9i',id)];
 	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
-	trck(end).filename=filename;
+	trck(end).filename=filename;	
 	save(trck(end).filename,'trck');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,6 +177,7 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
 			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
 			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
 		end
+		
 		%% set all ages 0
 		[tracks(newendIdxs).age]=deal(0);
 		%% deal new ids to tracks

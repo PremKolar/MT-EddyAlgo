@@ -35,26 +35,64 @@ function S07_drawPlots
     %% main
     overmain(ticks,DD)
     %%
-    conclude(DD);
+	 conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function animas(DD)
+	file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
+	grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
+	d.LON=grid.grids.lon;
+	d.LAT=grid.grids.lat;
+	d.lon=downsize(d.LON,DD.map.out.X,DD.map.out.Y);
+	d.lat=downsize(d.LAT,DD.map.out.X,DD.map.out.Y);
+	d.climssh.min=nanmin(grid.grids.ssh(:));
+	d.climssh.max=nanmax(grid.grids.ssh(:));
+	d.p=[DD.path.plots 'mpngs/'];
+	mkdirp(d.p);
+	for ee=1:numel(DD.path.eddies.files)
+	d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
+		savepng4mov(d,ee,DD.map.out)
+	end
+end
+
+function savepng4mov(d,ee,map)	
+	ed=load(d.file);
+	coor=[ed.anticyclones.coordinates ed.cyclones.coordinates];
+	grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
+	ssh=downsize(grid.grids.ssh,map.X,map.Y);
+	pcolor(d.lon,d.lat,ssh);
+	caxis([d.climssh.min d.climssh.max]);
+	hold on
+	for cc=1:numel(coor)
+		linx=drop_2d_to_1d(coor(cc).int.y,coor(cc).int.x,size(d.LAT,1))
+	lo=d.LON(linx)
+	la=d.LAT(linx)
+	plot(lo,la)
+	end
+	
+	saveas(gcf,[p sprintf('%06d.png',ee)]);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mainDB(DD,IN,ticks)
-    disp('entering debug mode')
-    ticks.rez=42;
-    for sense=DD.FieldKeys.senses'; sen=sense{1};
-        TPa(DD,ticks,IN.tracks,sen);
-        TPb(DD,ticks,IN.tracks,sen);
-        TPc(DD,ticks,IN.tracks,sen);
-        TPd(DD,ticks,IN.tracks,sen);
-        TPe(DD,ticks,IN.tracks,sen);
-        TPf(DD,ticks,IN.tracks,sen);
-    end
-    velZonmeans(DD,IN,ticks)
-    scaleZonmeans(DD,IN,ticks)
+	disp('entering debug mode')
+	ticks.rez=42;
+	
+	animas(DD);
+	
+	%      for sense=DD.FieldKeys.senses'; sen=sense{1};
+%         TPa(DD,ticks,IN.tracks,sen);
+% %         TPb(DD,ticks,IN.tracks,sen);
+% %         TPc(DD,ticks,IN.tracks,sen);
+% %         TPd(DD,ticks,IN.tracks,sen);
+% %         TPe(DD,ticks,IN.tracks,sen);
+% %         TPf(DD,ticks,IN.tracks,sen);
+%      end
+% %     velZonmeans(DD,IN,ticks)
+%     scaleZonmeans(DD,IN,ticks)
     % %
-    histstuff(IN.vecs,DD,ticks)
-    mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
+%     histstuff(IN.vecs,DD,ticks)
+%     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=main(DD,IN,ticks)
@@ -71,14 +109,14 @@ function job=taskfForZonMeans(DD,IN,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(DD,IN,ticks)
-    plot(IN.la(:,1),2*IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
+    plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
     acv=squeeze(nanmean(IN.maps.AntiCycs.vel.zonal.mean,2));
     cv=squeeze(nanmean(IN.maps.Cycs.vel.zonal.mean,2));
     plot(IN.la(:,1),acv	,'r')
     plot(IN.la(:,1),cv,'black')
-    set(gca,'xtick',ticks.x	)
-    set(gca,'ytick',ticks.x	)
-    axis([0 60 0 .2])
+%     set(gca,'xtick',ticks.x	)
+%     set(gca,'ytick',ticks.x	)
+    axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
     legend('Rossby-wave phase-speed','anti-cyclones net zonal velocity','cyclones net zonal velocity')
     ylabel('[cm/s]')
     xlabel('[latitude]')
@@ -505,7 +543,7 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
     minIQ=ticks.isoper(1);
     minV=ticks.lat(1);
     maxV=ticks.lat(2);
-    iqiq=linspace(minIQ,maxIQ,26);
+    iqiq=linspace(minIQ,maxIQ,10);
     kk=linspace(minV,maxV,size(cmap,1));
     %      kk=linspace(minIQ,maxIQ,10);
     %     iqiq=linspace(minV,maxV,size(cmap,1));
@@ -515,25 +553,27 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
         V=load(files{ee},fieldName2);
         VViq=V.(fieldName2);
         meaniq(ee)=nanmean(VViq);
-    end
+	 end
+	  meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
     
-    
-    for ee=1:iqorder
+	 maxthick=ticks.rez/300*5;
+    minthick=ticks.rez/300*0.1;
+    for ee=iqorder(1:50)
         V=load(files{ee},fieldName,fieldName2,'lat','lon');
-        VV=V.(fieldName);
+%         V=load(files{ee});
+		  VV=V.(fieldName);
         VViq=V.(fieldName2);
+		  VViq(VViq>1)=1;
         if isempty(VV)
             continue
         end
         cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
-        %       cm = spline(iqiq,cmap',VViq);       % Find interpolated colorvalue
         cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
         cm(cm<0)=0;
         %% Find interpolated thickness
-        iq = spline(iqiq,linspace(0.1,2.5,26),VViq);
-        %         iq = spline(kk,linspace(0.01,2,10),VV);
-        iq(iq<0)=0.0001;
+        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
+        iq(iq<0)=minthick;
         %% deg2km
         yy=[0 cumsum(deg2km(diff(V.lat)))];
         xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
@@ -557,20 +597,24 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
     %%
     maxIQ=ticks.isoper(2);
     minIQ=ticks.isoper(1);
-    iqiq=linspace(minIQ,maxIQ,26);
+    iqiq=linspace(minIQ,maxIQ,10);
     %%
     meaniq=nan(size(files));
     for ee=1:numel(files)
         V=load(files{ee},'isoper');
         VViq=V.isoper;
         meaniq(ee)=nanmean(VViq);
-    end
+	 end
+	 meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
     %%
-    for ee=1:iqorder
+	  maxthick=ticks.rez/300*5;
+    minthick=ticks.rez/300*0.1;
+    for ee=iqorder
         V=load(files{ee},fieldName,'isoper','lat','lon');
         VV=V.(fieldName);
         VViq=V.isoper;
+		   VViq(VViq>1)=1;
         if isempty(VV)
             continue
         end
@@ -591,9 +635,9 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
             la=la-la(1);
         end
         %% Find interpolated thickness
-        iq = spline(iqiq,linspace(0.1,2.5,26),VViq);
+        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
         %         iq = spline(kk,linspace(0.01,2,10),VV);
-        iq(iq<0)=0.1;
+        iq(iq<0)=minthick;
         %%
         for ii=1:length(la)-1
             if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps

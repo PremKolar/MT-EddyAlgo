@@ -38,7 +38,7 @@ function DD=initialise(toCheck)
     end
     %% performance stuff
     DD.tic=tic;
-    dispmem;
+%     dispmem;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)

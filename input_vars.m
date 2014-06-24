@@ -12,7 +12,7 @@ function DD=input_vars
 	DD.time.till.str=datestr(now+424242,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='NewCdf6';
+	DD.path.OutDirBaseName='NewCdf7all';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';

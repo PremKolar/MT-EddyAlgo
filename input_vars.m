@@ -1,8 +1,8 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-	DD.debugmode=false;
-% 	DD.debugmode=true;
+% 	DD.debugmode=false;
+	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
@@ -12,7 +12,7 @@ function DD=input_vars
 	DD.time.till.str=datestr(now+42,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='new8';
+	DD.path.OutDirBaseName='NewCdf7all/';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';

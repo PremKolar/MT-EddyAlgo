@@ -22,14 +22,14 @@ function S000singleCdf2perDT
 	%% spmd
 	main(DD,raw)
 	%% save brunt väisälä
-	DD.Nfile=saveN(DD,raw);
+	saveN(DD,raw);
 	%% save info
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Nfile=saveN(DD,raw)
+function saveN(DD,raw)
 	N=double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])));
-	Nfile=[DD.path.Rossby.name 'N.cdf'];
+	Nfile=DD.path.Rossby.Nfile;
 	NCoverwriteornot(Nfile);
 	nc_adddim(Nfile,'i_index',DD.map.window.size.X);
 	nc_adddim(Nfile,'j_index',DD.map.window.size.Y);

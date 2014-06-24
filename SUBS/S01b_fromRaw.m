@@ -27,13 +27,13 @@ function [DD]=set_up
 	%% init
 	DD=initialise;
 	%% get window according to user input
-	[DD.TS.window,~]=GetWindow(DD.Nfile,DD.map.in,DD.map.in.keys);
+	[DD.TS.window,~]=GetWindow(DD.path.Rossby.Nfile,DD.map.in,DD.map.in.keys);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD)
 	CK=initCK(DD);
 	%% get Brunt-Väisälä
-	CK.N=sqrt(nc_varget(DD.Nfile,'N',  CK.dim.start3d ,CK.dim.len3d));
+	CK.N=sqrt(nc_varget(DD.path.Rossby.Nfile,'N',  CK.dim.start3d ,CK.dim.len3d));
 	%% integrate first baroclinic rossby radius
 	[CK.rossby.Ro1]=calcRossbyRadius(CK);
 	%% rossby wave phase speed
@@ -69,7 +69,7 @@ end
 function [CK,DD]=initCK(DD)
 	CK.dim=ncArrayDims(DD);
 	disp('getting depth..')
-	CK.DEPTH=nc_varget(DD.Nfile,DD.map.in.keys.z);
+	CK.DEPTH=nc_varget(DD.path.Rossby.Nfile,DD.map.in.keys.z);
 	disp('getting geo info..')
 	[CK.lat,CK.lon]=LatLon(DD,CK.dim);
 	disp('getting coriolis stuff..')
@@ -84,8 +84,8 @@ function [corio]=Corio(CK)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=LatLon(DD,dim)
-	lat=nc_varget(DD.Nfile,DD.map.in.keys.lat,dim.start2d, dim.len2d);
-	lon=nc_varget(DD.Nfile,DD.map.in.keys.lon,dim.start2d, dim.len2d);
+	lat=nc_varget(DD.path.Rossby.Nfile,DD.map.in.keys.lat,dim.start2d, dim.len2d);
+	lon=nc_varget(DD.path.Rossby.Nfile,DD.map.in.keys.lon,dim.start2d, dim.len2d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(DD)

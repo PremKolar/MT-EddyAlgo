@@ -98,6 +98,7 @@ function path=findfiles(DD)
 	path.analyzedTracks.AC.name=[path.analyzed.name,'AntiCyclones/'];
 	path.analyzedTracks.C.name=[path.analyzed.name,'Cyclones/'];
 	path.Rossby.name=[path.root,'Rossby/'];
+	path.Rossby.Nfile=[path.Rossby.name,'N.cdf'];
 	%%
 	mkDirs(path)
 	%%

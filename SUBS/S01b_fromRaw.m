@@ -42,15 +42,21 @@ function Calculations(DD)
 	disp('saving..')
 	file_out=[DD.path.Rossby.name,'BVRf_all.mat'];
 	save(file_out,'-struct','CK');
+	%%
+	file_out=[DD.path.Rossby.name 'RossbyPhaseSpeed.mat'];
+	out=CK.rossby.c1; 
+	save(file_out,'out');
+	%%
+	file_out=[DD.path.Rossby.name 'RossbyRadius.mat'];
+	out=CK.rossby.Ro1; %#ok<*NASGU>
+	save(file_out,'out');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK)
 	disp(['integrating Rossby Radius'])
 	[~,YY,XX]=size(CK.N);
-	M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
-	
-	Nmid=(CK.N(1:end-1,:,:) + CK.N(2:end,:,:))/2;
-	
+	M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);	
+	Nmid=(CK.N(1:end-1,:,:) + CK.N(2:end,:,:))/2;	
 	R=abs(double((squeeze(nansum(M.depthdiff.*Nmid,1))./CK.corio.f)/pi));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

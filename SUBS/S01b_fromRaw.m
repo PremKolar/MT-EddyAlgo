@@ -16,7 +16,7 @@ function S01b_fromRaw
 	%% spmd
 	main(DD)
 	%% make netcdf
-	WriteNCfile(DD);
+% 	WriteNCfile(DD);
 	%% update DD
 	save_info(DD);
 end

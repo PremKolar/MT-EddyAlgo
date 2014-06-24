@@ -59,7 +59,10 @@ end
 function [CUT]=CutMap(file,DD)
 	addpath(genpath('./'));
 	%% get data
-	[raw_fields,unreadable]=GetFields(file.in,DD.map.in.keys);
+	for kk={'lat','lon','ssh'}
+	keys.(kk{1})=DD.map.in.keys.(kk{1});
+	end
+	[raw_fields,unreadable]=GetFields(file.in,keys);
 	if unreadable.is, CUT=[]; return; end
 	%% cut
 	[CUT]=ZonalProblem(raw_fields,DD.map.window);

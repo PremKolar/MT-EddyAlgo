@@ -15,8 +15,6 @@ function S01b_fromRaw
 	[DD]=set_up;
 	%% spmd
 	main(DD)
-	%% make netcdf
-% 	WriteNCfile(DD);
 	%% update DD
 	save_info(DD);
 end
@@ -28,8 +26,6 @@ end
 function [DD]=set_up
 	%% init
 	DD=initialise;
-	%% check if exists already
-	[DD.path.Rossby.NCfile] = initNC(DD);
 	%% get window according to user input
 	[DD.TS.window,~]=GetWindow(DD.Nfile,DD.map.in,DD.map.in.keys);
 end
@@ -46,11 +42,6 @@ function Calculations(DD)
 	disp('saving..')
 	file_out=[DD.path.Rossby.name,'BVRf_all.mat'];
 	save(file_out,'-struct','CK');
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [outfilename] = initNC(DD)
-	outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-	NCoverwriteornot(outfilename);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK)

@@ -48,6 +48,12 @@ function Nfile=saveN(DD,raw)
 		nc_addvar(Nfile,varstruct);
 		nc_varput(Nfile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
 	end
+	%% Z
+	varstruct.Name = DD.map.in.keys.z;
+	varstruct.Nctype = 'double';
+	varstruct.Dimension = {'k_index'};
+	nc_addvar(Nfile,varstruct);
+	nc_varput(Nfile,varstruct.Name,raw.(DD.map.in.keys.z));
 end
 
 
@@ -84,11 +90,11 @@ function [raw]=cdfData(DD)
 	disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
 	startTime=DD.time.from.num;
 	keys=DD.map.in.keys;
-	raw.TIME=nc_varget(raw.file.in,keys.time);
-	raw.TIME=raw.TIME-raw.TIME(1)+startTime;
-	raw.XT=nc_varget(raw.file.in,keys.x);
-	raw.YT=nc_varget(raw.file.in,keys.y);
-	raw.ZT=nc_varget(raw.file.in,keys.z);
+	raw.(keys.time)=nc_varget(raw.file.in,keys.time);
+	raw.(keys.time)=raw.(keys.time)-raw.(keys.time)(1)+startTime;
+	raw.(keys.x)=nc_varget(raw.file.in,keys.x);
+	raw.(keys.y)=nc_varget(raw.file.in,keys.y);
+	raw.(keys.z)=nc_varget(raw.file.in,keys.z);
 	[~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
 	
 end

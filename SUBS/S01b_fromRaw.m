@@ -37,7 +37,6 @@ end
 function Calculations(DD)
 	CK=initCK(DD);
 	%% get Brunt-Väisälä
-	[CK.N]=calcBrvaPvort(CK);
 	CK.N=nc_varget(DD.Nfile,'N',  CK.dim.start3d ,CK.dim.len3d);
 	%% integrate first baroclinic rossby radius
 	[CK.rossby.Ro1]=calcRossbyRadius(CK);

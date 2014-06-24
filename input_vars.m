@@ -9,13 +9,13 @@ function DD=input_vars
 	DD.time.from.str=datestr(now,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+4242424,'yyyymmdd');
+	DD.time.till.str=datestr(now+3*3,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='NewCdf3';
-		DD.path.TempSalt.name='../TempSalt/';
-% 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
-	DD.path.raw.name='../RawNewCdf/';
+	DD.path.OutDirBaseName='NewCdf4';
+% 		DD.path.TempSalt.name='../TempSalt/';
+	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
+	DD.path.raw.name='../';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
 	DD.map.out.X=46*1+1;
@@ -24,13 +24,6 @@ function DD=input_vars
 	DD.map.out.east=46;
 	DD.map.out.south=10;
 	DD.map.out.north=47;
-%     %% output MAP STUFF
-% 	DD.map.out.X=10*1+1;
-% 	DD.map.out.Y=10*1+1;
-% 	DD.map.out.west=20;
-% 	DD.map.out.east=30;
-% 	DD.map.out.south=10;
-% 	DD.map.out.north=20;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;
@@ -42,7 +35,12 @@ function DD=input_vars
 	DD.map.in.cdfName='new.cdf';
 	DD.map.in.keys.lat='U_LAT_2D';
 	DD.map.in.keys.lon='U_LON_2D';
-	DD.map.in.keys.ssh='SSH';
+	DD.map.in.keys.ssh='SSHA';
+	DD.map.in.keys.N='N';
+	DD.map.in.keys.x='XT';
+	DD.map.in.keys.y='YT';
+	DD.map.in.keys.z='ZT';
+	DD.map.in.keys.time='TIME';
 	DD.TS.keys.lat='U_LAT_2D';
 	DD.TS.keys.lon='U_LON_2D';
 	DD.TS.keys.salt='SALT';

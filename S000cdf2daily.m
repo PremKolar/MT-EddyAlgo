@@ -49,8 +49,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [raw]=cdfData(DD)
     raw.file.in=[DD.path.raw.name	,DD.map.in.cdfName	];
-    raw.info=ncInfoAll(raw.file.in);
-    for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
+%     raw.info=ncInfoAll(raw.file.in);
+%     for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
     disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
     startTime=DD.time.from.num;
     raw.TIME=nc_varget(raw.file.in,'TIME');
@@ -136,7 +136,7 @@ function operateDay(raw,DD,cc)
     tt=raw.TIME(cc);
     timestr=datestr(tt,'yyyymmdd');
     path=DD.path.raw.name;
-    fo='RAWyyyymmdd.nc';
+    fo=DD.map.in.fname;
     fo=strrep(fo,'yyyymmdd',timestr);
     raw.file.out=[path, fo];
     if exist(raw.file.out,'file'), return; end

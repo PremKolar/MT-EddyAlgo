@@ -39,8 +39,15 @@ function Nfile=saveN(DD,raw)
 	varstruct.Nctype = 'double';
 	varstruct.Dimension = {'k_index','j_index','i_index' };
 	nc_addvar(Nfile,varstruct);
-	%% put
 	nc_varput(Nfile,varstruct.Name,N);
+	%% lat/lon
+	for ll={'lon','lat'}
+		varstruct.Name = DD.map.in.keys.(ll{1});
+		varstruct.Nctype = 'double';
+		varstruct.Dimension = {'j_index','i_index' };
+		nc_addvar(Nfile,varstruct);
+		nc_varput(Nfile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
+	end
 end
 
 
@@ -70,7 +77,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [raw]=cdfData(DD)
 	raw.file.in=[DD.path.raw.name	,DD.map.in.cdfName];
- 	try  %#ok<TRYNC>
+	try  %#ok<TRYNC>
 		raw.info=ncInfoAll(raw.file.in);
 		for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
 	end

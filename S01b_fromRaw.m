@@ -38,11 +38,11 @@ function [DD]=set_up
     [DD.path.Rossby.NCfile] = initNC(DD);
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
-	 
-	 DD.path.Rossby.N
-	 
-	 
-     %% get window according to user input
+    %% find temp and salt files
+    [DD.path.TempSalt]=tempsalt(DD);
+    %% get window according to user input
+    [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt,DD.map.in,DD.TS.keys);
+    %% distro X lims to chunks
     DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
     %% distro chunks to threads
     DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.RossbyStuff.splits);

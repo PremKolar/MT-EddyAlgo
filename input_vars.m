@@ -1,6 +1,6 @@
 function DD=input_vars
 	%% threads / debug
-	DD.threads.num=12;
+	DD.threads.num=2;
 % 	DD.debugmode=false;
 	DD.debugmode=true;
 	%% time

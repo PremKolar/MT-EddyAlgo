@@ -57,8 +57,10 @@ function R=	calcRossbyRadius(CK)
 	disp(['integrating Rossby Radius'])
 	[~,YY,XX]=size(CK.N);
 	M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
-	sdgfn
-	R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.corio.f)/pi));
+	
+	Nmid=(CK.N(1:end-1,:,:) + CK.N(2:end,:,:))/2;
+	
+	R=abs(double((squeeze(nansum(M.depthdiff.*Nmid,1))./CK.corio.f)/pi));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c1]=calcC_one(CK)

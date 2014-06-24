@@ -39,22 +39,22 @@ function [DD]=set_up
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
-    [DD.path.TempSalt]=tempsalt(DD);
+%     [DD.path.TempSalt]=tempsalt(DD);
     %% get window according to user input
-    [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt,DD.map.in,DD.TS.keys);
+    [DD.TS.window,~]=GetWindow(DD.path.Rossby.Nfile,DD.map.in,DD.map.in.keys);
     %% distro X lims to chunks
-    DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
+%     DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
     %% distro chunks to threads
-    DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.RossbyStuff.splits);
+%     DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.RossbyStuff.splits);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
-    id=labindex;
-    lims=DD.RossbyStuff.lims;
-    %% loop over chunks
-    for chnk=lims.loop(id,1):lims.loop(id,2)
-        Calculations(DD,chnk);
-    end
+	id=labindex;
+	lims=DD.RossbyStuff.lims;
+	%% loop over chunks
+	for chnk=lims.loop(id,1):lims.loop(id,2)
+		Calculations(DD,chnk);
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lims=limsdata(splits,window)
@@ -71,7 +71,8 @@ function lims=limsdata(splits,window)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk)
-    %% init
+   lkug
+	%% init
     [CK,cc]=init(DD,chnk);
     %% calculate Brunt-Väisälä f and potential vorticity
     [CK.BRVA]=calcBrvaPvort(CK,cc);

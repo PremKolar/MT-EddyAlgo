@@ -1,6 +1,6 @@
 function DD=input_vars
 	%% threads / debug
-	DD.threads.num=2;
+	DD.threads.num=12;
 	DD.debugmode=false;
 % 	DD.debugmode=true;
 	%% time
@@ -9,7 +9,7 @@ function DD=input_vars
 	DD.time.from.str=datestr(now,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+3*3,'yyyymmdd');
+	DD.time.till.str=datestr(now+424242,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='NewCdf6';
@@ -31,12 +31,10 @@ function DD=input_vars
 	DD.map.in.north=DD.map.out.north;
 	DD.map.in.time.delta_t = 1; % [days]
 	DD.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-	DD.map.in.fname='RAWyyyymmdd.nc';
-	DD.map.in.cdfName='new.cdf';
+	DD.map.in.fname='RAWyyyymmdd.nc';	
 	DD.map.in.keys.lat='U_LAT_2D';
 	DD.map.in.keys.lon='U_LON_2D';
-	DD.map.in.keys.ssh='SSHA';
-	DD.map.in.keys.N='N';
+	DD.map.in.keys.ssh='SSHA';	
 	DD.map.in.keys.x='XT';
 	DD.map.in.keys.y='YT';
 	DD.map.in.keys.z='ZT';
@@ -69,11 +67,13 @@ function DD=input_vars
 	DD.parameters.meanU=100; % depth from which to take mean U
 	DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
-    DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
+   DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
+	DD.map.in.keys.N='N';
 	%% technical params
 	DD.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
 	%% only relevant for S000
-    DD.parameters.SSHAdepth=50;
+   DD.parameters.SSHAdepth=50;
 	DD.parameters.boxlims.south=10;
 	DD.parameters.boxlims.west=0;
+	DD.map.in.cdfName='new.cdf';
 end

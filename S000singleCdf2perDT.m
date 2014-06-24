@@ -70,8 +70,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [raw]=cdfData(DD)
 	raw.file.in=[DD.path.raw.name	,DD.map.in.cdfName];
-% 	raw.info=ncInfoAll(raw.file.in);
-% 	for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
+ 	raw.info=ncInfoAll(raw.file.in);
+ 	for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
 	disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
 	startTime=DD.time.from.num;
 	keys=DD.map.in.keys;

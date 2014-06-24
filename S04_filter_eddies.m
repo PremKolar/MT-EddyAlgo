@@ -174,7 +174,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%TODO
 	if strcmp(DD.map.window.type,'globe')
 		X=DD.map.window.fullsize(2);
-		Y=DD.map.window.fullsize(1);
+		Y=DD.map.window.size.Y;
 		needcorr=ee.coordinates.exact.x>X;
 		ee.coordinates.exact.x(needcorr)=ee.coordinates.exact.x(needcorr)-X;
 		ee.coordinates.int.x(needcorr)=ee.coordinates.int.x(needcorr)-X;

@@ -45,7 +45,7 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     %% check for exisiting data
     skip=false;
     EE.filename.cont=JJ.files;
-    EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
+    EE.filename.cut =[DD.path.cuts.name, DD.path.cuts.files(1).name];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
      if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
@@ -171,6 +171,12 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     else
         ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
     end
+%TODO
+if strcmp(DD.map.window.type,'globe')
+needcorr=ee.coordinates.exact.x>DD.map.window.fullsize(2);
+ee.coordinates.exact.x(needcorr)=ee.coordinates.exact.x(needcorr)-DD.map.window.fullsize(2);
+ee.coordinates.int.x(needcorr)=ee.coordinates.int.x(needcorr)-DD.map.window.fullsize(2);
+end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
@@ -516,9 +522,6 @@ function fields_out=EDDyCut_init(fields_in,zoom)
     yb=zoom.limits.y(2);
     xa=zoom.limits.x(1);
     xb=zoom.limits.x(2);
-	 if xa==1 && xb==size(fields_in.ssh,2)
-		 sdgfh
-	 end
 	 
     for ff=fieldnames(fields_in)'
         field=ff{1};
@@ -573,12 +576,12 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
         x=ee(jj).coordinates.int.x;
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
-        x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
+       % x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
       
+  x(x>cut.dim.X)=cut.dim.X;
   y(y>cut.dim.Y)=cut.dim.Y;
         x(x<1)=1;
         y(y<1)=1;
-        y(y>cut.dim.Y)=cut.dim.Y;
         ee(jj).coordinates.int.x=x;
         ee(jj).coordinates.int.y=y;
     end

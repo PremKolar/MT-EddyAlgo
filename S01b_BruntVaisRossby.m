@@ -8,9 +8,9 @@ function S01b_BruntVaisRossby
     %% init
     DD=initialise;
     switch DD.parameters.Nknown
-        case true
-            S01b_fromTS
         case false
+            S01b_fromTS
+        case true
             S01b_fromRaw
     end
 end

@@ -1,4 +1,4 @@
-S000cdf2daily
+S000singleCdf2perDT
 S00_prep_data
 S01_contours
 S01a_deleteZonalOverlapInCuts

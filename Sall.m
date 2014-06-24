@@ -1,10 +1,10 @@
-% S000singleCdf2perDT
-% S00_prep_data
-% S01_contours
-% S01a_deleteZonalOverlapInCuts
+S000singleCdf2perDT
+S00_prep_data
+S01_contours
 S01b_BruntVaisRossby
 S02_infer_fields
 S03_filter_eddies
+S01a_deleteZonalOverlapInCuts
 S04_track_eddies
 S05_init_output_maps
 S06a_getMeanU

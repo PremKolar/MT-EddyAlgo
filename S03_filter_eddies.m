@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% walks through all the contours and declabindexes whether they qualify
+% walks through all the contours and decides whether they qualify
 function S03_filter_eddies
     %% init
     DD=initialise('conts');
@@ -35,7 +35,7 @@ function spmd_body(DD,rossbyU,labindex)
         [EE,skip]=work_day(DD,JJ(jj),rossbyU);
         %%
         Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
-        if skip,disp(['skipping ' num2str(jj)]);continue;end
+         if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
         save_eddies(EE);
     end
@@ -47,7 +47,7 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     EE.filename.cont=JJ.files;
     EE.filename.cut =[DD.path.cuts.name, DD.pattern.prefix.cuts ,JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-    if exist(EE.filename.self,'file'), skip=true; return; end
+     if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);
@@ -60,7 +60,9 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
-    %% avoid out of bounds integer coordinates close to boundaries
+    %% remeber date
+	 [ee(:).daynum]=deal(JJ.daynums);
+	 %% avoid out of bounds integer coordinates close to boundaries
     [ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
     %% find them
     EE=find_eddies(EE,ee_clean,rossbyU,cut,DD);
@@ -80,7 +82,7 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);
         if PASS(kk), pp=pp+1;
             %% append healthy found eddy
-            ACyc(pp)=ee_out;  %#ok<AGROW>
+            ACyc(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;
         end
@@ -146,7 +148,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     %% test
     pass=CR_radius(ee.radius.mean,DD.thresh.radius);
     if ~pass, return, end;
-    %% get labindexeal ellipse contour
+    %% get ideal ellipse contour
     zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
     [pass,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
@@ -163,7 +165,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
     [ee.geo]=geocoor(zoom,ee.volume);
     %% append 'age'
     ee.age=0;
-    %% append projected location
+  	 %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
     else
@@ -178,13 +180,13 @@ function [pass,sense]=CR_sense(zoom,direc,level)
     sense=struct;
     %% water column up: seeking anti cyclones; down: cyclones
     if direc==-1
-        if all(zoom.fields.ssh(zoom.mask.inslabindexe) >= level )
+        if all(zoom.fields.ssh(zoom.mask.inside) >= level )
             pass=true;
             sense.str='AntiCyclonic';
             sense.num=-1;
         end
     elseif direc==1
-        if all(zoom.fields.ssh(zoom.mask.inslabindexe) <= level )
+        if all(zoom.fields.ssh(zoom.mask.inside) <= level )
             pass=true;
             sense.str='Cyclonic';
             sense.num=1;
@@ -228,7 +230,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
     elseif switches.chelt && switches.IQ
         pass=passes.chelt && passes.iq;
     else
-        error('you need to choose at least one shape method (IQ or chelton method in input_vars switches section)')
+        error('you need to choose at least one shape method (IQ or chelton method in input_vars switches section)') %#ok<*ERTAG>
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -287,7 +289,7 @@ function U=getRossbyPhaseSpeed(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [centroid]=AreaCentroid(zoom,Y)
-    %% factor each grlabindex cell equally (compare to CenterOfVolume())
+    %% factor each grid cell equally (compare to CenterOfVolume())
     ssh=double(logical(zoom.ssh_BasePos));
     %% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
     [XI,YI]=meshgrid(1:size(ssh,2), 1:size(ssh,1));
@@ -372,7 +374,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [area]=Area(z)
     area=struct;
-    area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inslabindexe + z.mask.rim_only/2);  % include 'half of rim'
+    area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total=sum(area.pixels(:));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -504,7 +506,7 @@ function mask=EDDyCut_mask(zoom)
     mask.rim_only=false(Y,X);
     mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
     mask.filled=logical(imfill(mask.rim_only,'holes'));
-    mask.inslabindexe= mask.filled & ~mask.rim_only;
+    mask.inside= mask.filled & ~mask.rim_only;
     mask.size.Y=Y;
     mask.size.X=X;
 end
@@ -535,10 +537,10 @@ function [z]=get_window_limits(coor,dim,enlargeFac)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function inout=enlarge_window(inout,factor,dim)
-    half_wlabindexth =round((diff(inout.x)+1)*(factor-1)/2);
+    half_width =round((diff(inout.x)+1)*(factor-1)/2);
     half_height=round((diff(inout.y)+1)*(factor-1)/2);
-    inout.x(1)=max([1 inout.x(1)-half_wlabindexth]);
-    inout.x(2)=min([dim.X inout.x(2)+half_wlabindexth]);
+    inout.x(1)=max([1 inout.x(1)-half_width]);
+    inout.x(2)=min([dim.X inout.x(2)+half_width]);
     inout.y(1)=max([1 inout.y(1)-half_height]);
     inout.y(2)=min([dim.Y inout.y(2)+half_height]);
 end
@@ -568,7 +570,8 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
         x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
-        y(y>cut.dim.Y)=cut.dim.Y;
+      
+  y(y>cut.dim.Y)=cut.dim.Y;
         x(x<1)=1;
         y(y<1)=1;
         y(y>cut.dim.Y)=cut.dim.Y;

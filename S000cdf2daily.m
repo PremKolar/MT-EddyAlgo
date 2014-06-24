@@ -58,7 +58,7 @@ function [raw]=cdfData(DD)
     raw.XT=nc_varget(raw.file.in,'XT');
     raw.YT=nc_varget(raw.file.in,'YT');
     raw.ZT=nc_varget(raw.file.in,'ZT');    
-   [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
+   [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));  
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD,raw]=geostuff(raw,DD)

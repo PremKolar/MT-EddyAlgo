@@ -1,8 +1,8 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-	DD.debugmode=false;
-% 	DD.debugmode=true;
+% 	DD.debugmode=false;
+	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
@@ -60,7 +60,7 @@ function DD=input_vars
 	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
-	DD.switchs.RossbyStuff=false;
+	DD.switchs.RossbyStuff=true;
 	DD.switchs.IQ=true;
 	DD.switchs.chelt=0;
 	DD.switchs.distlimit=false;
@@ -71,6 +71,7 @@ function DD=input_vars
 	DD.parameters.meanU=100; % depth from which to take mean U
 	DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
+    DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
 	%% technical params
 	DD.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
 	%% only relevant for S000

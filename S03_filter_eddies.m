@@ -516,6 +516,10 @@ function fields_out=EDDyCut_init(fields_in,zoom)
     yb=zoom.limits.y(2);
     xa=zoom.limits.x(1);
     xb=zoom.limits.x(2);
+	 if xa==1 && xb==size(fields_in.ssh,2)
+		 sdgfh
+	 end
+	 
     for ff=fieldnames(fields_in)'
         field=ff{1};
         fields_out.(field)=fields_in.(field)(ya:yb,xa:xb);

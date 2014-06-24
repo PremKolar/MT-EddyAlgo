@@ -28,7 +28,7 @@ function S000singleCdf2perDT
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
-	N=double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])));
+	N=sqrt(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf]))));
 	Nfile=DD.path.Rossby.Nfile;
 	NCoverwriteornot(Nfile);
 	nc_adddim(Nfile,'i_index',DD.map.window.size.X);

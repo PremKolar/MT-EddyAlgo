@@ -33,7 +33,7 @@ end
 function Calculations(DD)
 	CK=initCK(DD);
 	%% get Brunt-Väisälä
-	CK.N=sqrt(nc_varget(DD.path.Rossby.Nfile,'N',  CK.dim.start3d ,CK.dim.len3d));
+	CK.N=nc_varget(DD.path.Rossby.Nfile,'N',  CK.dim.start3d ,CK.dim.len3d);
 	%% integrate first baroclinic rossby radius
 	[CK.rossby.Ro1]=calcRossbyRadius(CK);
 	%% rossby wave phase speed

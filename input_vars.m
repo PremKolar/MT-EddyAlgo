@@ -1,8 +1,8 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=2;
-% 	DD.debugmode=false;
-	DD.debugmode=true;
+	DD.debugmode=false;
+% 	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';

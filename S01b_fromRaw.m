@@ -38,6 +38,10 @@ function [DD]=set_up
     [DD.path.Rossby.NCfile] = initNC(DD);
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
+	 
+	 DD.path.Rossby.N
+	 
+	 
      %% get window according to user input
     DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
     %% distro chunks to threads

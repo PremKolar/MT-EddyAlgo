@@ -22,12 +22,12 @@ function S000singleCdf2perDT
 	%% spmd
 	main(DD,raw)
 	%% save brunt väisälä
-	saveN(DD,raw)
+	DD.path.Rossby.Nfile=saveN(DD,raw);
 	%% save info
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveN(DD,raw)
+function Nfile=saveN(DD,raw)
 	N=double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])));
 	Nfile=[DD.path.Rossby.name 'N.cdf'];
 	NCoverwriteornot(Nfile);
@@ -70,8 +70,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [raw]=cdfData(DD)
 	raw.file.in=[DD.path.raw.name	,DD.map.in.cdfName];
- 	raw.info=ncInfoAll(raw.file.in);
- 	for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
+ 	try  %#ok<TRYNC>
+		raw.info=ncInfoAll(raw.file.in);
+		for info=fieldnames(raw.info)'; disp(raw.info.(info{1})); end
+	end
 	disp(['setting user start date - ' DD.time.from.str ' - as start date!'])
 	startTime=DD.time.from.num;
 	keys=DD.map.in.keys;
@@ -88,7 +90,7 @@ function [DD,raw]=geostuff(raw,DD)
 	[raw.grids.XX,raw.grids.YY]=meshgrid(raw.XT,raw.YT);
 	raw.grids.lat=rad2deg(raw.grids.YY./earthRadius) + DD.parameters.boxlims.south;
 	raw.grids.lon=rad2deg(raw.grids.XX./(cosd(raw.grids.lat)*earthRadius)) +  DD.parameters.boxlims.west;
-	if max(diff(raw.grids.lon(:)))>300, error('dont put window on -180/180 meridian!'); end
+	if max(diff(raw.grids.lon(:)))>300, error('dont put window on -180/180 meridian!'); end %#ok<ERTAG>
 	[raw.grids.DY,raw.grids.DX]=DYDX(raw.grids.lat,raw.grids.lon);
 	%% reset to exact values
 	DD.map.in.west=min(raw.grids.lon(:));

@@ -6,7 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [out]=ncInfoAll(in)
-    out.nc_info=nc_info(in);
+addpath(genpath('./'));    
+out.nc_info=nc_info(in);
     warning('off','SNCTOOLS:nc_getall:dangerous');
     out.getAllNoData=nc_getall(in);
     warning('on','SNCTOOLS:nc_getall:dangerous');

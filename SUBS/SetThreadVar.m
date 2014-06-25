@@ -1,5 +1,4 @@
 function [OUT]=SetThreadVar(IN)
-labindex=6   
  from=IN.threads.lims(labindex,1);
     till=IN.threads.lims(labindex,2);
     num=till-from+1;

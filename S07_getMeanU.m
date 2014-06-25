@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S08_getMeanU
+function S07_getMeanU
 	%% init
 	DD=initialise;
 	%% find files

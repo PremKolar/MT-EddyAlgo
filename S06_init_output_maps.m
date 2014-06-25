@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S07_init_output_maps
+function S06_init_output_maps
 	%% init
 	DD=initialise('');
 	%%

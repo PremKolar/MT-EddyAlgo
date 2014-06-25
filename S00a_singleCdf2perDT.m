@@ -64,15 +64,19 @@ function saveUV(DD,raw)
 		varstruct.Name = DD.map.in.keys.(ll{1});
 		varstruct.Nctype = 'double';
 		varstruct.Dimension = {'j_index','i_index' };
-		nc_addvar(Nfile,varstruct);
-		nc_varput(Nfile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
+		nc_addvar(Ufile,varstruct);
+		nc_varput(Ufile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
+		nc_addvar(Vfile,varstruct);
+		nc_varput(Vfile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
 	end
 	%% Z
 	varstruct.Name = DD.map.in.keys.z;
 	varstruct.Nctype = 'double';
 	varstruct.Dimension = {'k_index'};
-	nc_addvar(Nfile,varstruct);
-	nc_varput(Nfile,varstruct.Name,raw.(DD.map.in.keys.z));
+	nc_addvar(Ufile,varstruct);
+	nc_varput(Ufile,varstruct.Name,raw.(DD.map.in.keys.z));
+		nc_addvar(Vfile,varstruct);
+	nc_varput(Vfile,varstruct.Name,raw.(DD.map.in.keys.z));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)

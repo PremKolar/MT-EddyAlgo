@@ -180,21 +180,15 @@ end
 function correctXoverlap(ee,DD)
 	X=DD.map.window.fullsize(2);
 	Y=DD.map.window.size.Y;
-	[ee.coordinates.exact.x,~]=wrapXidx(ee.coordinates.exact.x,X);	
+	[ee.coordinates.exact.x,~]=wrapXidx(ee.coordinates.exact.x,X);
 	[ee.coordinates.int.x,~]=wrapXidx(ee.coordinates.int.x,X);
-	[ee.centroid.x,need.cen]=wrapXidx(ee.centroid.x,X);	
+	[ee.centroid.x,need.cen]=wrapXidx(ee.centroid.x,X);
 	[ee.trackref.x,need.tf]=wrapXidx(ee.trackref.x,X);
 	[ee.volume.center.x,need.volcen]=wrapXidx(ee.volume.center.x,X);
 	%%
-	if need.cen
-		ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
-	end
-	if need.tf
-		ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
-	end
-	if need.volcen
-		ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
-	end
+	ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
+	ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
+	ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
 	
 	if any([ee.centroid.x ee.trackref.x ee.volume.center.x]>X)
 		xxxxxxx
@@ -206,13 +200,13 @@ function correctXoverlap(ee,DD)
 		fgjn
 	end
 	%%
-	function [data,needed]=wrapXidx(data,X)
-		needcorr=data>X;
-		if ~any(needcorr), needed=false;return;end
+	function [data]=wrapXidx(data,X)
+		data(data<0.5)=X;
+		data(data<1)=1;
+		needcorr=(data>X);
 		data(needcorr)=data(needcorr)-X;
 		data(data<0.5)=X;
 		data(data<1)=1;
-		needed=true;
 	end
 	
 end

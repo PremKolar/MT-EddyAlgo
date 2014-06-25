@@ -29,22 +29,36 @@ function S00a_singleCdf2perDT
 	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveUV(DD,raw)
-	
-	jizxcjxzc
-	
-	N=sqrt(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf]))));
-	Nfile=DD.path.Rossby.Nfile;
-	NCoverwriteornot(Nfile);
-	nc_adddim(Nfile,'i_index',DD.map.window.size.X);
-	nc_adddim(Nfile,'j_index',DD.map.window.size.Y);
-	nc_adddim(Nfile,'k_index',DD.map.window.size.Z);
-	%% N
-	varstruct.Name = DD.map.in.keys.N;
+function saveUV(DD,raw)	
+	U=nc_varget(raw.file.in,'U');
+	V=nc_varget(raw.file.in,'V');	
+	[z,y,x]=size(U);
+	U=reshape(U,1,z,y,x);
+	V=reshape(V,1,z,y,x);
+	Ufile=[DD.path.TempSalt.name	'UVEL.nc'];
+	Vfile=[DD.path.TempSalt.name	'VVEL.nc'];
+	NCoverwriteornot(Ufile);
+	NCoverwriteornot(Vfile);
+	nc_adddim(Ufile,'i_index',DD.map.window.size.X);
+	nc_adddim(Ufile,'j_index',DD.map.window.size.Y);
+	nc_adddim(Ufile,'k_index',DD.map.window.size.Z);
+	nc_adddim(Ufile,'voiddim',1);
+	nc_adddim(Vfile,'i_index',DD.map.window.size.X);
+	nc_adddim(Vfile,'j_index',DD.map.window.size.Y);
+	nc_adddim(Vfile,'k_index',DD.map.window.size.Z);
+	nc_adddim(Vfile,'voiddim',1);
+	%% U
+	varstruct.Name = DD.map.in.keys.U;
 	varstruct.Nctype = 'double';
-	varstruct.Dimension = {'k_index','j_index','i_index' };
-	nc_addvar(Nfile,varstruct);
-	nc_varput(Nfile,varstruct.Name,N);
+	varstruct.Dimension = {'voiddim','k_index','j_index','i_index' };
+	nc_addvar(Ufile,varstruct);
+	nc_varput(Ufile,varstruct.Name,U);
+	%% V
+	varstruct.Name = DD.map.in.keys.V;
+	varstruct.Nctype = 'double';
+	varstruct.Dimension = {'voiddim','k_index','j_index','i_index' };
+	nc_addvar(Vfile,varstruct);
+	nc_varput(Vfile,varstruct.Name,V);
 	%% lat/lon
 	for ll={'lon','lat'}
 		varstruct.Name = DD.map.in.keys.(ll{1});

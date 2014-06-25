@@ -119,7 +119,7 @@ function mapInfo(Y,X,map,mapout)
 	disp(' ')
 	fprintf('spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n',map.west,map.east,map.south,map.north)
 	fprintf('output spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n\n',mapout.west,mapout.east,mapout.south,mapout.north)
-	warning('make sure to change values accordingly in input_vars.m if not done yet!')
+	warning('make sure to change values accordingly in input_vars.m if not done yet!') %#ok<WNTAG>
 	sleep(5)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

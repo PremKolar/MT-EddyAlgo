@@ -30,8 +30,8 @@ function S00a_singleCdf2perDT
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveUV(DD,raw)	
-	U=nc_varget(raw.file.in,'U');
-	V=nc_varget(raw.file.in,'V');	
+	U=repmat(nc_varget(raw.file.in,'U'),[1 1 3]);
+	V=repmat(nc_varget(raw.file.in,'V'),[1 1 3]);	
 	[z,y,x]=size(U);
 	U=reshape(U,1,z,y,x);
 	V=reshape(V,1,z,y,x);
@@ -81,6 +81,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
 	N=sqrt(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf]))));
+	N=repmat(N,1,3);
 	Nfile=DD.path.Rossby.Nfile;
 	NCoverwriteornot(Nfile);
 	nc_adddim(Nfile,'i_index',DD.map.window.size.X);

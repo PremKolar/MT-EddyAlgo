@@ -206,10 +206,12 @@ function correctXoverlap(ee,DD)
 		fgjn
 	end
 	%%
-	function [data,needed]=wrapXidx(data,X)
-		needcorr=data>X+0.5;	
+	function [data,needed]=wrapXidx(data,X)		
+		needcorr=data>X;	
 		if isempty(needcorr), needed=false;return;end
 		data(needcorr)=data(needcorr)-X;		
+		data(data<0.5)=X;
+		data(data<1)=1;
 		 needed=true;
 	end
 			

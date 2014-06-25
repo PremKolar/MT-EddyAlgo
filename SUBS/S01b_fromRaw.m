@@ -4,12 +4,10 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% needs one 3D salt and temperature file each.
 % integrates over depth to calculate
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
-% NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
 function S01b_fromRaw
 	%% set up
 	[DD]=set_up;

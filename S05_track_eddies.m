@@ -191,6 +191,7 @@ end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one
 	new_eddies=rmfield(eddies,'filename');
+	fdgj
 	%% set initial ID's etc
 	ee=(1:numel(new_eddies.(sen)));
 	eec=num2cell(ee);

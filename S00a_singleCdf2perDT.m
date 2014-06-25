@@ -35,8 +35,8 @@ function saveUV(DD,raw)
 	[z,y,x]=size(U);
 	U=reshape(U,1,z,y,x);
 	V=reshape(V,1,z,y,x);
-	Ufile=[DD.path.TempSalt.name	'UVEL.nc'];
-	Vfile=[DD.path.TempSalt.name	'VVEL.nc'];
+	Ufile=[DD.path.raw.name	'UVEL.nc'];
+	Vfile=[DD.path.raw.name	'VVEL.nc'];
 	NCoverwriteornot(Ufile);
 	NCoverwriteornot(Vfile);
 	nc_adddim(Ufile,'i_index',DD.map.window.size.X);

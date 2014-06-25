@@ -21,16 +21,16 @@ end
 function means=getMeans(d,pos,dim,file,DD)
 	for kk=1:numel(file)
 		disp(['found ' file(kk).U ' and ' file(kk).V])
-		U(:,:,kk)=squeeze(nc_varget(file(kk).U,'UVEL',dim.start,dim.length))/100; %#ok<*AGROW>
-		V(:,:,kk)=squeeze(nc_varget(file(kk).V,'VVEL',dim.start,dim.length))/100;
+		U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/100; %#ok<*AGROW>
+		V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/100;
 		
 		
-		x=DD.map.window.size.X;
-		y=DD.map.window.size.Y;
-		U=downsize(U,x,y);
-		V=downsize(V,x,y);
-		
-		
+% 		x=DD.map.window.size.X;
+% 		y=DD.map.window.size.Y;
+% 		U=downsize(U,x,y);
+% 		V=downsize(V,x,y);
+% 		
+% 		
 	end
 	disp(['creating means'])
 	U(U<-1e33)=nan; % missing values
@@ -50,7 +50,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [d,pos,dim]=getDims(file,DD)
 	dWanted=DD.parameters.meanU;
-	d=nc_varget(file(1).U,'depth_t');
+	d=nc_varget(file(1).U,DD.map.in.keys.z);
 	[~,pos.z.start]=min(abs(d-dWanted));
 	pos.z.start=pos.z.start - 1; % starts at 0
 	pos.z.length=1;
@@ -65,15 +65,19 @@ end
 function [file]=findVelFiles(DD)
 	%% find the U and V files
 	ucc=0; vcc=0;
-	for kk=1:numel(DD.path.TempSalt.files)
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'UVEL'))
+	file=struct;
+	for kk=1:numel(DD.path.raw.files)
+		if ~isempty(strfind(DD.path.raw.files(kk).name,'UVEL'))
 			ucc=ucc+1;
-			file(ucc).U=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name]; %#ok<AGROW>
+			file(ucc).U=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
 		end
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'VVEL'))
+		if ~isempty(strfind(DD.path.raw.files(kk).name,'VVEL'))
 			vcc=vcc+1;
-			file(vcc).V=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name]; %#ok<AGROW>
+			file(vcc).V=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
 		end
+	end
+	if isempty(file)
+		disp(['put U/V files into ' DD.path.raw])
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

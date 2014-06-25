@@ -37,6 +37,10 @@ function [DD]=set_up
 	%% get sample window
 	file=SampleFile(DD);
 	[DD.map.window]=GetWindow(file,DD.map.in,DD.map.in.keys);
+    %% manually override map type (for mad's data)
+    if DD.parameters.overrideWindowType
+        DD.map.window.type='xxx';
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)

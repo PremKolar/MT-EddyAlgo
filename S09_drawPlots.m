@@ -10,7 +10,7 @@ function S09_drawPlots
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez*5;
+    ticks.width=297/25.4*ticks.rez*1;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -39,38 +39,44 @@ function S09_drawPlots
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
-	file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
+	
+file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
 	grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
 	d.LON=grid.grids.lon;
-	d.LAT=grid.grids.lat;
-	d.lon=downsize(d.LON,DD.map.out.X,DD.map.out.Y);
-	d.lat=downsize(d.LAT,DD.map.out.X,DD.map.out.Y);
+	d.LAT=grid.grids.lat;       
+	d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
+	d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
 	d.climssh.min=nanmin(grid.grids.ssh(:));
 	d.climssh.max=nanmax(grid.grids.ssh(:));
 	d.p=[DD.path.plots 'mpngs/'];
-	mkdirp(d.p);
-	for ee=1:numel(DD.path.eddies.files)
-	d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
-		savepng4mov(d,ee,DD.map.out)
-	end
+    mkdirp(d.p);
+    parfor ee=1:numel(DD.path.eddies.files)
+        savepng4mov(d,ee,DD)
+    end
+    ilh
 end
 
-function savepng4mov(d,ee,map)	
-	ed=load(d.file);
-	coor=[ed.anticyclones.coordinates ed.cyclones.coordinates];
-	grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
-	ssh=downsize(grid.grids.ssh,map.X,map.Y);
-	pcolor(d.lon,d.lat,ssh);
-	caxis([d.climssh.min d.climssh.max]);
-	hold on
-	for cc=1:numel(coor)
-		linx=drop_2d_to_1d(coor(cc).int.y,coor(cc).int.x,size(d.LAT,1))
-	lo=d.LON(linx)
-	la=d.LAT(linx)
-	plot(lo,la)
-	end
-	
-	saveas(gcf,[p sprintf('%06d.png',ee)]);
+function savepng4mov(d,ee,DD)
+   d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
+    ed=load(d.file);
+    coor=[ed.anticyclones.coordinates ed.cyclones.coordinates];
+    grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
+    
+    ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
+  figure(labindex)
+    pcolor(d.lon,d.lat,ssh);
+    
+    caxis([d.climssh.min d.climssh.max]);
+    hold on
+    for cc=1:numel(coor)
+        linx=drop_2d_to_1d(coor(cc).int.y,coor(cc).int.x,size(d.LAT,1));
+        lo=d.LON(linx);
+        la=d.LAT(linx);
+        plot(lo,la);
+    end  
+  
+     saveas(gcf,[d.p sprintf('%06d.png',ee)]);
+ close(labindex)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

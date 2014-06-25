@@ -44,8 +44,8 @@ end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
 	%% check for exisiting data
 	skip=false;
-	EE.filename.cont=JJ.files;
-	EE.filename.cut =[DD.path.cuts.name, DD.path.cuts.files(1).name];
+	EE.filename.cont=JJ.files;   
+   	EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
 	EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
 	if exist(EE.filename.self,'file'), skip=true; return; end
 	%% get ssh data

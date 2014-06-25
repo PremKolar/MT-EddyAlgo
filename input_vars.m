@@ -1,36 +1,36 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-  	DD.debugmode=false;
-% 	DD.debugmode=true;
+%    	DD.debugmode=false;
+	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
 	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+4242,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*3,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='new16';
+	DD.path.OutDirBaseName='z4';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
-	DD.path.raw.name='../RawNewCdf/';
+	DD.path.raw.name='../rawZ/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
-	%% output MAP STUFF
-	DD.map.out.X=150*1+1;
-	DD.map.out.Y=17*1+1;
-	DD.map.out.west=5; % avoids nan values on western bndry
-	DD.map.out.east=155;
-	DD.map.out.south=20;
-	DD.map.out.north=37;
-	%% input MAP STUFF
-	DD.map.in.west=DD.map.out.west;
-	DD.map.in.east=DD.map.out.east;
-	DD.map.in.south=DD.map.out.south;
-	DD.map.in.north=DD.map.out.north;
-	DD.map.in.time.delta_t = 1; % [days]
-	DD.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+    %% output MAP STUFF
+	DD.map.out.X=54*1+1;% SET THIS IN ANY CASE (arbitrary)
+	DD.map.out.Y=47*1+1;
+	DD.map.out.west=0; 
+	DD.map.out.east=54;
+	DD.map.out.south=10;
+	DD.map.out.north=47;
+    %% input MAP STUFF
+   	DD.map.in.west=-20; 
+	DD.map.in.east=70;
+	DD.map.in.south=10;
+	DD.map.in.north=46.8;
+% 	DD.map.in.time.delta_t = 1; % [days]
+	DD.map.in.ssh_unitFactor = 1000; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
 	DD.map.in.fname='RAWyyyymmdd.nc';	
 	DD.map.in.keys.lat='U_LAT_2D';
 	DD.map.in.keys.lon='U_LON_2D';
@@ -77,5 +77,6 @@ function DD=input_vars
    DD.parameters.SSHAdepth=-25;
 	DD.parameters.boxlims.south=10;
 	DD.parameters.boxlims.west=0;
+    DD.parameters.overrideWindowType=true;
 	DD.map.in.cdfName='new2.cdf';
 end

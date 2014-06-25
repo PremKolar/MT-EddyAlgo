@@ -13,7 +13,7 @@ function [window,lonlat]=GetWindow(file,mapin,filePattern)
     %% find rectangle enclosing all applicable data
     [window.limits, window.type]=FindRectangle(window.flag);
     %% size
-    window.size=WriteSize(window);
+    window.size=WriteSize(window);   
 end
 function S=WriteSize(w)
     switch w.type

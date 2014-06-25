@@ -22,7 +22,7 @@ function means=getMeans(d,pos,dim,file,DD)
 	for kk=1:numel(file)
 		disp(['found ' file(kk).U ' and ' file(kk).V])
 		U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/100; %#ok<*AGROW>
-		V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/100;
+		V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/100; %TODO /100
 		%%
 		x=DD.map.window.size.X;
 		y=DD.map.window.size.Y;

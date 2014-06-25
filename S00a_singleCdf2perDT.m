@@ -146,6 +146,11 @@ function [raw]=cdfData(DD)
 	raw.(keys.z)=nc_varget(raw.file.in,keys.z);
 	[~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
 	
+	raw.(keys.x)=repmat(raw.(keys.x),1,3)
+	
+	
+	
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD,raw]=geostuff(raw,DD)

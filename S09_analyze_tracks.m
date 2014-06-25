@@ -32,6 +32,7 @@ end
 % main functions
 function [MAP,V,MinMax]=spmd_body(DD)
 	%% get stuff
+	
 	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');
@@ -277,6 +278,7 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP,V,JJ,MinMax]=initAll(DD)
+	labindex=6
 	JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
 	MAP.AntiCycs=initMAP(DD);
 	MAP.Cycs=initMAP(DD);

@@ -1,5 +1,5 @@
-S00a_singleCdf2per
-S00b_prep_dataDT
+S00a_singleCdf2perDT
+S00b_prep_data
 S01_contours
 S02_BruntVaisRossby
 S03_infer_fields

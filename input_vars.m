@@ -9,10 +9,10 @@ function DD=input_vars
 	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+42,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+4242,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='new15';
+	DD.path.OutDirBaseName='new16';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';

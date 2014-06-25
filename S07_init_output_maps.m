@@ -51,7 +51,8 @@ function idx=spmd_body(DD,out)
 	lims=thread_distro(DD.threads.num,numel(in.lon));
 	JJ=lims(labindex,1):lims(labindex,2);
 	%%
-	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
+piug	
+idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
 	%% get Indices For Out Maps
 	idx=getIndicesForOutMaps(in,out,JJ,idx);
 end

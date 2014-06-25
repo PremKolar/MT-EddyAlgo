@@ -236,7 +236,7 @@ function operateDay(raw,DD,cc)
 	fo=DD.map.in.fname;
 	fo=strrep(fo,'yyyymmdd',timestr);
 	raw.file.out=[path, fo];
-	if exist(raw.file.out,'file'), return; end
+% 	if exist(raw.file.out,'file'), return; end
 	%%
 	foulIdx=(raw.grids.ssh>1000 | raw.grids.ssh<-1000 | isnan(raw.grids.ssh));
 	raw.grids.ssh=double(NeighbourValue(foulIdx, raw.grids.ssh));

@@ -21,8 +21,8 @@ end
 function means=getMeans(d,pos,dim,file,DD)
 	for kk=1:numel(file)
 		disp(['found ' file(kk).U ' and ' file(kk).V])
-		U(:,:,kk)=squeeze(nc_varget(file(kk).U,'UVEL',dim.start,dim.length))/100; %#ok<*AGROW>
-		V(:,:,kk)=squeeze(nc_varget(file(kk).V,'VVEL',dim.start,dim.length))/100;
+		U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/100; %#ok<*AGROW>
+		V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/100;
 		
 		
 % 		x=DD.map.window.size.X;
@@ -50,7 +50,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [d,pos,dim]=getDims(file,DD)
 	dWanted=DD.parameters.meanU;
-	d=nc_varget(file(1).U,'depth_t');
+	d=nc_varget(file(1).U,DD.map.in.keys.z);
 	[~,pos.z.start]=min(abs(d-dWanted));
 	pos.z.start=pos.z.start - 1; % starts at 0
 	pos.z.length=1;

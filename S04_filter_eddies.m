@@ -195,6 +195,10 @@ function correctXoverlap(ee,DD)
 	if need.volcen
 	ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
 	end
+	
+	if any([ee.centroid.x ee.trackref.x ee.volume.center.x]>X)
+		xxxxxxx
+	end
 	if any([ee.centroid.lin ee.trackref.lin ee.volume.center.lin]<0)
 		fgjn
 	end

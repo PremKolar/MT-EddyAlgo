@@ -148,6 +148,9 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 		for pa=find(pass)'; ll=ll+1;
 		if tracks(AIdxdead(pa)).track{1}(end).volume.center.lin > 256*118
 			tracks(AIdxdead(pa)).track{1}(end).volume.center.lin
+			DD.map.window
+			DD.map.window.fullsize
+			DD.map.in.size
 			afrg
 		end
 			

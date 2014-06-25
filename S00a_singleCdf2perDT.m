@@ -146,9 +146,8 @@ function [raw]=cdfData(DD)
 	raw.(keys.z)=nc_varget(raw.file.in,keys.z);
 	[~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
 	
-	raw.(keys.x)=repmat(raw.(keys.x),1,3)
-	raw.(keys.y)
-	raw.(keys.z)
+	raw.(keys.x)=repmat(raw.(keys.x),3,1)
+	raw
 	sleep(5)
 	
 	

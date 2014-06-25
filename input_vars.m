@@ -1,29 +1,29 @@
 function DD=input_vars
 	%% threads / debug
-	DD.threads.num=12;
-%  	DD.debugmode=false;
-	DD.debugmode=true;
+	DD.threads.num=2;
+ 	DD.debugmode=false;
+% 	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
-	DD.time.from.str=datestr(now-1,'yyyymmdd');
+	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+42,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+3*30,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='new9';
+	DD.path.OutDirBaseName='new10';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
 	DD.map.out.X=46*1+1;
-	DD.map.out.Y=37*1+1;
+	DD.map.out.Y=17*1+1;
 	DD.map.out.west=0; % avoids nan values on western bndry
 	DD.map.out.east=46;
-	DD.map.out.south=10;
-	DD.map.out.north=47;
+	DD.map.out.south=20;
+	DD.map.out.north=37;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;
@@ -49,11 +49,11 @@ function DD=input_vars
 	DD.thresh.ssh_filter_size=1;
 	DD.thresh.radius=0; % [SI]
 	DD.thresh.amp=0.01; % [SI]
-	DD.thresh.shape.iq=0.3; % isoperimetric quotient
+	DD.thresh.shape.iq=0.1; % isoperimetric quotient
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	DD.thresh.dist=.5*24*60^2; % max distance travelled per day
-	DD.thresh.life=10; % min num of living days for saving
+	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
 	DD.switchs.RossbyStuff=true;

@@ -209,7 +209,8 @@ function correctXoverlap(ee,DD)
 	function [data,needed]=wrapXidx(data,X)		
 		needcorr=data>X;	
 		if isempty(needcorr), needed=false;return;end
-		data(needcorr)=data(needcorr)-X;		
+lkivkiuv		
+data(needcorr)=data(needcorr)-X;		
 		data(data<0.5)=X;
 		data(data<1)=1;
 		 needed=true;

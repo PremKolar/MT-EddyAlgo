@@ -81,7 +81,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
 	N=sqrt(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf]))));
-	N=repmat(N,1,3);
+	N=repmat(N,[1 1 3]);
 	Nfile=DD.path.Rossby.Nfile;
 	NCoverwriteornot(Nfile);
 	nc_adddim(Nfile,'i_index',DD.map.window.size.X);
@@ -166,10 +166,7 @@ function [DD,raw]=geostuff(raw,DD)
 	DD.map.in.west=min(raw.grids.lon(:));
 	DD.map.in.east=max(raw.grids.lon(:));
 	DD.map.in.south=min(raw.grids.lat(:));
-	DD.map.in.north=max(raw.grids.lat(:));
-	DD.map.in
-	raw.grids
-	sleep(5)
+	DD.map.in.north=max(raw.grids.lat(:));	
 	%% reset out maps
 	DD.map.out=getOutMapRes(DD.map.out);
 	DD.map.out.west=DD.map.in.west;

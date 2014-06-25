@@ -113,6 +113,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
+	lukijv
 	eddies=read_fields(DD,jj,'eddies');
 	NEW.eddies=rmfield(eddies,'filename');
 	%% get delta time

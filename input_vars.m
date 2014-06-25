@@ -18,10 +18,10 @@ function DD=input_vars
 	DD.path.raw.name='../RawNewCdf/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
-	DD.map.out.X=46*1+1;
+	DD.map.out.X=150*1+1;
 	DD.map.out.Y=17*1+1;
 	DD.map.out.west=5; % avoids nan values on western bndry
-	DD.map.out.east=182;
+	DD.map.out.east=155;
 	DD.map.out.south=20;
 	DD.map.out.north=37;
 	%% input MAP STUFF

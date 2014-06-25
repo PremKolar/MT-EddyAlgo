@@ -150,7 +150,7 @@ function [raw]=cdfData(DD)
 	
 	X=length(raw.(keys.x));
 	rx=raw.(keys.x);
-	raw.(keys.x)=[rx; rx+repmat(rx(end),X,1)  rx+2*repmat(rx(end),X,1)];
+	raw.(keys.x)=[rx; rx+repmat(rx(end),X,1) ; rx+2*repmat(rx(end),X,1)];
 		
 	
 end

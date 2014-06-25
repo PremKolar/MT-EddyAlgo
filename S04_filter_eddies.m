@@ -176,6 +176,10 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	if strcmp(DD.map.window.type,'globe')
 		correctXoverlap(ee,DD)
 	end
+	
+	ljzfzhv
+	
+	
 end
 
 function correctXoverlap(ee,DD)

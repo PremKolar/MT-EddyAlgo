@@ -108,5 +108,6 @@ function dim=ncArrayDims(DD)
 	dim.len3d = 	[k_len j_len i_len];
 	dim.start2d = [j_start  i_start];
 	dim.len2d = 	[j_len i_len];
+	ligbiuvb
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

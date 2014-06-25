@@ -147,8 +147,9 @@ function [raw]=cdfData(DD)
 	[~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
 	
 	raw.(keys.x)=repmat(raw.(keys.x),1,3)
-	
-	
+	raw.(keys.y)
+	raw.(keys.z)
+	sleep(5)
 	
 	
 end
@@ -164,6 +165,9 @@ function [DD,raw]=geostuff(raw,DD)
 	DD.map.in.east=max(raw.grids.lon(:));
 	DD.map.in.south=min(raw.grids.lat(:));
 	DD.map.in.north=max(raw.grids.lat(:));
+	DD.map.in
+	raw.grids
+	sleep(5)
 	%% reset out maps
 	DD.map.out=getOutMapRes(DD.map.out);
 	DD.map.out.west=DD.map.in.west;

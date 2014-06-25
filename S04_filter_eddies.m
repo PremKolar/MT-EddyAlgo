@@ -160,6 +160,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
 	%% get area centroid (chelton style)
+	cut.dim
 	[ee.centroid]=AreaCentroid(zoom,cut.dim.Y);
 	%% get coordinates
 	[ee.geo]=geocoor(zoom,ee.volume);
@@ -178,8 +179,8 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 end
 
 function correctXoverlap(ee,DD)
-	X=DD.map.window.fullsize(2);
-	Y=DD.map.window.size.Y;
+	X=DD.map.window.fullsize(2)
+	Y=DD.map.window.size.Y
 	[ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
 	[ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
 	[ee.centroid.x]=wrapXidx(ee.centroid.x,X);
@@ -207,6 +208,7 @@ function correctXoverlap(ee,DD)
 		data(needcorr)=data(needcorr)-X;
 		data(data<0.5)=X;
 		data(data<1)=1;
+		data(data>X)=X;
 	end
 	
 end

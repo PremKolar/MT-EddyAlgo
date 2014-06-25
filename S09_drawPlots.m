@@ -35,70 +35,104 @@ function S09_drawPlots
     %% main
     overmain(ticks,DD)
     %%
-	 conclude(DD);
+    conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function animas(DD)
-	
-file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
-	grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
-	d.LON=grid.grids.lon;
-	d.LAT=grid.grids.lat;       
-	d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
-	d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
-	d.climssh.min=nanmin(grid.grids.ssh(:));
-	d.climssh.max=nanmax(grid.grids.ssh(:));
-	d.p=[DD.path.plots 'mpngs/'];
+function animas(DD)    
+    file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
+    grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
+    d.LON=grid.grids.lon;
+    d.LAT=grid.grids.lat;
+    d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
+    d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
+    d.climssh.min=nanmin(grid.grids.ssh(:));
+    d.climssh.max=nanmax(grid.grids.ssh(:));
+    d.p=[DD.path.plots 'mpngs/'];
     mkdirp(d.p);
+    colmaps{1}=jet;
+    colmaps{2}=bone;
+    
     parfor ee=1:numel(DD.path.eddies.files)
-        savepng4mov(d,ee,DD)
+        savepng4mov(d,ee,DD,colmaps)
     end
-    ilh
+    pn=pwd;
+    cd(d.p)
+    system(['mencoder "mf://flat*.png" -mf fps=10 -o flat.avi -ovc lavc -lavcopts vcodec=mpeg4'])
+    system(['mencoder "mf://surf*.png" -mf fps=10 -o surf.avi -ovc lavc -lavcopts vcodec=mpeg4'])
+     system(['mplayer  surf.avi'])
+        system(['mplayer  flat.avi'])
+    cd(pn)
 end
 
-function savepng4mov(d,ee,DD)
-   d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
+
+function savepng4mov(d,ee,DD,colmaps)
+    d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
     ed=load(d.file);
-    coor=[ed.anticyclones.coordinates ed.cyclones.coordinates];
+    coor.c=[ed.cyclones.coordinates];
+    coor.ac=[ed.anticyclones.coordinates];
+    z.c=[ed.cyclones.level];
+    z.ac=[ed.anticyclones.level];
     grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
-    
     ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
-  figure(labindex)
+    %%
+    figure(labindex)
     pcolor(d.lon,d.lat,ssh);
-    
     caxis([d.climssh.min d.climssh.max]);
     hold on
-    for cc=1:numel(coor)
-        linx=drop_2d_to_1d(coor(cc).int.y,coor(cc).int.x,size(d.LAT,1));
-        lo=d.LON(linx);
-        la=d.LAT(linx);
-        plot(lo,la);
-    end  
-  
-     saveas(gcf,[d.p sprintf('%06d.png',ee)]);
- close(labindex)
+    sen={'ac';'c'};
+    col=[1 0 0; 1 1 1];
+    for ss=1:2
+        s=sen{ss};
+        for cc=1:numel(coor.(s))
+            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
+            lo=d.LON(linx);
+            la=d.LAT(linx);
+            plot(lo,la,'color',col(ss,:),'linewidth',2);
+        end
+    end
+    savefig(d.p,100,1600,1200,sprintf('flat%06d',ee),0,'dpng');
+    close all
+    %%
+    figure(labindex)
+    surf(d.lon,d.lat,ssh);
+    axis([min(d.lon(:)) max(d.lon(:)) min(d.lat(:)) max(d.lat(:)) d.climssh.min*2 d.climssh.max*2 d.climssh.min/2 d.climssh.max/2]);
+    hold on
+    sen={'ac';'c'};
+    col=[1 0 0; 1 1 1];
+    for ss=1:2
+        s=sen{ss};
+        for cc=1:numel(coor.(s))
+            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
+            lo=d.LON(linx);
+            la=d.LAT(linx);
+            zz=repmat(z.(s)(cc),1,numel(lo));
+            plot3(lo,la,zz,'color',col(ss,:),'linewidth',2);
+        end
+    end
+    savefig(d.p,100,1600,1200,sprintf('surf%06d',ee),0,'dpng');
+    close all
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mainDB(DD,IN,ticks)
-	disp('entering debug mode')
-	ticks.rez=42;
-	
-	animas(DD);
-	
-	%      for sense=DD.FieldKeys.senses'; sen=sense{1};
-%         TPa(DD,ticks,IN.tracks,sen);
-% %         TPb(DD,ticks,IN.tracks,sen);
-% %         TPc(DD,ticks,IN.tracks,sen);
-% %         TPd(DD,ticks,IN.tracks,sen);
-% %         TPe(DD,ticks,IN.tracks,sen);
-% %         TPf(DD,ticks,IN.tracks,sen);
-%      end
-% %     velZonmeans(DD,IN,ticks)
-%     scaleZonmeans(DD,IN,ticks)
+    disp('entering debug mode')
+    ticks.rez=42;
+    
+    animas(DD);
+    
+    %      for sense=DD.FieldKeys.senses'; sen=sense{1};
+    %         TPa(DD,ticks,IN.tracks,sen);
+    % %         TPb(DD,ticks,IN.tracks,sen);
+    % %         TPc(DD,ticks,IN.tracks,sen);
+    % %         TPd(DD,ticks,IN.tracks,sen);
+    % %         TPe(DD,ticks,IN.tracks,sen);
+    % %         TPf(DD,ticks,IN.tracks,sen);
+    %      end
+    % %     velZonmeans(DD,IN,ticks)
+    %     scaleZonmeans(DD,IN,ticks)
     % %
-%     histstuff(IN.vecs,DD,ticks)
-%     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
+    %     histstuff(IN.vecs,DD,ticks)
+    %     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=main(DD,IN,ticks)
@@ -107,6 +141,8 @@ function job=main(DD,IN,ticks)
     job.maphist= taskfForMapAndHist(DD,IN,ticks);
     %%
     job.tracks=trackPlots(DD,ticks,IN.tracks);
+    %%
+    animas(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=taskfForZonMeans(DD,IN,ticks)
@@ -120,8 +156,8 @@ function velZonmeans(DD,IN,ticks)
     cv=squeeze(nanmean(IN.maps.Cycs.vel.zonal.mean,2));
     plot(IN.la(:,1),acv	,'r')
     plot(IN.la(:,1),cv,'black')
-%     set(gca,'xtick',ticks.x	)
-%     set(gca,'ytick',ticks.x	)
+    %     set(gca,'xtick',ticks.x	)
+    %     set(gca,'ytick',ticks.x	)
     axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
     legend('Rossby-wave phase-speed','anti-cyclones net zonal velocity','cyclones net zonal velocity')
     ylabel('[cm/s]')
@@ -559,18 +595,18 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
         V=load(files{ee},fieldName2);
         VViq=V.(fieldName2);
         meaniq(ee)=nanmean(VViq);
-	 end
-	  meaniq(meaniq>1)=1;
+    end
+    meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
     
-	 maxthick=ticks.rez/300*5;
+    maxthick=ticks.rez/300*5;
     minthick=ticks.rez/300*0.1;
     for ee=iqorder(1:50)
         V=load(files{ee},fieldName,fieldName2,'lat','lon');
-%         V=load(files{ee});
-		  VV=V.(fieldName);
+        %         V=load(files{ee});
+        VV=V.(fieldName);
         VViq=V.(fieldName2);
-		  VViq(VViq>1)=1;
+        VViq(VViq>1)=1;
         if isempty(VV)
             continue
         end
@@ -610,17 +646,17 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
         V=load(files{ee},'isoper');
         VViq=V.isoper;
         meaniq(ee)=nanmean(VViq);
-	 end
-	 meaniq(meaniq>1)=1;
+    end
+    meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
     %%
-	  maxthick=ticks.rez/300*5;
+    maxthick=ticks.rez/300*5;
     minthick=ticks.rez/300*0.1;
     for ee=iqorder
         V=load(files{ee},fieldName,'isoper','lat','lon');
         VV=V.(fieldName);
         VViq=V.isoper;
-		   VViq(VViq>1)=1;
+        VViq(VViq>1)=1;
         if isempty(VV)
             continue
         end

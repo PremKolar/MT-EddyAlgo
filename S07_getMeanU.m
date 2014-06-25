@@ -25,12 +25,16 @@ function means=getMeans(d,pos,dim,file,DD)
 		V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/100;
 		
 		
-% 		x=DD.map.window.size.X;
-% 		y=DD.map.window.size.Y;
-% 		U=downsize(U,x,y);
-% 		V=downsize(V,x,y);
-% 		
-% 		
+		x=DD.map.window.size.X;
+		y=DD.map.window.size.Y;
+		if x~=size(U,2) || y~=size(U,1)
+			warning('trivially resizing U/V data!!! ') %#ok<WNTAG>
+			sleep(5)
+			U=downsize(U,x,y);
+			V=downsize(V,x,y);
+		end
+		
+ 		
 	end
 	disp(['creating means'])
 	U(U<-1e33)=nan; % missing values

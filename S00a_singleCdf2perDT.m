@@ -126,6 +126,7 @@ function spmd_body(DD,raw)
 		[T]=disp_progress('calc',T,numel(CC),5);
 		%% get current SSH
 		raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
+		raw.grids.ssh=repmat(raw.grids.ssh,1,3);
 		operateDay(raw,DD,cc);
 	end
 end
@@ -146,10 +147,11 @@ function [raw]=cdfData(DD)
 	raw.(keys.z)=nc_varget(raw.file.in,keys.z);
 	[~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
 	
-	raw.(keys.x)=repmat(raw.(keys.x),3,1)
-	raw
-	sleep(5)
 	
+	X=length(raw.(keys.x));
+	rx=raw.(keys.x);
+	raw.(keys.x)=[rx; rx+repmat(rx(end),X,1)  rx+2*repmat(rx(end),X,1)];
+		
 	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

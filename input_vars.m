@@ -62,5 +62,5 @@ function U=input_vars
 	U.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	U.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
 	%% technical params
-	U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations	
+	U.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
 end

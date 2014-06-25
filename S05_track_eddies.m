@@ -146,7 +146,10 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
 		for pa=find(pass)'; ll=ll+1;
-			kjuvfc
+		if tracks(AIdxdead(pa)).track{1}(end).volume.center.lin > 256*118
+			afrg
+		end
+			
 			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end

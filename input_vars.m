@@ -12,13 +12,13 @@ function DD=input_vars
 	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*30,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='z5';
+	DD.path.OutDirBaseName='z6';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../rawZ/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
     %% output MAP STUFF
-	DD.map.out.X=54*1+1;% SET THIS IN ANY CASE (arbitrary)
+	DD.map.out.X=54*1+1;
 	DD.map.out.Y=47*1+1;
 	DD.map.out.west=0; 
 	DD.map.out.east=54;
@@ -50,7 +50,7 @@ function DD=input_vars
 	DD.thresh.ssh_filter_size=1;
 	DD.thresh.radius=0; % [SI]
 	DD.thresh.amp=0.01; % [SI]
-	DD.thresh.shape.iq=0.3; % isoperimetric quotient
+	DD.thresh.shape.iq=0.5; % isoperimetric quotient
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=6; % min number of data points for the perimeter of an eddy
 	DD.thresh.dist=.5*24*60^2; % max distance travelled per day
@@ -62,7 +62,7 @@ function DD=input_vars
 	DD.switchs.chelt=false;
 	DD.switchs.distlimit=false;
 	DD.switchs.AmpAreaCheck=false;
-	DD.switchs.netUstuff=false;
+	DD.switchs.netUstuff=true;
 	%% parameters
 	DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	DD.parameters.meanU=100; % depth from which to take mean U

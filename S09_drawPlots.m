@@ -53,6 +53,7 @@ function animas(DD)
     colmaps{2}=bone;
     
     parfor ee=1:numel(DD.path.eddies.files)
+        disp(num2str(100*ee/numel(DD.path.eddies.files)))
         savepng4mov(d,ee,DD,colmaps)
     end
     pn=pwd;

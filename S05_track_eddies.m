@@ -146,6 +146,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
 		for pa=find(pass)'; ll=ll+1;
+			kjuvfc
 			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end
@@ -191,7 +192,6 @@ end
 function [tracks,new_eddies]=init_day_one(eddies,sen)
 	%% init day one
 	new_eddies=rmfield(eddies,'filename');
-	fdgj
 	%% set initial ID's etc
 	ee=(1:numel(new_eddies.(sen)));
 	eec=num2cell(ee);

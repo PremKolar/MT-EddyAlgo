@@ -58,7 +58,7 @@ function [II,CONT]=init_get_contours(dd,TT)
 	disp('calculating contours... takes long time!')
 	CONT.all=[]; % init
 	%% create level vector at chosen interval
-olih	
+	
 floorlevel=floor(nanmin(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
 	ceillevel=ceil(nanmax(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
 	II.levels=floorlevel:dd.contour.step:ceillevel;

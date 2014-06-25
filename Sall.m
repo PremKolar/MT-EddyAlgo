@@ -1,12 +1,11 @@
-%S000cdf2daily
-%S00_prep_data
- S01_contours
-S01a_deleteZonalOverlapInCuts
-%S01b_BruntVaisRossby
-S02_infer_fields
-S03_filter_eddies
-S04_track_eddies
-S05_init_output_maps
-S06a_getMeanU
-S06b_analyze_tracks
-S07_drawPlots
+S00a_singleCdf2perDT
+S00b_prep_data
+S01_contours
+S02_BruntVaisRossby
+S03_infer_fields
+S04_filter_eddies
+S05_track_eddies
+S06_init_output_maps
+S07_getMeanU
+S08_analyze_tracks
+S09_drawPlots

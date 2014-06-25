@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculates geostrophic data from ssh
-function S02_infer_fields
+function S03_infer_fields
 	%% init
 	DD=initialise('cuts');
 	%% read input file

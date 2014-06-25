@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S05_init_output_maps
+function S06_init_output_maps
 	%% init
 	DD=initialise('');
 	%%
@@ -41,6 +41,16 @@ function idx=spmd_body(DD,out)
 	%% get input example lon/lat
 	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
 	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
+	%% correct if fullglobe
+	if strcmp(DD.map.window.type,'globe')
+		xreal=DD.map.window.fullsize(2);
+		in.lon=reshape(in.lon,DD.map.window.size.Y,[]);
+		in.lat=reshape(in.lat,DD.map.window.size.Y,[]);
+		in.lon=in.lon(:,1:xreal);
+		in.lat=in.lat(:,1:xreal);
+		in.lon=in.lon(:);
+		in.lat=in.lat(:);
+	end
 	%% get codisp'ed indeces
 	lims=thread_distro(DD.threads.num,numel(in.lon));
 	JJ=lims(labindex,1):lims(labindex,2);

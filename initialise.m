@@ -13,7 +13,6 @@ function DD=initialise(toCheck)
     format shortg;
     %% get user input
     DD = get_input;
-%    if DD.debugmode, dbstop if warning; end
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
     if ~exist('toCheck','var')
@@ -38,7 +37,7 @@ function DD=initialise(toCheck)
     end
     %% performance stuff
     DD.tic=tic;
-    dispmem;
+%     dispmem;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)

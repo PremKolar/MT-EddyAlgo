@@ -33,7 +33,7 @@ function printStuff(frmt,fname,rez,xdim,ydim)
 	else
 		fnfull=[fname,'.',frmt(2:end)];
 		eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt,';'])
-		system(['convert -density ' num2str(rez) 'x' num2str(rez) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
+% 		system(['convert -density ' num2str(rez) 'x' num2str(rez) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

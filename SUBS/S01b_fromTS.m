@@ -10,7 +10,7 @@
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
 % NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
-function S01b_BruntVaisRossby
+function S01b_fromTS
     %% set up
     [DD]=set_up;
     %% spmd
@@ -74,7 +74,7 @@ function Calculations(DD,chnk)
     %% init
     [CK,cc]=init(DD,chnk);
     %% calculate Brunt-Väisälä f and potential vorticity
-    [CK.BRVA]=calcBrvaPvort(CK,cc);
+    [CK.N]=calcBrvaPvort(CK,cc);
     %% integrate first baroclinic rossby radius
     [CK.rossby.Ro1]=calcRossbyRadius(CK,cc);
     %% rossby wave phase speed
@@ -94,7 +94,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
     CK=loadChunk(DD.path.Rossby.name,1);
-    [dim.Z,dim.Y,dim.X]=size(CK.BRVA);
+    [dim.Z,dim.Y,dim.X]=size(CK.N);
     nc_adddim(DD.path.Rossby.NCfile,'depth_diff',dim.Z);
     nc_adddim(DD.path.Rossby.NCfile,'i_index',DD.TS.window.size.X);
     nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);
@@ -234,9 +234,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK,cc)
     disp(['integrating Rossby Radius for chunk ',cc])
-    [~,YY,XX]=size(CK.BRVA);
+    [~,YY,XX]=size(CK.N);
     M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
-    R=abs(double((squeeze(nansum(M.depthdiff.*CK.BRVA,1))./CK.rossby.f)/pi));
+    R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c1]=calcC_one(CK,cc)
@@ -245,7 +245,7 @@ function [c1]=calcC_one(CK,cc)
     c1=-CK.rossby.beta.*CK.rossby.Ro1.^2;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [BRVA]=calcBrvaPvort(CK,cc)
+function [N]=calcBrvaPvort(CK,cc)
     [ZZ,YY,XX]=size(CK.TEMP);
     disp(['calculating brunt väisälä, chunk ',cc]);
     %% get full matrices for all variables
@@ -257,7 +257,7 @@ function [BRVA]=calcBrvaPvort(CK,cc)
     %% get brunt väisälä frequency and pot vort
     [brva,~,~]=sw_bfrq(M.salt,M.temp,M.pressure,M.lat);
     brva(brva<0)=nan;
-    BRVA=sqrt(reshape(brva,[ZZ-1,YY,XX]));
+    N=sqrt(reshape(brva,[ZZ-1,YY,XX]));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK,DD]=initCK(DD,chunk)

@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % inter-allocate different time steps to determine tracks of eddies
-function S04_track_eddies
+function S05_track_eddies
 	%% init
 	DD=initialise('eddies');
 	%% rm old files
@@ -125,7 +125,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% determine whether double eddies might be present due to full lon
-	phantoms=logical(cell2mat(extractdeepfield(read_fields(DD,1,'cuts'),'params.full_globe.x')));
+	phantoms=strcmp(DD.map.window.type,'globe');
 	%% read eddies
 	eddies=read_fields(DD,1,'eddies');
 	[tracks,OLD.eddies]=init_day_one(eddies,sen);
@@ -179,6 +179,7 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
 			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
 			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
 		end
+		
 		%% set all ages 0
 		[tracks(newendIdxs).age]=deal(0);
 		%% deal new ids to tracks

@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S06b_analyze_tracks
+function S08_analyze_tracks
 	%% init
 	DD=initialise;
 	%%
@@ -32,6 +32,7 @@ end
 % main functions
 function [MAP,V,MinMax]=spmd_body(DD)
 	%% get stuff
+	
 	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');

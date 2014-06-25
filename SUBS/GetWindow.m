@@ -13,7 +13,7 @@ function [window,lonlat]=GetWindow(file,mapin,filePattern)
     %% find rectangle enclosing all applicable data
     [window.limits, window.type]=FindRectangle(window.flag);
     %% size
-    window.size=WriteSize(window);
+    window.size=WriteSize(window);   
 end
 function S=WriteSize(w)
     switch w.type
@@ -64,7 +64,7 @@ function [limits,type]=FindRectangle(flag)
             limits.west=1;
             limits.east=xb.nz;
             type='beginsAtWesternBndry';
-        elseif xa.nz~=1 && xb.nz==X && xb.z==1
+        elseif xa.nz~=1 && xb.nz==X && xa.z==1
             %% box ends on eastern edge
             limits.west=xa.nz;
             limits.east=X;

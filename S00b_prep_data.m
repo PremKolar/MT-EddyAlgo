@@ -10,7 +10,7 @@
 % input ssh data. This step is not officially part of the program. Use a
 % copy of this and adapt to your data, so that S01 gets the required input
 % structure.
-function S00_prep_data
+function S00b_prep_data
 	%% set up
 	[DD]=set_up;	
 	%% spmd
@@ -37,6 +37,10 @@ function [DD]=set_up
 	%% get sample window
 	file=SampleFile(DD);
 	[DD.map.window]=GetWindow(file,DD.map.in,DD.map.in.keys);
+    %% manually override map type (for mad's data)
+    if DD.parameters.overrideWindowType
+        DD.map.window.type='xxx';
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
@@ -59,7 +63,10 @@ end
 function [CUT]=CutMap(file,DD)
 	addpath(genpath('./'));
 	%% get data
-	[raw_fields,unreadable]=GetFields(file.in,DD.map.in.keys);
+	for kk={'lat','lon','ssh'}
+	keys.(kk{1})=DD.map.in.keys.(kk{1});
+	end
+	[raw_fields,unreadable]=GetFields(file.in,keys);
 	if unreadable.is, CUT=[]; return; end
 	%% cut
 	[CUT]=ZonalProblem(raw_fields,DD.map.window);

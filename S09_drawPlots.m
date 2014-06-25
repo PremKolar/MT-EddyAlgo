@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S10_drawPlots
+function S09_drawPlots
     DD=initialise;
     %%	set ticks here!
     %     ticks.rez=200;

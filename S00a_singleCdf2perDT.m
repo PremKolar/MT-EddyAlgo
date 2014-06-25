@@ -23,8 +23,42 @@ function S00a_singleCdf2perDT
 	main(DD,raw)
 	%% save brunt väisälä
 	saveN(DD,raw);
+	%% save UV
+	saveUV(DD,raw);
 	%% save info
 	save_info(DD);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function saveUV(DD,raw)
+	
+	jizxcjxzc
+	
+	N=sqrt(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf]))));
+	Nfile=DD.path.Rossby.Nfile;
+	NCoverwriteornot(Nfile);
+	nc_adddim(Nfile,'i_index',DD.map.window.size.X);
+	nc_adddim(Nfile,'j_index',DD.map.window.size.Y);
+	nc_adddim(Nfile,'k_index',DD.map.window.size.Z);
+	%% N
+	varstruct.Name = DD.map.in.keys.N;
+	varstruct.Nctype = 'double';
+	varstruct.Dimension = {'k_index','j_index','i_index' };
+	nc_addvar(Nfile,varstruct);
+	nc_varput(Nfile,varstruct.Name,N);
+	%% lat/lon
+	for ll={'lon','lat'}
+		varstruct.Name = DD.map.in.keys.(ll{1});
+		varstruct.Nctype = 'double';
+		varstruct.Dimension = {'j_index','i_index' };
+		nc_addvar(Nfile,varstruct);
+		nc_varput(Nfile,DD.map.in.keys.(ll{1}),raw.grids.(ll{1}));
+	end
+	%% Z
+	varstruct.Name = DD.map.in.keys.z;
+	varstruct.Nctype = 'double';
+	varstruct.Dimension = {'k_index'};
+	nc_addvar(Nfile,varstruct);
+	nc_varput(Nfile,varstruct.Name,raw.(DD.map.in.keys.z));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
@@ -55,9 +89,6 @@ function saveN(DD,raw)
 	nc_addvar(Nfile,varstruct);
 	nc_varput(Nfile,varstruct.Name,raw.(DD.map.in.keys.z));
 end
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,raw)
 	if DD.debugmode

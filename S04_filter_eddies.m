@@ -180,11 +180,11 @@ end
 function correctXoverlap(ee,DD)
 	X=DD.map.window.fullsize(2);
 	Y=DD.map.window.size.Y;
-	[ee.coordinates.exact.x,~]=wrapXidx(ee.coordinates.exact.x,X);
-	[ee.coordinates.int.x,~]=wrapXidx(ee.coordinates.int.x,X);
-	[ee.centroid.x,need.cen]=wrapXidx(ee.centroid.x,X);
-	[ee.trackref.x,need.tf]=wrapXidx(ee.trackref.x,X);
-	[ee.volume.center.x,need.volcen]=wrapXidx(ee.volume.center.x,X);
+	[ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
+	[ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
+	[ee.centroid.x]=wrapXidx(ee.centroid.x,X);
+	[ee.trackref.x]=wrapXidx(ee.trackref.x,X);
+	[ee.volume.center.x]=wrapXidx(ee.volume.center.x,X);
 	%%
 	ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
 	ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);

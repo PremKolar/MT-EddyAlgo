@@ -44,15 +44,18 @@ function idx=spmd_body(DD,out)
 	%% correct if fullglobe
 	if strcmp(DD.map.window.type,'globe')
 		xreal=DD.map.window.fullsize(2);
+		in.lon=reshape(in.lon,DD.map.window.size.Y,[]);
+		in.lat=reshape(in.lat,DD.map.window.size.Y,[]);
 		in.lon=in.lon(:,1:xreal);
 		in.lat=in.lat(:,1:xreal);
+		in.lon=in.lon(:);
+		in.lat=in.lat(:);
 	end
 	%% get codisp'ed indeces
 	lims=thread_distro(DD.threads.num,numel(in.lon));
 	JJ=lims(labindex,1):lims(labindex,2);
 	%%
-piug	
-idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
+	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
 	%% get Indices For Out Maps
 	idx=getIndicesForOutMaps(in,out,JJ,idx);
 end

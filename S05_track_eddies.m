@@ -16,8 +16,6 @@ function S05_track_eddies
 	%% update infofile
 	save_info(DD);
 end
-
-test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
 	disp(['using all eddies from ' DD.path.eddies.name, ' !!!'])
@@ -179,7 +177,6 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
 			tracks(tt).track{1}(1)	=NEW.eddies.(sen)(idx.born.inNew(nn));
 			tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
 		end
-		
 		%% set all ages 0
 		[tracks(newendIdxs).age]=deal(0);
 		%% deal new ids to tracks
@@ -203,12 +200,10 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
 	[tracks(ee).ID]=deal(eec{:});
 	[tracks(ee).age]=deal(0);
 	[tracks(ee).length]=deal(1);
-	
 	%% prealloc for speed
-	for tt=1:length(tracks)
+	for tt=1:length(tracks) %TODO try parfor
 		tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
 	end
-	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TDB]=filter4threshold(TDB,MD,thresh,sen)

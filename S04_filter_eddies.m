@@ -44,8 +44,8 @@ end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
 	%% check for exisiting data
 	skip=false;
-	EE.filename.cont=JJ.files;   
-   	EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
+	EE.filename.cont=JJ.files;
+	EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
 	EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
 	if exist(EE.filename.self,'file'), skip=true; return; end
 	%% get ssh data
@@ -171,15 +171,12 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	else
 		ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
 	end
-	%TODO
+	%% correct x indices in case of global window
 	if strcmp(DD.map.window.type,'globe')
 		ee=correctXoverlap(ee,DD);
 	end
-	
-	
-	
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ee=correctXoverlap(ee,DD)
 	X=DD.map.window.fullsize(2);
 	Y=DD.map.window.size.Y;
@@ -201,13 +198,8 @@ function ee=correctXoverlap(ee,DD)
 		data(data<0.5)=X;
 		data(data<1)=1;
 		data(data>X)=X;
-	end	
+	end
 end
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

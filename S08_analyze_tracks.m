@@ -140,7 +140,6 @@ function [TT]=getTrack(DD,jj)
 	TT.sense=TT.eddy.trck(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % TRs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[strctr, eddy]=TRstructure(MAP,eddy,DD)

@@ -11,9 +11,9 @@ function S04_filter_eddies
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
-	main(DD,rossbyU)
+	main(DD,rossbyU);
 	%% update infofile
-	save_info(DD)
+	save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)
@@ -160,7 +160,6 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
 	%% get area centroid (chelton style)
-	cut.dim
 	[ee.centroid]=AreaCentroid(zoom,cut.dim.Y);
 	%% get coordinates
 	[ee.geo]=geocoor(zoom,ee.volume);

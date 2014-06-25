@@ -173,24 +173,48 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	end
 	%TODO
 	if strcmp(DD.map.window.type,'globe')
-		X=DD.map.window.fullsize(2);
-		Y=DD.map.window.size.Y;
-		needcorr=ee.coordinates.exact.x>X;
-		ee.coordinates.exact.x(needcorr)=ee.coordinates.exact.x(needcorr)-X;
-		ee.coordinates.int.x(needcorr)=ee.coordinates.int.x(needcorr)-X;
-		
-		ee.centroid.x(ee.centroid.x>X)=ee.centroid.x-X;
-		ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
-% 		ee.peak.x(ee.peak.x>X)=ee.peak.x(ee.peak.x>X)-X;
-% 		ee.peak.lin=drop_2d_to_1d(ee.peak.y,ee.peak.x,Y);
-		ee.trackref.x(ee.trackref.x>X)=ee.trackref.x-X;
-		ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
-		ee.volume.center.x(ee.volume.center.x>X)=ee.volume.center.x-X;
-		ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
-		
-		
+		correctXoverlap(ee,DD)
 	end
 end
+
+function correctXoverlap(ee,DD)
+	X=DD.map.window.fullsize(2);
+	Y=DD.map.window.size.Y;
+	[ee.coordinates.exact.x,~]=wrapXidx(ee.coordinates.exact.x,X);	
+	[ee.coordinates.int.x,~]=wrapXidx(ee.coordinates.int.x,X);
+	[ee.centroid.x,need.cen]=wrapXidx(ee.centroid.x,X);	
+	[ee.trackref.x,need.tf]=wrapXidx(ee.trackref.x,X);
+	[ee.volume.center.x,need.volcen]=wrapXidx(ee.volume.center.x,X);
+	%%
+	if need.cen
+	ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
+	end
+	if need.tf
+	ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
+	end
+	if need.volcen
+	ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
+	end
+	if any([ee.centroid.lin ee.trackref.lin ee.volume.center.lin]<0)
+		fgjn
+	end
+	if any([ee.centroid.lin ee.trackref.lin ee.volume.center.lin]>X*Y)
+		fgjn
+	end
+	%%
+	function [data,needed]=wrapXidx(data,X)
+		needcorr=data>X;	
+		if isempty(needcorr), needed=false;return;end
+		data(needcorr)=data(needcorr)-X;		
+		 needed=true;
+	end
+			
+end
+
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

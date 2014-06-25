@@ -128,6 +128,7 @@ function spmd_body(DD,raw)
 		%% get current SSH
 		raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
 		raw.grids.ssh=repmat(raw.grids.ssh,1,3);
+		ouig
 		operateDay(raw,DD,cc);
 	end
 end

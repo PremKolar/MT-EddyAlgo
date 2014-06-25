@@ -12,7 +12,7 @@ function DD=input_vars
 	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+42,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='new13';
+	DD.path.OutDirBaseName='new14';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../RawNewCdf/';
@@ -20,8 +20,8 @@ function DD=input_vars
 	%% output MAP STUFF
 	DD.map.out.X=46*1+1;
 	DD.map.out.Y=17*1+1;
-	DD.map.out.west=0; % avoids nan values on western bndry
-	DD.map.out.east=46;
+	DD.map.out.west=5; % avoids nan values on western bndry
+	DD.map.out.east=182;
 	DD.map.out.south=20;
 	DD.map.out.north=37;
 	%% input MAP STUFF

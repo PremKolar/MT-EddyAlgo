@@ -113,7 +113,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-	lukijv
 	eddies=read_fields(DD,jj,'eddies');
 	NEW.eddies=rmfield(eddies,'filename');
 	%% get delta time
@@ -124,8 +123,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
 	%% determine whether double eddies might be present due to full lon
-	phantoms=strcmp(DD.map.window.type,'globe');    
-    %% read eddies
+	phantoms=strcmp(DD.map.window.type,'globe');
+	%% read eddies
 	eddies=read_fields(DD,1,'eddies');
 	[tracks,OLD.eddies]=init_day_one(eddies,sen);
 	%% append geo-coor vectors for min_dist function
@@ -143,18 +142,10 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
 	id = cat(1,tracks(AIdxdead).ID);
 	pass = age >= DD.thresh.life;
 	%%  write to 'heap'
-	if any(pass)		
+	if any(pass)
 		lens=cat(2,tracks(AIdxdead(pass)).length);
 		ll=0;
 		for pa=find(pass)'; ll=ll+1;
-		if tracks(AIdxdead(pa)).track{1}(end).volume.center.lin > 256*118
-			tracks(AIdxdead(pa)).track{1}(end).volume.center.lin
-			DD.map.window
-			DD.map.window.fullsize
-			DD.map.in.size
-			afrg
-		end
-			
 			archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path,jj,id(pa));
 		end
 	end
@@ -166,7 +157,7 @@ function archive(trck,path,jj,id)
 	%% write out file (one per eddy)
 	EoD=['TRACK', sprintf('%9i',id)];
 	filename=[ path.tracks.name EoD regexprep(path.eddies.files(jj).name, 'EDDIE', '')];
-	trck(end).filename=filename;	
+	trck(end).filename=filename;
 	save(trck(end).filename,'trck');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

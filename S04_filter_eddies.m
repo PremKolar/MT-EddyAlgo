@@ -174,17 +174,16 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	end
 	%TODO
 	if strcmp(DD.map.window.type,'globe')
-		correctXoverlap(ee,DD)
+		ee=correctXoverlap(ee,DD);
 	end
 	
-	ljzfzhv
 	
 	
 end
 
-function correctXoverlap(ee,DD)
-	X=DD.map.window.fullsize(2)
-	Y=DD.map.window.size.Y
+function ee=correctXoverlap(ee,DD)
+	X=DD.map.window.fullsize(2);
+	Y=DD.map.window.size.Y;
 	[ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
 	[ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
 	[ee.centroid.x]=wrapXidx(ee.centroid.x,X);
@@ -194,16 +193,6 @@ function correctXoverlap(ee,DD)
 	ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
 	ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
 	ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
-	
-	if any([ee.centroid.x ee.trackref.x ee.volume.center.x]>X)
-		xxxxxxx
-	end
-	if any([ee.centroid.lin ee.trackref.lin ee.volume.center.lin]<0)
-		fgjn
-	end
-	if any([ee.centroid.lin ee.trackref.lin ee.volume.center.lin]>X*Y)
-		fgjn
-	end
 	%%
 	function [data]=wrapXidx(data,X)
 		data(data<0.5)=X;
@@ -213,8 +202,7 @@ function correctXoverlap(ee,DD)
 		data(data<0.5)=X;
 		data(data<1)=1;
 		data(data>X)=X;
-	end
-	
+	end	
 end
 
 

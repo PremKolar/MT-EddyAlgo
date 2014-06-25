@@ -1,18 +1,18 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-%    	DD.debugmode=false;
-	DD.debugmode=true;
+   	DD.debugmode=false;
+% 	DD.debugmode=true;
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
 	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*30,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*3000,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='z6';
+	DD.path.OutDirBaseName='u1';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../rawZ/';

@@ -6,10 +6,10 @@ function DD=input_vars
 	%% time
 	DD.time.delta_t=3; % [days]!
 % 	DD.time.from.str='19091231';
-	DD.time.from.str=datestr(now,'yyyymmdd');
+	DD.time.from.str=datestr(now-1,'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(now+420,'yyyymmdd');
+	DD.time.till.str=datestr(now+42,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='new9';

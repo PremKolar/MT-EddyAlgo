@@ -25,12 +25,12 @@ function means=getMeans(d,pos,dim,file,DD)
 		V(:,:,kk)=squeeze(nc_varget(file(kk).V,'VVEL',dim.start,dim.length))/100;
 		
 		
-		x=DD.map.window.size.X;
-		y=DD.map.window.size.Y;
-		U=downsize(U,x,y);
-		V=downsize(V,x,y);
-		
-		
+% 		x=DD.map.window.size.X;
+% 		y=DD.map.window.size.Y;
+% 		U=downsize(U,x,y);
+% 		V=downsize(V,x,y);
+% 		
+% 		
 	end
 	disp(['creating means'])
 	U(U<-1e33)=nan; % missing values
@@ -65,15 +65,19 @@ end
 function [file]=findVelFiles(DD)
 	%% find the U and V files
 	ucc=0; vcc=0;
-	for kk=1:numel(DD.path.TempSalt.files)
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'UVEL'))
+	file=struct;
+	for kk=1:numel(DD.path.raw.files)
+		if ~isempty(strfind(DD.path.raw.files(kk).name,'UVEL'))
 			ucc=ucc+1;
-			file(ucc).U=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name]; %#ok<AGROW>
+			file(ucc).U=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
 		end
-		if ~isempty(strfind(DD.path.TempSalt.files(kk).name,'VVEL'))
+		if ~isempty(strfind(DD.path.raw.files(kk).name,'VVEL'))
 			vcc=vcc+1;
-			file(vcc).V=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name]; %#ok<AGROW>
+			file(vcc).V=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
 		end
+	end
+	if isempty(file)
+		disp(['put U/V files into ' DD.path.raw])
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

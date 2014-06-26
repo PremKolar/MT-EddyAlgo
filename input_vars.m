@@ -62,6 +62,7 @@ function DD=input_vars
 	DD.switchs.distlimit=false;
 	DD.switchs.AmpAreaCheck=false;
 	DD.switchs.netUstuff=true;
+	DD.switchs.meanUviaOW=true;
 	%% parameters
 	DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
 	DD.parameters.meanU=-200; % depth from which to take mean U

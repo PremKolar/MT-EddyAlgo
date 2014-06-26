@@ -16,7 +16,7 @@ function S00b_prep_data
 	%% spmd
 	main(DD)
 	%% save info
-	save_info(DD)
+conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)

@@ -16,7 +16,7 @@ function S06_init_output_maps
 	%% save MAP
 	save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
 	%% update infofile
-	save_info(DD)
+	conclude(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=main(DD,MAP)

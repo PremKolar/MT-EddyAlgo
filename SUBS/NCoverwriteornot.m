@@ -19,7 +19,7 @@ function GiveTime(nc_file_name)
 			disp('cancel if you dont want to overwrite!')
 			disp(datestr(sec2day(tt),'SS'))
 			tt=tt-1;
-			sleep(1)
+			sleep(2);
 		end
 		disp('overwriting')
 		nc_create_empty(nc_file_name,'clobber');

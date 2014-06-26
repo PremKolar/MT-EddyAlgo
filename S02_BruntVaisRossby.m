@@ -13,4 +13,5 @@ function S02_BruntVaisRossby
         case true
             S01b_fromRaw
     end
+    conclude(DD);
 end

@@ -9,7 +9,7 @@ function DD=input_vars
 	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*3000,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*30000,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
 	DD.path.OutDirBaseName='u1';
@@ -64,8 +64,9 @@ function DD=input_vars
 	DD.switchs.netUstuff=true;
 	%% parameters
 	DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-	DD.parameters.meanU=100; % depth from which to take mean U
-	DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
+	DD.parameters.meanU=-200; % depth from which to take mean U
+	DD.parameters.meanUunit=1; % depth from which to take mean U
+    DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
 	DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
    DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
 	DD.map.in.keys.N='N';

@@ -11,7 +11,7 @@ function S01_contours
 	%% spmd
 	main(DD)
 	%% save info
-	save_info(DD)
+conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)

@@ -18,23 +18,41 @@ function S07_getMeanU
 	disp(['done!'])
 	conclude(DD);
 end
+
+	%-----------------------------------------------------------------------
+	function [means]=GMzFromOWcase(file,DD,dim)
+		for kk=1:numel(file)
+			disp(['found ' file(kk).U ' and ' file(kk).V])
+			a=nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,[inf inf 20 20])/DD.parameters.meanUunit;
+
+U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit; %#ok<*AGROW>
+			V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
+			%%
+			x=DD.map.window.size.X;
+			y=DD.map.window.size.Y;
+			if x~=size(U,2) || y~=size(U,1)
+				warning('trivially resizing U/V data!!! ') %#ok<WNTAG>
+				sleep(5)
+				U=downsize(U,x,y);
+				V=downsize(V,x,y);
+			end
+		end
+		
+		end
+		
+		
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function means=getMeans(d,pos,dim,file,DD)
 		if DD.switchs.meanUviaOW
-		 [means]=GMzFromOWcase(file,DD);
+		 [means]=GMzFromOWcase(file,DD,dim);
 	else
-		[means]=GMzConstCase(file,DD);
+		[means]=GMzConstCase(file,DD,dim);
 		end
 		
 		
 		
-		%-----------------------------------------------------------------------
-	function [means]=GMzFromOWcase(file,DD)
-		
-		
-		end
-		
-		
+	
 		
 		
 		
@@ -43,7 +61,7 @@ function means=getMeans(d,pos,dim,file,DD)
 		
 		
 	%-----------------------------------------------------------------------
-	function [means]=GMzConstCase(file,DD)
+	function [means]=GMzConstCase(file,DD,dim)
 		for kk=1:numel(file)
 			disp(['found ' file(kk).U ' and ' file(kk).V])
 			U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit; %#ok<*AGROW>

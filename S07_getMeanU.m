@@ -22,7 +22,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(g)
 	%% calc U gradients
-	[Z,Y,X]=size(g.u,1);
+	[Z,Y,X]=size(g.u);
 	DY=shiftdim(repmat(g.dy,[1,1,Z]),2);
 	DX=shiftdim(repmat(g.dx,[1,1,Z]),2);
 	def.dudy=[ nan(Z,1,X); diff(g.u,1,2)] ./ DY;

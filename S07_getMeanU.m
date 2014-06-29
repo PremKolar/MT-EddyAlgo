@@ -38,11 +38,11 @@ function [gr]=getOW(gr)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function grids=readGrids(file,DD,dim)
-	disp(['found ' file(kk).U ' and ' file(kk).V])
-	grids.u=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
-	grids.v=squeeze(nc_varget(file(kk).V,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
-	lat=nc_varget(file(kk).V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
-	lon=nc_varget(file(kk).V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
+	disp(['found ' file.U ' and ' file.V])
+	grids.u=squeeze(nc_varget(file.U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	grids.v=squeeze(nc_varget(file.V,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
+	lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
 	sdgth
 	grids.lat=repmat(lat,[1,1,size(grids.U,1)])
 end
@@ -62,7 +62,7 @@ end
 function [means]=GMzFromOWcase(file,DD,dim)
 	for kk=1:numel(file)
 		
-		grids=readGrids(file,DD,dim)
+		grids=readGrids(file(kk),DD,dim)
 		[grids.dy,grids.dx]=dydx(grids)
 		%% deformation	
 	grids.def=deformation(gr);	

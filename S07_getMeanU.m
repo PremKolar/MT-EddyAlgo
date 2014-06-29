@@ -73,7 +73,7 @@ function [means]=GMzFromOWcase(file,DD,dim)
 		%%
 		ow=getOW(grids);
 		%%
-		
+		dsfgb
 	end
 	means=0;
 end

@@ -25,10 +25,10 @@ function def=deformation(g)
 	[Z,Y,X]=size(g.u);
 	DY=shiftdim(repmat(g.dy,[1,1,Z]),2);
 	DX=shiftdim(repmat(g.dx,[1,1,Z]),2);
-	def.dudy=[ nan(Z,1,X); diff(g.u,1,2)] ./ DY;
-	def.dvdx=[ nan(Z,Y,1), diff(g.v,1,3)] ./ DX;
-	def.dvdy=[ nan(Z,1,X); diff(g.v,1,2)] ./ DY;
-	def.dudx=[ nan(Z,Y,1), diff(g.u,1,3)] ./ DX;
+	def.dudy=cat(2, nan(Z,1,X), diff(g.u,1,2)) ./ DY;
+	def.dvdx=cat(3, nan(Z,Y,1), diff(g.v,1,3)) ./ DX;
+	def.dvdy=cat(2, nan(Z,1,X), diff(g.v,1,2)) ./ DY;
+	def.dudx=cat(3, nan(Z,Y,1), diff(g.u,1,3)) ./ DX;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ow]=getOW(g)

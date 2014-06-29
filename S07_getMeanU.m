@@ -62,10 +62,17 @@ function [dy,dx]=dydx(g)
 	dx(seamcrossflag)=abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(g.lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function []=smoothGrids(g)
+	
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [means]=GMzFromOWcase(file,DD,dim)
 	for kk=1:numel(file)
 		%%
 		grids=readGrids(file(kk),DD,dim)
+		%%
+		fltr=20;
+		smoothGrids(grids,fltr)
 		%%
 		[grids.dy,grids.dx]=dydx(grids)
 		%% deformation

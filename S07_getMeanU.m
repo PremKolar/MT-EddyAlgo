@@ -40,7 +40,7 @@ end
 function grids=readGrids(file,DD,dim)
 	disp(['found ' file.U ' and ' file.V])
 	grids.u=squeeze(nc_varget(file.U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
-	grids.v=squeeze(nc_varget(file.V,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	grids.v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
 	lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
 	lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
 	sdgth

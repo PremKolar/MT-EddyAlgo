@@ -20,19 +20,22 @@ function S07_getMeanU
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function def=deformation(grids)
+function def=deformation(g)
 	%% calc U gradients
-	def.dudy=[ nan(1,size(grids.u,2));diff(grids.u,1,1)] ./ grids.dy;
-	def.dvdx=[ nan(size(grids.v,1),1), diff(grids.v,1,2)] ./ grids.dx;
-	def.dvdy=[ nan(1,size(grids.v,2));diff(grids.v,1,1)] ./ grids.dy;
-	def.dudx=[ nan(size(grids.u,1),1), diff(grids.u,1,2)] ./ grids.dx;
+	[Z,Y,X]=size(g.u,1);
+	DY=shiftdim(repmat(g.dy,[1,1,Z]),2);
+	DX=shiftdim(repmat(g.dx,[1,1,Z]),2);
+	def.dudy=[ nan(Z,1,X); diff(g.u,1,2)] ./ DY;
+	def.dvdx=[ nan(Z,Y,1), diff(g.v,1,3)] ./ DX;
+	def.dvdy=[ nan(Z,1,X); diff(g.v,1,2)] ./ DY;
+	def.dudx=[ nan(Z,Y,1), diff(g.u,1,3)] ./ DX;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [gr]=getOW(gr)	
-	ow.vorticity      = gr.def.dvdx - gr.def.dudy;
-	ow.divergence= gr.def.dudx + gr.def.dvdy;
-	ow.stretch   = gr.def.dudx - gr.def.dvdy;
-	ow.shear     = gr.def.dvdx + gr.def.dudy;
+function [ow]=getOW(g)
+	ow.vorticity = g.def.dvdx - g.def.dudy;
+	ow.divergence= g.def.dudx + g.def.dvdy;
+	ow.stretch   = g.def.dudx - g.def.dvdy;
+	ow.shear     = g.def.dvdx + g.def.dudy;
 	%% okubo weiss
 	ow.ow=.5*(-ow.vorticity.*2+ow.divergence.*2+ow.stretch.*2+ow.shear.*2);
 end
@@ -41,10 +44,10 @@ function grids=readGrids(file,DD,dim)
 	disp(['found ' file.U ' and ' file.V])
 	grids.u=squeeze(nc_varget(file.U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
 	grids.v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
-	lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
-	lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
-	sdgth
-	grids.lat=repmat(lat,[1,1,size(grids.U,1)])
+	grids.lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
+	grids.lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
+% 	lat=shiftdim(repmat(lat,[1,1,size(grids.u,1)]),2);
+% 	lon=shiftdim(repmat(lon,[1,1,size(grids.u,1)]),2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dy,dx]=dydx(g)
@@ -56,17 +59,21 @@ function [dy,dx]=dydx(g)
 	dx=dx(:,[1:end end]);
 	%% correct 360° crossings
 	seamcrossflag=dx>100*median(dx(:));
-	dx(seamcrossflag)=abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(g.lat(seamcrossflag)));	
+	dx(seamcrossflag)=abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(g.lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [means]=GMzFromOWcase(file,DD,dim)
 	for kk=1:numel(file)
-		
+		%%
 		grids=readGrids(file(kk),DD,dim)
+		%%
 		[grids.dy,grids.dx]=dydx(grids)
-		%% deformation	
-	grids.def=deformation(gr);	
-		grids=getOW(grids);
+		%% deformation
+		grids.def=deformation(gr);
+		%%
+		ow=getOW(grids);
+		%%
+		
 	end
 	means=0;
 end

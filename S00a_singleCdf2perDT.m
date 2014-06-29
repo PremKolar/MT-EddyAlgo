@@ -180,7 +180,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveUV(DD,raw)
     %%
-    [U,V]=getUV(raw,DD.path.raw.name);
+    [U,V]=getUV(raw,DD.path.raw.name,DD.map.in.keys);
     %%
     [S]=prepUVfile(U,V,DD);
     %%
@@ -238,9 +238,9 @@ function saveUV(DD,raw)
         nc_addvar(V.file,S.Z);
     end
     %-----------------------------------------------------------------------
-    function [U,V]=getUV(raw,rawpath)
-        u=nc_varget(raw.file.in,'U');
-        v=nc_varget(raw.file.in,'V');
+    function [U,V]=getUV(raw,rawpath,keys)
+        u=nc_varget(raw.file.in,keys.U);
+        v=nc_varget(raw.file.in,keys.V);
         idx=[raw.idx.w raw.idx.full raw.idx.e];
         u=u(:,:,idx);v=v(:,:,idx);
         [z,y,x]=size(u);

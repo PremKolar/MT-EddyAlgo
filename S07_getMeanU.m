@@ -36,6 +36,12 @@ function [ow]=getOW(g)
 	ow.divergence= g.def.dudx + g.def.dvdy;
 	ow.stretch   = g.def.dudx - g.def.dvdy;
 	ow.shear     = g.def.dvdx + g.def.dudy;
+	
+	ow.vorticity = g.def.dvdx ;
+	ow.divergence= g.def.dudx + g.def.dvdy;
+	ow.stretch   = g.def.dudx - g.def.dvdy;
+	ow.shear     = g.def.dvdx ;
+	
 	%% okubo weiss
 	ow.ow=.5*(-ow.vorticity.*2+ow.divergence.*2+ow.stretch.*2+ow.shear.*2);
 end
@@ -46,13 +52,13 @@ function grids=readGrids(file,DD,dim)
 	v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
 	[Z,~,~]=size(u);
 	for z=1:Z
-		grids.u(z,:,:)=squeeze(u(z,:,:))-smooth2a(squeeze(u(z,:,:)),20);
-		grids.v(z,:,:)=squeeze(v(z,:,:))-smooth2a(squeeze(v(z,:,:)),20);
-	end	
+		grids.u(z,:,:)=squeeze(u(z,:,:))-smooth2gauss(squeeze(u(z,:,:)),10);
+		grids.v(z,:,:)=squeeze(v(z,:,:))-smooth2gauss(squeeze(v(z,:,:)),10);
+	end
 	grids.lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
 	grids.lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
-% 	lat=shiftdim(repmat(lat,[1,1,size(grids.u,1)]),2);
-% 	lon=shiftdim(repmat(lon,[1,1,size(grids.u,1)]),2);
+	% 	lat=shiftdim(repmat(lat,[1,1,size(grids.u,1)]),2);
+	% 	lon=shiftdim(repmat(lon,[1,1,size(grids.u,1)]),2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dy,dx]=dydx(g)
@@ -70,12 +76,20 @@ end
 function [means]=GMzFromOWcase(file,DD,dim)
 	for kk=1:numel(file)
 		%%
-		grids=readGrids(file(kk),DD,dim)
-% 		%%
-% 		fltr=20;
-% 		smoothGrids(grids,fltr)
+		%grids=readGrids(file(kk),DD,dim)
+		grids=load('a.mat','grids')
+		grids=grids.grids;
+		[Z,~,~]=size(grids.u);
+		OW=ow.ow;
+		for z=1:Z
+			grids.u(z,:,:)=squeeze(grids.u(z,:,:))-smooth2gauss(squeeze(grids.u(z,:,:)),10);
+			grids.v(z,:,:)=squeeze(grids.v(z,:,:))-smooth2gauss(squeeze(grids.v(z,:,:)),10);
+			OW(z,:,:)=squeeze(OW(z,:,:))-smooth2gauss(squeeze(OW(z,:,:)),10);
+		end
+		% 		fltr=20;
+		% 		smoothGrids(grids,fltr)
 		%%
-		[grids.dy,grids.dx]=dydx(grids)
+		[grids.dy,grids.dx]=dydx(grids);
 		%% deformation
 		grids.def=deformation(grids);
 		%%

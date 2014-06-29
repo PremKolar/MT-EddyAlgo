@@ -19,47 +19,78 @@ function S07_getMeanU
 	conclude(DD);
 end
 
-	%-----------------------------------------------------------------------
-	function [means]=GMzFromOWcase(file,DD,dim)
-		for kk=1:numel(file)
-			disp(['found ' file(kk).U ' and ' file(kk).V])
-			a=nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,[inf inf 20 20])/DD.parameters.meanUunit;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function def=deformation(grids)
+	%% calc U gradients
+	def.dudy=[ nan(1,size(grids.u,2));diff(grids.u,1,1)] ./ grids.dy;
+	def.dvdx=[ nan(size(grids.v,1),1), diff(grids.v,1,2)] ./ grids.dx;
+	def.dvdy=[ nan(1,size(grids.v,2));diff(grids.v,1,1)] ./ grids.dy;
+	def.dudx=[ nan(size(grids.u,1),1), diff(grids.u,1,2)] ./ grids.dx;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [gr]=getOW(gr)	
+	ow.vorticity      = gr.def.dvdx - gr.def.dudy;
+	ow.divergence= gr.def.dudx + gr.def.dvdy;
+	ow.stretch   = gr.def.dudx - gr.def.dvdy;
+	ow.shear     = gr.def.dvdx + gr.def.dudy;
+	%% okubo weiss
+	ow.ow=.5*(-ow.vorticity.*2+ow.divergence.*2+ow.stretch.*2+ow.shear.*2);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function grids=readGrids(file,DD,dim)
+	disp(['found ' file(kk).U ' and ' file(kk).V])
+	grids.u=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	grids.v=squeeze(nc_varget(file(kk).V,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	lat=nc_varget(file(kk).V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
+	lon=nc_varget(file(kk).V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
+	sdgth
+	grids.lat=repmat(lat,[1,1,size(grids.U,1)])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [dy,dx]=dydx(g)
+	%% grid increment sizes
+	dy=deg2rad(abs(diff(double(g.lat),1,1)))*earthRadius;
+	dx=deg2rad(abs(diff(double(g.lon),1,2)))*earthRadius.*cosd(g.lat(:,1:end-1));
+	%% append one line/row to have identical size as other fields
+	dy=dy([1:end end],:);
+	dx=dx(:,[1:end end]);
+	%% correct 360° crossings
+	seamcrossflag=dx>100*median(dx(:));
+	dx(seamcrossflag)=abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(g.lat(seamcrossflag)));	
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [means]=GMzFromOWcase(file,DD,dim)
+	for kk=1:numel(file)
+		
+		grids=readGrids(file,DD,dim)
+		[grids.dy,grids.dx]=dydx(grids)
+		%% deformation	
+	grids.def=deformation(gr);	
+		grids=getOW(grids);
+	end
+	means=0;
+end
 
-U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit; %#ok<*AGROW>
-			V(:,:,kk)=squeeze(nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
-			%%
-			x=DD.map.window.size.X;
-			y=DD.map.window.size.Y;
-			if x~=size(U,2) || y~=size(U,1)
-				warning('trivially resizing U/V data!!! ') %#ok<WNTAG>
-				sleep(5)
-				U=downsize(U,x,y);
-				V=downsize(V,x,y);
-			end
-		end
-		
-		end
-		
-		
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function means=getMeans(d,pos,dim,file,DD)
-		if DD.switchs.meanUviaOW
-		 [means]=GMzFromOWcase(file,DD,dim);
+	if DD.switchs.meanUviaOW
+		[means]=GMzFromOWcase(file,DD,dim);
 	else
 		[means]=GMzConstCase(file,DD,dim);
-		end
-		
-		
-		
+	end
 	
-		
-		
-		
-		
-		
-		
-		
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	%-----------------------------------------------------------------------
 	function [means]=GMzConstCase(file,DD,dim)
 		for kk=1:numel(file)

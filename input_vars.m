@@ -6,9 +6,9 @@ function DD=input_vars
 	%% time
 	DD.time.delta_t=1; % [days]!
 	DD.time.from.str='19940102';
-	% 	 DD.time.from.str='19940425';
-	%     DD.time.till.str='19960730';
-	DD.time.till.str='20040102';
+	%DD.time.from.str='19940425';
+	%DD.time.till.str='19960730';
+	DD.time.till.str='20061231';
 	%% dirs
 	DD.path.OutDirBaseName='SO';
 	DD.path.TempSalt.name='../TempSalt/';
@@ -16,7 +16,7 @@ function DD=input_vars
 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
-	DD.map.out.X=180*1+1;
+	DD.map.out.X=360*1+1;
 	DD.map.out.Y=80* 1+1;
 	DD.map.out.west=-180;
 	DD.map.out.east=180;

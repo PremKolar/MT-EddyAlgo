@@ -42,8 +42,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function grids=readGrids(file,DD,dim)
 	disp(['found ' file.U ' and ' file.V])
-	grids.u=squeeze(nc_varget(file.U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
-	grids.v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
+	u=squeeze(nc_varget(file.U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit;
+	v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
+	[Z,~,~]=size(u);
+	for z=1:Z
+		grids.u(z,:,:)=u(z,:,:)-smooth2a(u(z,:,:),20);
+		grids.v(z,:,:)=v(z,:,:)-smooth2a(v(z,:,:),20);
+	end	
 	grids.lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
 	grids.lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
 % 	lat=shiftdim(repmat(lat,[1,1,size(grids.u,1)]),2);
@@ -62,17 +67,13 @@ function [dy,dx]=dydx(g)
 	dx(seamcrossflag)=abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(g.lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function []=smoothGrids(g)
-	
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [means]=GMzFromOWcase(file,DD,dim)
 	for kk=1:numel(file)
 		%%
 		grids=readGrids(file(kk),DD,dim)
-		%%
-		fltr=20;
-		smoothGrids(grids,fltr)
+% 		%%
+% 		fltr=20;
+% 		smoothGrids(grids,fltr)
 		%%
 		[grids.dy,grids.dx]=dydx(grids)
 		%% deformation

@@ -46,8 +46,8 @@ function grids=readGrids(file,DD,dim)
 	v=squeeze(nc_varget(file.V,DD.map.in.keys.V,dim.start,dim.length))/DD.parameters.meanUunit;
 	[Z,~,~]=size(u);
 	for z=1:Z
-		grids.u(z,:,:)=u(z,:,:)-smooth2a(u(z,:,:),20);
-		grids.v(z,:,:)=v(z,:,:)-smooth2a(v(z,:,:),20);
+		grids.u(z,:,:)=squeeze(u(z,:,:))-smooth2a(squeeze(u(z,:,:)),20);
+		grids.v(z,:,:)=squeeze(v(z,:,:))-smooth2a(squeeze(v(z,:,:)),20);
 	end	
 	grids.lat=nc_varget(file.V,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
 	grids.lon=nc_varget(file.V,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));

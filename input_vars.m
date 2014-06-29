@@ -9,10 +9,10 @@ function DD=input_vars
 	DD.time.from.str=datestr(datenum('19840814','yyyymmdd'),'yyyymmdd');
 	% 	 DD.time.from.str='19940425';
 	%     DD.time.till.str='19960730';
-	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*30000,'yyyymmdd');
+	DD.time.till.str=datestr(datenum('19840814','yyyymmdd')+12*3*2,'yyyymmdd');
 % 	DD.time.till.str='30000101';
 	%% dirs
-	DD.path.OutDirBaseName='u1';
+	DD.path.OutDirBaseName='forLT';
 		DD.path.TempSalt.name='../TempSalt/';
 % 	    DD.path.TempSalt.name='~/ROMnew/TempSalt/';
 	DD.path.raw.name='../rawZ/';
@@ -56,7 +56,7 @@ function DD=input_vars
 	DD.thresh.life=10; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
-	DD.switchs.RossbyStuff=false;
+	DD.switchs.RossbyStuff=true;
 	DD.switchs.IQ=true;
 	DD.switchs.chelt=false;
 	DD.switchs.distlimit=false;

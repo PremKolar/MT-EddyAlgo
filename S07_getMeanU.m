@@ -69,7 +69,7 @@ function [means]=GMzFromOWcase(file,DD,dim)
 		%%
 		[grids.dy,grids.dx]=dydx(grids)
 		%% deformation
-		grids.def=deformation(gr);
+		grids.def=deformation(grids);
 		%%
 		ow=getOW(grids);
 		%%

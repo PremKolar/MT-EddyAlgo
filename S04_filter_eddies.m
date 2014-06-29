@@ -13,7 +13,7 @@ function S04_filter_eddies
 	%% spmd
 	main(DD,rossbyU);
 	%% update infofile
-	save_info(DD);
+	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)

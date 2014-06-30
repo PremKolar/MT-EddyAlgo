@@ -36,7 +36,7 @@ function DD=initialise(toCheck)
         error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
     %% performance stuff
-    DD.tic=tic;
+    DD.tic=tic;  
 %     dispmem;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

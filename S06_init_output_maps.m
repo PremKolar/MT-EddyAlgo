@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06_init_output_maps
 	%% init
-	DD=initialise('');
+	DD=initialise([],mfilename);
 	%%
 	[MAP]=MakeMaps(DD);
 	%%

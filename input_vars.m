@@ -13,6 +13,7 @@ function DD=input_vars
 	DD.path.TempSalt.name='../TempSalt/';
 	%     DD.path.TempSalt.name='/media/ROM/TempSalt/';
     DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+    DD.path.UV.name='../TempSalt/';
 % 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
@@ -81,11 +82,12 @@ function DD=input_vars
 	DD.map.in.keys.N='N';
 	%% technical params
 	DD.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
-	%% only relevant for S000
+	DD.parameters.overrideWindowType=false;
+    %% relevant for S000
+    %DD.parameters.overrideWindowType=true; % need to be true
 	DD.parameters.SSHAdepth=-25;
 	DD.parameters.boxlims.south=10;
-	DD.parameters.boxlims.west=0;
-	DD.parameters.overrideWindowType=true;
+	DD.parameters.boxlims.west=0;	
 	DD.map.in.cdfName='new2.cdf';
 end
 

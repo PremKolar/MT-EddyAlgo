@@ -4,25 +4,23 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function DD=initialise(toCheck)
+function DD=initialise(toCheck,parentFunc)
     %% very first settings
     addpath(genpath('./'));  %#ok<*MCAP>
     warning on backtrace;
     warning('off','SNCTOOLS:nc_getall:dangerous');
     dbstop if error;
     rehash; clc; close all;
-    format shortg;    
+    format shortg;
+    
     %% get user input
     DD = get_input;
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
-    if ~exist('toCheck','var')
-        toCheck=false;
-    end
-    if toCheck
+    
+    if ~isempty(toCheck)
         DD=ini(DD,toCheck);
-    else
-    end
+    end    
     %% if exist append new info from ini() but keep info not overwritten by ini()
     if exist(DDcheck,'file')
         DD=catstruct(load(DDcheck),DD);
@@ -36,9 +34,17 @@ function DD=initialise(toCheck)
     if DD.threads.num>DD.time.span/DD.time.delta_t
         error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
-    %% performance stuff
-    DD.tic=tic;
+    %% monitoring stuff
+    DD.monitor.tic=tic;
+    if nargin>=2
+        DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
+    end
     %     dispmem;
+    %% db stuff
+    if DD.debugmode
+        echo on all
+        diary on
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)

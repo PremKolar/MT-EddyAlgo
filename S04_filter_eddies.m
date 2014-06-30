@@ -5,14 +5,14 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % walks through all the contours and decides whether they qualify
-function S04_filter_eddies
+function S04_filter_eddies  
 	%% init
-	DD=initialise('conts');
+	DD=initialise('conts',mfilename);
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
 	main(DD,rossbyU);
-	%% update infofile
+	%% update infofile    
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

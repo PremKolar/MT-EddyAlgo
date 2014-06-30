@@ -12,7 +12,7 @@ function [T]=disp_progress(type,Tin,L,num_prints,silent)
 		if nargin<5, silent=false;end
 		T=later(Tin,L,num_prints,silent);
 	end
-	warning('on','MATLAB:divideByZero')
+	warning('on','MATLAB:divideByZero') 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=init(Tin)

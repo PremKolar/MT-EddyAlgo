@@ -198,12 +198,15 @@ function nc2mat(DD)
     %% test for remap
     fns=ncfieldnames(DD.path.Rossby.NCfile);
     in=nc_varget(DD.path.Rossby.NCfile,fns{1});
+     reallocIdx=false;
     if numel(in)~=prod(struct2array(DD.map.window.size))
         reallocIdx=true;
         [idx,~]=reallocCase(DD);
+    else
+        idx=[];
     end
     %% save 2 mats
-    parfor ff=1:numel(fns)
+    for ff=1:numel(fns)
         fn=fns{ff};
         nc2matSave(DD,fn,idx,reallocIdx)
     end

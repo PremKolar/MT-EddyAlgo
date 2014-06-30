@@ -67,7 +67,7 @@ function printout(T,L)
         if isfinite(T.time_to_go)
             strout.b{4}  = ['time to go     :    ', datestr(T.time_to_go/86400,'dd-HH:MM:SS'),'\n'];
         else
-            strout.b{5}  = ['time to go     :    ', 'calculating...\n'];
+            strout.b{4}  = ['time to go     :    ', 'calculating...\n'];
         end
     end    
 end

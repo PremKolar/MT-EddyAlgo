@@ -45,14 +45,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
 	%% distro chunks to threads
-	[TT]=SetThreadVar(DD);
+	[II]=SetThreadVar(DD);
 	%% loop over files
 	[T]=disp_progress('init','preparing raw data');
-	for cc=1:numel(TT);
+	for cc=1:numel(II);
 		%%
-		[T]=disp_progress('calc',T,numel(TT),100);
+		[T]=disp_progress('calc',T,numel(T),100);
 		%% get data
-		file=GetCurrentFile(TT(cc),DD)  ;
+		file=GetCurrentFile(II(cc),DD)  ;
 		%% cut data
 		[CUT]=CutMap(file,DD);   if isempty(CUT); return; end
 		%% write data

@@ -9,20 +9,21 @@ function DD=input_vars
 	DD.time.from.str='19940102'; % pop
 	DD.time.till.str='20061231';    
 	%% dirs
-	DD.path.OutDirBaseName='AV';
+% 	DD.path.OutDirBaseName='AVso';
+    [~,DD.path.OutDirBaseName]=fileparts(pwd);
 	DD.path.TempSalt.name='../TempSalt/';
-	%     DD.path.TempSalt.name='/media/ROM/TempSalt/';
+	%DD.path.TempSalt.name='/media/ROM/TempSalt/';
     DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
     DD.path.UV.name='../TempSalt/';
 % 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-	%     DD.path.raw.name='/media/ROM/SSH_POP/';
+	%DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
-	DD.map.out.X=40*1+1;
-	DD.map.out.Y=40*1+1;
+	DD.map.out.X=360*1+1;
+	DD.map.out.Y=80* 1+1;
 	DD.map.out.west=-180;
-	DD.map.out.east=-140;
-	DD.map.out.south=-60;
-	DD.map.out.north=-20;
+	DD.map.out.east=180;
+	DD.map.out.south=-80;
+	DD.map.out.north=0;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;
@@ -62,7 +63,7 @@ function DD=input_vars
 	DD.thresh.shape.iq=0.3; % isoperimetric quotient
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=8; % min number of data points for the perimeter of an eddy
-	DD.thresh.dist=.2*24*60^2; % max distance travelled per day
+	DD.thresh.dist=.1*24*60^2; % max distance travelled per day
 	DD.thresh.life=10; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches

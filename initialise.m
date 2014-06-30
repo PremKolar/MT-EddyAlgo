@@ -42,9 +42,12 @@ function DD=initialise(toCheck,parentFunc)
     end
     %     dispmem;
     %% db stuff
+    echo off all; diary off;
     if DD.debugmode
-        echo on all
-        diary on
+        %echo on all
+        diary on;
+    else
+        
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

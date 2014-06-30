@@ -7,7 +7,7 @@
 % calculates all contours and saves one file per timestep
 function S01_contours
 	%% init
-	DD=initialise('cuts');
+	DD=initialise('cuts',mfilename);
 	%% spmd
 	main(DD)
 	%% save info

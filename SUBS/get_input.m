@@ -1,5 +1,7 @@
 function [DD]=get_input
-	%%
+   disp([''])	 
+disp(['scanning data...'])	
+%%
 	DD=input_vars;
 	%%
 	DD.time=catstruct(DD.time, timestuff(DD.time));
@@ -105,7 +107,8 @@ function path=findfiles(DD)
 	[~,~,ext.raw]=fileparts(DD.map.in.fname);
 	path.protoMaps.file=[path.root, 'protoMaps.mat'];
 	path.meanU.file=[path.root, 'meanU.mat'];
-	path.raw.files=dir([path.raw.name,'*',ext.raw]);
+	path.UV.files=dir([path.UV.name,'*.nc']);    
+    path.raw.files=dir([path.raw.name,'*',ext.raw]);
 	path.cuts.files=dir([path.cuts.name,'*.mat']);
 	path.conts.files=dir([path.conts.name,'*.mat']);
 	path.eddies.files=dir([path.eddies.name,'*.mat']);
@@ -114,6 +117,7 @@ function path=findfiles(DD)
 	path.analyzedTracks.AC.files=dir([path.analyzedTracks.AC.name,'*.mat']);
 	path.analyzedTracks.C.files=dir([path.analyzedTracks.C.name,'*.mat']);
 	path.Rossby.files=[dir([path.Rossby.name,'*.nc']); dir([path.Rossby.name,'*.mat'])];
+  
 end
 function files=tempsalt(DD)
 	try

@@ -2,42 +2,53 @@ function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
 	DD.debugmode=false;
-	%     DD.debugmode=true;
+% 	    DD.debugmode=true;
 	%% time
-	DD.time.delta_t=1; % [days]!
-	DD.time.from.str='19940102';
-	%DD.time.from.str='19940425';
-	%DD.time.till.str='19960730';
-	DD.time.till.str='20061231';
+% 	DD.time.delta_t=1; % [days]!
+    DD.time.delta_t=7; % [days]!
+	DD.time.from.str='19940102'; % pop
+	DD.time.till.str='20061231';    
 	%% dirs
-	DD.path.OutDirBaseName='SO';
+	DD.path.OutDirBaseName='AV';
 	DD.path.TempSalt.name='../TempSalt/';
 	%     DD.path.TempSalt.name='/media/ROM/TempSalt/';
-	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+    DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
+    DD.path.UV.name='../TempSalt/';
+% 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 	%     DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
-	DD.map.out.X=360*1+1;
-	DD.map.out.Y=80* 1+1;
+	DD.map.out.X=40*1+1;
+	DD.map.out.Y=40*1+1;
 	DD.map.out.west=-180;
-	DD.map.out.east=180;
-	DD.map.out.south=-80;
-	DD.map.out.north=0;
+	DD.map.out.east=-140;
+	DD.map.out.south=-60;
+	DD.map.out.north=-20;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;
 	DD.map.in.south=DD.map.out.south;
 	DD.map.in.north=DD.map.out.north;
 	DD.map.in.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
-	DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-	DD.map.in.keys.lat='U_LAT_2D';
-	DD.map.in.keys.lon='U_LON_2D';
-	DD.map.in.keys.ssh='SSH';
+% 	DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
+    DD.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.25deg__yyyymmdd.nc';    
+    DD.map.in.keys.lat='lat';
+	DD.map.in.keys.lon='lon';
+	DD.map.in.keys.ssh='msla';
 	DD.map.in.keys.x='XT';
 	DD.map.in.keys.y='YT';
 	DD.map.in.keys.z='ZT';
-	DD.map.in.keys.time='TIME';
+	DD.map.in.keys.time='time';
 	DD.map.in.keys.U='U';
 	DD.map.in.keys.V='V';
+%   DD.map.in.keys.lat='U_LAT_2D';
+% 	DD.map.in.keys.lon='U_LON_2D';
+% 	DD.map.in.keys.ssh='SSH';
+% 	DD.map.in.keys.x='XT';
+% 	DD.map.in.keys.y='YT';
+% 	DD.map.in.keys.z='ZT';
+% 	DD.map.in.keys.time='TIME';
+% 	DD.map.in.keys.U='U';
+% 	DD.map.in.keys.V='V';
 	DD.TS.keys.lat='U_LAT_2D';
 	DD.TS.keys.lon='U_LON_2D';
 	DD.TS.keys.salt='SALT';
@@ -55,7 +66,7 @@ function DD=input_vars
 	DD.thresh.life=10; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
-	DD.switchs.RossbyStuff=true;
+	DD.switchs.RossbyStuff=false;
 	DD.switchs.IQ=true;
 	DD.switchs.chelt=false;
 	DD.switchs.distlimit=false;
@@ -71,11 +82,12 @@ function DD=input_vars
 	DD.map.in.keys.N='N';
 	%% technical params
 	DD.RossbyStuff.splits =12; % number of chunks for brunt väis calculations
-	%% only relevant for S000
+	DD.parameters.overrideWindowType=false;
+    %% relevant for S000
+    %DD.parameters.overrideWindowType=true; % need to be true
 	DD.parameters.SSHAdepth=-25;
 	DD.parameters.boxlims.south=10;
-	DD.parameters.boxlims.west=0;
-	DD.parameters.overrideWindowType=true;
+	DD.parameters.boxlims.west=0;	
 	DD.map.in.cdfName='new2.cdf';
 end
 

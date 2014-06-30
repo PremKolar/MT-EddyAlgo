@@ -23,7 +23,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD]=set_up
 	%% init
-	DD=initialise;
+	DD=initialise([],mfilename);
 	%% get window according to user input
 	[DD.TS.window,~]=GetWindow(DD.path.Rossby.Nfile,DD.map.in,DD.map.in.keys);
 end

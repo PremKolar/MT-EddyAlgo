@@ -4,24 +4,23 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function DD=initialise(toCheck)
+function DD=initialise(toCheck,parentFunc)
     %% very first settings
     addpath(genpath('./'));  %#ok<*MCAP>
     warning on backtrace;
+    warning('off','SNCTOOLS:nc_getall:dangerous');
     dbstop if error;
     rehash; clc; close all;
     format shortg;
+    
     %% get user input
     DD = get_input;
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
-    if ~exist('toCheck','var')
-        toCheck=false;
-    end
-    if toCheck
+    
+    if ~isempty(toCheck)
         DD=ini(DD,toCheck);
-    else        
-    end
+    end    
     %% if exist append new info from ini() but keep info not overwritten by ini()
     if exist(DDcheck,'file')
         DD=catstruct(load(DDcheck),DD);
@@ -35,14 +34,23 @@ function DD=initialise(toCheck)
     if DD.threads.num>DD.time.span/DD.time.delta_t
         error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
-    %% performance stuff
-    DD.tic=tic;  
-%     dispmem;
+
+    %% monitoring stuff
+    DD.monitor.tic=tic;
+    if nargin>=2
+        DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
+    end
+    %     dispmem;
+    %% db stuff
+    if DD.debugmode
+        echo on all
+        diary on
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)
     %% check data for consistency
-    DD.checks = check_data(DD,toCheck);
+    DD = check_data(DD,toCheck);
     %% distro thread limits
     maxthreads=feature('numCores');
     threads=min([maxthreads, DD.threads.num]);
@@ -61,11 +69,18 @@ function TT=initChecks(DD,toCheck)
     TT.del_t = nan(size(TT.passed));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function checks = check_data(DD,toCheck)
-    %% init
-    TT=initChecks(DD,toCheck);
-    %% check for each needed file
-    TT.passed=checkForFiles(TT);
+function [DD] = check_data(DD,toCheck)
+    while true
+        %% init
+        TT=initChecks(DD,toCheck);
+        %% check for each needed file
+        TT.passed=checkForFiles(TT);
+        if any(TT.passed), break; end
+        DD.time.from.num=DD.time.from.num+1;
+        DD.time.from.str=datestr(DD.time.from.num,'yyyymmdd');
+        disp('starting date inadequate for given time-step.')
+        disp(['trying ' DD.time.from.str , ' instead!'])
+    end
     %% calc dt's
     TT.del_t=newDt(TT,DD);
     %% append info
@@ -78,6 +93,8 @@ function checks = check_data(DD,toCheck)
     checks.passed=getFnames(DD,checks,toCheck);
     %% disp found files
     filedisps(checks)
+    %% append
+    DD.checks=checks;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)

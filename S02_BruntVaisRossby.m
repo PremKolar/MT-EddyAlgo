@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S02_BruntVaisRossby
     %% init
-    DD=initialise;
+    DD=initialise([],mfilename);
     switch DD.parameters.Nknown
         case false
             S01b_fromTS

@@ -33,7 +33,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD]=set_up
     %% init
-    DD=initialise;
+    DD=initialise([],mfilename);
     %% check if exists already
     [DD.path.Rossby.NCfile] = initNC(DD);
     %% threads

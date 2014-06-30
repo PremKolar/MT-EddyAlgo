@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S08_analyze_tracks
 	%% init
-	DD=initialise;
+	DD=initialise([],mfilename);
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%

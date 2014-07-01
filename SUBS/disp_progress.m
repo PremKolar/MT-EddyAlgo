@@ -4,26 +4,59 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [T]=disp_progress(type,Tin,L,num_prints,silent)
-    if labindex>1,T=[];return;end
-    warning('off','MATLAB:divideByZero')
-    if strcmp(type,'init')
-        T=init(Tin);
-    elseif strcmp(type,'conclude')   
-    conclude
-else
-        if nargin<5, silent=false;end
-        T=later(Tin,L,num_prints,silent);
+function [T]=disp_progress(type,Tin,L,num_prints)
+    if strcmp(type,'conclude')
+        conclude; T=[]; return
     end
-    warning('on','MATLAB:divideByZero')
+    %%
+    if labindex == 1
+        switch type
+            case 'init'
+                T=init(Tin);return;
+            otherwise
+                T=later(Tin,L,num_prints);return;
+        end
+    else
+        T=[];return
+    end
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function conclude
-   
+    %% wait for all workers
+    sleep(1)
+    labBarrier
+    %% let master handle I/O
+    if labindex == 1
+        c=initc;
+        for cc=2:c.num
+            echoHis(c,cc);
+        end
+    end
+    %% wait for all workers
+    labBarrier
+    sleep(1)
+    %----------------------------------------------------------------------
+    function c=initc
+        c.files=dir('./.comm*');
+        c.num=numel(c.files);
+        sprintf('...going to read out all old recently collected mails from all threads(id>1)...\n' )
+    end
 end
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function echoHis(c,cc)
+    d=matfile(c.files(cc).name,'writable',true);
+    tit=cell2mat(d.printstack(1,1));
+    sprintf('reading disp stack for %s:\n\n', tit);
+    for ii=2:numel(d.printstack)
+        tot=cell2mat(d.printstack(ii,1));
+        %% echo
+        if numel(tot)>12
+            cprintf(rainbow(1,1,1,cc-1,c.num-1),[tit ':\n' tot ' \n']); disp('')
+        end
+        %% recycle
+        d.printstack(ii,1)={[]};
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=init(Tin)
@@ -33,10 +66,10 @@ function T=init(Tin)
     T.tic=tic;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function T=later(T,L,num_prints,silent)
+function T=later(T,L,num_prints)
     T.cc=T.cc+1;
     %%
-    if mod(T.cc,ceil(L/num_prints))==0 && ~silent;
+    if mod(T.cc,ceil(L/num_prints))==0;
         T=calcu(T,L);
         printout(T,L);
     end
@@ -46,13 +79,13 @@ function printout(T,L)
     %% init
     incol.a=[1 0 0];
     incol.b=[0 0 1];
-    fraccol=T.frac*incol.a + (1-T.frac)*incol.b;
+    fracCol=T.frac*incol.a + (1-T.frac)*incol.b;
     %% build output
     strout=makeStrings;
     %% print
     clc;sendoutStrings;
     %% waitbar
-    spmdwaitbar(T.cc,L,30);    
+    spmdwaitbar(T.cc,L,30);
     %% SUBS
     %----------------------------------------------------------------------
     function sendoutStrings
@@ -60,32 +93,31 @@ function printout(T,L)
             disp(strout.a{a})
         end
         for b=1:numel( strout.b)
-            cprintf(fraccol,strout.b{b})
+            cprintf(fracCol,strout.b{b})
         end
     end
     %----------------------------------------------------------------------
-    function strout=makeStrings        
+    function strout=makeStrings
         strout.a{1}='';
-        strout.a{2}=['master thread (' num2str(labindex) '/' num2str(matlabpool('size')) ') says:'];
+        strout.a{2}=['master thread says:'];
         strout.a{3}='####';
         strout.a{4}=['-',T.name,'-'];
         strout.a{5}='####';
         %%
         strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];
-        strout.b{2}=[ num2str(round(T.prcnt_done)),' %% done.\n'];
-        strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];        
+        strout.b{2}=[ num2str(round(T.prcnt_done)),' percent done.\n'];
+        strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];
         if isfinite(T.time_to_go)
-            strout.b{4}  = ['time to go     :    ', datestr(T.time_to_go/86400,'dd-HH:MM:SS'),'\n'];
+            strout.b{4}  = ['time to go     :    ', datestr(sec2day(T.time_to_go),'dd-HH:MM:SS'),'\n'];
         else
             strout.b{4}  = ['time to go     :    ', 'calculating...\n'];
         end
-    end    
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=spmdwaitbar(l,L,len)
     frac=l/L;
     out=['[',repmat('-',1,floor(frac*len)),'>',repmat(' ',1,ceil((1-frac)*len)),']\n'];
-    %     disp(out);
     cprintf(rainbow(1,1,1,l,L), out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

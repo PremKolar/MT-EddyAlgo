@@ -14,8 +14,7 @@ function S07_getMeanU
 	%% means
 	means=getMeans(d,pos,dim,file,DD); %#ok<NASGU>
 	%% save
-	save([DD.path.meanU.file], 'means')
-	disp(['done!'])
+	save([DD.path.meanU.file], 'means')	
     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -94,7 +94,12 @@ function savepng4mov(d,ee,DD)
         till=datenum(DD.path.tracks.files(tt).name(15:22),'yyyymmdd');
         if from<=dayNow.n && till>=dayNow.n
             t.file=[DD.path.tracks.name DD.path.tracks.files(tt).name];
-            tr=load(t.file); tr=tr.trck;
+            
+            try
+                 tr=load(t.file); tr=tr.trck; 
+            catch
+                continue
+            end
             daynums=cat(2,tr.daynum);
             [~,nn]=min(abs(daynums-dayNow.n));
             tr=tr(1:nn);

@@ -18,23 +18,24 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)
 	if DD.debugmode
-		spmd_body(DD,rossbyU,labindex)
+		spmd_body(DD,rossbyU)
 	else
 		spmd(DD.threads.num)
-			spmd_body(DD,rossbyU,labindex)
+			spmd_body(DD,rossbyU)
+            disp_progress('conclude');
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,rossbyU,labindex)
+function spmd_body(DD,rossbyU)
 	[JJ]=SetThreadVar(DD);
 	Td=disp_progress('init','filtering contours');
 	for jj=1:numel(JJ)
 		[EE,skip]=work_day(DD,JJ(jj),rossbyU);
 		%%
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
+		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
 		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);

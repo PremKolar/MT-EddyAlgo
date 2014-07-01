@@ -47,7 +47,12 @@ function DD=initialise(toCheck,parentFunc)
         %echo on all
         diary on;
     else
-        
+        for tt=1:DD.threads.num
+            commFile=['./.comm' num2str(tt) '.mat'];
+            comm=matfile(commFile,'writable',true);
+            comm.printstack(1,1)={['thread '  num2str(tt) ]};            
+        end
+        %         save('commFile','-struct','comm');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

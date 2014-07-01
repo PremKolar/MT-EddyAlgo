@@ -12,23 +12,26 @@ function conclude(DD)
     disp([' ']);
     disp(['SUCCESS!!!']);
     disp([' ']);
-    disp(['Step ' DD.monitor.rootFunc.function]);
-    disp(['at ' DD.monitor.rootFunc.file]);
-    disp(['has produced:' ]);
-    disp([' ']);
-    sleep(1);
-    disp([relevantDir]);
-    disp([relevantDir.what]);
-    disp([' ']);
-    sleep(1);
-    disp([' ']);
-    disp([num2str(numel(relevantDir.what.mat)), ' files like:']);
-    disp(relevantDir.what.mat(1));
-    disp([' ']);
-    sleep(1);
+    try %#ok<TRYNC>
+        disp(['Step ' DD.monitor.rootFunc.function]);
+        disp(['at ' DD.monitor.rootFunc.file]);
+        disp(['has produced:' ]);
+        disp([' ']);
+        sleep(1);
+        disp([relevantDir]);
+        disp([relevantDir.what]);
+        disp([' ']);
+        sleep(1);
+        disp([' ']);
+        disp([num2str(numel(relevantDir.what.mat)), ' files like:']);
+        disp(relevantDir.what.mat(1));
+        disp([' ']);
+        sleep(1);
+        
+    end
     disp(['time used: '])  ;
-    daysUsed=toc(DD.tic)/60/60/24;
+    daysUsed=toc(DD.monitor.tic)/60/60/24;
     disp(datestr(daysUsed,'dd-HH:MM:SS',0));
-     disp([' ']);   
+    disp([' ']);
     save_info(DD);
 end

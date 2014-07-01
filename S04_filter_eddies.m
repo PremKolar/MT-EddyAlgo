@@ -34,7 +34,7 @@ function spmd_body(DD,rossbyU,labindex)
 	for jj=1:numel(JJ)
 		[EE,skip]=work_day(DD,JJ(jj),rossbyU);
 		%%
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
+		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
 		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);

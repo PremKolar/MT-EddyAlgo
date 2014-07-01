@@ -1,4 +1,4 @@
-S00b_prep_data
+% S00b_prep_data
 S01_contours
 S02_BruntVaisRossby
 S03_infer_fields

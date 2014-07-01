@@ -18,17 +18,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)
 	if DD.debugmode
-		spmd_body(DD,rossbyU,labindex)
+		spmd_body(DD,rossbyU)
 	else
 		spmd(DD.threads.num)
-			spmd_body(DD,rossbyU,labindex)
+			spmd_body(DD,rossbyU)
+            disp_progress('conclude');
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,rossbyU,labindex)
+function spmd_body(DD,rossbyU)
 	[JJ]=SetThreadVar(DD);
 	Td=disp_progress('init','filtering contours');
 	for jj=1:numel(JJ)

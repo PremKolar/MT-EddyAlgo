@@ -10,7 +10,7 @@
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
 % NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
-function S01b_fromTS
+function S02b_fromTS
     %% set up
     [DD]=set_up;
     %% spmd
@@ -27,6 +27,7 @@ function main(DD)
     else
         spmd(DD.threads.num)
             spmd_body(DD);
+            disp_progress('conclude');
         end
     end
 end
@@ -170,7 +171,7 @@ function nc2matSave(DD,fn,idx,reallocIdx)
     in=nc_varget(DD.path.Rossby.NCfile,fn);
     %% save pop version either way
     out=in; %#ok<NASGU>
-    save([DD.path.Rossby.name, fn,'.mat'],'out'); 
+    save([DD.path.Rossby.name, fn,'.mat'],'out');
     %% remap
     if reallocIdx
         protoout=nan(DD.map.window.size.Y,DD.map.window.size.X);
@@ -198,7 +199,7 @@ function nc2mat(DD)
     %% test for remap
     fns=ncfieldnames(DD.path.Rossby.NCfile);
     in=nc_varget(DD.path.Rossby.NCfile,fns{1});
-     reallocIdx=false;
+    reallocIdx=false;
     if numel(in)~=prod(struct2array(DD.map.window.size))
         reallocIdx=true;
         [idx,~]=reallocCase(DD);
@@ -236,7 +237,7 @@ function CK=loadChunk(RossbyDir,chnk)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK,cc)
-    disp(['integrating Rossby Radius for chunk ',cc])
+    dispM(['integrating Rossby Radius for chunk ',cc],1)
     [~,YY,XX]=size(CK.N);
     M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
     R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
@@ -244,13 +245,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c1]=calcC_one(CK,cc)
     %    c=-beta/(k^2+(1/L_r)^2) approx -beta*L^2
-    disp(['applying long rossby wave disp rel for c1 for chunk ',cc])
+    dispM(['applying long rossby wave disp rel for c1 for chunk ',cc])
     c1=-CK.rossby.beta.*CK.rossby.Ro1.^2;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [N]=calcBrvaPvort(CK,cc)
     [ZZ,YY,XX]=size(CK.TEMP);
-    disp(['calculating brunt väisälä, chunk ',cc]);
+    dispM(['calculating brunt väisälä, chunk ',cc]);
     %% get full matrices for all variables
     M.depth=double(repmat(CK.DEPTH,[1,YY*XX]));
     M.lat=double(repmat(permute(CK.lat(:),[2 1]), [ZZ,1]));

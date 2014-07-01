@@ -1,13 +1,13 @@
 function DD=input_vars
 	%% threads / debug
 	DD.threads.num=12;
-	DD.debugmode=false;
-% 	    DD.debugmode=true;
+ 	DD.debugmode=false;
+%  	    DD.debugmode=true;
 	%% time
-% 	DD.time.delta_t=1; % [days]!
-    DD.time.delta_t=7; % [days]!
+	DD.time.delta_t=7; % [days]!
 	DD.time.from.str='19940102'; % pop
-	DD.time.till.str='20061231';    
+% 	DD.time.till.str='20061231';
+ 	DD.time.till.str='19950101';
 	%% dirs
 % 	DD.path.OutDirBaseName='AVso';
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
@@ -18,12 +18,12 @@ function DD=input_vars
 % 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
 	%DD.path.raw.name='/media/ROM/SSH_POP/';
 	%% output MAP STUFF
-	DD.map.out.X=360*1+1;
-	DD.map.out.Y=80* 1+1;
-	DD.map.out.west=-180;
-	DD.map.out.east=180;
-	DD.map.out.south=-80;
-	DD.map.out.north=0;
+	DD.map.out.X=20*1+1;
+	DD.map.out.Y=20* 1+1;
+	DD.map.out.west=-170;
+	DD.map.out.east=-150;
+	DD.map.out.south=-60;
+	DD.map.out.north=-40;
 	%% input MAP STUFF
 	DD.map.in.west=DD.map.out.west;
 	DD.map.in.east=DD.map.out.east;
@@ -46,7 +46,7 @@ function DD=input_vars
 % 	DD.map.in.keys.ssh='SSH';
 % 	DD.map.in.keys.x='XT';
 % 	DD.map.in.keys.y='YT';
-% 	DD.map.in.keys.z='ZT';
+% 	DD.map.in.keys.z='ZT';              
 % 	DD.map.in.keys.time='TIME';
 % 	DD.map.in.keys.U='U';
 % 	DD.map.in.keys.V='V';
@@ -64,7 +64,7 @@ function DD=input_vars
 	DD.thresh.shape.chelt=0.3; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
 	DD.thresh.corners=8; % min number of data points for the perimeter of an eddy
 	DD.thresh.dist=.1*24*60^2; % max distance travelled per day
-	DD.thresh.life=10; % min num of living days for saving
+	DD.thresh.life=3; % min num of living days for saving
 	DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
 	%% switches
 	DD.switchs.RossbyStuff=false;

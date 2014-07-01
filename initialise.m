@@ -48,7 +48,8 @@ function DD=initialise(toCheck,parentFunc)
         diary on;
     else
         for tt=1:DD.threads.num
-            commFile=['./.comm' num2str(tt) '.mat'];
+          
+  commFile=sprintf('./.comm%03d.mat',tt);
             comm=matfile(commFile,'writable',true);
             comm.printstack(1,1)={['thread '  num2str(tt) ]};            
         end

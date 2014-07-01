@@ -5,15 +5,59 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [T]=disp_progress(type,Tin,L,num_prints)
-    if labindex>1,T=[];return;end
-    warning('off','MATLAB:divideByZero')
-    if strcmp(type,'init')
-        T=init(Tin);
-    else
-        T=later(Tin,L,num_prints);
+    if strcmp(type,'conclude')
+        conclude; T=[]; return
     end
-    warning('on','MATLAB:divideByZero') %TODO
+    %%
+    if labindex == 1
+        switch type
+            case 'init'
+                T=init(Tin);return;
+            otherwise
+                T=later(Tin,L,num_prints);return;
+        end
+    else
+        T=[];return
+    end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function conclude
+    %% wait for all workers
+    sleep(1)
+    labBarrier
+    %% let master handle I/O
+    if labindex == 1
+        c=initc;
+        for cc=2:c.num
+            echoHis(c,cc);
+        end
+    end
+    %% wait for all workers
+    labBarrier
+    sleep(1)
+    %----------------------------------------------------------------------
+    function c=initc
+        c.files=dir('./.comm*');
+        c.num=numel(c.files);
+        sprintf('...going to read out all old recently collected mails from all threads(id>1)...\n' )
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function echoHis(c,cc)
+    d=matfile(c.files(cc).name,'writable',true);
+    tit=cell2mat(d.printstack(1,1));
+    sprintf('reading disp stack for %s:\n\n', tit);
+    for ii=2:numel(d.printstack)
+        tot=cell2mat(d.printstack(ii,1));
+        %% echo
+        if numel(tot)>12
+            cprintf(rainbow(1,1,1,cc-1,c.num-1),[tit ':\n' tot ' \n']); disp('')
+        end
+        %% recycle
+        d.printstack(ii,1)={[]};
+    end
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=init(Tin)
     T.cc=0;

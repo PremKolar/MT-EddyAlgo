@@ -16,7 +16,7 @@ function S00b_prep_data
     %% spmd
     main(DD)
     %% save info
-    conclude(DD);
+     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -25,6 +25,7 @@ function main(DD)
     else
         spmd(DD.threads.num)
             spmd_body(DD);
+            disp_progress('conclude');
         end
     end
 end
@@ -44,20 +45,21 @@ function [DD]=set_up
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
-	%% distro chunks to threads
-	[II]=SetThreadVar(DD);
-	%% loop over files
-	[T]=disp_progress('init','preparing raw data');
-	for cc=1:numel(II);
-		%%
-		[T]=disp_progress('calc',T,numel(II),100);
-		%% get data
-		file=GetCurrentFile(II(cc),DD)  ;
-		%% cut data
-		[CUT]=CutMap(file,DD);   if isempty(CUT); return; end
-		%% write data
-		WriteFileOut(file.out,CUT);
-	end
+    %% distro chunks to threads
+    [II]=SetThreadVar(DD);
+    %% loop over files
+    [T]=disp_progress('init','preparing raw data');
+    for cc=1:numel(II);      
+        %%
+        [T]=disp_progress('calc',T,numel(II),100);
+        %% get data
+        file=GetCurrentFile(II(cc),DD)  ;
+        %% cut data
+        [CUT]=CutMap(file,DD);   if isempty(CUT); return; end
+        %% write data
+        WriteFileOut(file.out,CUT);
+    end
+    disp_progress('conclude');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT]=CutMap(file,DD)

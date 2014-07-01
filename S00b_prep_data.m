@@ -49,7 +49,6 @@ function spmd_body(DD)
 	%% loop over files
 	[T]=disp_progress('init','preparing raw data');
 	for cc=1:numel(II);
-		%%
 		[T]=disp_progress('calc',T,numel(T),100);
 		%% get data
 		file=GetCurrentFile(II(cc),DD)  ;
@@ -57,7 +56,8 @@ function spmd_body(DD)
 		[CUT]=CutMap(file,DD);   if isempty(CUT); return; end
 		%% write data
 		WriteFileOut(file.out,CUT);
-	end
+    end
+    [T]=disp_progress('conclude');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT]=CutMap(file,DD)
@@ -121,6 +121,6 @@ function [file,exists]=GetCurrentFile(TT,DD)
 	file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
 	file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
 	file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
-	if exist(file.out,'file'), disp([file.out ' exists']); exists.out=true; end
+	if exist(file.out,'file'), dispM([file.out ' exists']); exists.out=true; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -9,12 +9,22 @@ function [T]=disp_progress(type,Tin,L,num_prints,silent)
     warning('off','MATLAB:divideByZero')
     if strcmp(type,'init')
         T=init(Tin);
-    else
+    elseif strcmp(type,'conclude')   
+    conclude
+else
         if nargin<5, silent=false;end
         T=later(Tin,L,num_prints,silent);
     end
     warning('on','MATLAB:divideByZero')
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function conclude
+   
+end
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=init(Tin)
     T.cc=0;

@@ -5,12 +5,12 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-    DD=initialise;
+    DD=initialise([],mfilename);
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez*3;
+    ticks.width=297/25.4*ticks.rez/3;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -42,24 +42,24 @@ function mainDB(DD,IN,ticks)
     disp('entering debug mode')
     ticks.rez=42;
     
-%     
-%          for sense=DD.FieldKeys.senses'; sen=sense{1};
-% %             TPa(DD,ticks,IN.tracks,sen);
-%             TPb(DD,ticks,IN.tracks,sen);
-%             TPc(DD,ticks,IN.tracks,sen);
-%             TPd(DD,ticks,IN.tracks,sen);
-%             TPe(DD,ticks,IN.tracks,sen);
-%             TPf(DD,ticks,IN.tracks,sen);
-%          end
-%           velZonmeans(DD,IN,ticks)
-%           scaleZonmeans(DD,IN,ticks)
-%     %
-%         histstuff(IN.vecs,DD,ticks)
+    %
+    %          for sense=DD.FieldKeys.senses'; sen=sense{1};
+    % %             TPa(DD,ticks,IN.tracks,sen);
+    %             TPb(DD,ticks,IN.tracks,sen);
+    %             TPc(DD,ticks,IN.tracks,sen);
+    %             TPd(DD,ticks,IN.tracks,sen);
+    %             TPe(DD,ticks,IN.tracks,sen);
+    %             TPf(DD,ticks,IN.tracks,sen);
+    %          end
+    %           velZonmeans(DD,IN,ticks)
+    %           scaleZonmeans(DD,IN,ticks)
+    %     %
+    %         histstuff(IN.vecs,DD,ticks)
     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=main(DD,IN,ticks)
-   job.zonmeans=taskfForZonMeans(DD,IN,ticks);
+    job.zonmeans=taskfForZonMeans(DD,IN,ticks);
     %%
     job.maphist= taskfForMapAndHist(DD,IN,ticks);
     %%
@@ -77,7 +77,7 @@ function velZonmeans(DD,IN,ticks)
     cv=squeeze(nanmean(IN.maps.Cycs.vel.zonal.mean,2));
     plot(IN.la(:,1),acv	,'r')
     plot(IN.la(:,1),cv,'black')
-     axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
+    axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
     legend('Rossby-wave phase-speed','anti-cyclones net zonal velocity','cyclones net zonal velocity')
     ylabel('[cm/s]')
     xlabel('[latitude]')
@@ -101,7 +101,7 @@ function scaleZonmeans(DD,IN,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  job=taskfForMapAndHist(DD,IN,ticks)
-     job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
+    job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
     job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
     
 end
@@ -109,16 +109,18 @@ end
 function [OUT]=inits(DD)
     disp(['loading maps'])
     OUT.maps=load([DD.path.analyzed.name, 'maps.mat']);
-    OUT.maps.meanU=load(DD.path.meanU.file);
     OUT.la=OUT.maps.Cycs.lat;
     OUT.lo=OUT.maps.Cycs.lon;
+    if DD.switchs.netUstuff
+        OUT.maps.meanU=load(DD.path.meanU.file);
+    end
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
     root=DD.path.analyzedTracks.AC.name;
     OUT.ACs={DD.path.analyzedTracks.AC.files.name};
     Tac=disp_progress('init','collecting all ACs');
     for ff=1:numel(OUT.ACs)
-        Tac=disp_progress('calc',Tac,numel(OUT.ACs),100);
+        Tac=disp_progress('calc',Tac,numel(OUT.ACs),50);
         OUT.tracks.AntiCycs(ff)={[root OUT.ACs{ff}]};
     end
     %%
@@ -126,7 +128,7 @@ function [OUT]=inits(DD)
     OUT.Cs={DD.path.analyzedTracks.C.files.name};
     Tc=disp_progress('init','collecting all Cs');
     for ff=1:numel(OUT.Cs)
-        Tc=disp_progress('calc',Tc,numel(OUT.Cs),100);
+        Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
         OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
     end
     %% get vectors
@@ -287,7 +289,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         figure
         VV=log(maps.(sen).radius.toRo/2);
         pcolor(lo,la,VV);shading flat
-%         caxis([ticks.radiusToRo(1) ticks.radiusToRo(2)])
+        %         caxis([ticks.radiusToRo(1) ticks.radiusToRo(2)])
         cb=decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,10,1,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRadToRo' sen],DD.debugmode,'dpdf');
@@ -296,7 +298,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         figure
         VV=(maps.(sen).vel.zonal.mean-maps.Rossby.small.phaseSpeed)*100;
         pcolor(lo,la,VV);shading flat
-%         caxis([ticks.vel(1) ticks.vel(2)])
+        %         caxis([ticks.vel(1) ticks.vel(2)])
         cb=decorate('vel',ticks,DD,sen,['[Zonal U - c_1)]'],'cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapUcDiff' sen],DD.debugmode,'dpdf');
@@ -451,7 +453,7 @@ function drawcoast
     hold on; plot(long,lat,'LineWidth',0.5);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
+
 function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     if nargin<10
         rats=false;
@@ -460,10 +462,10 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
         coast=true;
     end
     
-    %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    coast=false
-     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     
+%     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     coast=false
+%     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     axis(ticks.axis);
     set(gca,'ytick',ticks.y);
     set(gca,'xtick',ticks.x);

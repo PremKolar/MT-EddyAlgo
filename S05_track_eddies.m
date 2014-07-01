@@ -7,7 +7,7 @@
 % inter-allocate different time steps to determine tracks of eddies
 function S05_track_eddies
     %% init
-    DD=initialise('eddies');
+    DD=initialise('eddies',mfilename);
     %% rm old files
     rmoldtracks(DD)
     %% parallel!
@@ -16,8 +16,6 @@ function S05_track_eddies
     %% update infofile
     conclude(DD)
 end
-
-test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
     disp(['using all eddies from ' DD.path.eddies.name, ' !!!'])

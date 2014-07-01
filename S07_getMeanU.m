@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S07_getMeanU
 	%% init
-	DD=initialise;
+	DD=initialise([],mfilename);
 	%% find files
 	[file]=findVelFiles(DD);
 	%% get dims
@@ -14,9 +14,8 @@ function S07_getMeanU
 	%% means
 	means=getMeans(d,pos,dim,file,DD); %#ok<NASGU>
 	%% save
-	save([DD.path.meanU.file], 'means')
-	disp(['done!'])
-	conclude(DD);
+	save([DD.path.meanU.file], 'means')	
+    conclude(DD);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,18 +191,19 @@ function [file]=findVelFiles(DD)
 	%% find the U and V files
 	ucc=0; vcc=0;
 	file=struct;
-	for kk=1:numel(DD.path.raw.files)
-		if ~isempty(strfind(DD.path.raw.files(kk).name,'UVEL'))
+    uvFiles=DD.path.UV.files;
+	for kk=1:numel(uvFiles)
+		if ~isempty(strfind(uvFiles(kk).name,'UVEL'))
 			ucc=ucc+1;
-			file(ucc).U=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
+			file(ucc).U=[DD.path.UV.name uvFiles(kk).name]; %#ok<AGROW>
 		end
-		if ~isempty(strfind(DD.path.raw.files(kk).name,'VVEL'))
+		if ~isempty(strfind(uvFiles(kk).name,'VVEL'))
 			vcc=vcc+1;
-			file(vcc).V=[DD.path.raw.name DD.path.raw.files(kk).name]; %#ok<AGROW>
+			file(vcc).V=[DD.path.UV.name uvFiles(kk).name]; %#ok<AGROW>
 		end
 	end
-	if isempty(file)
-		disp(['put U/V files into ' DD.path.raw])
+	if isempty(fieldnames(file))
+		disp(['put U/V files into ' DD.path.UV.name])
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

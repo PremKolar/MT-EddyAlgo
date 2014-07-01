@@ -9,7 +9,7 @@ function S00a_singleCdf2perDT
     %% init dependencies
     addpath(genpath('./'));
     %% get user input
-    DD = initialise;
+    DD = initialise([],mfilename);
     %% get madeleine's data
     [raw]=cdfData(DD);
     %% get geo stuff

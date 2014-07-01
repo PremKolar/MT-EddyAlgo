@@ -4,49 +4,66 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function DD=initialise(toCheck)
-	%% very first settings
-	addpath(genpath('./'));  %#ok<*MCAP>
-	warning on backtrace;
-	dbstop if error;
-	rehash; clc; close all;
-	format shortg;
-	%% get user input
-	DD = get_input;
-	%% check whether info file exists already
-	DDcheck=[DD.path.root, 'DD.mat'];
-	if ~exist('toCheck','var')
-		toCheck=false;
-	end
-	if toCheck
-		DD=ini(DD,toCheck);	
-	end
-	%% if exist append new info from ini() but keep info not overwritten by ini()
-	if exist(DDcheck,'file')
-		DD=catstruct(load(DDcheck),DD);
-	end
-	%% in case DD was deleted after S00 was executed rehash window info from cut file
-	if   ~isempty(DD.path.cuts.files)
-		[DD.map.window]=GetWin(DD);
-	end
-	%% load workers
-	DD.threads.num=init_threads(DD.threads.num);
-	if DD.threads.num>DD.time.span/DD.time.delta_t
-		error(toomanythreads,'too many threads for not enough timesteps!!!')
-	end
-	%% performance stuff
-	DD.tic=tic;
-	%     dispmem;
+function DD=initialise(toCheck,parentFunc)
+    %% very first settings
+    addpath(genpath('./'));  %#ok<*MCAP>
+    warning on backtrace;
+    warning('off','SNCTOOLS:nc_getall:dangerous');
+    dbstop if error;
+    rehash; clc; close all;
+    format shortg;
+    
+    %% get user input
+    DD = get_input;
+    %% check whether info file exists already
+    DDcheck=[DD.path.root, 'DD.mat'];
+    
+    if ~isempty(toCheck)
+        DD=ini(DD,toCheck);
+    end    
+    %% if exist append new info from ini() but keep info not overwritten by ini()
+    if exist(DDcheck,'file')
+        DD=catstruct(load(DDcheck),DD);
+    end
+    %% in case DD was deleted after S00 was executed rehash window info from cut file
+    if   ~isempty(DD.path.cuts.files)
+        [DD.map.window]=GetWin(DD);
+    end
+    %% load workers
+    DD.threads.num=init_threads(DD.threads.num);
+    if DD.threads.num>DD.time.span/DD.time.delta_t
+        error(toomanythreads,'too many threads for not enough timesteps!!!')
+    end
+
+    %% monitoring stuff
+    DD.monitor.tic=tic;
+    if nargin>=2
+        DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
+    end
+    %     dispmem;
+    %% db stuff
+    echo off all; diary off;
+    if DD.debugmode
+        %echo on all
+        diary on;
+    else
+        for tt=1:DD.threads.num
+          
+  commFile=sprintf('./.comm%03d.mat',tt);
+            comm=matfile(commFile,'writable',true);
+            comm.printstack(1,1)={['thread '  num2str(tt) ]};            
+        end
+        %         save('commFile','-struct','comm');
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)
-	%% check data for consistency
-	[DD.checks,abort] = check_data(DD,toCheck);
-	if abort,return;end
-	%% distro thread limits
-	maxthreads=feature('numCores');
-	threads=min([maxthreads, DD.threads.num]);
-	DD.threads.lims = thread_distro(threads,DD.checks.passedTotal);
+    %% check data for consistency
+    DD = check_data(DD,toCheck);
+    %% distro thread limits
+    maxthreads=feature('numCores');
+    threads=min([maxthreads, DD.threads.num]);
+    DD.threads.lims = thread_distro(threads,DD.checks.passedTotal);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TT=initChecks(DD,toCheck)
@@ -61,30 +78,32 @@ function TT=initChecks(DD,toCheck)
 	TT.del_t = nan(size(TT.passed));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [checks,abort] = check_data(DD,toCheck)
-	%% init
-	TT=initChecks(DD,toCheck);
-	%% check for each needed file
-	TT.passed=checkForFiles(TT);
-	if ~any(TT.passed)
-		checks=nan; abort=true;
-		ls(DD.path.(toCheck).name)
-		warning(['found no ' toCheck ' files'])
-		return
-	end
-	abort=false;
-	%% calc dt's
-	TT.del_t=newDt(TT,DD);
-	%% append info
-	checks.del_t = TT.del_t; % 'backwards' del_t
-	checks.passedTotal = sum(TT.passed);
-	checks.passed(checks.passedTotal)=struct;
-	temp=num2cell(TT.timesteps.n(TT.passed))';
-	[checks.passed.daynums] =     deal(temp{:});
-	%% find corresponding filenames
-	checks.passed=getFnames(DD,checks,toCheck);
-	%% disp found files
-	filedisps(checks)
+function [DD] = check_data(DD,toCheck)
+    while true
+        %% init
+        TT=initChecks(DD,toCheck);
+        %% check for each needed file
+        TT.passed=checkForFiles(TT);
+        if any(TT.passed), break; end
+        DD.time.from.num=DD.time.from.num+1;
+        DD.time.from.str=datestr(DD.time.from.num,'yyyymmdd');
+        disp('starting date inadequate for given time-step.')
+        disp(['trying ' DD.time.from.str , ' instead!'])
+    end
+    %% calc dt's
+    TT.del_t=newDt(TT,DD);
+    %% append info
+    checks.del_t = TT.del_t; % 'backwards' del_t
+    checks.passedTotal = sum(TT.passed);
+    checks.passed(checks.passedTotal)=struct;
+    temp=num2cell(TT.timesteps.n(TT.passed))';
+    [checks.passed.daynums] =     deal(temp{:});
+    %% find corresponding filenames
+    checks.passed=getFnames(DD,checks,toCheck);
+    %% disp found files
+    filedisps(checks)
+    %% append
+    DD.checks=checks;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)

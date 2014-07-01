@@ -5,36 +5,37 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % walks through all the contours and decides whether they qualify
-function S04_filter_eddies
+function S04_filter_eddies  
 	%% init
-	DD=initialise('conts');
+	DD=initialise('conts',mfilename);
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
 	main(DD,rossbyU);
-	%% update infofile
+	%% update infofile    
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)
 	if DD.debugmode
-		spmd_body(DD,rossbyU,labindex)
+		spmd_body(DD,rossbyU)
 	else
 		spmd(DD.threads.num)
-			spmd_body(DD,rossbyU,labindex)
+			spmd_body(DD,rossbyU)
+            disp_progress('conclude');
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,rossbyU,labindex)
+function spmd_body(DD,rossbyU)
 	[JJ]=SetThreadVar(DD);
 	Td=disp_progress('init','filtering contours');
 	for jj=1:numel(JJ)
 		[EE,skip]=work_day(DD,JJ(jj),rossbyU);
 		%%
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
+		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
 		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);

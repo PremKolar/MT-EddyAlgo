@@ -7,7 +7,7 @@
 % calculates geostrophic data from ssh
 function S03_infer_fields
     %% init
-    DD=initialise('cuts');
+    DD=initialise('cuts',mfilename);
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids);

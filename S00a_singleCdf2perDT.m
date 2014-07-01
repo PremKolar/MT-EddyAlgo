@@ -47,9 +47,8 @@ function spmd_body(DD,raw)
         [T]=disp_progress('calc',T,numel(CC),5);
         %% get current SSH
         raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
-        %% append 'zonal wings'
-        idx=[raw.idx.w raw.idx.full raw.idx.e];
-        raw.grids.ssh=raw.grids.ssh(:,idx);
+        %% append 'zonal wings'       
+        raw.grids.ssh=raw.grids.ssh(raw.wingIdx);
         %% op day
         operateDay(raw,DD,cc);
     end
@@ -70,21 +69,29 @@ function [raw]=cdfData(DD)
     raw.(keys.y)=nc_varget(raw.file.in,keys.y);
     raw.(keys.z)=nc_varget(raw.file.in,keys.z);
     [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
-    %% append zonal wings to x dim
-    RX=raw.(keys.x);
-    [rxi,summand]=zonwing(RX);
-    raw.(keys.x)=[RX(rxi.west)-summand ;RX ; RX(rxi.east)+summand];
-    raw.idx.full=rxi.center; raw.idx.w=rxi.west; raw.idx.e=rxi.east;
-    %-----------------------------------------------------------------------
-    function [rxi,summand]=zonwing(RX)
-        X=length(RX);
-        Xhalf=round(X/2);
-        rxi.center =1:X;
-        rxi.west  =X-Xhalf+1:X;
-        rxi.east   =1:Xhalf;
-        summand=repmat(RX(end),Xhalf,1);
-    end
+    %% append zonal wings to x distance vector
+    [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));
+    
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [wingIdx, idx]=AppenZonWingToX(rx)
+    % take $rx(Xhalf+1:end); append it to $rx(-Xhalf:0); shift the
+    % values of that piece down by $edgeValue; append $rx(1:Xhalf) to the end of
+    % the new $rx(end+1:Xhalf); shift that piece's values up by $edgeValue
+    X=length(rx);
+    Xhalf=floor(X/2);  
+    ii.east = (X-Xhalf+1:X) ;
+    ii.west = (1:Xhalf)   ;
+    idx=[ii.east   (1:X)     ii.west];
+    %% summand
+    su=zeros(size(idx));
+    edgeValue=repmat(rx(end)+diff(rx(end-1:end)), 1,  Xhalf);
+    su(ii.west)       = - edgeValue; 
+    su(ii.east + X)       =   edgeValue; 
+    %% cat &   correct  
+    wingIdx=rx(idx) + su';  
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD,raw]=geostuff(raw,DD)
     [raw.grids.XX,raw.grids.YY]=meshgrid(raw.XT,raw.YT);
@@ -96,6 +103,12 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.in.west=min(raw.grids.lon(:));
     DD.map.in.east=max(raw.grids.lon(:));
     DD.map.in.south=min(raw.grids.lat(:));
+    DD.map.in.north=max(raw.grids.lat(:));
+    %% reset out maps
+    DD.map.out.west=DD.parameters.boxlims.west;
+    DD.map.out.east=(DD.map.in.east-DD.map.in.west+1)*1/2+DD.map.out.west;
+    DD.map.out.south=DD.map.in.south;
+    DD.map.out.north=DD.map.in.north;
     %% use full map
     [Y,X]=size(raw.grids.lon);
     DD.map.window.size.X=X;

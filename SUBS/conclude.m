@@ -1,17 +1,23 @@
-function conclude(DD)
-    allData=dir(DD.path.root);
-    allData =allData(cat(1,allData.isdir));
-    allData =allData(3:end);
-    [~,lastIdx]=max(cat(1,allData.datenum));
-    relevantDir=allData(lastIdx);
-    relevantDir.fullfile=fullfile(DD.path.root,  relevantDir.name);
-    relevantDir.what=what( relevantDir.fullfile);
-    %%
-    inform
-    %%
+function conclude(DD,void)  %#ok<INUSD>
+   main;
+    %----------------------------------------------------------------------
+    function main
+         if exist('void','var'),  output;    end
     save_info(DD);
     delete ./.comm*.mat
-    
+    end
+    %----------------------------------------------------------------------
+    function output
+        allData=dir(DD.path.root);
+        allData =allData(cat(1,allData.isdir));
+        allData =allData(3:end);
+        [~,lastIdx]=max(cat(1,allData.datenum));
+        relevantDir=allData(lastIdx);
+        relevantDir.fullfile=fullfile(DD.path.root,  relevantDir.name);
+        relevantDir.what=what( relevantDir.fullfile);
+        %%
+        inform
+    end
     %----------------------------------------------------------------------
     function inform
         clc
@@ -21,6 +27,14 @@ function conclude(DD)
         disp(['SUCCESS!!!']);
         disp([' ']);
         try %#ok<TRYNC>
+            tobetried
+        end
+        disp(['time used: '])  ;
+        daysUsed=toc(DD.monitor.tic)/60/60/24;
+        disp(datestr(daysUsed,'dd-HH:MM:SS',0));
+        disp([' ']);
+        % . . . . 
+        function tobetried
             disp(['Step ' DD.monitor.rootFunc.function]);
             disp(['at ' DD.monitor.rootFunc.file]);
             disp(['has produced:' ]);
@@ -36,11 +50,8 @@ function conclude(DD)
             disp([' ']);
             sleep(1);
         end
-        disp(['time used: '])  ;
-        daysUsed=toc(DD.monitor.tic)/60/60/24;
-        disp(datestr(daysUsed,'dd-HH:MM:SS',0));
-        disp([' ']);
+        
+        
     end
-    
 end
 

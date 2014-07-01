@@ -76,6 +76,13 @@ function [CUT]=CutMap(file,DD)
     CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.map.in.ssh_unitFactor);
     %% get distance fields
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
+    %% high pass ssh
+    CUT.grids.sshFltrd=highPassSSH(CUT.grids,DD.parameters.Gausswidth);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function out=highPassSSH(grids,gaussWidth)
+   gw.x=grids.DX/gaussWidth
+   gw.y=grids.DY/gaussWidth
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)
@@ -92,7 +99,7 @@ function [DY,DX]=DYDX(lat,lon)
     DY=DY([1:end end],:);
     DX=DX(:,[1:end end]);
     %% correct 360° crossings
-    seamcrossflag=DX>100*median(DX(:));
+    seamcrossflag=DX>100*median(DX(:));   
     DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -2,7 +2,7 @@ function DD=input_vars
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-    %  	    DD.debugmode=true;
+      	    DD.debugmode=true;
     %% time
     DD.time.delta_t=3; % [days]!
     % 	DD.time.from.str='19940102'; % pop
@@ -21,19 +21,31 @@ function DD=input_vars
     %     DD.path.UV.name='../TempSalt/';
     % 	DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     %DD.path.raw.name='/media/ROM/SSH_POP/';
-    %% output MAP STUFF
-    DD.map.out.X=20*1+1;
-    DD.map.out.Y=20* 1+1;
-    DD.map.out.west=-170;
-    DD.map.out.east=-150;
-    DD.map.out.south=-60;
-    DD.map.out.north=-40;
+       %% output MAP STUFF
+	DD.map.out.X=54*1+1;
+	DD.map.out.Y=47*1+1;
+	DD.map.out.west=0; 
+	DD.map.out.east=54;
+	DD.map.out.south=10;
+	DD.map.out.north=47;
     %% input MAP STUFF
-    DD.map.in.west=DD.map.out.west;
-    DD.map.in.east=DD.map.out.east;
-    DD.map.in.south=DD.map.out.south;
-    DD.map.in.north=DD.map.out.north;
-%    DD.map.in.ssh_unitFactor = 100; 
+   	DD.map.in.west=-20; 
+	DD.map.in.east=70;
+	DD.map.in.south=10;
+	DD.map.in.north=47;
+%     %% output MAP STUFF
+%     DD.map.out.X=20*1+1;
+%     DD.map.out.Y=20* 1+1;
+%     DD.map.out.west=-170;
+%     DD.map.out.east=-150;
+%     DD.map.out.south=-60;
+%     DD.map.out.north=-40;
+%     %% input MAP STUFF
+%     DD.map.in.west=DD.map.out.west;
+%     DD.map.in.east=DD.map.out.east;
+%     DD.map.in.south=DD.map.out.south;
+%     DD.map.in.north=DD.map.out.north;
+   %    DD.map.in.ssh_unitFactor = 100; 
     DD.map.in.ssh_unitFactor = 1000; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.map.in.fname='RAWyyyymmdd.nc';
     DD.map.in.keys.lat='U_LAT_2D';
@@ -80,7 +92,8 @@ function DD=input_vars
     DD.parameters.meanU=-200; % depth from which to take mean U
     DD.parameters.meanUunit=1; % depth from which to take mean U
     DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
-    DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
+DD.parameters.Gausswidth=1e5;   
+ DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
     DD.map.in.keys.N='N';
     %% technical params

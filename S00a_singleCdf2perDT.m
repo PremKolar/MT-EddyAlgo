@@ -26,7 +26,7 @@ function S00a_singleCdf2perDT
     %% save UV
     saveUV(DD,raw);
     %% save info
-    conclude(DD);
+    conclude(DD,0);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,raw)
@@ -96,12 +96,6 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.in.west=min(raw.grids.lon(:));
     DD.map.in.east=max(raw.grids.lon(:));
     DD.map.in.south=min(raw.grids.lat(:));
-    DD.map.in.north=max(raw.grids.lat(:));
-    %% reset out maps
-    DD.map.out.west=DD.parameters.boxlims.west;
-    DD.map.out.east=(DD.map.in.east-DD.map.in.west+1)*1/2+DD.map.out.west;
-    DD.map.out.south=DD.map.in.south;
-    DD.map.out.north=DD.map.in.north;
     %% use full map
     [Y,X]=size(raw.grids.lon);
     DD.map.window.size.X=X;

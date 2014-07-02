@@ -47,8 +47,8 @@ function spmd_body(DD,raw)
         [T]=disp_progress('calc',T,numel(CC),5);
         %% get current SSH
         raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
-        %% append 'zonal wings'       
-        raw.grids.ssh=raw.grids.ssh(raw.wingIdx);
+        %% append 'zonal wings'           
+        raw.grids.ssh=raw.grids.ssh(:,raw.wingIdx);
         %% op day
         operateDay(raw,DD,cc);
     end
@@ -70,11 +70,10 @@ function [raw]=cdfData(DD)
     raw.(keys.z)=nc_varget(raw.file.in,keys.z);
     [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
     %% append zonal wings to x distance vector
-    [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));
-    
+    [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [wingIdx, idx]=AppenZonWingToX(rx)
+function [rx, idx]=AppenZonWingToX(rx)
     % take $rx(Xhalf+1:end); append it to $rx(-Xhalf:0); shift the
     % values of that piece down by $edgeValue; append $rx(1:Xhalf) to the end of
     % the new $rx(end+1:Xhalf); shift that piece's values up by $edgeValue
@@ -89,7 +88,7 @@ function [wingIdx, idx]=AppenZonWingToX(rx)
     su(ii.west)       = - edgeValue; 
     su(ii.east + X)       =   edgeValue; 
     %% cat &   correct  
-    wingIdx=rx(idx) + su';  
+    rx=reshape(rx(idx),size(idx)) + su;  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -117,7 +116,7 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.window.limits.east=X;
     DD.map.window.limits.south=1;
     DD.map.window.limits.north=Y;
-    DD.map.window.size.Z=numel(raw.ZT);
+    DD.map.window.size.Z=numel(raw.ZT);  
     %% info
     mapInfo(Y,X,DD.map.in,DD.map.out)
 end
@@ -248,8 +247,8 @@ function saveUV(DD,raw)
     function [U,V]=getUV(raw,rawpath,keys)
         u=nc_varget(raw.file.in,keys.U);
         v=nc_varget(raw.file.in,keys.V);
-        idx=[raw.idx.w raw.idx.full raw.idx.e];
-        u=u(:,:,idx);v=v(:,:,idx);
+
+        u=u(:,:,raw.wingIdx);v=v(:,:,raw.wingIdx);
         [z,y,x]=size(u);
         U.data=reshape(u,1,z,y,x);
         V.data=reshape(v,1,z,y,x);
@@ -260,9 +259,12 @@ function saveUV(DD,raw)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
-    N=sqrt(abs(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])))));  % N IST NEGATIV IN DEN DATEN??
-    idx=[raw.idx.w raw.idx.full raw.idx.e];
-    N=N(:,:,idx);
+    Nin=sqrt(abs(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])))));  % N IST NEGATIV IN DEN DATEN??
+    Nin(:,1:2,:)=repmat(Nin(:,3,:),[1,2,1]) ;
+    Nin(:,end-1:end,:)=repmat(Nin(:,end-3,:),[1,2,1]);
+    Nin(:,:,1:2)=repmat(Nin(:,:,3),[1,1,2]) ;
+    Nin(:,:,end-1:end)=repmat(Nin(:,:,end-3),[1,1,2]);    % WARUM NANS AM RAND?
+    N=Nin(:,:,raw.wingIdx);
     Nfile=DD.path.Rossby.Nfile;
     NCoverwriteornot(Nfile);
     nc_adddim(Nfile,'i_index',DD.map.window.size.X);

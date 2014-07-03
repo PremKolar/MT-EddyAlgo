@@ -19,6 +19,7 @@ function main(DD)
         spmd_body(DD);
     else
         spmd(DD.threads.num)
+            
             spmd_body(DD);
         end
     end
@@ -26,7 +27,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% loop over ssh cuts
-    [TT]=SetThreadVar(DD);
+    [TT]=SetThreadVar(DD);  
     for cc=1:numel(TT)
         %% contours
         get_contours(DD,TT(cc));
@@ -42,7 +43,7 @@ function II=get_contours(dd,TT)
         dispM([CONT.filename ' exists'])
         return
     end
-    %% loop over levels
+    %% loop over levels    
     for level=II.levels
         II.T=disp_progress('disp',II.T,numel(II.levels),10);
         CONT.all=[CONT.all; contourc(II.grids.ssh,[level level])'];
@@ -67,13 +68,3 @@ function [II,CONT]=init_get_contours(dd,TT)
     %% add info
     CONT.filename=[dd.path.conts.name dd.pattern.prefix.conts TT.protos];
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [OUT]=SetThreadVar(IN)
-    from=IN.threads.lims(labindex,1);
-    till=IN.threads.lims(labindex,2);
-    num=till-from+1;
-    [OUT(1:num).daynums]=IN.checks.passed(from:till).daynums;
-    [OUT(1:num).files]=IN.checks.passed(from:till).filenames;
-    [OUT(1:num).protos]=IN.checks.passed(from:till).protofilenames ;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -2,7 +2,7 @@ function conclude(DD,void)  %#ok<INUSD>
    main;
     %----------------------------------------------------------------------
     function main
-         if exist('void','var'),  output;    end
+         if ~exist('void','var'),  output;    end
     save_info(DD);
     delete ./.comm*.mat
     end
@@ -38,17 +38,14 @@ function conclude(DD,void)  %#ok<INUSD>
             disp(['Step ' DD.monitor.rootFunc.function]);
             disp(['at ' DD.monitor.rootFunc.file]);
             disp(['has produced:' ]);
-            disp([' ']);
-            sleep(1);
+            disp([' ']);           
             disp([relevantDir]);
             disp([relevantDir.what]);
-            disp([' ']);
-            sleep(1);
+            disp([' ']);           
             disp([' ']);
             disp([num2str(numel(relevantDir.what.mat)), ' files like:']);
             disp(relevantDir.what.mat(1));
-            disp([' ']);
-            sleep(1);
+            disp([' ']);           
         end
         
         

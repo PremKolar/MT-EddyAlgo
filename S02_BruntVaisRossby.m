@@ -7,10 +7,11 @@
 function S02_BruntVaisRossby
     %% init
     DD=initialise([],mfilename);
+    if ~DD.switchs.RossbyStuff,return;end
     switch DD.parameters.Nknown
         case false
-            S01b_fromTS
+            S02b_fromTS
         case true
-            S01b_fromRaw
+            S02b_fromRaw
     end
 end

@@ -10,13 +10,14 @@ function S00a_singleCdf2perDT
     addpath(genpath('./'));
     %% get user input
     DD = initialise([],mfilename);
+    delete([DD.path.root,'DD.mat']); % full reboot
+    DD = initialise([],mfilename);
     %% get madeleine's data
     [raw]=cdfData(DD);
     %% get geo stuff
     [DD,raw]=geostuff(raw,DD);
     %% thread distro
-    disp('working through all timesteps for now!')
-    DD.threads.lims=thread_distro(DD.threads.num,numel(raw.TIME));
+    DD.threads.lims=thread_distro(DD.threads.num,DD.time.span/DD.time.delta_t);
     %% start threads
     init_threads(DD.threads.num);
     %% spmd
@@ -95,7 +96,7 @@ end
 function [DD,raw]=geostuff(raw,DD)
     [raw.grids.XX,raw.grids.YY]=meshgrid(raw.XT,raw.YT);
     raw.grids.lat=rad2deg(raw.grids.YY./earthRadius) + DD.parameters.boxlims.south;
-    raw.grids.lon=rad2deg(raw.grids.XX./(cosd(raw.grids.lat)*earthRadius)) +  DD.parameters.boxlims.west;
+    raw.grids.lon=rad2deg(raw.grids.XX./(cosd(raw.grids.lat)*earthRadius)) +  0; %%  + boxlims.west
     if max(diff(raw.grids.lon(:)))>300, error('dont put window on -180/180 meridian!'); end %#ok<ERTAG>
     [raw.grids.DY,raw.grids.DX]=DYDX(raw.grids.lat,raw.grids.lon);
     %% reset to exact values
@@ -104,10 +105,10 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.in.south=min(raw.grids.lat(:));
     DD.map.in.north=max(raw.grids.lat(:));
     %% reset out maps
-    DD.map.out.west=DD.parameters.boxlims.west;
-    DD.map.out.east=(DD.map.in.east-DD.map.in.west+1)*1/2+DD.map.out.west;
-    DD.map.out.south=DD.map.in.south;
-    DD.map.out.north=DD.map.in.north;
+    DD.map.out.west=0;
+    DD.map.out.east=ceil((DD.map.in.east-DD.map.in.west+1)/2);
+    DD.map.out.south=floor(DD.map.in.south);
+    DD.map.out.north=ceil(DD.map.in.north);
     %% use full map
     [Y,X]=size(raw.grids.lon);
     DD.map.window.size.X=X;
@@ -122,12 +123,10 @@ function [DD,raw]=geostuff(raw,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapInfo(Y,X,map,mapout)
-    fprintf('built %ix%i grid \n',Y,X)
-    disp(' ')
-    fprintf('spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n',map.west,map.east,map.south,map.north)
-    fprintf('output spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n\n',mapout.west,mapout.east,mapout.south,mapout.north)
-    warning('make sure to change values accordingly in input_vars.m if not done yet!') %#ok<WNTAG>
-    sleep(5)
+    fprintf('\n built %ix%i grid \n',Y,X)
+    fprintf('       spanning %5.1fW : %5.1fE and %5.1fS : %5.1fN \n',map.west,map.east,map.south,map.north)
+    fprintf('output spanning %5.0fW : %5.0fE and %5.0fS : %5.0fN \n\n',mapout.west,mapout.east,mapout.south,mapout.north)
+    sleep(1)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveraw(DD,raw)
@@ -165,7 +164,7 @@ function operateDay(raw,DD,cc)
     fo=strrep(fo,'yyyymmdd',timestr);
     raw.file.out=[path, fo];
     if exist(raw.file.out,'file'), return; end
-    %%
+    %% smooth out dummy values and nans
     foulIdx=(raw.grids.ssh>1000 | raw.grids.ssh<-1000 | isnan(raw.grids.ssh));
     raw.grids.ssh=double(NeighbourValue(foulIdx, raw.grids.ssh));
     %%

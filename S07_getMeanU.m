@@ -4,9 +4,10 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S07_getMeanU
-	%% init
+function S07_getMeanU	
+%% init
 	DD=initialise([],mfilename);
+    if ~DD.switchs.netUstuff,return;end
 	%% find files
 	[file]=findVelFiles(DD);
 	%% get dims

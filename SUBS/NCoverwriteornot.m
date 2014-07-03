@@ -17,7 +17,7 @@ function GiveTime(nc_file_name)
 		tt= 1;
 		while tt>0
 			disp('cancel if you dont want to overwrite!')
-			disp(datestr(sec2day(tt),'SS'))
+			disp('.')
 			tt=tt-1;
 			sleep(2);
 		end

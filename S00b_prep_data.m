@@ -16,7 +16,7 @@ function S00b_prep_data
     %% spmd
     main(DD)
     %% save info
-     conclude(DD);
+    conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -25,7 +25,6 @@ function main(DD)
     else
         spmd(DD.threads.num)
             spmd_body(DD);
-            disp_progress('conclude');
         end
     end
 end
@@ -37,19 +36,16 @@ function [DD]=set_up
     DD = initialise('raw',mfilename);
     %% get sample window
     file=SampleFile(DD);
-    [DD.map.window]=GetWindow(file,DD.map.in,DD.map.in.keys);
-    %% manually override map type (for mad's data)
-    if DD.parameters.overrideWindowType
-        DD.map.window.type='xxx';
-    end
+    [DD.map.window]=GetWindow2(file,DD.map.in);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
-    %% distro chunks to threads
+    %% distro days to threads
     [II]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
-    for cc=1:numel(II);      
+    for cc=1:numel(II);
         %%
         [T]=disp_progress('calc',T,numel(II),100);
         %% get data
@@ -71,18 +67,33 @@ function [CUT]=CutMap(file,DD)
     [raw_fields,unreadable]=GetFields(file.in,keys);
     if unreadable.is, CUT=[]; return; end
     %% cut
-    [CUT]=ZonalProblem(raw_fields,DD.map.window);
+    [CUT]=ZonalAppend(raw_fields,DD.map.window);
     %% nan out land and make SI
-    CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.map.in.ssh_unitFactor);
+    CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.parameters.ssh_unitFactor);
     %% get distance fields
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
     %% high pass ssh
-    CUT.grids.sshFltrd=highPassSSH(CUT.grids,DD.parameters.Gausswidth);
+    %     CUT.grids.sshFltrd=highPassSSH(CUT.grids,DD.parameters.Gausswidth);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OUT=ZonalAppend(raw,window)    
+    OUT=buildGrids;
+    %----------------------------------------------------------------------
+    function out=buildGrids
+        xlin=drop_2d_to_1d(window.iy,window.ix,window.fullsize(1));
+        %% cut piece
+        fields=fieldnames(raw);
+        for ff=1:numel(fields); field=fields{ff};
+            out.grids.(field) = raw.(field)(xlin);
+        end
+        %% append params
+        out.window = rmfield(window,{'flag','iy','ix'});       
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=highPassSSH(grids,gaussWidth)
-   gw.x=grids.DX/gaussWidth
-   gw.y=grids.DY/gaussWidth
+    gw.x=grids.DX/gaussWidth
+    gw.y=grids.DY/gaussWidth
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)
@@ -99,7 +110,7 @@ function [DY,DX]=DYDX(lat,lon)
     DY=DY([1:end end],:);
     DX=DX(:,[1:end end]);
     %% correct 360° crossings
-    seamcrossflag=DX>100*median(DX(:));   
+    seamcrossflag=DX>100*median(DX(:));
     DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -124,12 +135,10 @@ function [file,exists]=GetCurrentFile(TT,DD)
     timestr=datestr(TT.daynums,'yyyymmdd');
     %% set up output file
     path=DD.path.cuts.name;
-    geo=DD.map.in;
-    file.out=strrep(DD.pattern.fname	,'SSSS',sprintf('%04d',geo.south) );
-    file.out=strrep(file.out, 'NNNN',sprintf('%04d',geo.north) );
-    file.out=strrep(file.out, 'WWWW',sprintf('%04d',geo.west) );
-    file.out=strrep(file.out, 'EEEE',sprintf('%04d',geo.east) );
-    file.out=[path, strrep(file.out, 'yyyymmdd',timestr)];
+    geo=DD.map.out;
+    file.out=NSWE2nums(path,DD.pattern.fname,geo,timestr);
     if exist(file.out,'file'), dispM([file.out ' exists']); exists.out=true; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+

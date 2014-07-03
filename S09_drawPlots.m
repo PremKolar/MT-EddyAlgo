@@ -42,19 +42,20 @@ function mainDB(DD,IN,ticks)
     disp('entering debug mode')
     ticks.rez=42;
     
-    %
-    %          for sense=DD.FieldKeys.senses'; sen=sense{1};
-    % %             TPa(DD,ticks,IN.tracks,sen);
-    %             TPb(DD,ticks,IN.tracks,sen);
-    %             TPc(DD,ticks,IN.tracks,sen);
-    %             TPd(DD,ticks,IN.tracks,sen);
-    %             TPe(DD,ticks,IN.tracks,sen);
-    %             TPf(DD,ticks,IN.tracks,sen);
-    %          end
-    %           velZonmeans(DD,IN,ticks)
-    %           scaleZonmeans(DD,IN,ticks)
-    %     %
-    %         histstuff(IN.vecs,DD,ticks)
+    
+             for sense=DD.FieldKeys.senses'; sen=sense{1};
+    %             TPa(DD,ticks,IN.tracks,sen);
+                TPb(DD,ticks,IN.tracks,sen);
+                TPc(DD,ticks,IN.tracks,sen);
+                TPd(DD,ticks,IN.tracks,sen);
+                TPe(DD,ticks,IN.tracks,sen);
+                TPf(DD,ticks,IN.tracks,sen);
+             end
+             if DD.switchs.RossbyStuff && DD.switchs.netUstuff
+              velZonmeans(DD,IN,ticks)
+              scaleZonmeans(DD,IN,ticks)
+        end
+            histstuff(IN.vecs,DD,ticks)
     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -270,8 +271,9 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVel' sen],DD.debugmode,'dpdf');
         %%
+        if DD.switchs.netUstuff
         figure
-        VV=maps.(sen).vel.net.mean*100;
+         VV=maps.(sen).vel.net.mean*100;
         pcolor(lo,la,VV);shading flat
         cb=decorate('vel',ticks,DD,sen,...
             ['(Zonal velocity -Mean Current @('...
@@ -279,6 +281,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             'm))'],'cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVelNet' sen],DD.debugmode,'dpdf');
+        end
         %%
         figure
         VV=maps.(sen).radius.mean.mean/1000;
@@ -286,6 +289,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         decorate('radius',ticks,DD,sen,'Radius','km',0,1);
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRad' sen],DD.debugmode,'dpdf');
         %%
+       if DD.switchs.RossbyStuff
         figure
         VV=log(maps.(sen).radius.toRo/2);
         pcolor(lo,la,VV);shading flat
@@ -293,6 +297,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         cb=decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,10,1,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRadToRo' sen],DD.debugmode,'dpdf');
+      
         %
         %%
         figure
@@ -304,7 +309,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapUcDiff' sen],DD.debugmode,'dpdf');
         
     end
-    
+     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=trackPlots(DD,ticks,tracks)

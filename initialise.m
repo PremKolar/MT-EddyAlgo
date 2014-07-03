@@ -5,28 +5,29 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=initialise(toCheck,parentFunc)
-    %% very first settings
-    addpath(genpath('./'));  %#ok<*MCAP>
-    warning on backtrace;
-    warning('off','SNCTOOLS:nc_getall:dangerous');
-    dbstop if error;
-    rehash; clc; close all;
-    format shortg;
-    
+    %%
+    preInits
     %% get user input
     DD = get_input;
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
     
+    %% if DD.mat exists, rehash or keep initial mapDims
+    
+    if exist(DDcheck,'file')
+        if DD.switches.rehashMapDims
+            DD=catstruct(load(DDcheck),DD);
+        else
+            DD=catstruct(load(DDcheck),rmfield(DD,'map'));
+        end
+    end
+    %%
     if ~isempty(toCheck)
         DD=ini(DD,toCheck);
-    end    
-    %% if exist append new info from ini() but keep info not overwritten by ini()
-    if exist(DDcheck,'file')
-        DD=catstruct(load(DDcheck),DD);
     end
+    
     %% in case DD was deleted after S00 was executed rehash window info from cut file
-    if   ~isempty(DD.path.cuts.files)
+    if ~isempty(DD.path.cuts.files)
         [DD.map.window]=GetWin(DD);
     end
     %% load workers
@@ -34,26 +35,41 @@ function DD=initialise(toCheck,parentFunc)
     if DD.threads.num>DD.time.span/DD.time.delta_t
         error(toomanythreads,'too many threads for not enough timesteps!!!')
     end
-
     %% monitoring stuff
-    DD.monitor.tic=tic;
-    if nargin>=2
-        DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
-    end
-    %     dispmem;
+    monitorStuff
     %% db stuff
-    echo off all; diary off;
-    if DD.debugmode
-        %echo on all
-        diary on;
-    else
-        for tt=1:DD.threads.num
-          
-  commFile=sprintf('./.comm%03d.mat',tt);
-            comm=matfile(commFile,'writable',true);
-            comm.printstack(1,1)={['thread '  num2str(tt) ]};            
+    dbStuff
+    %----------------------------------------------------------------------
+    %----------------------------------------------------------------------
+    function preInits
+        addpath(genpath('./'));  %#ok<*MCAP>
+        warning on backtrace;
+        warning('off','SNCTOOLS:nc_getall:dangerous');
+        rehash; clc; close all;
+        format shortg;
+    end
+    %----------------------------------------------------------------------
+    function monitorStuff
+        DD.monitor.tic=tic;
+        if nargin>=2
+            DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
         end
-        %         save('commFile','-struct','comm');
+        %     dispmem;
+    end
+    %----------------------------------------------------------------------
+    function dbStuff
+        echo off all; diary off;
+        if DD.debugmode
+            %echo on all
+            diary on;
+        else
+            dbstop if error;
+            for tt=1:DD.threads.num
+                commFile=sprintf('./.comm%03d.mat',tt);
+                comm=matfile(commFile,'writable',true);
+                comm.printstack(1,1)={['thread '  num2str(tt) ]};
+            end
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,40 +84,47 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TT=initChecks(DD,toCheck)
     TT = DD.time;
-    TT.timesteps.n = TT.from.num:TT.delta_t:TT.till.num;
-    TT.passed = false(numel(TT.timesteps.n),1);
-    TT.timesteps.s =datestr(TT.timesteps.n,'yyyymmdd');
     TT.existant.filesall=extractfield(DD.path.(toCheck).files,'name');
     %% cat numbers in filenames only for speed
-    TT.existant.fcats=cell2mat(regexp(cat(2,TT.existant.filesall{:}),'[0-9]','match'));
-    %% init new delta t
+    dateOnly.s=regexp(cat(2,TT.existant.filesall{:}),'\d{8}','match');
+    dateOnly.n=cellfun(@(c) datenum(c,'yyyymmdd'),dateOnly.s);
+    TT.existant.fcats=cell2mat(cellfun(@(c) ['-' c],dateOnly.s,'uniformoutput',false));
+    %% correct start/end date if not exactly on existing time step or not within range
+    [~,ii]=min(abs(dateOnly.n-TT.from.num));
+    offset=   dateOnly.n(ii) - TT.from.num ;
+    TT.from.num=  TT.from.num + offset;
+    TT.till.num= TT.till.num + offset; % shift till also to keep const time span
+    TT.from.str= datestr(TT.from.num,'yyyymmdd');
+    %
+    [~,ii]=min(abs(dateOnly.n-TT.till.num));
+    offset=   dateOnly.n(ii) - TT.till.num ;
+    TT.till.num= TT.till.num + offset;
+    TT.till.str= datestr(TT.till.num,'yyyymmdd');
+    TT.span = TT.till.num - TT.from.num + 1;
+    disp(['corrected date range to ' datestr(TT.from.num) ' - ' datestr(TT.till.num)])
+    %%
+    TT.timesteps.n = TT.from.num:TT.delta_t:TT.till.num;
+    TT.timesteps.s =datestr(TT.timesteps.n,'yyyymmdd');
+    %% init new delta t and pass vector
+    TT.passed = false(numel(TT.timesteps.n),1);
     TT.del_t = nan(size(TT.passed));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD] = check_data(DD,toCheck)
-    while true
-        %% init
-        TT=initChecks(DD,toCheck);
-        %% check for each needed file
-        TT.passed=checkForFiles(TT);
-        if any(TT.passed), break; end
-        DD.time.from.num=DD.time.from.num+1;
-        DD.time.from.str=datestr(DD.time.from.num,'yyyymmdd');
-        disp('starting date inadequate for given time-step.')
-        disp(['trying ' DD.time.from.str , ' instead!'])
-    end
-    %% calc dt's
-    TT.del_t=newDt(TT,DD);
+    %% init
+    DD.time=initChecks(DD,toCheck);
+    %% check for each needed file
+    DD.time.passed=checkForFiles(DD.time);
+    checks.del_t =newDt(DD.time);% 'backwards' del_t's
     %% append info
-    checks.del_t = TT.del_t; % 'backwards' del_t
-    checks.passedTotal = sum(TT.passed);
+    checks.passedTotal = sum(DD.time.passed);
     checks.passed(checks.passedTotal)=struct;
-    temp=num2cell(TT.timesteps.n(TT.passed))';
+    temp=num2cell(DD.time.timesteps.n(DD.time.passed))';
     [checks.passed.daynums] =     deal(temp{:});
     %% find corresponding filenames
     checks.passed=getFnames(DD,checks,toCheck);
     %% disp found files
-    filedisps(checks)
+    filedisps(checks);
     %% append
     DD.checks=checks;
 end
@@ -124,16 +147,16 @@ function pass=checkForFiles(TT)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function del_t=newDt(TT,DD)
+function del_t=newDt(TT)
     del_t=nan(TT.span,1);
-    tempdelt=DD.time.delta_t;
+    tempdelt=TT.delta_t;
     for tt = 2:numel(TT.passed);
         if ~TT.passed(tt)
             del_t(tt)=nan;
-            tempdelt=tempdelt+DD.time.delta_t;
+            tempdelt=tempdelt+TT.delta_t;
         else
             del_t(tt)=tempdelt;
-            tempdelt=DD.time.delta_t;
+            tempdelt=TT.delta_t;
         end
     end
     
@@ -149,25 +172,19 @@ function passed=getFnames(DD,checks,toCheck)
     passed=checks.passed;
     path=DD.path.(toCheck);
     pattern=DD.pattern.fname;
-    timestr=cellfun(@(x) datestr(x,'yyyymmdd'),{checks.passed.daynums}','uniformoutput',false);
-    cc=0;
-    for ts=timestr';cc=cc+1;
-        if strcmp(toCheck,'raw')
-            passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts{1})];
+    timestr=cellfun(@(x) datestr(x,'yyyymmdd'),{checks.passed.daynums}','uniformoutput',false); % only passed ones
+    for cc=1:numel(timestr)
+        ts=timestr{cc};
+        if strcmp(toCheck,'raw') % raw filenames relevant
+            passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts)];
             passed(cc).protofilenames=[];
-        else
-            temp=[path.name, strrep(pattern, 'yyyymmdd',ts{1})];
-            temp=strrep(temp	,'SSSS',sprintf('%04d',DD.map.in.south) );
-            temp=strrep(temp	,'NNNN',sprintf('%04d',DD.map.in.north) );
-            temp=strrep(temp	,'WWWW',sprintf('%04d',DD.map.in.west) );
-            temp=strrep(temp	,'EEEE',sprintf('%04d',DD.map.in.east) );
-            passed(cc).filenames=strrep(temp	,'CUT',DD.pattern.prefix.(toCheck));
-            ii=strfind(temp,'_');
-            passed(cc).protofilenames=temp(ii:end);
+        else % build new filenames
+            geo=DD.map.out;
+            file.out=strrep(strrep(pattern, 'yyyymmdd',ts),'CUT',DD.pattern.prefix.(toCheck));
+           passed(cc).filenames=[ NSWE2nums(path.name,file.out,geo,ts)  ];
+               ii=strfind(passed(cc).filenames,'_');
+            passed(cc).protofilenames=passed(cc).filenames(ii:end);
         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-

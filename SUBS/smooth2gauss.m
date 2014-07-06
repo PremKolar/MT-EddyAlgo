@@ -15,7 +15,8 @@ function matrixOut = smooth2gauss(matrixIn,Nr,Nc)
 	[row,col] = size(matrixIn);
 	filL=repmat((cos(linspace(-pi/2,pi/2,2*N(1)+1))+1)/2,row,1);
 	filR=repmat((cos(linspace(-pi/2,pi/2,2*N(2)+1))+1)/2,col,1);
-	eL = spdiags(filL,(-N(1):N(1)),row,row);
+
+    eL = spdiags(filL,(-N(1):N(1)),row,row);
 	eR = spdiags(filR,(-N(2):N(2)),col,col);
 	A = isnan(matrixIn);
 	matrixIn(A) = 0;

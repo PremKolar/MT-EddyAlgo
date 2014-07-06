@@ -6,7 +6,7 @@
 
 function DD=INPUT
     %%
-    DD.template='mad';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   

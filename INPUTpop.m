@@ -33,7 +33,7 @@ function DD=INPUTpop
     DD.parameters.meanU=100; % depth from which to take mean U
     DD.parameters.meanUunit=1; % depth from which to take mean U
     DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
-    DD.parameters.Gausswidth=1e5;
+    DD.parameters.Gausswidth=3e5;
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
     DD.parameters.forceZonalInf=false;
@@ -42,7 +42,7 @@ function DD=INPUTpop
     DD.parameters.SSHAdepth=-25;
     %...}
      %%
-     DD.switches.rehashDD=true;
+  DD.switches.rehashMapDims=true; %!!
     
     
     

@@ -62,8 +62,9 @@ function DD=initialise(toCheck,parentFunc)
         if DD.debugmode
             %echo on all
             diary on;
+              dbstop if error;
         else
-            dbstop if error;
+          
             for tt=1:DD.threads.num
                 commFile=sprintf('./.comm%03d.mat',tt);
                 comm=matfile(commFile,'writable',true);

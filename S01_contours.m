@@ -41,12 +41,14 @@ function II=get_contours(dd,TT)
     %% check
     if exist(CONT.filename,'file')
         dispM([CONT.filename ' exists'])
-        return
+%         return
     end
-    %% loop over levels    
+    %% loop over levels 
+   
     for level=II.levels
-        II.T=disp_progress('disp',II.T,numel(II.levels),10);
-        CONT.all=[CONT.all; contourc(II.grids.ssh,[level level])'];
+         II.T=disp_progress('disp',II.T,numel(II.levels),10);
+         CONT.all=[CONT.all; contourc(II.grids.ssh,[level level])'];
+%         CONT.all=[CONT.all; contour(II.grids.ssh - II.grids.sshS,[level level])'];
     end
     %% save data
     save(CONT.filename,'-struct','CONT');

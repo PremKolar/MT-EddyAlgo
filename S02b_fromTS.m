@@ -44,9 +44,9 @@ function [DD]=set_up
     %% get window according to user input
     [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt,DD.map.in,DD.TS.keys);
     %% distro X lims to chunks
-    DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
+    DD.RossbyStuff.lims.data=limsdata(DD.parameters.RossbySplits,DD.TS.window);
     %% distro chunks to threads
-    DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.RossbyStuff.splits);
+    DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.parameters.RossbySplits);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
@@ -181,7 +181,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function WriteNCfile(DD)
     %% init
-    splits=DD.RossbyStuff.splits;
+    splits=DD.parameters.RossbySplits;
     initNcFile(DD);
     %% cat chunks
     T=disp_progress('init','creating netcdf');

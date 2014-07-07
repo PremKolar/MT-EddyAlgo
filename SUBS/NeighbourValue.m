@@ -1,3 +1,5 @@
+% input:
+% grid=NeighbourValue(idx,grid)
 function grid=NeighbourValue(idx,grid,step)
 	if isempty(idx),return;end
 	if ~exist('step','var'),step=1;end

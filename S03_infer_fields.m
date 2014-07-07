@@ -11,7 +11,7 @@ function S03_infer_fields
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids);
-    RS=getRossbyStuff(DD);
+    RS=getRossbyStuff(DD,cut1.grids);
     %% spmd
     main(DD,RS)
     %% save info file
@@ -28,10 +28,20 @@ function main(DD,RS)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function RS=getRossbyStuff(DD)
+function RS=getRossbyStuff(DD,gr)
     if DD.switchs.RossbyStuff
         RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
         RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+        
+        RS.Lr(RS.Lr<0 | RS.Lr > 100*nanmedian(abs(RS.Lr(:))))=nan;
+        RS.c(RS.c<0 | RS.c > 100*nanmedian(abs(RS.c(:))))=nan;
+        
+        RS.LrInc.y=smooth2a(RS.Lr./gr.DY,10);
+        RS.LrInc.x=smooth2a(RS.Lr./gr.DX,10);
+        RS.LrInc.x=NeighbourValue(isnan(RS.LrInc.x),RS.LrInc.x);
+        RS.LrInc.y=NeighbourValue(isnan(RS.LrInc.y),RS.LrInc.y);
+        
+        
     else
         RS=[];
     end
@@ -47,10 +57,57 @@ function spmd_body(DD,RS)
         cut=load(JJ(jj).files);
         coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
+        grids=geostrophy(cut.grids,coriolis,RS); 
+        
+        grids.fltrd=filterStuff(cut.grids,RS);
+        
         %% write
         save(JJ(jj).files,'grids','-append');
     end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function gr=filterStuff(gr,RS)
+  
+ 
+%   ppc(RS.LrInc.y)
+  
+ % x=filtered.raw
+  
+ 
+%  gw.y=
+ 
+
+
+
+ [Y,X]=size(gr.ssh)
+
+before.x=double(cumsum(gr.DX,2) - repmat(gr.DX(:,1),1,X))
+before.y=double(cumsum(gr.DY,1) - repmat(gr.DY(1,:),Y,1))
+ [query.x,query.y] = meshgrid(linspace(0,max(before.x(:)),X), linspace(0,max(before.y(:)),Y)' );
+gr.sshEquDist = griddata(before.x,before.y,gr.ssh,linspace(0,max(before.x(:)),X),linspace(0,max(before.y(:)),Y)')
+gr.sshSpec=fft2(gr.sshEquDist) ;   
+ ppc(abs(gr.sshSpec))
+ 
+
+ [xx,yy]=meshgrid(gausswin(X,10),gausswin(Y,10))
+ gauswin2=((xx+yy)/2)
+ figure(1)
+ ppc(gauswin2) 
+ figure(2) 
+ppc(abs(ifft2(a.*gauswin2)))
+
+
+
+
+
+
+%   levelRange=diff(II.levels([1 end]));
+%    filtered.raw=II.grids.ssh - II.grids.sshS;%    
+%    filtered.scaled=(filtered.raw - min(filtered.raw(:)))/(max(filtered.raw(:)) - min(filtered.raw(:))) * (max(II.grids.ssh(:))-min(II.grids.ssh(:))) + min(II.grids.ssh(:));   
+%    filtered.scaRnd=round(filtered.scaled/dd.contour.step)*dd.contour.step;
+%     
+
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gr=geostrophy(gr,corio,RS)

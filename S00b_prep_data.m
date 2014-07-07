@@ -51,10 +51,9 @@ function spmd_body(DD)
         %% get data
         file=GetCurrentFile(II(cc),DD)  ;
         %% cut data
-        [CUT]=CutMap(file,DD);   if isempty(CUT); return; end
+        [CUT]=CutMap(file,DD);  % if isempty(CUT); return; end
         %% filter
-        CUT.grids.unfiltered=CUT.grids.ssh;
-        CUT.grids.ssh=highPassSSH(CUT.grids,DD.parameters.Gausswidth);
+        CUT.grids.sshS=lowPassSSH(CUT.grids,DD.parameters.Gausswidth);
         %% write data
         WriteFileOut(file.out,CUT);
     end
@@ -74,9 +73,7 @@ function [CUT]=CutMap(file,DD)
     %% nan out land and make SI
     CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.parameters.ssh_unitFactor);
     %% get distance fields
-    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
-    %% high pass ssh
-    %     CUT.grids.sshFltrd=highPassSSH(CUT.grids,DD.parameters.Gausswidth);
+    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OUT=ZonalAppend(raw,window)    
@@ -94,7 +91,7 @@ function OUT=ZonalAppend(raw,window)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=highPassSSH(grids,gaussWidth)
+function out=lowPassSSH(grids,gaussWidth)
 
 gw.x=gaussWidth./grids.DX;
     gw.y=gaussWidth./grids.DY;
@@ -103,10 +100,13 @@ gw.x=gaussWidth./grids.DX;
     gwx=ceil(mean(gw.x(:)));
     gwy=ceil(mean(gw.y(:)));
     
-    m = grids.ssh - smooth2gauss(grids.ssh,gwx,gwy);
-    m = m - nanmin(m(:));
-    m = m/nanmax(m(:));
-    out = m*(nanmax(grids.ssh(:)) - nanmin(grids.ssh(:))) + nanmin(grids.ssh(:));
+%     a=smooth2gauss(grids.ssh,gwx,gwy)
+    
+    
+   out = smooth2gauss(grids.ssh,gwx,gwy);
+%     m = m - nanmin(m(:));
+%     m = m/nanmax(m(:));
+%     out = m*(nanmax(grids.ssh(:)) - nanmin(grids.ssh(:))) + nanmin(grids.ssh(:));
 %     mm=smooth2a(grids.ssh,3,3)
 %     
 %      figure(5);

@@ -49,7 +49,7 @@ function matrixOut = smooth2a(matrixIn,Nr,Nc)
 	nrmlize = eL*(~A)*eR;
 	nrmlize(A) = NaN;
 	%% Actually taking the mean.
-	matrixOut = eL*matrixIn*eR;
+	matrixOut = full(eL)*matrixIn*full(eR);
 	matrixOut = matrixOut./nrmlize;
 end
 

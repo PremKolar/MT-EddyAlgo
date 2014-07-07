@@ -10,18 +10,18 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-%     DD.debugmode=true;
+    DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19940409';
+    DD.time.till.str='19940112';
     %% window on globe
     DD.map.in.west=0;
     DD.map.in.east=20;
     DD.map.in.south=-60;
     DD.map.in.north=-40;
     %% output map res
-    DD.map.out.X=20*1+1; % TODO
-    DD.map.out.Y=10*1+1;
+    DD.map.out.X=100*1+1; % TODO
+    DD.map.out.Y=100*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.ssh_filter_size=1;
@@ -34,7 +34,7 @@ function DD=INPUT
     DD.thresh.life=3; % min num of living days for saving
     DD.thresh.amArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
-    DD.switchs.RossbyStuff=false;
+    DD.switchs.RossbyStuff=true;
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;
     DD.switchs.distlimit=false;

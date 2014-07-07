@@ -10,7 +10,7 @@ function S03_infer_fields
     DD=initialise('cuts',mfilename);
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
-    DD.coriolis=coriolisStuff(cut1.grids);
+%     DD.coriolis=coriolisStuff(cut1.grids);
     RS=getRossbyStuff(DD,cut1.grids);
     %% spmd
     main(DD,RS)
@@ -55,9 +55,9 @@ function spmd_body(DD,RS)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-        coriolis=coriolisStuff(cut.grids);
+%         coriolis=coriolisStuff(cut.grids);
         %% calc
-        grids=geostrophy(cut.grids,coriolis,RS); 
+%         grids=geostrophy(cut.grids,coriolis,RS); 
         
         grids.fltrd=filterStuff(cut.grids,RS);
         
@@ -85,7 +85,11 @@ before.x=double(cumsum(gr.DX,2) - repmat(gr.DX(:,1),1,X))
 before.y=double(cumsum(gr.DY,1) - repmat(gr.DY(1,:),Y,1))
  [query.x,query.y] = meshgrid(linspace(0,max(before.x(:)),X), linspace(0,max(before.y(:)),Y)' );
 gr.sshEquDist = griddata(before.x,before.y,gr.ssh,linspace(0,max(before.x(:)),X),linspace(0,max(before.y(:)),Y)')
-gr.sshSpec=fft2(gr.sshEquDist) ;   
+
+
+
+
+gr.sshSpec=fft2(nan2zero(gr.sshEquDist)) ;   
  ppc(abs(gr.sshSpec))
  
 

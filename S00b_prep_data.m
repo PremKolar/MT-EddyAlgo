@@ -53,7 +53,7 @@ function spmd_body(DD)
         %% cut data
         [CUT]=CutMap(file,DD);  % if isempty(CUT); return; end
         %% filter
-        CUT.grids.sshS=lowPassSSH(CUT.grids,DD.parameters.Gausswidth);
+%         CUT.grids.sshS=lowPassSSH(CUT.grids,DD.parameters.Gausswidth);
         %% write data
         WriteFileOut(file.out,CUT);
     end

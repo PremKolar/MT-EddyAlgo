@@ -35,9 +35,9 @@ function matrixOut = smooth2a(matrixIn,Nr,Nc)
 	% smooths along the rows.  The right-matrix, eR, smooths along the
 	% columns.  You end up replacing element "i" by the mean of a (2*Nr+1)-by-
 	% (2*Nc+1) rectangle centered on element "i".
-	[row,col] = size(matrixIn);
-	eL = spdiags(ones(row,2*N(1)+1),(-N(1):N(1)),row,row);
-	eR = spdiags(ones(col,2*N(2)+1),(-N(2):N(2)),col,col);
+	[Y,X] = size(matrixIn);
+	eL = spdiags(ones(Y,2*N(1)+1),(-N(1):N(1)),Y,Y);
+	eR = spdiags(ones(X,2*N(2)+1),(-N(2):N(2)),X,X);
 	%% Setting all "NaN" elements of "matrixIn" to zero so that these will not
 	% affect the summation.  (If this isn't done, any sum that includes a NaN
 	% will also become NaN.)

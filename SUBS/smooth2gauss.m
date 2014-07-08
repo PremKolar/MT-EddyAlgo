@@ -9,27 +9,43 @@
 % 	Dept. of Oceanography, Earth Sciences Centre
 % 	G�teborg University, Sweden
 % 	E-mail: olof.liungman@oce.gu.se
-function matrixOut = smooth2gauss(matrixIn,Nr,Nc)
-	N(1) = Nr;
-	if nargin < 3, N(2) = N(1); else N(2) = Nc; end
-	[row,col] = size(matrixIn);
-	
-	
-	
-% 	filL=repmat((cos(linspace(-pi/2,pi/2,2*N(1)+1))+1)/2,row,1);
-% 	filR=repmat((cos(linspace(-pi/2,pi/2,2*N(2)+1))+1)/2,col,1);
-
-	filL=repmat(gausswin(2*N(1)+1)',row,1);
-	filR=repmat(gausswin(2*N(2)+1)',col,1);
-	
-    eL = spdiags(filL,(-N(1):N(1)),row,row);
-	eR = spdiags(filR,(-N(2):N(2)),col,col);
-	A = isnan(matrixIn);
-	matrixIn(A) = 0;
-	nrmlize = eL*(~A)*eR;
-	nrmlize(A) = NaN;
-	matrixOut = eL*matrixIn*eR;
-	matrixOut = matrixOut./nrmlize;
+function Mout = smooth2gauss(Min,alpha)
+    [Y,X] = size(Min);
+    N=min([Y,X]);
+    sig=(2*N+1)./(2*alpha);
+    padwidth=ceil(median(2*sig))  ;
+    Mpad=padarray(Min,[padwidth padwidth],'symmetric');
+  
+    [Ypad,Xpad] = size(Mpad);
+    
+    
+    %%
+    if numel(sig)==1
+        fltr.y=repmat(gausswin(2*N+1,sig)',Ypad,1);
+        fltr.x=repmat(gausswin(2*N+1,sig)',Xpad,1);
+    else
+        sig=padarray(sig,[0 padwidth],'replicate');
+        fltr.y=zeros(Ypad,2*N+1);
+        fltr.x=zeros(Xpad,2*N+1);
+        for ii=1:Ypad
+            fltr.y(ii,:) = gausswin(2*N+1,sig(ii))';
+        end
+        for ii=1:Xpad
+            fltr.x(ii,:) = gausswin(2*N+1,sig(ii));            
+        end
+    end
+    %%
+    e.y = spdiags(fltr.y,(-N:N),Ypad,Ypad);
+    e.x = spdiags(fltr.x,(-N:N),Xpad,Xpad);
+    
+    A = isnan(Mpad);
+    Mpad(A) = 0;
+    nrmlize = e.y*(~A)*e.x;
+    nrmlize(A) = NaN;
+    Mout = e.y*Mpad*e.x;
+    Mout = Mout./nrmlize;
+    Mout = Mout(padwidth+1:end-padwidth,padwidth+1:end-padwidth);
+   
 end
 
 

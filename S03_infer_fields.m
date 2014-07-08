@@ -62,17 +62,50 @@ function spmd_body(DD,RS)
         grids.fltrd=filterStuff(cut.grids,RS);
         
         %% write
-        save(JJ(jj).files,'grids','-append');
+%         save(JJ(jj).files,'grids','-append');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gr=filterStuff(gr,RS)
  %%
-	[Y,X]=size(gr.ssh)
+ [Y,X]=size(gr.ssh) 
+
+ 
+%  a = smooth2gauss(gr.ssh,100*cos(linspace(0.001,pi/2,Y)))
+%   a = gr.ssh-smooth2gauss(gr.ssh,20);
+ 
+%  g=ones(20,200)+rand(20,200)/10  
+%  mesh(smooth2gauss(g,10))
+
+
+% mesh(smooth2FuncOfY(gr.ssh,3,50))
+ 
+a=gr.ssh-smooth2FuncOfY(gr.ssh,10,10);
+ppc(exp(a-min(a(:))))
+
+ggg=[cool;hot;autumn;summer;winter;bone];
+  jjj=repmat(jet,6,1);
+ HHH(:,:,1)=ggg;
+ HHH(:,:,2)=jjj;
+ 
+ 
+ a = smooth2a(gr.ssh,10);
+ subplot(121)
+ pcolor(gr.ssh);shading flat;axis equal;axis tight;colorbar;colormap;colormap(repmat(mean(HHH,3),5,1))
+ subplot(122)
+a = smooth2a(gr.ssh,400);
+pcolor(gr.ssh - a);shading flat;axis equal;axis tight;colorbar;colormap(repmat(mean(HHH,3),5,1))
+
+savefig('./',300,1200,800,'yo')
+
+
+close all
+
+
+
  PSF = fspecial('gaussian',[Y X],10);
  mesh(conv2(PSF,gr.ssh))
  
- a = smooth2gauss(gr.ssh,10)
 Blurred = imfilter(gr.ssh,PSF,'symmetric','conv');
 gr.sshHighPas=gr.ssh - Blurred;
 aa=gr.ssh - a

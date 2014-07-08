@@ -7,15 +7,13 @@ function fig=ppc(in)
 	end
 	[Y,X]=size(in);
 	YoX=Y/X;
-	Y(Y>256)=256;
+	Y(Y>512)=512;
 	X=round(Y/YoX);
 	%% draw
-	fig=pcolor(downsize(double(squeeze(in)),X,Y));
+	fig=pcolor(downsize(full(double(squeeze(in))),X,Y));
 	shading flat
 	colorbar
     med.u=nanmedian(nanmin(in(:))) ;
-    med.d=nanmedian(nanmax(in(:))) ;
-    
-    caxis([med.u med.d]);
-    
+    med.d=nanmedian(nanmax(in(:))) ;    
+    caxis([med.u med.d]);    
 end

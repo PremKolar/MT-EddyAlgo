@@ -31,20 +31,36 @@ function Mout = smooth2FuncOfY(Min,Nsouth,Nnorth)
         alpha(ii)=(2*filterWidth+1)./(2*sigma);
         fltrY(ii,:)=gausswin(2*filterWidth+1,alpha(ii))';        
     end
-    ey = spdiags(fltrY,(-max(Nmerid):max(Nmerid)),Ypad,Ypad);
+    ey = spdiags(fltrY,(-sigmaMax:sigmaMax),Ypad,Ypad);
     %%
+	 
+	 
+	 fltrX=sparse(repmat(zeros(Xpad,2*filterWidth+1),Ypad,1));
+	  
+	 
+	 jj=0
+	 for ii=1:Ypad+1:Ypad^2; jj=jj+1;
+       
+		 fltrX(ii,:)=fltrY(jj,:);
+		 
+% 		 
+% 		 fltrX = repmat(fltrY(ii,:),Xpad,1);       
+%         ex = spdiags(fltrX,-max(Nmerid):max(Nmerid),Xpad,Xpad);
+%         Mout(ii,:)=Mout(ii,:)*ex;
+%           nrmlize(ii,:)=nrmlize(ii,:)*ex;
+	 end
+	 
+	  ex = spdiags(fltrX,(-sigmaMax*Ypad:Ypad:Ypad*sigmaMax),Xpad,Xpad*Ypad);
+	 
+	a= ey*Mpad*ex;
+	 %%
        A = isnan(Mpad);
     Mpad(A) = 0;
-    Mout = ey*Mpad ;
-    nrmlize = ey*(~A);
+    Mout = ey*Mpad*ex ;
+    nrmlize = ey*(~A)*ex;
      %%
          
-     for ii=1:Ypad
-        fltrX = repmat(fltrY(ii,:),Xpad,1);       
-        ex = spdiags(fltrX,-max(Nmerid):max(Nmerid),Xpad,Xpad);
-        Mout(ii,:)=Mout(ii,:)*ex;
-          nrmlize(ii,:)=nrmlize(ii,:)*ex;
-    end
+    
     
     
   

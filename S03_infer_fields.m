@@ -80,7 +80,7 @@ function gr=filterStuff(gr,RS)
 
 % mesh(smooth2FuncOfY(gr.ssh,3,50))
  
-a=gr.ssh-smooth2FuncOfY(gr.ssh,10,10);
+a=gr.ssh-smooth2FuncOfY(gr.ssh,1,10);
 ppc(exp(a-min(a(:))))
 
 ggg=[cool;hot;autumn;summer;winter;bone];

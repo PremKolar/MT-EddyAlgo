@@ -67,50 +67,23 @@ function spmd_body(DD,RS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gr=filterStuff(gr,RS)
-  
+ %%
+	[Y,X]=size(gr.ssh)
+ PSF = fspecial('gaussian',[Y X],10);
+ mesh(conv2(PSF,gr.ssh))
  
-%   ppc(RS.LrInc.y)
-  
- % x=filtered.raw
-  
- 
-%  gw.y=
- 
+ a = smooth2gauss(gr.ssh,10)
+Blurred = imfilter(gr.ssh,PSF,'symmetric','conv');
+gr.sshHighPas=gr.ssh - Blurred;
+aa=gr.ssh - a
+figure(2)
+mesh(gr.sshHighPas - nanmin(gr.sshHighPas(:)))
+figure(3)
+mesh(Blurred - a)
 
-
-
- [Y,X]=size(gr.ssh)
-
-before.x=double(cumsum(gr.DX,2) - repmat(gr.DX(:,1),1,X))
-before.y=double(cumsum(gr.DY,1) - repmat(gr.DY(1,:),Y,1))
- [query.x,query.y] = meshgrid(linspace(0,max(before.x(:)),X), linspace(0,max(before.y(:)),Y)' );
-gr.sshEquDist = griddata(before.x,before.y,gr.ssh,linspace(0,max(before.x(:)),X),linspace(0,max(before.y(:)),Y)')
-
-
-
-
-gr.sshSpec=fft2(nan2zero(gr.sshEquDist)) ;   
- ppc(abs(gr.sshSpec))
- 
-
- [xx,yy]=meshgrid(gausswin(X,10),gausswin(Y,10))
- gauswin2=((xx+yy)/2)
- figure(1)
- ppc(gauswin2) 
- figure(2) 
-ppc(abs(ifft2(a.*gauswin2)))
-
-
-
-
-
-
-%   levelRange=diff(II.levels([1 end]));
-%    filtered.raw=II.grids.ssh - II.grids.sshS;%    
-%    filtered.scaled=(filtered.raw - min(filtered.raw(:)))/(max(filtered.raw(:)) - min(filtered.raw(:))) * (max(II.grids.ssh(:))-min(II.grids.ssh(:))) + min(II.grids.ssh(:));   
-%    filtered.scaRnd=round(filtered.scaled/dd.contour.step)*dd.contour.step;
-%     
-
+mesh(Blurred)
+mesh(PSF)
+%%
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -17,8 +17,8 @@ function DD=INPUT
     %% window on globe
     DD.map.in.west=0;
     DD.map.in.east=20;
-    DD.map.in.south=-80;
-    DD.map.in.north=80;
+    DD.map.in.south=-60;
+    DD.map.in.north=-40;
     %% output map res
     DD.map.out.X=100*1+1; % TODO
     DD.map.out.Y=100*1+1;

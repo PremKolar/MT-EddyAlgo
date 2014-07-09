@@ -85,8 +85,8 @@ function DD=ini(DD,toCheck)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TT=initChecks(DD,toCheck)
-	throwNoDataErr;
-	%% get filenames
+	throwNoDataErr
+    %% get filenames
 	TT = DD.time;
 	TT.existant.filesall=extractfield(DD.path.(toCheck).files,'name');
 	%% cat numbers in filenames only for speed

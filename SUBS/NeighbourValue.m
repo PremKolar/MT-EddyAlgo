@@ -5,8 +5,8 @@ function grid=NeighbourValue(idx,grid,step)
 	if ~exist('step','var'),step=1;end
 	neighbouredMeanedGrid=getMean(grid);
 	grid(idx)=neighbouredMeanedGrid(idx);
-	disp(num2str(step));
-	disp(num2str(numel(idx)));
+if mod(step,100)==0, 	disp(['blending in nans. Recursion level: ' num2str(step)]);
+
 	%% recursive
 	idx=find(isnan(grid));
 	grid=NeighbourValue(idx,grid,step+1);

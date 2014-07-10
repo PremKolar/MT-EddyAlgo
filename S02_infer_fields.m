@@ -87,10 +87,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sshHighPass=filterStuff(gr,RS)   
     %% get center, minor and major axis for ellipse      
-    RossbyEqFlag=abs(gr.lat)<5  ; 
-    semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));
-    semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));    
-    [~,sshHighPass]=ellipseFltr(semi,gr.ssh);
+    RossbyEqFlag=abs(gr.lat)<5  ;													%TODO {put before loop...
+    semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));			%...
+	     semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));		%.}
+    [~,sshHighPass]=ellipseFltr(semi,gr.ssh);										
     %
     %     JET=repmat(jet,3,1);
     %     figure(1)

@@ -10,8 +10,8 @@ function S01_BruntVaisRossby
     if ~DD.switchs.RossbyStuff,return;end
     switch DD.parameters.Nknown
         case false
-            S02b_fromTS
+            S01b_fromTS
         case true
-            S02b_fromRaw
+            S01b_fromRaw
     end
 end

@@ -151,7 +151,7 @@ function [CK]=preInitCK(DD)
 % 	dispM('getting dims..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,0);
 % 	dispM('getting geo info..')
-	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
+	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
 % 	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);

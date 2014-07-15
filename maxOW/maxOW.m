@@ -32,7 +32,7 @@ function spmd_body(DD)
 	%%
 	[CKpre]=preInitCK(DD);
 	%% loop over chunks
-	for ff=0:numel(DD.path.TempSalt.salt)-1
+	for ff=0:numel(DD.path.TempSalt)-1
 		for chnk=lims.loop(id,1):lims.loop(id,2)
 			Calculations(DD,chnk,ff,CKpre);
 		end
@@ -215,7 +215,7 @@ end
 function initNcFile(DD)
 	CK=loadChunk(DD.path.Rossby.name,1,1);
 	[dim.Z,dim.Y,dim.X]=size(CK.pres);
-	dim.t=numel(DD.path.TempSalt.salt);
+	dim.t=numel(DD.path.TempSalt);
 	nc_adddim(DD.path.Rossby.NCfile,'k_index',dim.Z);
 	nc_adddim(DD.path.Rossby.NCfile,'i_index',DD.TS.window.size.X);
 	nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);
@@ -262,7 +262,7 @@ function WriteNCfile(DD)
 	splits=DD.parameters.RossbySplits;
 	initNcFile(DD);
 	Tf=disp_progress('init','looping over time-steps');
-	fnum=numel(DD.path.TempSalt.salt);
+	fnum=numel(DD.path.TempSalt);
 	for ff=0:fnum-1
 		Tf=disp_progress('disp',Tf,fnum,100);
 		%% cat chunks
@@ -279,22 +279,22 @@ function WriteNCfile(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=ChunkLatLon(DD,dim)
-	lat=nc_varget(DD.path.TempSalt.temp(1),DD.TS.keys.lat,dim.start1d, dim.len1d);
-	lon=nc_varget(DD.path.TempSalt.temp(1),DD.TS.keys.lon,dim.start1d, dim.len1d);
+	lat=nc_varget(DD.path.TempSalt(1).temp,DD.TS.keys.lat,dim.start1d, dim.len1d);
+	lon=nc_varget(DD.path.TempSalt(1).temp,DD.TS.keys.lon,dim.start1d, dim.len1d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function depth=ChunkDepth(DD)
-	depth=nc_varget(DD.path.TempSalt.salt(1),'depth_t');
+	depth=nc_varget(DD.path.TempSalt(1).salt,'depth_t');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim,ff)
-	salt=squeeze(nc_varget(DD.path.TempSalt.salt(ff),'TEMP',dim.start2d,dim.len2d));
+	salt=squeeze(nc_varget(DD.path.TempSalt(ff).salt,'TEMP',dim.start2d,dim.len2d));
 	salt(salt==0)=nan;
 	salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim,ff)
-	temp=squeeze(nc_varget(DD.path.TempSalt.temp(ff),'TEMP',dim.start2d,dim.len2d));
+	temp=squeeze(nc_varget(DD.path.TempSalt(ff).temp,'TEMP',dim.start2d,dim.len2d));
 	temp(temp==0)=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

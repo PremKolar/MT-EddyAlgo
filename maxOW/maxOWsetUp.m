@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD]=maxOWsetUp
 	addpath(genpath('../'))
-	addpath(genpath('../SUBS/'))
+	addpath(genpath('../SUBS/'))	
 	%% init
 	DD=initialise([],mfilename);
 	%% check if exists already
@@ -47,11 +47,11 @@ function [file]=tempsalt(DD)
 	for kk=1:numel(DD.path.TempSalt.files);
 		if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'SALT'))
 			ss=ss+1;
-			file.salt(ss)=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+			file(ss).salt=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
 		end
 		if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'TEMP'))
 			tt=tt+1;
-			file.temp(tt)=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+			file(tt).temp=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
 		end
 	end
 end

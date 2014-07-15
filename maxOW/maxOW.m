@@ -41,10 +41,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk,ff,CKpre)
 	%% init
-	[CKnow,cc]=init(DD,chnk,ff);
-	%% merge
-	CK=mergeStruct2(CKpre,CKnow);
-	clear CKpre CKnow;
+	[CK,cc]=init(CKpre,DD,chnk,ff);	
+	clear CKpre;
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
@@ -54,11 +52,12 @@ function Calculations(DD,chnk,ff,CKpre)
 	disp('saving..')
 	saveChunk(CK,DD.path.Rossby.name,chnk,ff);
 	%----------------------------------------------------------------------
-	function [CK,cc]=init(DD,chnk,ff)
+	function [CK,cc]=init(CKpre,DD,chnk,ff)
 		lims=DD.RossbyStuff.lims.data;
 		cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
 		disp('initialising..')
-		CK=initCK(DD,chnk,ff);
+		%% merge	
+		CK=initCK(CKpre,DD,chnk,ff);
 	end
 	%----------------------------------------------------------------------
 end
@@ -130,7 +129,7 @@ function [pressure]=calcPres(CK,cc)
 	pressure=double(reshape(sw_pres(M.depth(:),M.lat(:)),[ZZ,YY,XX]));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=initCK(DD,chunk,ff)
+function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
 	disp('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);

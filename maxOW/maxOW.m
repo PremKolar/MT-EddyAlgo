@@ -52,7 +52,7 @@ function Calculations(DD,chnk,ff,CK)
 	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];		
 	if exist(file_out,'file');
 		dispM('exists');
-		%return;
+		return;
 	end
 	CK=initCK(CK,DD,chnk,ff);		
 	%% calculate pressure
@@ -316,7 +316,7 @@ function nc2mat(DD,ff)
 	fns=ncfieldnames(DD.path.Rossby.NCfile)';
 	%% save 2 mats
 	for fn=fns;
-		out=nc_varget(DD.path.Rossby.NCfile,fn);
+		out=nc_varget(DD.path.Rossby.NCfile,fn{1});
 		switch ff
 			case 0
 				nc2matSave(DD,out,fn{1})

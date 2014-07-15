@@ -70,7 +70,7 @@ function OW =	calcOW(CK,cc)
 	vels=getVels(CK.corio,gr);
 	clear gr;
 	%% uvgrads
-	uvg=UVgrads(vels,DX,DY);
+	uvg=UVgrads(vels,CK.DX,CK.DY);
 	clear vels;
 	%% deformation
 	deform=getDefo(uvg);

@@ -21,7 +21,7 @@ function main(DD)
 	else
 		spmd(DD.threads.num)
 			spmd_body(DD);
-% 			disp_progress('conclude');
+			% 			disp_progress('conclude');
 		end
 	end
 end
@@ -49,19 +49,19 @@ function Calculations(DD,chnk,ff,CK)
 	cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
 	dispM('initialising..')
 	%% merge
-	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];		
+	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];
 	if exist(file_out,'file');
 		dispM('exists');
 		return;
 	end
-	CK=initCK(CK,DD,chnk,ff);		
+	CK=initCK(CK,DD,chnk,ff);
 	%% calculate pressure
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
 	[CK.OW]=calcOW(CK,cc);
 	%% save
 	dispM('saving..')
-	saveChunk(CK,file_out);	
+	saveChunk(CK,file_out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW =	calcOW(CK,cc)
@@ -134,28 +134,28 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
-% 	dispM('getting geo info..')
+	% 	dispM('getting geo info..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,chunk,ff);
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff+1);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-% 	dispM('getting temperature..')
+	% 	dispM('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
 	dispM('getting salt..')
 	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
-% 	dispM('getting coriolis stuff..')
+	% 	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)
-% 	dispM('getting depth..')
+	% 	dispM('getting depth..')
 	CK.depth=ChunkDepth(DD);
-% 	dispM('getting dims..')
+	% 	dispM('getting dims..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,0);
-% 	dispM('getting geo info..')
+	% 	dispM('getting geo info..')
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,1);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-% 	dispM('getting coriolis stuff..')
+	% 	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
@@ -205,7 +205,7 @@ function dim=ncArrayDims(k_len,DD,chnk,ff)
 	lims=DD.RossbyStuff.lims.data;
 	j_indx_start = DD.TS.window.limits.south-1;
 	j_len = DD.TS.window.size.Y;
-	 DD.TS.window.size;
+	DD.TS.window.size;
 	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
 	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1];
 	dim.start1d = [j_indx_start lims(chnk,1)-1];
@@ -215,12 +215,12 @@ function dim=ncArrayDims(k_len,DD,chnk,ff)
 	xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
 	newxstart=sum(xlens(1:chnk-1))+1 -1;
 	dim.new.start.fourD =[ff 0 0 newxstart];
-	dim.new.len.fourD =  dim.len2d;	
+	dim.new.len.fourD =  dim.len2d;
 	dim.new.start.z =[0];
 	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];
 	dim.new.len.twoD =  dim.len1d;
-
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
@@ -284,9 +284,10 @@ function WriteNCfile(DD)
 			CK=loadChunk(DD.path.Rossby.name,chnk,ff);
 			catChunks2NetCDF(DD.path.Rossby.NCfile,CK,ff);
 		end
-		%% make also mat files
-		nc2mat(DD,ff);
+		
 	end
+	%% make also mat files
+	nc2mat(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=ChunkLatLon(DD,dim,ff)
@@ -311,21 +312,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function nc2mat(DD,ff)
+function nc2mat(DD)
 	%% test for remap
 	fns=ncfieldnames(DD.path.Rossby.NCfile)';
 	%% save 2 mats
 	for fn=fns;
 		out=nc_varget(DD.path.Rossby.NCfile,fn{1});
-		switch ff
-			case 0
-				nc2matSave(DD,out,fn{1})
-			otherwise
-				nc2matAppend(DD,out,fn{1})
-		end
-	end	
-	function nc2matAppend(DD,out,fn) %#ok<INUSL>
-		save([DD.path.Rossby.name, fn,'.mat'],'out','-append');
+		nc2matSave(DD,out,fn{1});
 	end
 	function nc2matSave(DD,out,fn) %#ok<INUSL>
 		save([DD.path.Rossby.name, fn,'.mat'],'out');

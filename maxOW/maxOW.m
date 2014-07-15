@@ -287,13 +287,14 @@ function depth=ChunkDepth(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim,ff)
-sdfhgdgfhf
+
 	salt=squeeze(nc_varget(DD.path.TSow(ff).salt,'TEMP',dim.start2d,dim.len2d));
 	salt(salt==0)=nan;
 	salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim,ff)
+sdfhgdgfhf
 	temp=squeeze(nc_varget(DD.path.TSow(ff).temp,'TEMP',dim.start2d,dim.len2d));
 	temp(temp==0)=nan;
 end

@@ -32,10 +32,12 @@ function spmd_body(DD)
 	%%
 	[CKpre]=preInitCK(DD);
 	%% loop over chunks
-	for ff=0:numel(DD.path.TSow)-1
-		lims.loop
-		id
+	Tf=disp_progress('init','looping through files');
+	for ff=0:numel(DD.path.TSow)-1	
+		Tf=disp_progress('show',Tf,numel(DD.path.TSow),100);
+		T=disp_progress('init','looping through files');
 		for chnk=lims.loop(id,1):lims.loop(id,2)
+		T=disp_progress('yo',T,diff(lims.loop(id))+1,diff(lims.loop(id))+1);
 			Calculations(DD,chnk,ff,CKpre);
 		end
 	end
@@ -215,8 +217,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
 	CK=loadChunk(DD.path.Rossby.name,1,1);
-	[dim.Z,dim.Y,dim.X]=size(CK.pres);
-	dim.t=numel(DD.path.TSow);
+	[dim.Z,dim.Y,dim.X]=size(CK.OW)
+	dim.t=numel(DD.path.TSow)
 	nc_adddim(DD.path.Rossby.NCfile,'k_index',dim.Z);
 	nc_adddim(DD.path.Rossby.NCfile,'i_index',DD.TS.window.size.X);
 	nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);

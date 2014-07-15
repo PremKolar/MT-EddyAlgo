@@ -10,18 +10,18 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-%     DD.debugmode=true;
+    DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
     DD.time.till.str='19940201';
     %% window on globe
     DD.map.in.west=0;
-    DD.map.in.east=20;
-    DD.map.in.south=-60;
-    DD.map.in.north=60;
+    DD.map.in.east=60;
+    DD.map.in.south=-50;
+    DD.map.in.north=-20;
     %% output map res
-    DD.map.out.X=20 *1+1; % TODO
-    DD.map.out.Y=120*1+1;
+    DD.map.out.X=60*1+1; % TODO
+    DD.map.out.Y=30*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.ssh_filter_size=1;

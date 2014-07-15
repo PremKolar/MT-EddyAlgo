@@ -134,7 +134,7 @@ function [CK]=initCK(CK,DD,chunk,ff)
 	disp('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
 	disp('getting salt..')
-	CK.SALT=ChunkSalt(DD,CK.dim+1);
+	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)

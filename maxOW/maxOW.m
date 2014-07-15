@@ -54,8 +54,7 @@ function Calculations(DD,chnk,ff,CK)
 		dispM('exists');
 		%return;
 	end
-	CK=initCK(CK,DD,chnk,ff);	
-	
+	CK=initCK(CK,DD,chnk,ff);		
 	%% calculate pressure
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
@@ -135,7 +134,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
-	numel(CK.depth)
 % 	dispM('getting geo info..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,chunk,ff);
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff+1);
@@ -261,6 +259,8 @@ function initNcFile(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function catChunks2NetCDF(file,CK,ff)
+	start=CK.dim.new.start;
+	len  =CK.dim.new.len;
 	nc_varput(file,'OkuboWeiss',CK.OW,		 start.fourD,    len.fourD);
 	nc_varput(file,'depth',CK.depth,        start.z,            len.z);
 	nc_varput(file,'lat', CK.lat,			    start.twoD,      len.twoD);

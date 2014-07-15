@@ -33,11 +33,11 @@ function spmd_body(DD)
 	[CKpre]=preInitCK(DD);
 	%% loop over chunks
 	Tf=disp_progress('init','looping through files');
-	for ff=0:numel(DD.path.TSow)-1	
+	for ff=0:numel(DD.path.TSow)-1
 		Tf=disp_progress('show',Tf,numel(DD.path.TSow),100);
 		T=disp_progress('init','looping through files');
 		for chnk=lims.loop(id,1):lims.loop(id,2)
-		T=disp_progress('yo',T,diff(lims.loop(id))+1,diff(lims.loop(id))+1);
+			T=disp_progress('yo',T,diff(lims.loop(id))+1,diff(lims.loop(id))+1);
 			Calculations(DD,chnk,ff,CKpre);
 		end
 	end
@@ -46,6 +46,7 @@ end
 function Calculations(DD,chnk,ff,CKpre)
 	%% init
 	[CK,cc]=init(CKpre,DD,chnk,ff);
+	if exist(CK.file_out,'file');disp('exists');return;end
 	clear CKpre;
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
@@ -54,7 +55,7 @@ function Calculations(DD,chnk,ff,CKpre)
 	CK.pres=[];
 	%% save
 	disp('saving..')
-	saveChunk(CK,DD.path.Rossby.name,chnk,ff);
+	saveChunk(CK);
 	%----------------------------------------------------------------------
 	function [CK,cc]=init(CKpre,DD,chnk,ff)
 		lims=DD.RossbyStuff.lims.data;
@@ -62,6 +63,7 @@ function Calculations(DD,chnk,ff,CKpre)
 		disp('initialising..')
 		%% merge
 		CK=initCK(CKpre,DD,chnk,ff);
+		CK.file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];
 	end
 	%----------------------------------------------------------------------
 end
@@ -135,14 +137,15 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
-	disp('getting temperature..')
+	numel(CK.depth)
+	CK.dim=ncArrayDims(numel(CK.depth),DD,1,ff);
+		disp('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
 	disp('getting salt..')
 	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)
-	CK.dim=ncArrayDims(DD,1,0);
 	disp('getting depth..')
 	CK.depth=ChunkDepth(DD);
 	disp('getting geo info..')
@@ -185,9 +188,8 @@ function [DY,DX]=ChunkDYDX(lat,lon)
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveChunk(CK,RossbyDir,cc,ff)  %#ok<INUSL>
-	file_out=[RossbyDir,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];
-	save(file_out,'-struct','CK');
+function saveChunk(CK)
+	save(CK.file_out,'-struct','CK');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CK=loadChunk(RossbyDir,chnk,ff)
@@ -195,12 +197,12 @@ function CK=loadChunk(RossbyDir,chnk,ff)
 	CK=load(file_in);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dim=ncArrayDims(DD,chnk,ff)
+function dim=ncArrayDims(k_len,DD,chnk,ff)
 	lims=DD.RossbyStuff.lims.data;
 	j_indx_start = DD.TS.window.limits.south-1;
-	j_len = DD.TS.window.size.Y;
+	j_len = DD.TS.window.size.Y;	
 	dim.start2d = [ff 0 j_indx_start lims(chnk,1)-1];
-	dim.len2d = 	[1 inf j_len diff(lims(chnk,:))+1];
+	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1];
 	dim.start1d = [j_indx_start lims(chnk,1)-1];
 	dim.len1d =	[j_len diff(lims(chnk,:))+1];
 	%% new indeces for output nc file
@@ -210,7 +212,7 @@ function dim=ncArrayDims(DD,chnk,ff)
 	dim.new.start.fourD =[ff 0 0 newxstart];
 	dim.new.len.fourD =  dim.len2d;
 	dim.new.start.z =[0];
-	dim.new.len.z =  [inf];
+	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];
 	dim.new.len.twoD =  dim.len1d;
 end
@@ -253,11 +255,11 @@ end
 function catChunks2NetCDF(file,CK,ff)
 	start= CK.dim.new.start;
 	len  = CK.dim.new.len;
-	nc_varput(file,'Okubo-Weiss',CK.OW, start.fourD,    len.fourD);
-	nc_varput(file,'depth',CK.depth,        start.z,        len.z);
-	nc_varput(file,'lat', CK.lat,			    start.twoD,  len.twoD);
-	nc_varput(file,'lon', CK.lon,           start.twoD,  len.twoD);
-	nc_varput(file,'time', now + ff,        [ff],             [1]);
+	nc_varput(file,'Okubo-Weiss',CK.OW,		 start.fourD,    len.fourD);
+	nc_varput(file,'depth',CK.depth,        start.z,            len.z);
+	nc_varput(file,'lat', CK.lat,			    start.twoD,      len.twoD);
+	nc_varput(file,'lon', CK.lon,           start.twoD,      len.twoD);
+	nc_varput(file,'time', now + ff,        [ff],                 [1]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function WriteNCfile(DD)

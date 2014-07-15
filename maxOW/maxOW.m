@@ -43,11 +43,15 @@ function spmd_body(DD)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Calculations(DD,chnk,ff,CKpre)
+function Calculations(DD,chnk,ff,CK)
 	%% init
-	[CK,cc]=init(CKpre,DD,chnk,ff);
-	if exist(CK.file_out,'file');disp('exists');return;end
-	clear CKpre;
+	lims=DD.RossbyStuff.lims.data;
+	cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
+	dispM('initialising..')
+	%% merge
+	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];		
+	if exist(file_out,'file');disp('exists');return;end
+	CK=initCK(CK,DD,chnk,ff);	
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
@@ -55,17 +59,7 @@ function Calculations(DD,chnk,ff,CKpre)
 	CK.pres=[];
 	%% save
 	dispM('saving..')
-	saveChunk(CK);
-	%----------------------------------------------------------------------
-	function [CK,cc]=init(CKpre,DD,chnk,ff)
-		lims=DD.RossbyStuff.lims.data;
-		cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
-		dispM('initialising..')
-		%% merge
-		CK=initCK(CKpre,DD,chnk,ff);
-		CK.file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];
-	end
-	%----------------------------------------------------------------------
+	saveChunk(CK);	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW =	calcOW(CK,cc)
@@ -217,8 +211,10 @@ function dim=ncArrayDims(k_len,DD,chnk,ff)
 	xlens=diff(squeeze(lims(:,2)));
 	xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
 	newxstart=sum(xlens(1:chnk-1))+1 -1;
-	dim.new.start.fourD =[ff 0 0 newxstart]
-	dim.new.len.fourD =  dim.len2d
+	dim.new.start.fourD =[ff 0 0 newxstart];
+	[ff 0 0 newxstart]
+	dim.new.len.fourD =  dim.len2d;
+	dim.len2d
 	dim.new.start.z =[0];
 	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];

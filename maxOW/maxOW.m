@@ -52,6 +52,7 @@ function Calculations(DD,chnk,ff,CK)
 	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];		
 	if exist(file_out,'file');dispM('exists');return;end
 	CK=initCK(CK,DD,chnk,ff);	
+	
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
@@ -59,7 +60,7 @@ function Calculations(DD,chnk,ff,CK)
 	CK.pres=[];
 	%% save
 	dispM('saving..')
-	saveChunk(CK);	
+	saveChunk(CK,file_out);	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW =	calcOW(CK,cc)
@@ -190,8 +191,8 @@ function [DY,DX]=ChunkDYDX(lat,lon)
 	DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveChunk(CK)
-	save(CK.file_out,'-struct','CK');
+function saveChunk(CK,file_out) %#ok<INUSL>
+	save(file_out,'-struct','CK');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CK=loadChunk(RossbyDir,chnk,ff)

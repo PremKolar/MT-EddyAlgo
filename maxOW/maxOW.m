@@ -21,7 +21,7 @@ function main(DD)
 	else
 		spmd(DD.threads.num)
 			spmd_body(DD);
-			disp_progress('conclude');
+% 			disp_progress('conclude');
 		end
 	end
 end
@@ -63,7 +63,7 @@ function Calculations(DD,chnk,ff,CK)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW =	calcOW(CK,cc)
-	dispM(['getting okubo weiss',cc],1)
+% 	dispM(['getting okubo weiss',cc],1)
 	%% p gradient
 	[gr.dpdx,gr.dpdy]=getDpdx(CK.pres,CK.DX,CK.DY);
 	%% velocities
@@ -132,28 +132,28 @@ end
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
 	numel(CK.depth)
-	dispM('getting geo info..')
-	CK.dim=ncArrayDims(numel(CK.depth),DD,1,ff);
-	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
+% 	dispM('getting geo info..')
+	CK.dim=ncArrayDims(numel(CK.depth),DD,chunk,ff);
+	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-	dispM('getting temperature..')
+% 	dispM('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
 	dispM('getting salt..')
 	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
-	dispM('getting coriolis stuff..')
+% 	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)
-	dispM('getting depth..')
+% 	dispM('getting depth..')
 	CK.depth=ChunkDepth(DD);
-	dispM('getting dims..')
+% 	dispM('getting dims..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,0);
-	dispM('getting geo info..')
+% 	dispM('getting geo info..')
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-	dispM('getting coriolis stuff..')
+% 	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
@@ -200,13 +200,15 @@ function CK=loadChunk(RossbyDir,chnk,ff)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(k_len,DD,chnk,ff)
+	k_len
 	lims=DD.RossbyStuff.lims.data;
 	j_indx_start = DD.TS.window.limits.south-1;
 	j_len = DD.TS.window.size.Y;
-	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
-	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1];
-	dim.start1d = [j_indx_start lims(chnk,1)-1];
-	dim.len1d =	[j_len diff(lims(chnk,:))+1];
+	 DD.TS.window.size
+	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1]
+	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1]
+	dim.start1d = [j_indx_start lims(chnk,1)-1]
+	dim.len1d =	[j_len diff(lims(chnk,:))+1]
 	%% new indeces for output nc file
 	xlens=diff(squeeze(lims(:,2)));
 	xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
@@ -219,6 +221,8 @@ function dim=ncArrayDims(k_len,DD,chnk,ff)
 	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];
 	dim.new.len.twoD =  dim.len1d;
+	dim.new.len
+	dim.new.start
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
@@ -287,9 +291,9 @@ function WriteNCfile(DD)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [lat,lon]=ChunkLatLon(DD,dim)
-	lat=nc_varget(DD.path.TSow(1).temp,DD.TS.keys.lat,dim.start1d, dim.len1d);
-	lon=nc_varget(DD.path.TSow(1).temp,DD.TS.keys.lon,dim.start1d, dim.len1d);
+function [lat,lon]=ChunkLatLon(DD,dim,ff)
+	lat=nc_varget(DD.path.TSow(ff).temp,DD.TS.keys.lat,dim.start1d, dim.len1d);
+	lon=nc_varget(DD.path.TSow(ff).temp,DD.TS.keys.lon,dim.start1d, dim.len1d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function depth=ChunkDepth(DD)

@@ -33,6 +33,8 @@ function spmd_body(DD)
 	[CKpre]=preInitCK(DD);
 	%% loop over chunks
 	for ff=0:numel(DD.path.TSow)-1
+		lims.loop
+		id
 		for chnk=lims.loop(id,1):lims.loop(id,2)
 			Calculations(DD,chnk,ff,CKpre);
 		end

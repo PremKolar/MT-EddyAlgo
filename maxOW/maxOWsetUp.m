@@ -14,9 +14,9 @@ function [DD]=maxOWsetUp
 	%% threads
 	DD.threads.num=init_threads(DD.threads.num);
 	%% find temp and salt files
-	[DD.path.TempSalt]=tempsalt(DD);
+	[DD.path.TSow]=tempsalt(DD);
 	%% get window according to user input
-	[DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt(1),DD.map.in,DD.TS.keys);
+	[DD.TS.window,~]=GetWindow(DD.path.TSow(1).salt,DD.map.in,DD.TS.keys);
 	%% distro X lims to chunks
 	DD.RossbyStuff.lims.data=limsdata(DD.parameters.RossbySplits,DD.TS.window);
 	%% distro chunks to threads

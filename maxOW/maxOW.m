@@ -50,7 +50,10 @@ function Calculations(DD,chnk,ff,CK)
 	dispM('initialising..')
 	%% merge
 	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];		
-	if exist(file_out,'file');dispM('exists');return;end
+	if exist(file_out,'file');
+		dispM('exists');
+		%return;
+	end
 	CK=initCK(CK,DD,chnk,ff);	
 	
 	%% calculate pressure
@@ -63,7 +66,7 @@ function Calculations(DD,chnk,ff,CK)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW =	calcOW(CK,cc)
-% 	dispM(['getting okubo weiss',cc],1)
+	dispM(['getting okubo weiss',cc],1)
 	%% p gradient
 	[gr.dpdx,gr.dpdy]=getDpdx(CK.pres,CK.DX,CK.DY);
 	%% velocities
@@ -80,6 +83,7 @@ function OW =	calcOW(CK,cc)
 	%% ---------------------------------------------------------------------
 	function OW=okuweiss(d)
 		OW=(-d.vorticity.*2+d.divergence.*2+d.stretch.*2+d.shear.*2)/2;
+		OW(abs(OW(:))>1)=nan;
 	end
 	%-----------------------------------------------------------------------
 	function defo=getDefo(uvg)
@@ -200,29 +204,25 @@ function CK=loadChunk(RossbyDir,chnk,ff)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(k_len,DD,chnk,ff)
-	k_len
 	lims=DD.RossbyStuff.lims.data;
 	j_indx_start = DD.TS.window.limits.south-1;
 	j_len = DD.TS.window.size.Y;
-	 DD.TS.window.size
-	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1]
-	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1]
-	dim.start1d = [j_indx_start lims(chnk,1)-1]
-	dim.len1d =	[j_len diff(lims(chnk,:))+1]
+	 DD.TS.window.size;
+	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
+	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1];
+	dim.start1d = [j_indx_start lims(chnk,1)-1];
+	dim.len1d =	[j_len diff(lims(chnk,:))+1];
 	%% new indeces for output nc file
 	xlens=diff(squeeze(lims(:,2)));
 	xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
 	newxstart=sum(xlens(1:chnk-1))+1 -1;
 	dim.new.start.fourD =[ff 0 0 newxstart];
-	[ff 0 0 newxstart]
-	dim.new.len.fourD =  dim.len2d;
-	dim.len2d
+	dim.new.len.fourD =  dim.len2d;	
 	dim.new.start.z =[0];
 	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];
 	dim.new.len.twoD =  dim.len1d;
-	dim.new.len
-	dim.new.start
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
@@ -261,8 +261,6 @@ function initNcFile(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function catChunks2NetCDF(file,CK,ff)
-	start= CK.dim.new.start
-	len  = CK.dim.new.len
 	nc_varput(file,'OkuboWeiss',CK.OW,		 start.fourD,    len.fourD);
 	nc_varput(file,'depth',CK.depth,        start.z,            len.z);
 	nc_varput(file,'lat', CK.lat,			    start.twoD,      len.twoD);

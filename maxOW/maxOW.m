@@ -139,7 +139,7 @@ function [CK]=initCK(DD,chunk,ff)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)
-	CK.dim=ncArrayDims(DD,chunk,1);
+	CK.dim=ncArrayDims(DD,1,1);
 	disp('getting depth..')
 	CK.depth=ChunkDepth(DD);
 	disp('getting geo info..')

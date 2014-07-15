@@ -234,7 +234,7 @@ function initNcFile(DD)
 	nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);
 	nc_adddim(DD.path.Rossby.NCfile,'t_index',dim.t);
 	%% OW
-	varstruct.Name = 'Okubo-Weiss';
+	varstruct.Name = 'OkuboWeiss';
 	varstruct.Nctype = 'double';
 	varstruct.Dimension = {'t_index','k_index','j_index','i_index' };
 	nc_addvar(DD.path.Rossby.NCfile,varstruct)
@@ -263,7 +263,7 @@ end
 function catChunks2NetCDF(file,CK,ff)
 	start= CK.dim.new.start
 	len  = CK.dim.new.len
-	nc_varput(file,'Okubo-Weiss',CK.OW,		 start.fourD,    len.fourD);
+	nc_varput(file,'OkuboWeiss',CK.OW,		 start.fourD,    len.fourD);
 	nc_varput(file,'depth',CK.depth,        start.z,            len.z);
 	nc_varput(file,'lat', CK.lat,			    start.twoD,      len.twoD);
 	nc_varput(file,'lon', CK.lon,           start.twoD,      len.twoD);

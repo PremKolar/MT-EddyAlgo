@@ -54,13 +54,13 @@ function Calculations(DD,chnk,ff,CKpre)
 	[CK.OW]=calcOW(CK,cc);
 	CK.pres=[];
 	%% save
-	disp('saving..')
+	dispM('saving..')
 	saveChunk(CK);
 	%----------------------------------------------------------------------
 	function [CK,cc]=init(CKpre,DD,chnk,ff)
 		lims=DD.RossbyStuff.lims.data;
 		cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
-		disp('initialising..')
+		dispM('initialising..')
 		%% merge
 		CK=initCK(CKpre,DD,chnk,ff);
 		CK.file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];
@@ -138,28 +138,28 @@ end
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
 	numel(CK.depth)
-	disp('getting geo info..')	
+	dispM('getting geo info..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,ff);
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
-	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);	
-	disp('getting temperature..')
+	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
+	dispM('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
-	disp('getting salt..')
+	dispM('getting salt..')
 	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
-	disp('getting coriolis stuff..')
+	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=preInitCK(DD)	
-	disp('getting depth..')
+function [CK]=preInitCK(DD)
+	dispM('getting depth..')
 	CK.depth=ChunkDepth(DD);
-	disp('getting dims..')
+	dispM('getting dims..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,0);
-	disp('getting geo info..')
+	dispM('getting geo info..')
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-	disp('getting coriolis stuff..')
+	dispM('getting coriolis stuff..')
 	[CK.rossby]=ChunkRossby(CK);
 	CK.corio=coriolisStuff(CK.lat);
 end
@@ -208,7 +208,7 @@ end
 function dim=ncArrayDims(k_len,DD,chnk,ff)
 	lims=DD.RossbyStuff.lims.data;
 	j_indx_start = DD.TS.window.limits.south-1;
-	j_len = DD.TS.window.size.Y;	
+	j_len = DD.TS.window.size.Y;
 	dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
 	dim.len2d = 	[1 k_len j_len diff(lims(chnk,:))+1];
 	dim.start1d = [j_indx_start lims(chnk,1)-1];
@@ -217,8 +217,8 @@ function dim=ncArrayDims(k_len,DD,chnk,ff)
 	xlens=diff(squeeze(lims(:,2)));
 	xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
 	newxstart=sum(xlens(1:chnk-1))+1 -1;
-	dim.new.start.fourD =[ff 0 0 newxstart];
-	dim.new.len.fourD =  dim.len2d;
+	dim.new.start.fourD =[ff 0 0 newxstart]
+	dim.new.len.fourD =  dim.len2d
 	dim.new.start.z =[0];
 	dim.new.len.z =  [k_len];
 	dim.new.start.twoD =[0 newxstart];
@@ -227,8 +227,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(DD)
 	CK=loadChunk(DD.path.Rossby.name,1,1);
-	[dim.Z,dim.Y,dim.X]=size(CK.OW)
-	dim.t=numel(DD.path.TSow)
+	[dim.Z,dim.Y,dim.X]=size(CK.OW);
+	dim.t=numel(DD.path.TSow);
 	nc_adddim(DD.path.Rossby.NCfile,'k_index',dim.Z);
 	nc_adddim(DD.path.Rossby.NCfile,'i_index',DD.TS.window.size.X);
 	nc_adddim(DD.path.Rossby.NCfile,'j_index',DD.TS.window.size.Y);
@@ -261,8 +261,8 @@ function initNcFile(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function catChunks2NetCDF(file,CK,ff)
-	start= CK.dim.new.start;
-	len  = CK.dim.new.len;
+	start= CK.dim.new.start
+	len  = CK.dim.new.len
 	nc_varput(file,'Okubo-Weiss',CK.OW,		 start.fourD,    len.fourD);
 	nc_varput(file,'depth',CK.depth,        start.z,            len.z);
 	nc_varput(file,'lat', CK.lat,			    start.twoD,      len.twoD);

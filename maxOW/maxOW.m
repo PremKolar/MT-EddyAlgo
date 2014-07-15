@@ -138,16 +138,24 @@ end
 function [CK]=initCK(CK,DD,chunk,ff)
 	CK.chunk=chunk;
 	numel(CK.depth)
+	disp('getting geo info..')	
 	CK.dim=ncArrayDims(numel(CK.depth),DD,1,ff);
-		disp('getting temperature..')
+	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
+	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);	
+	disp('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
 	disp('getting salt..')
 	CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
+	disp('getting coriolis stuff..')
+	[CK.rossby]=ChunkRossby(CK);
+	CK.corio=coriolisStuff(CK.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=preInitCK(DD)
+function [CK]=preInitCK(DD)	
 	disp('getting depth..')
 	CK.depth=ChunkDepth(DD);
+	disp('getting dims..')
+	CK.dim=ncArrayDims(numel(CK.depth),DD,1,0);
 	disp('getting geo info..')
 	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);

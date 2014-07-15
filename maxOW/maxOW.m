@@ -41,7 +41,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk,ff,CKpre)
 	%% init
-	[CK,cc]=init(CKpre,DD,chnk,ff);	
+	[CK,cc]=init(CKpre,DD,chnk,ff);
 	clear CKpre;
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
@@ -56,7 +56,7 @@ function Calculations(DD,chnk,ff,CKpre)
 		lims=DD.RossbyStuff.lims.data;
 		cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
 		disp('initialising..')
-		%% merge	
+		%% merge
 		CK=initCK(CKpre,DD,chnk,ff);
 	end
 	%----------------------------------------------------------------------
@@ -138,7 +138,7 @@ function [CK]=initCK(CK,DD,chunk,ff)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=preInitCK(DD)
-	CK.dim=ncArrayDims(DD,1,1);
+	CK.dim=ncArrayDims(DD,1,0);
 	disp('getting depth..')
 	CK.depth=ChunkDepth(DD);
 	disp('getting geo info..')
@@ -287,14 +287,12 @@ function depth=ChunkDepth(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim,ff)
-
 	salt=squeeze(nc_varget(DD.path.TSow(ff).salt,'TEMP',dim.start2d,dim.len2d));
 	salt(salt==0)=nan;
 	salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim,ff)
-sdfhgdgfhf
 	temp=squeeze(nc_varget(DD.path.TSow(ff).temp,'TEMP',dim.start2d,dim.len2d));
 	temp(temp==0)=nan;
 end

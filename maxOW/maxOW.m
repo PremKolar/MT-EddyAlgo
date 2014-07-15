@@ -103,7 +103,7 @@ function OW =	calcOW(CK,cc)
 	end
 	%-----------------------------------------------------------------------
 	function vels=getVels(cor,gr)
-		GOF=vertstack(cor.GOverF,Z);
+		GOF=vertstack(cor.GOverF,size(gr.dpdy,1));
 		vels.U=-GOF.*gr.dpdy;
 		vels.V= GOF.*gr.dpdx;
 		clear GOF;

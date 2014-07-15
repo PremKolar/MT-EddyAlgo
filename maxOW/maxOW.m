@@ -49,15 +49,14 @@ function Calculations(DD,chnk,ff,CK)
 	cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
 	dispM('initialising..')
 	%% merge
-	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];		
+	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];		
 	if exist(file_out,'file');dispM('exists');return;end
 	CK=initCK(CK,DD,chnk,ff);	
 	
-	%% calculate Brunt-Väisälä f and potential vorticity
+	%% calculate pressure
 	[CK.pres]=calcPres(CK,cc);
 	%% OW
 	[CK.OW]=calcOW(CK,cc);
-	CK.pres=[];
 	%% save
 	dispM('saving..')
 	saveChunk(CK,file_out);	

@@ -10,7 +10,7 @@ function S02_infer_fields
     DD=initialise('cuts',mfilename);
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
-    DD.coriolis=coriolisStuff(cut1.grids);
+    DD.coriolis=coriolisStuff(cut1.grids.lat);
     RS=getRossbyStuff(DD,cut1.grids);
     %% spmd
     main(DD,RS)
@@ -179,32 +179,42 @@ function gr=geostrophy(gr,corio,RS)
         gr.Lrhines=sqrt(gr.absUV./corio.beta);
         gr.L_R=abs(RS.c./corio.f);
         gr.Bu=(gr.L_R./gr.L).^2;
-    end
+	 end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(grids)
-    %% calc U gradients
-    def.dUdy=[ nan(1,size(grids.U,2));diff(grids.U,1,1)] ./ grids.DY;
-    def.dVdx=[ nan(size(grids.V,1),1), diff(grids.V,1,2)] ./ grids.DX;
-    def.dVdy=[ nan(1,size(grids.V,2));diff(grids.V,1,1)] ./ grids.DY;
-    def.dUdx=[ nan(size(grids.U,1),1), diff(grids.U,1,2)] ./ grids.DX;
+	%% calc U gradients	
+	dUdy=diff(grids.U,1,1);
+	dUdx=diff(grids.U,1,2);
+	dVdy=diff(grids.V,1,1);
+	dVdx=diff(grids.V,1,2);
+	def.dUdy= dUdy([1:end, end], :)  ./ grids.DY;
+	def.dUdx= dUdx(:,[1:end, end] )  ./ grids.DX;
+	def.dVdy= dVdy([1:end, end], :)  ./ grids.DY;
+	def.dVdx= dVdx(:,[1:end, end] )  ./ grids.DX;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dsshdx,dsshdy]=dsshdxi(ssh,DX,DY)
     %% calc ssh gradients
-    dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
-    dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
+	 dsshdx=diff(ssh,1,2);
+    dsshdy=diff(ssh,1,1);	 
+	  dsshdx=dsshdx(:,[1:end, end])./ DX;
+    dsshdy=dsshdy([1:end, end],:)./ DY;
+%   
+% 	 
+% 	 dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
+%     dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=coriolisStuff(fields)
+function out=coriolisStuff(lat)
     %% omega
     out.Omega=angularFreqEarth;
     %% f
-    out.f=2*out.Omega*sind(fields.lat);
+    out.f=2*out.Omega*sind(lat);
     %% beta
-    out.beta=2*out.Omega/earthRadius*cosd(fields.lat);
+    out.beta=2*out.Omega/earthRadius*cosd(lat);
     %% gravity
-    out.g=sw_g(fields.lat,zeros(size(fields.lat)));
+    out.g=sw_g(lat,zeros(size(lat)));
     %% g/f
     out.GOverF=out.g./out.f;
 end

@@ -3,10 +3,12 @@ function DD=INPUTpop
     DD.time.delta_t=1; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
-    DD.path.TempSalt.name='../TempSaltUV/';
-    DD.path.UV.name='../TempSaltUV/';
+%     DD.path.TempSalt.name='../TempSaltUV/';
+%     DD.path.UV.name='../TempSaltUV/';
+	 DD.path.TempSalt.name='../MONTHLY/';
+    DD.path.UV.name='../MONTHLY/';
     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-    %% map in keys
+	 %% map in keys
     DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
     DD.map.in.keys.lat='U_LAT_2D';
     DD.map.in.keys.lon='U_LON_2D';

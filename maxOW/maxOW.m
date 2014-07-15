@@ -50,7 +50,7 @@ function Calculations(DD,chnk,ff,CK)
 	dispM('initialising..')
 	%% merge
 	file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',cc),'.mat'];		
-	if exist(file_out,'file');disp('exists');return;end
+	if exist(file_out,'file');dispM('exists');return;end
 	CK=initCK(CK,DD,chnk,ff);	
 	%% calculate Brunt-Väisälä f and potential vorticity
 	[CK.pres]=calcPres(CK,cc);
@@ -134,7 +134,7 @@ function [CK]=initCK(CK,DD,chunk,ff)
 	numel(CK.depth)
 % 	dispM('getting geo info..')
 	CK.dim=ncArrayDims(numel(CK.depth),DD,chunk,ff);
-	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff);
+	[CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff+1);
 	[CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
 % 	dispM('getting temperature..')
 	CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);

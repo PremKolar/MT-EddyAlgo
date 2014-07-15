@@ -285,7 +285,7 @@ function WriteNCfile(DD)
 			catChunks2NetCDF(DD.path.Rossby.NCfile,CK,ff);
 		end
 		%% make also mat files
-		nc2mat(DD);
+		nc2mat(DD,ff);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -309,17 +309,25 @@ function temp=ChunkTemp(DD,dim,ff)
 	temp(temp==0)=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function nc2matSave(DD,fn)
-	%% get pop data
-	out=nc_varget(DD.path.Rossby.NCfile,fn); %#ok<NASGU>
-	save([DD.path.Rossby.name, fn,'.mat'],'out');
-end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function nc2mat(DD)
+function nc2mat(DD,ff)
 	%% test for remap
 	fns=ncfieldnames(DD.path.Rossby.NCfile)';
 	%% save 2 mats
 	for fn=fns;
-		nc2matSave(DD,fn{1})
+		out=nc_varget(DD.path.Rossby.NCfile,fn);
+		switch ff
+			case 0
+				nc2matSave(DD,out,fn{1})
+			otherwise
+				nc2matAppend(DD,out,fn{1})
+		end
+	end	
+	function nc2matAppend(DD,out,fn) %#ok<INUSL>
+		save([DD.path.Rossby.name, fn,'.mat'],'out','-append');
+	end
+	function nc2matSave(DD,out,fn) %#ok<INUSL>
+		save([DD.path.Rossby.name, fn,'.mat'],'out');
 	end
 end

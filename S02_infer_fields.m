@@ -218,12 +218,4 @@ function out=coriolisStuff(lat)
     %% g/f
     out.GOverF=out.g./out.f;
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function om=angularFreqEarth
-    T=day_sid;
-    om=2.0*pi/T;
-    function d=day_sid
-        d=23.9344696*60*60; % wikipedia
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

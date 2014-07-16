@@ -16,13 +16,12 @@ function DD=INPUTpop
     DD.map.in.keys.time='TIME';
     DD.map.in.keys.U='U';
     DD.map.in.keys.V='V';
-    %{...
     DD.map.in.keys.x='XT';
     DD.map.in.keys.y='YT';
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
-    %...}
+
     %% temp salt keys
     DD.TS.keys.lat='U_LAT_2D';
     DD.TS.keys.lon='U_LON_2D';

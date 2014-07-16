@@ -2,12 +2,12 @@ function [F,unreadable]=GetFields(file,keys)
     F=struct;
     unreadable.is=false;
     for field=fieldnames(keys)';ff=field{1};
-        if isempty(ff),continue;end        
+        if isempty(ff),continue;end
         try
             if strcmpi(ff,'lon')
                 F.(ff) = CorrectLongitude(squeeze(nc_varget(file,keys.(ff))));
-            else                
-                 F.(ff) = squeeze(nc_varget(file,keys.(ff)));
+            else
+                F.(ff) = squeeze(nc_varget(file,keys.(ff)));
             end
         catch uc
             unreadable.is=true;
@@ -16,12 +16,14 @@ function [F,unreadable]=GetFields(file,keys)
             disp(uc);
             disp(uc.message);
             disp(uc.getReport);
-            return            
+            return
         end
     end
-    if min(size(F.lon))==1
-        F.lon=repmat(standVectorUp(F.lon)',length(F.lat),1);
-        F.lat=repmat(standVectorUp(F.lat) ,1,length(F.lon));
+    if isfield(F,'lon')
+        if min(size(F.lon))==1
+            F.lon=repmat(standVectorUp(F.lon)',length(F.lat),1);
+            F.lat=repmat(standVectorUp(F.lat) ,1,length(F.lon));
+        end
     end
 end
 

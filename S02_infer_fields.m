@@ -69,7 +69,7 @@ function sshHighPass=filterStuff(gr,RS)
     RossbyEqFlag=abs(gr.lat)<5  ;													%TODO {put before loop...
     semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));			%...
 	     semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));		%.}
-    [~,sshHighPass]=ellipseFltr(semi,gr.ssh);										
+    [sshHighPass]=ellipseFltr(semi,gr.ssh);										
     %
     %     JET=repmat(jet,3,1);
     %     figure(1)

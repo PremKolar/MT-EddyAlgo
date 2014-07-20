@@ -5,12 +5,8 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD]=maxOWsetUp
-    addpath(genpath('../'))
-    addpath(genpath('../SUBS/'))
     %% init
-    DD=initialise([],mfilename);
-    %% check if exists already
-    [DD.path.Rossby.NCfile] = initNC(DD);
+    DD=initialise([],mfilename);  
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
@@ -31,11 +27,6 @@ function lims=limsdata(splits,window,splitdim)
     X=window.size.(splitdim);
     %% distro X lims to chunks
     lims=thread_distro(splits,X);   
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [outfilename] = initNC(DD)
-    outfilename=[DD.path.Rossby.name, 'OW.nc'];
-    NCoverwriteornot(outfilename);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [file]=tempsalt(DD)

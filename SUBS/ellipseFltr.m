@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [fltr,dataHighPass]=ellipseFltr(semi,data)
+function [dataHighPass,fltr]=ellipseFltr(semi,data)
     %% get center, minor and major axis for ellipse    
     semix=10*ceil(max(nanmedian(semi.x,2)));
     semiy=10*ceil(max(nanmedian(semi.y,2)));

@@ -16,10 +16,11 @@ function maxOWmain(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
+    filterRadius = 20;
     id=labindex;
     lims=DD.RossbyStuff.lims;
     %%
-    [CKpre]=preInitCK(DD);
+    [CKpre]=preInitCK(DD,filterRadius);
     %% loop over chunks
     Tf=disp_progress('init','looping through files');
     for ff=0:numel(DD.path.TSow)-1
@@ -32,7 +33,7 @@ function spmd_body(DD)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Calculations(DD,chnk,ff,CK)
+function Calculations(DD,chnk,ff,CK)   
     %% init
     lims=DD.RossbyStuff.lims.data;
     cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
@@ -41,13 +42,13 @@ function Calculations(DD,chnk,ff,CK)
     file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];
     if exist(file_out,'file');
         dispM('exists');
-        %         return;
+                 return;
     end
     CK=initCK(CK,DD,chnk,ff);
     %% calculate Densisty
     [CK.dens]=calcDens(CK,cc);
     %% OW
-    [CK.OW]=calcOW(CK,cc);
+    [CK.OW]=calcOW(CK,cc);   
     %% save
     dispM('saving..')
     saveChunk(CK,file_out);
@@ -58,7 +59,7 @@ function OW =	calcOW(CK,cc)
     %% rho gradient
     [gr.drdx,gr.drdy]=getDrhodx(CK.dens,CK.DX,CK.DY);
     %% velocities
-    vels=getVels(CK.corio,gr,CK.depth);
+    vels=getVels(CK,gr);
     clear gr;
     %% uvgrads
     uvg=UVgrads(vels,CK.DX,CK.DY);
@@ -68,10 +69,6 @@ function OW =	calcOW(CK,cc)
     clear uvg;
     %% okubo weiss
     OW=okuweiss(deform);
-    
-    
-    
-    
 end
 %% ---------------------------------------------------------------------
 function OW=okuweiss(d)
@@ -99,23 +96,39 @@ function uvg=UVgrads(vels,DX,DY)
     uvg.dVdx= dVdx(:, :,[1:end, end] )  ./ vertstack(DX,Z);
 end
 %---------
-function vels=getVels(cor,gr,depth)
+function vels=getVels(CK,gr)
+    cor=CK.corio;
+    depth=CK.depth;    
     rhoRef=1000;
     [Z,Y,X]=size(gr.drdy);
     gzOverRhoF=vertstack(cor.GOverF,Z) .* repmat(depth,[1,Y,X]) / rhoRef;
     U=-gr.drdy .* gzOverRhoF;
-    V= gr.drdx .* gzOverRhoF;
-    
-    semi.x=10;
-    semi.y=10;
-    T=disp_progress('init','high pass filtering geostrophic velocities');
-    for z=1:Z
-        T=disp_progress('init',T,Z,10);
-        [~,vels.U(z,:,:)]=ellipseFltr(semi,squeeze(U(z,:,:)));
-        [~,vels.V(z,:,:)]=ellipseFltr(semi,squeeze(V(z,:,:)));
-    end
-    
-    
+    V= gr.drdx .* gzOverRhoF;    
+%     semi.x=CK.filterRadius;
+%     semi.y=CK.filterRadius;
+%     T=disp_progress('init','high pass filtering geostrophic velocities');
+%     for z=1:Z
+%         T=disp_progress('init',T,Z,10);
+%         [vels.U(z,:,:)]= ellipseFltr(semi,squeeze(U(z,:,:)));      
+%         [vels.V(z,:,:)]= ellipseFltr(semi,squeeze(V(z,:,:)));       
+%     end 
+
+for z=1:Z
+    vels.U(z,:,:)=smooth2a(squeeze(U(z,:,:)),3);
+    vels.V(z,:,:)=smooth2a(squeeze(V(z,:,:)),3);
+end
+% for y=1:Y
+%     Uy(:,y,:)=smooth2a(squeeze(U(:,y,:)),3);
+%     Vy(:,y,:)=smooth2a(squeeze(V(:,y,:)),3);
+% end
+% for x=1:X
+%     Ux(:,:,x)=smooth2a(squeeze(U(:,:,x)),3);
+%     Vx(:,:,x)=smooth2a(squeeze(V(:,:,x)),3);
+% end
+% vels.U=reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
+% vels.V=reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
+
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -153,13 +166,14 @@ function [CK]=initCK(CK,DD,chunk,ff)
     CK.corio=coriolisStuff(CK.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=preInitCK(DD)
+function [CK]=preInitCK(DD,fr)
      CK.dim=ncArrayDims(DD,1,0);
      CK.depth=ChunkDepth(DD,CK.dim);
     [CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,1);
     [CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
     [CK.rossby]=ChunkRossby(CK);
     CK.corio=coriolisStuff(CK.lat);
+    CK.filterRadius=fr;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=coriolisStuff(lat)

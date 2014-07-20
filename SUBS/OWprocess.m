@@ -5,12 +5,12 @@
 % Author:  NKkk
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  minOW=OWprocess(DD)
+function  OWall=OWprocess(DD)
     NC=init(DD);
     splits=thread_distro(DD.threads.num,NC.S.X)-1;
     NC.strt=splits(:,1);
     NC.len =splits(:,2)-NC.strt+1;
-%     spmd
+    spmd
         out=spmdBcalc(NC);
         labBarrier;
         switch labindex
@@ -20,8 +20,24 @@ function  minOW=OWprocess(DD)
                 spmdBsendtoMstr(out);
         end
         labBarrier;
-%     end
-    minOW=ALL{1};
+    end
+    OWall=ALL{1};
+    
+    
+    
+    
+    
+     %% focus on strong neg. okubo weiss
+    full.ow(full.ow > nanmean(full.ow(:))) = nan;
+    %% ow weighted mean of zi
+    full.owSum      = repmat(nansum(full.ow,1),[TT,1,1]);
+    full.ziWeighted = full.ow.*full.zi./full.owSum;
+    out.z           = nansum(full.ziWeighted, 1);
+    out.ow          = nanmean(full.ow, 1);
+    %% plotstuff
+    plotstuff(full,depth)
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function NC=init(DD)
@@ -66,11 +82,11 @@ function out=spmdBcalc(NC)
         OW(abs(OW)>1)=nan;
         %% get bathymetry and dims
         if tt==1
-        lat=nc_varget(NC.files(tt).n,'lat',dim.a(3:4),dim.b(3:4));
-        lon=nc_varget(NC.files(tt).n,'lon',dim.a(3:4),dim.b(3:4));
+%         lat=nc_varget(NC.files(tt).n,'lat',dim.a(3:4),dim.b(3:4));
+%         lon=nc_varget(NC.files(tt).n,'lon',dim.a(3:4),dim.b(3:4));
             %             lon=nc_varget(NC.files(tt).n,'lon',dim.a,dim.b);
-            depth=nc_varget(NC.files(tt).n,'depth');
-            depth(abs(depth)>1e10)=nan;
+%             depth=nc_varget(NC.files(tt).n,'depth');
+%             depth(abs(depth)>1e10)=nan;
             [~,Y,Xi,bath]=getBathym(OW);
             out.ow=nan(TT,Y,Xi);
             out.z=nan(TT,Y,Xi);
@@ -79,18 +95,9 @@ function out=spmdBcalc(NC)
         [owm,zi]=nanmin(OW(2:bath-1,:,:),[], 1);
         zi=zi -1; % correct for (2: ...)
         %% save
-        full.ow(tt,:,:)= owm;
-        full.zi(tt,:,:) =zi;
-    end
-    %% focus on strong neg. okubo weiss
-    full.ow(full.ow > nanmean(full.ow(:))) = nan;
-    %% ow weighted mean of zi
-    full.owSum      = repmat(nansum(full.ow,1),[TT,1,1]);
-    full.ziWeighted = full.ow.*full.zi./full.owSum;
-    out.z           = nansum(full.ziWeighted, 1);
-    out.ow          = nanmean(full.ow, 1);
-    %% plotstuff
-    plotstuff(full,depth)
+        out.ow(tt,:,:)= owm;
+        out.zi(tt,:,:)= zi;
+    end   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotstuff(full,depth)
@@ -106,20 +113,21 @@ function plotstuff(full,depth)
     end
     histDepOw(histDepOw==0)=nan;
     bar3(log10(histDepOw));
-    view(60.5,28)
-    xt=get(gca,'xtick');
-    yt=get(gca,'ytick');
-    zt=get(gca,'ztick')  ;
+    view(60.5,28)   
+    %%
     nyt=ceil(linspace(find(~isnan(depth),1),numel(depth),7));
     nytl =cellfun( @(tk) sprintf('%3.2f',tk), num2cell(depth(nyt)/1000), 'uniformoutput',false)  ;
     set(gca,'ytick',nyt)
     set(gca,'yticklabel',nytl)
-    ylabel(['depth [$km$]'])
+    ylabel(['depth [$km$]']) 
+    %%
     nxt=[find(diff(round(owAx/1e-6)))];
     nxtl=round(owAx(nxt)/1e-6);
     nxtl = cellfun( @(tk) sprintf('-%d',tk), num2cell(nxtl), 'uniformoutput',false)  ;
     xlabel(['$10^6$ Okubo-Weiss Parameter [$1/m^{2}$]'])
     set(gca,'xticklabel',nxtl)
+    %% 
+    zt=get(gca,'ztick')  ;
     nzt=zt;
     nztl=cellfun( @(tk) sprintf('%0.0g',tk), num2cell(nzt), 'uniformoutput',false)  ;
     zlabel(['log10(count)']);

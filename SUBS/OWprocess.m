@@ -10,7 +10,7 @@ function  minOW=OWprocess(DD)
     splits=thread_distro(DD.threads.num,NC.S.X)-1;
     NC.strt=splits(:,1);
     NC.len =splits(:,2)-NC.strt+1;
-    spmd
+%     spmd
         out=spmdBcalc(NC);
         labBarrier;
         switch labindex
@@ -20,7 +20,7 @@ function  minOW=OWprocess(DD)
                 spmdBsendtoMstr(out);
         end
         labBarrier;
-    end
+%     end
     minOW=ALL{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,18 +55,20 @@ function spmdBsendtoMstr(out)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=spmdBcalc(NC)
-    TT=NC.S.T;
+    TT=NC.S.T;  
     for tt=1:TT
         %% get dims for nc read
         dim.a=[ 0    0   0     NC.strt(labindex) ];
         dim.b=[ 1    inf inf   NC.len(labindex)  ];
         %% load okubo weiss parameter
         OW=nc_varget(NC.files(tt).n,'OkuboWeiss',dim.a,dim.b);
-        %         OW(abs(OW)>1)=nan;
+        %% kill flags
+        OW(abs(OW)>1)=nan;
         %% get bathymetry and dims
         if tt==1
-            %             lat=nc_varget(NC.files(tt).n,'lat');
-            %             lon=nc_varget(NC.files(tt).n,'lon');
+        lat=nc_varget(NC.files(tt).n,'lat',dim.a(3:4),dim.b(3:4));
+        lon=nc_varget(NC.files(tt).n,'lon',dim.a(3:4),dim.b(3:4));
+            %             lon=nc_varget(NC.files(tt).n,'lon',dim.a,dim.b);
             depth=nc_varget(NC.files(tt).n,'depth');
             depth(abs(depth)>1e10)=nan;
             [~,Y,Xi,bath]=getBathym(OW);
@@ -86,14 +88,14 @@ function out=spmdBcalc(NC)
     full.owSum      = repmat(nansum(full.ow,1),[TT,1,1]);
     full.ziWeighted = full.ow.*full.zi./full.owSum;
     out.z           = nansum(full.ziWeighted, 1);
-    out.ow          = nanmean(full.full.ow, 1);
+    out.ow          = nanmean(full.ow, 1);
     %% plotstuff
     plotstuff(full,depth)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotstuff(full,depth)
     uniDepths=unique(full.zi(:));
-    histc(full.zi(:), uniDepths)  ;
+%     histc(full.zi(:), uniDepths)  ;
     set(0,'defaulttextinterpreter','latex')
     owLg=-full.ow;
     owAx=[0 logspace(log10(nanmean(owLg(:))),log10(nanmax(owLg(:))),40)];

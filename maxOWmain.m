@@ -42,11 +42,11 @@ function Calculations(DD,chnk,ff,CK)
     file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];
     if exist(file_out,'file');
         dispM('exists');
-                 return;
+%                  return;
     end
     CK=initCK(CK,DD,chnk,ff);
     %% calculate Densisty
-    [CK.dens]=calcDens(CK,cc);
+    [CK.rho]=calcDens(CK,cc);
     %% OW
     [CK.OW]=calcOW(CK,cc);   
     %% save
@@ -57,7 +57,7 @@ end
 function OW =	calcOW(CK,cc)
     dispM(['getting okubo weiss ',cc],1)
     %% rho gradient
-    [gr.drdx,gr.drdy]=getDrhodx(CK.dens,CK.DX,CK.DY);
+    [gr.drdx,gr.drdy]=getDrhodx(CK.rho,CK.DX,CK.DY);
     %% velocities
     vels=getVels(CK,gr);
     clear gr;
@@ -102,8 +102,8 @@ function vels=getVels(CK,gr)
     rhoRef=1000;
     [Z,Y,X]=size(gr.drdy);
     gzOverRhoF=vertstack(cor.GOverF,Z) .* repmat(depth,[1,Y,X]) / rhoRef;
-    U=-gr.drdy .* gzOverRhoF;
-    V= gr.drdx .* gzOverRhoF;    
+    vels.U=-gr.drdy .* gzOverRhoF;
+     vels.V= gr.drdx .* gzOverRhoF;    
 %     semi.x=CK.filterRadius;
 %     semi.y=CK.filterRadius;
 %     T=disp_progress('init','high pass filtering geostrophic velocities');
@@ -113,10 +113,10 @@ function vels=getVels(CK,gr)
 %         [vels.V(z,:,:)]= ellipseFltr(semi,squeeze(V(z,:,:)));       
 %     end 
 
-for z=1:Z
-    vels.U(z,:,:)=smooth2a(squeeze(U(z,:,:)),3);
-    vels.V(z,:,:)=smooth2a(squeeze(V(z,:,:)),3);
-end
+% for z=1:Z
+%     vels.U(z,:,:)=smooth2a(squeeze(U(z,:,:)),3);
+%     vels.V(z,:,:)=smooth2a(squeeze(V(z,:,:)),3);
+% end
 % for y=1:Y
 %     Uy(:,y,:)=smooth2a(squeeze(U(:,y,:)),3);
 %     Vy(:,y,:)=smooth2a(squeeze(V(:,y,:)),3);
@@ -142,7 +142,7 @@ function [drdx,drdy]=getDrhodx(rho,DX,DY)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dens]=calcDens(CK,cc)
+function [rho]=calcDens(CK,cc)
     [ZZ,YY,XX]=size(CK.TEMP);
     dispM(['calculating pressure, chunk ',cc]);
     %% get full matrices for all variables
@@ -150,7 +150,7 @@ function [dens]=calcDens(CK,cc)
     M.lat=double(repmat(permute(CK.lat(:),[2 1]), [ZZ,1]));
     
 pressure=sw_pres(M.depth(:),M.lat(:)) ; % db 2 Pa
-    dens = reshape(sw_dens(CK.SALT(:),CK.TEMP(:),pressure),[ZZ,YY,XX]);
+    rho = reshape(sw_dens(CK.SALT(:),CK.TEMP(:),pressure),[ZZ,YY,XX]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CK]=initCK(CK,DD,chunk,ff)

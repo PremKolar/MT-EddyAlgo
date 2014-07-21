@@ -10,36 +10,36 @@ function [DD]=maxOWsetUp
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
-    [DD.path.TSow]=tempsalt(DD);
+    [DD.path.TSow]=DataInit(DD);
     %% get window according to user input
-    [DD.TS.window,~]=GetWindow(DD.path.TSow(1).salt,DD.map.in,DD.TS.keys);
+    [DD.TSow.window,~]=GetWindow(DD.path.TSow.files(1).salt,DD.map.in,DD.TS.keys);
     %% get z info
-    DD.TS.window=mergeStruct2(DD.TS.window, GetFields(DD.path.TSow(1).salt, cell2struct({DD.TS.keys.depth},'depth')));
-    DD.TS.window.size.Z=numel(DD.TS.window.depth);
-    %% distro X lims to chunks
-    DD.RossbyStuff.lims.data=limsdata(DD.parameters.RossbySplits,DD.TS.window,'Z');
-    %% distro chunks to threads
-    DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.parameters.RossbySplits);
+    DD.TSow.window=mergeStruct2(DD.TSow.window, GetFields(DD.path.TSow.files(1).salt, cell2struct({DD.TS.keys.depth},'depth')));
+    DD.TSow.window.size.Z=numel(DD.TSow.window.depth);
+    %% distro time steps to threads
+    DD.TSow.lims=thread_distro(DD.threads.num,numel(DD.path.TSow.files));
+    
+    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lims=limsdata(splits,window,splitdim)
-    %% set dimension for splitting (files dont fit in memory)
-    X=window.size.(splitdim);
-    %% distro X lims to chunks
-    lims=thread_distro(splits,X);   
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [file]=tempsalt(DD)
+function [out]=DataInit(DD)
     %% find the temp and salt files
-    tt=0;ss=0;
-    for kk=1:numel(DD.path.TempSalt.files);
-        if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),DD.TS.keys.salt))
+DirIn=dir([DD.path.full3d.name '*.nc'])   ;
+tt=0;ss=0;
+    for kk=1:numel(DirIn);
+        if ~isempty(strfind(upper(DirIn(kk).name),DD.TS.keys.salt))
             ss=ss+1;
-            file(ss).salt=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+            out.files(ss).salt=[DD.path.full3d.name DirIn(kk).name];
         end
-        if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),DD.TS.keys.temp))
+        if ~isempty(strfind(upper(DirIn(kk).name),DD.TS.keys.temp))
             tt=tt+1;
-            file(tt).temp=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+            out.files(tt).temp=[DD.path.full3d.name DirIn(kk).name];
         end
     end
+    
+     out.fnum=numel(out.files);
+    out.dir   = [DD.path.Rossby.name];  
+out.dailyBaseName   = [ out.dir 'OW_']; 
+    
 end

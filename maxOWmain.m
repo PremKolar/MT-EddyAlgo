@@ -1,276 +1,303 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 16-Jul-2014 13:52:44
-% Computer:  GLNX86
-% Matlab:  7.9
-% Author:  NK
+% Computer:GLNX86
+% Matlab:7.9
+% Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWmain(DD)
+    [dim,raw] = setup(DD);
     if DD.debugmode
-        spmd_body(DD);
+        spmd_body(DD,dim,raw);
     else
         spmd(DD.threads.num)
-            spmd_body(DD);
+            spmd_body(DD,dim,raw);
             % 			disp_progress('conclude');
         end
     end
 end
+
+
+
+
+function fname=initNcFile(toAdd,WinSize,ff,ds)
+   fname=[ds.dailyBaseName sprintf('%04d.nc',ff) ];
+   nc_create_empty(fname,'clobber');
+    nc_adddim(fname,'k_index',WinSize.Z);
+    nc_adddim(fname,'i_index',WinSize.X);
+    nc_adddim(fname,'j_index',WinSize.Y);
+%      nc_adddim(fname,'t_index',dim.t);
+    nc_adddim(fname,'t_index',1);
+    %% OW
+    varstruct.Name = toAdd;
+    varstruct.Nctype = 'double';
+    varstruct.Dimension = {'t_index','k_index','j_index','i_index' };
+    nc_addvar(fname,varstruct)
+    %% depth
+    varstruct.Name = 'depth';
+    varstruct.Nctype = 'double';
+    varstruct.Dimension ={'k_index'};
+    nc_addvar(fname,varstruct)
+    %% lat
+    varstruct.Name = 'lat';
+    varstruct.Nctype = 'double';
+    varstruct.Dimension ={'j_index','i_index' };
+    nc_addvar(fname,varstruct)
+    %% lon
+    varstruct.Name = 'lon';
+    varstruct.Nctype = 'double';
+    varstruct.Dimension ={'j_index','i_index' };
+    nc_addvar(fname,varstruct)
+    %% time
+    varstruct.Name = 'time';
+    varstruct.Nctype = 'double';
+    varstruct.Dimension ={'t_index'};
+    nc_addvar(fname,varstruct)
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD)
-    filterRadius = 20;
-    id=labindex;
-    lims=DD.RossbyStuff.lims;
-    %%
-    [CKpre]=preInitCK(DD,filterRadius);
-    %% loop over chunks
-    Tf=disp_progress('init','looping through files');
-    for ff=0:numel(DD.path.TSow)-1
-        Tf=disp_progress('show',Tf,numel(DD.path.TSow),100);
-        T=disp_progress('init','looping through files');
-        for chnk=lims.loop(id,1):lims.loop(id,2)
-            T=disp_progress('yo',T,diff(lims.loop(id))+1,diff(lims.loop(id))+1);
-            Calculations(DD,chnk,ff,CKpre);
-        end
+function spmd_body(DD,dim,raw)
+    id = labindex;
+    lims = DD.TSow.lims-1;
+    timesteps = lims(id,1):lims(id,2);
+   
+    fn=0;
+    for tt=timesteps
+        fn=fn+1;
+         fname(fn)={initNcFile('density',dim.ws,tt,DD.path.TSow)}
     end
+    
+    %%
+   
+    keys = DD.TS.keys;
+    chunk=10
+     dim.len(4) = chunk;
+    for xx = 0:chunk:dim.ws.X-2
+        XX=xx:xx+chunk-1
+        dim.strt(4) = xx;
+        
+        for tt = timesteps
+            Fin = DD.path.TSow.files(tt+1);          
+            [TS] = getNowAtX(Fin,keys,dim,DD.path.full3d.name,raw,XX+1);         
+            [rho(tt+1,:,:,:)] = calcDens(TS,dim.len);            
+             nc_varput(fname{tt+1},'density',rho(tt+1,:,:,:),dim.out.strt,dim.len);
+        end
+        
+        reshape(nansum(rho,1),[1,])
+        
+            a=squeeze(nansum(rho,1))
+        
+    end
+     a=nc_getall(fname{tt+1})
+end
+
+function [out] = getNowAtX(Fin,keys,dim,dirOut,raw,x)
+    Axb2CAxb = @(Axb,C) reshape(shiftdim(repmat(double(Axb),1,C),1),[],1)   ;
+    Z=dim.ws.Z;
+    out.lat = Axb2CAxb(raw.lat(:,[x]),Z);
+    out.lon = Axb2CAxb(raw.lon(:,x),Z);
+    out.dx = Axb2CAxb(raw.dx(:,x),Z);
+    out.dy = Axb2CAxb(raw.dy(:,x),Z);
+    out.depth = repmat(double(raw.depth),numel(x),1);
+    out.temp = double(sparse(reshape(nc_varget(Fin.temp,keys.temp,dim.strt, dim.len),[],1)));
+    out.salt = double(sparse(reshape(nc_varget(Fin.salt,keys.salt,dim.strt, dim.len),[],1)))*1000;
+    out.file = fileStuff(Fin.salt, dirOut);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [RHO] = calcDens(TS,dim)    
+    RHO=reshape(dens(TS),dim)   ; 
+    function rho=dens(TS)
+    rho=sw_dens(TS.salt,TS.temp,sw_pres(TS.depth,TS.lat));
+    end  
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Calculations(DD,chnk,ff,CK)   
-    %% init
-    lims=DD.RossbyStuff.lims.data;
-    cc=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],chnk),'/',num2str(size(lims,1))];
-    dispM('initialising..')
-    %% merge
-    file_out=[DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'_',sprintf('%03d',chnk),'.mat'];
+
+
+
+function [dim,raw]=setup(DD)
+    ws = DD.TSow.window.size;
+    wl = DD.TSow.window.limits;
+    Fin = DD.path.TSow.files(1);
+    keys = DD.TS.keys;
+    dimConst.strt = [ wl.south-1 wl.west-1 ];
+    dimConst.len = [ ws.Y ws.X ];
+    raw.depth = repmat(nc_varget(Fin.salt,keys.depth),ws.Y,1);
+    raw.lat = nc_varget(Fin.temp, keys.lat, dimConst.strt, dimConst.len);
+    raw.lon = nc_varget(Fin.temp, keys.lon, dimConst.strt, dimConst.len);
+    [raw.dy,raw.dx] = getdydx( raw.lat, raw.lon);    
+    raw.corio = coriolisStuff(raw.lat);
+      dim.strt(1) = 0;
+    dim.strt(2) = 0;
+    dim.strt(3:4) = dimConst.strt;
+    dim.len(1) = 1;
+    dim.len(2) = ws.Z;
+    dim.len(3) = dimConst.len(1);
+    dim.len(4) = 1;
+    dim.ws=ws;
+    dim.out.strt=[0 0 0 0];
+    dim.out.len=[1 1 dimConst.len];
+end
+
+function meanDensInTime(raw)
+    DD.path.full3d.name
+    
+    
     if exist(file_out,'file');
         dispM('exists');
-%                  return;
+        %return;
     end
-    CK=initCK(CK,DD,chnk,ff);
-    %% calculate Densisty
-    [CK.rho]=calcDens(CK,cc);
+    
+    
     %% OW
-    [CK.OW]=calcOW(CK,cc);   
+    [raw.OW] = calcOW(raw,cc);
     %% save
     dispM('saving..')
-    saveChunk(CK,file_out);
+    saveChunk(raw,file_out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OW =	calcOW(CK,cc)
+
+
+function Calculations(DD,ff,raw)
+    
+    %% merge
+    file_out = [DD.path.Rossby.name,'OW_',sprintf('%03d',ff),'.mat'];
+    if exist(file_out,'file');
+        dispM('exists');
+        %return;
+    end
+    raw = getNowAtX(raw,DD,ff);
+    
+    %% calculate Densisty
+    [raw.rho] = calcDens(raw,cc);
+    %% OW
+    [raw.OW] = calcOW(raw,cc);
+    %% save
+    dispM('saving..')
+    saveChunk(raw,file_out);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function OW = 	calcOW(raw,cc)
     dispM(['getting okubo weiss ',cc],1)
     %% rho gradient
-    [gr.drdx,gr.drdy]=getDrhodx(CK.rho,CK.DX,CK.DY);
+    [gr.drdx,gr.drdy] = getDrhodx(raw.rho,raw.dx,raw.dy);
     %% velocities
-    vels=getVels(CK,gr);
+    vels = getVels(raw,gr);
     clear gr;
     %% uvgrads
-    uvg=UVgrads(vels,CK.DX,CK.DY);
+    uvg = UVgrads(vels,raw.dx,raw.dy);
     clear vels;
     %% deformation
-    deform=getDefo(uvg);
+    deform = getDefo(uvg);
     clear uvg;
     %% okubo weiss
-    OW=okuweiss(deform);
+    OW = okuweiss(deform);
 end
 %% ---------------------------------------------------------------------
-function OW=okuweiss(d)
-    OW=(-d.vorticity.*2+d.divergence.*2+d.stretch.*2+d.shear.*2)/2;
-    OW(abs(OW)>1)=nan;
+function OW = okuweiss(d)
+    OW = (-d.vorticity.*2+d.divergence.*2+d.stretch.*2+d.shear.*2)/2;
+    OW(abs(OW)>1) = nan;
 end
 %-----------------------------------------------------------------------
-function defo=getDefo(uvg)
+function defo = getDefo(uvg)
     defo.vorticity = uvg.dVdx - uvg.dUdy;
-    defo.divergence= uvg.dUdx + uvg.dVdy;
-    defo.stretch   = uvg.dUdx - uvg.dVdy;
-    defo.shear     = uvg.dVdx + uvg.dUdy;
+    defo.divergence = uvg.dUdx + uvg.dVdy;
+    defo.stretch = uvg.dUdx - uvg.dVdy;
+    defo.shear = uvg.dVdx + uvg.dUdy;
 end
 %-----------------------------------------------------------------------
-function uvg=UVgrads(vels,DX,DY)
+function uvg = UVgrads(vels,dx,dy)
     %% calc U gradients
-    dUdy=diff(vels.U,1,2);
-    dUdx=diff(vels.U,1,3);
-    dVdy=diff(vels.V,1,2);
-    dVdx=diff(vels.V,1,3);
-    [Z,~,~]=size(vels.U);
-    uvg.dUdy= dUdy(:, [1:end, end], :)  ./ vertstack(DY,Z);
-    uvg.dUdx= dUdx(:, :,[1:end, end] )  ./ vertstack(DX,Z);
-    uvg.dVdy= dVdy(:, [1:end, end], :)  ./ vertstack(DY,Z);
-    uvg.dVdx= dVdx(:, :,[1:end, end] )  ./ vertstack(DX,Z);
+    dUdy = diff(vels.U,1,2);
+    dUdx = diff(vels.U,1,3);
+    dVdy = diff(vels.V,1,2);
+    dVdx = diff(vels.V,1,3);
+    [Z,~,~] = size(vels.U);
+    uvg.dUdy = dUdy(:, [1:end, end], :)./ vertstack(dy,Z);
+    uvg.dUdx = dUdx(:, :,[1:end, end] )./ vertstack(dx,Z);
+    uvg.dVdy = dVdy(:, [1:end, end], :)./ vertstack(dy,Z);
+    uvg.dVdx = dVdx(:, :,[1:end, end] )./ vertstack(dx,Z);
 end
 %---------
-function vels=getVels(CK,gr)
-    cor=CK.corio;
-    depth=CK.depth;    
-    rhoRef=1000;
-    [Z,Y,X]=size(gr.drdy);
-    gzOverRhoF=vertstack(cor.GOverF,Z) .* repmat(depth,[1,Y,X]) / rhoRef;
-    vels.U=-gr.drdy .* gzOverRhoF;
-     vels.V= gr.drdx .* gzOverRhoF;    
-%     semi.x=CK.filterRadius;
-%     semi.y=CK.filterRadius;
-%     T=disp_progress('init','high pass filtering geostrophic velocities');
-%     for z=1:Z
-%         T=disp_progress('init',T,Z,10);
-%         [vels.U(z,:,:)]= ellipseFltr(semi,squeeze(U(z,:,:)));      
-%         [vels.V(z,:,:)]= ellipseFltr(semi,squeeze(V(z,:,:)));       
-%     end 
-
-% for z=1:Z
-%     vels.U(z,:,:)=smooth2a(squeeze(U(z,:,:)),3);
-%     vels.V(z,:,:)=smooth2a(squeeze(V(z,:,:)),3);
-% end
-% for y=1:Y
-%     Uy(:,y,:)=smooth2a(squeeze(U(:,y,:)),3);
-%     Vy(:,y,:)=smooth2a(squeeze(V(:,y,:)),3);
-% end
-% for x=1:X
-%     Ux(:,:,x)=smooth2a(squeeze(U(:,:,x)),3);
-%     Vx(:,:,x)=smooth2a(squeeze(V(:,:,x)),3);
-% end
-% vels.U=reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
-% vels.V=reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
-
-
+function vels = getVels(raw,gr)
+    cor = raw.corio;
+    depth = raw.depth;
+    rhoRef = 1000;
+    [Z,Y,X] = size(gr.drdy);
+    gzOverRhoF = vertstack(cor.GOverF,Z) .* repmat(depth,[1,Y,X]) / rhoRef;
+    vels.U = -gr.drdy .* gzOverRhoF;
+    vels.V = gr.drdx .* gzOverRhoF;
+    % semi.x = raw.filterRadius;
+    % semi.y = raw.filterRadius;
+    % T = disp_progress('init','high pass filtering geostrophic velocities');
+    % for z = 1:Z
+    % T = disp_progress('init',T,Z,10);
+    % [vels.U(z,:,:)] = ellipseFltr(semi,squeeze(U(z,:,:)));
+    % [vels.V(z,:,:)] = ellipseFltr(semi,squeeze(V(z,:,:)));
+    % end
+    
+    % for z = 1:Z
+    % vels.U(z,:,:) = smooth2a(squeeze(U(z,:,:)),3);
+    % vels.V(z,:,:) = smooth2a(squeeze(V(z,:,:)),3);
+    % end
+    % for y = 1:Y
+    % Uy(:,y,:) = smooth2a(squeeze(U(:,y,:)),3);
+    % Vy(:,y,:) = smooth2a(squeeze(V(:,y,:)),3);
+    % end
+    % for x = 1:X
+    % Ux(:,:,x) = smooth2a(squeeze(U(:,:,x)),3);
+    % Vx(:,:,x) = smooth2a(squeeze(V(:,:,x)),3);
+    % end
+    % vels.U = reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
+    % vels.V = reshape(mean([Uz(:),Uy(:),Ux(:)],2),[Z,Y,X]);
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [drdx,drdy]=getDrhodx(rho,DX,DY)
+function [drdx,drdy] = getDrhodx(rho,dx,dy)
     %% calc density gradients
-    [Z,~,~]=size(rho);
-    drdx=diff(rho,1,3);
-    drdy=diff(rho,1,2);
-    drdx=drdx(:,:,[1:end, end]) ./ vertstack(DX,Z);
-    drdy=drdy(:,[1:end, end],:) ./ vertstack(DY,Z);
+    [Z,~,~] = size(rho);
+    drdx = diff(rho,1,3);
+    drdy = diff(rho,1,2);
+    drdx = drdx(:,:,[1:end, end]) ./ vertstack(dx,Z);
+    drdy = drdy(:,[1:end, end],:) ./ vertstack(dy,Z);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [rho]=calcDens(CK,cc)
-    [ZZ,YY,XX]=size(CK.TEMP);
-    dispM(['calculating pressure, chunk ',cc]);
-    %% get full matrices for all variables
-    M.depth=double(repmat(CK.depth,[1,YY*XX]));
-    M.lat=double(repmat(permute(CK.lat(:),[2 1]), [ZZ,1]));
-    
-pressure=sw_pres(M.depth(:),M.lat(:)) ; % db 2 Pa
-    rho = reshape(sw_dens(CK.SALT(:),CK.TEMP(:),pressure),[ZZ,YY,XX]);
+
+function out = fileStuff(fin,dirout)
+    dateIdx = regexp(fin,'[0-9]{8}');
+    dateN = fin(dateIdx:dateIdx+7);
+    out.date = datenum(dateN,'yyyymmdd');
+    out.fout = [ dirout, 'meanDens',dateN,'.mat'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=initCK(CK,DD,chunk,ff)
-    CK.chunk=chunk;   
-    CK.dim=ncArrayDims(DD,chunk,ff);
-      CK.depth=ChunkDepth(DD,CK.dim);
-    [CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,ff+1);
-    [CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-    CK.TEMP=ChunkTemp(DD,CK.dim,ff+1);
-    dispM('getting salt..')
-    CK.SALT=ChunkSalt(DD,CK.dim,ff+1);
-    [CK.rossby]=ChunkRossby(CK);
-    CK.corio=coriolisStuff(CK.lat);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=preInitCK(DD,fr)
-     CK.dim=ncArrayDims(DD,1,0);
-     CK.depth=ChunkDepth(DD,CK.dim);
-    [CK.lat,CK.lon]=ChunkLatLon(DD,CK.dim,1);
-    [CK.DY,CK.DX]=ChunkDYDX(CK.lat,CK.lon);
-    [CK.rossby]=ChunkRossby(CK);
-    CK.corio=coriolisStuff(CK.lat);
-    CK.filterRadius=fr;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=coriolisStuff(lat)
-    %% omega
-    Omega=angularFreqEarth;
+function out = coriolisStuff(lat)
+    OmegaTw = 2*angularFreqEarth;
     %% f
-    out.f=2*Omega*sind(lat);
+    out.f = OmegaTw*sind(lat);
     %% beta
-    %     out.beta=2*out.Omega/earthRadius*cosd(lat);
+    out.beta = OmegaTw/earthRadius*cosd(lat);
     %% gravity
-    g=sw_g(lat,zeros(size(lat)));
+    g = sw_g(lat,zeros(size(lat)));
     %% g/f
-    out.GOverF=g./out.f;
+    out.GOverF = g./out.f;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [rossby]=ChunkRossby(CK)
-    day_sid=23.9344696*60*60;
-    om=2*pi/(day_sid); % frequency earth
-    rossby.f=2*om*sind(CK.lat);
-    rossby.beta=2*om/earthRadius*cosd(CK.lat);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [DY,DX]=ChunkDYDX(lat,lon)
+function [dy,dx] = getdydx(lat,lon)
     %% grid increment sizes
-    DY=deg2rad(abs(diff(double(lat),1,1)))*earthRadius;
-    DX=deg2rad(abs(diff(double(lon),1,2)))*earthRadius.*cosd(lat(:,1:end-1));
+    dy = deg2rad(abs(diff(double(lat),1,1)))*earthRadius;
+    dx = deg2rad(abs(diff(double(lon),1,2)))*earthRadius.*cosd(lat(:,1:end-1));
     %% append one line/row to have identical size as other fields
-    DY=DY([1:end end],:);
-    DX=DX(:,[1:end end]);
+    dy = dy([1:end end],:);
+    dx = dx(:,[1:end end]);
     %% correct 360° crossings
-    seamcrossflag=DX>100*median(DX(:));
-    DX(seamcrossflag)=abs(DX(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
+    seamcrossflag = dx>100*median(dx(:));
+    dx(seamcrossflag) = abs(dx(seamcrossflag) - 2*pi*earthRadius.*cosd(lat(seamcrossflag)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveChunk(CK,file_out) %#ok<INUSL>
-    save(file_out,'-struct','CK');
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dim=ncArrayDims(DD,chnk,ff)
-    lims=DD.RossbyStuff.lims.data;
-    %% old
-    dim.t.old.strt = 0;
-    dim.t.old.len  = 1;
-    dim.z.old.strt = lims(chnk,1) -1 ;
-    dim.z.old.len  = diff(lims(chnk,:)) + 1 ;
-    dim.y.old.strt = DD.TS.window.limits.south-1;
-    dim.y.old.len  = DD.TS.window.size.Y;
-    dim.x.old.strt = DD.TS.window.limits.west-1;
-    dim.x.old.len  = DD.TS.window.size.X;   
-    %% new indeces for output nc file  
-    dim.t.new.strt = ff;
-    dim.t.new.len  = 1;    
-    dim.z.new.strt = dim.z.old.strt;
-    dim.z.new.len  = dim.z.old.len;   
-    dim.y.new.strt = 0;
-    dim.y.new.len  = DD.TS.window.size.Y;
-    dim.x.new.strt = 0;
-    dim.x.new.len  = DD.TS.window.size.X;  
-    %% array
-  [dim]=struct2array(dim);    
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [lat,lon]=ChunkLatLon(DD,dim,ff)
-   
-    lat=nc_varget(DD.path.TSow(ff).temp,DD.TS.keys.lat...
-        ,edf(dim,'old.strt',3,4),edf(dim,'old.len',3,4));
-    
-    lon=nc_varget(DD.path.TSow(ff).temp,DD.TS.keys.lon...
-        ,edf(dim,'old.strt',3,4),edf(dim,'old.len',3,4));       
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function depth=ChunkDepth(DD,dim)
-    depth=nc_varget(DD.path.TSow(1).salt,DD.TS.keys.depth...
-       ,edf(dim,'old.strt',2,2),edf(dim,'old.len',2,2));
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function salt=ChunkSalt(DD,dim,ff)
-    salt=squeeze(nc_varget(DD.path.TSow(ff).salt,DD.TS.keys.salt...
-        ,edf(dim,'old.strt'),edf(dim,'old.len')));
-  
-    salt(salt==0)=nan;
-    salt=salt*1000; % to salinity unit. TODO: from input vars
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function temp=ChunkTemp(DD,dim,ff)
-    temp=squeeze(nc_varget(DD.path.TSow(ff).temp,DD.TS.keys.temp...
-       ,edf(dim,'old.strt'),edf(dim,'old.len')));
-  
-   temp(temp==0)=nan;
+function saveChunk(raw,file_out) %#ok<INUSL>
+    save(file_out,'-struct','raw');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-% shorthand
-function out=edf(in,field,from,till)
-    out=extractdeepfield(in,field);
-    if nargin == 4
-        out=out(from:till);
-    end
-end

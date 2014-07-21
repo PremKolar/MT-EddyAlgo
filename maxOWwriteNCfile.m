@@ -1,3 +1,4 @@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 16-Jul-2014 13:53:44
 % Computer:GLNX86
@@ -5,17 +6,17 @@
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=maxOWwriteNCfile(DD)
-       [Tf,dirstuff]=init(DD);
+       [dirstuff]=init(DD);
     %% daily operations
     for ff=0:dirstuff.fnum-1
         %% init        
-        [Tf]=dayloop(ff,Tf,dirstuff,DD.TS.window.size);
+       dayloop(ff,dirstuff,DD.TS.window.size);
     end
     %% make also large mat file
 %     nc2mat(DD);   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Tf]=dayloop(ff,Tf,dirstuff,WinSize)
+function [Tf]=dayloop(ff,dirstuff,WinSize)
     Tf=disp_progress('disp',Tf,dirstuff.fnum,100);
     dirstuff.fname=initNcFile(WinSize,ff,dirstuff);   
     NCLoop(dirstuff,ff);   
@@ -36,15 +37,10 @@ function backpackNC(do,dfn,ff,chnk)
     catChunks2NetCDF(dfn,CK,ff);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Tf,dirstuff]=init(DD)
-    dirstuff.splits=DD.parameters.RossbySplits;
-%     initNcFile(DD);
-    Tf=disp_progress('init','looping over time-steps');
+function [dirstuff]=init(DD)    
     dirstuff.fnum=numel(DD.path.TSow);
     dirstuff.out   = [DD.path.Rossby.name];  
-dirstuff.dailyBaseName   = [ dirstuff.out 'OW_'];  
-    %     dirstuff.chunks = [dirstuff.out 'matChunks/'];
-%     mkdirp(dirstuff.chunks);   
+dirstuff.dailyBaseName   = [ dirstuff.out 'OW_']; 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function CK=loadChunk(RossbyDir,chnk,ff)

@@ -91,59 +91,7 @@ function [corio]=Corio(CK)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=LatLon(DD,dim)
-    % %% ########################################################################
-    % %% ##%% ########################################################################
-    % %% ########################################################################
-    % %% ########################################################################
-    % ######################################################################
-    % %% ##%% ########################################################################
-    % ######################################################################
-    % %% ########################################################################
-    
-    %% NO IDEA WHAT HAPPENED HERE!!!!
-    % lat=nc_varget(DD.path.Rossbindow.type,'globe')
-    % 		xadd=round(DD.map.window.fullsize(2)/10);
-    % 		CK.corio.beta=CK.corio.beta(:,[1:end,1:xadd]);
-    % 		CK.corio.f=CK.corio.f(:,[1:end,1:xadd]);
-    % 		CK.rossby.Ro1=CK.rossby.Ro1(:,[1:end,1:xadd]);
-    % 		CK.rossby.c1=CK.rossby.c1(:,[1:end,1:xadd]);
-    % 		CK.N=CK.N(:,[1:end,1:xadd]);
-    % end
-    % % %% ########################################################################
-    % % %% ##%% ########################################################################
-    % % %% ########################################################################
-    % %% ########################################################################
-    % ######################################################################
-    % %% ##%% ########################################################################
-    % ######################################################################
-    % %% ########################################################################
-    
-    %% save
-    disp('saving..')
-    file_out=[DD.path.Rossby.name,'BVRf_all.mat'];
-    save(file_out,'-struct','CK');
-    %%
-    file_out=[DD.path.Rossby.name 'RossbyPhaseSpeed.mat'];
-    out=CK.rossby.c1;
-    save(file_out,'out');
-    %%
-    file_out=[DD.path.Rossby.name 'RossbyRadius.mat'];
-    out=CK.rossby.Ro1; %#ok<*NASGU>
-    save(file_out,'out');
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function R=	calcRossbyRadius(CK)
-    disp(['integrating Rossby Radius'])
-    [~,YY,XX]=size(CK.N);
-    M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
-    Nmid=(CK.N(1:end-1,:,:) + CK.N(2:end,:,:))/2;
-    R=abs(double((squeeze(nansum(M.depthdiff.*Nmid,1))./CK.corio.f)/pi));
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [c1]=calcC_one(CK)
-    %    c=-beta/(k^2+(1/L_r)^2) approx -beta*L^2
-    disp(['applying long rossby wave disp rel for c1'])
-    c1=-CK.corio.beta.*CK.rossby.Nfile,DD.map.in.keys.lat,dim.start2d, dim.len2d);
+    lat=nc_varget(DD.path.Rossby.Nfile,DD.map.in.keys.lat,dim.start2d, dim.len2d);
     lon=nc_varget(DD.path.Rossby.Nfile,DD.map.in.keys.lon,dim.start2d, dim.len2d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -51,11 +51,11 @@ function spmd_body(DD,RS)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-        coriolis=coriolisStuff(cut.grids);
+        coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS);
-        if ~isfield(grids,'sshRaw')
-            grids.sshRaw=grids.ssh;
+        if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
+            grids.sshRaw=grids.ssh;           
             grids.ssh=filterStuff(cut.grids,RS);
         end
         %% write

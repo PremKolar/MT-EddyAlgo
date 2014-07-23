@@ -16,7 +16,7 @@ function maxOW
     %% save
     save([DD.path.root 'minOW'])
     %% post process
-    postProc(minOW,seasons)
+    postProc(DD.path.root,minOW,seasons)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function minOW=main(DD)
@@ -25,35 +25,41 @@ function minOW=main(DD)
     %% spmd
     metaD=maxOWmain(DD);
     %%
-    minOW=OWprocess(DD,metaD);
+    minOW=maxOWprocess(DD,metaD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function postProc(minOW,seasons)
+function postProc(rootdir,minOW,seasons)
     su=minOW.Summer.ziIntrl;
     wi=minOW.Winter.ziIntrl;
     %% interpolate seasons
     YY=nan([365,size(su)]);
     for ii=1:numel(su)
-        YY(1:182,ii)=linspace(su(ii),wi(ii),182);
-        YY(183:end,ii)=linspace(wi(ii),su(ii),183);
+        YY(1:182,ii)=round(linspace(su(ii),wi(ii),182));
+        YY(183:end,ii)=round(linspace(wi(ii),su(ii),183));
     end
-    save([DD.path.root 'ZIfullYear.mat'],'YY')  ;
+    save([rootdir 'ZIfullYear.mat'],'YY')  ;
     %% plot
     for s = 1:2
         plotstuff(minOW.(seasons{s}),minOW.(seasons{1}).depth)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function histDepOw=histUniqDepths(depz,zi,owLg)    
+        histDepOw = histc(owLg( zi == depz ), owAx);
+end
+
 function plotstuff(full,depth)
-    uniDepths=unique(full.zi(:));
+     fuz=reshape(full.zi(~isnan(full.zi)),1,[]);
+    uniDepths=unique(fuz);
     %     histc(full.zi(:), uniDepths)  ;
     set(0,'defaulttextinterpreter','latex')
     owLg=-full.ow;
     owAx=[0 logspace(log10(nanmean(owLg(:))),log10(nanmax(owLg(:))),40)];
     histDepOw=nan(numel(uniDepths),numel(owAx));
-    for ud=1:numel(uniDepths)
-        depz=uniDepths(ud)   ;
-        histDepOw(ud,:)= histc(owLg( full.zi == depz ), owAx);
+   
+    parfor ud=1:numel(uniDepths)
+       histDepOw(ud,:)=histUniqDepths(uniDepths(ud),fuz,owLg)
     end
     histDepOw(histDepOw==0)=nan;
     bar3(log10(histDepOw));

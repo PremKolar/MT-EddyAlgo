@@ -49,15 +49,12 @@ function spmd_body(DD)
         %%
         [T]=disp_progress('calc',T,numel(II),100);
         %% get data
-        file=GetCurrentFile(II(cc),DD)  ;
+        [file,exists]=GetCurrentFile(II(cc),DD)  ; if exists.out,disp('exists');return;end
         %% cut data
         [CUT]=CutMap(file,DD);   if isempty(CUT); return; end
-        %% filter
-%         CUT.grids.sshS=lowPassSSH(CUT.grids,DD.parameters.Gausswidth);
         %% write data
         WriteFileOut(file.out,CUT);
     end
-    disp_progress('conclude');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT]=CutMap(file,DD)
@@ -73,10 +70,10 @@ function [CUT]=CutMap(file,DD)
     %% nan out land and make SI
     CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.parameters.ssh_unitFactor);
     %% get distance fields
-    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);   
+    [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT=ZonalAppend(raw,window)    
+function OUT=ZonalAppend(raw,window)
     OUT=buildGrids;
     %----------------------------------------------------------------------
     function out=buildGrids
@@ -87,52 +84,8 @@ function OUT=ZonalAppend(raw,window)
             out.grids.(field) = raw.(field)(xlin);
         end
         %% append params
-        out.window = rmfield(window,{'flag','iy','ix'});       
+        out.window = rmfield(window,{'flag','iy','ix'});
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=lowPassSSH(grids,gaussWidth)
-
-gw.x=gaussWidth./grids.DX;
-    gw.y=gaussWidth./grids.DY;
-    
-    % FOR NOW    
-    gwx=ceil(mean(gw.x(:)));
-    gwy=ceil(mean(gw.y(:)));
-    
-%     a=smooth2gauss(grids.ssh,gwx,gwy)
-    
-    
-   out = smooth2gauss(grids.ssh,gwx,gwy);
-%     m = m - nanmin(m(:));
-%     m = m/nanmax(m(:));
-%     out = m*(nanmax(grids.ssh(:)) - nanmin(grids.ssh(:))) + nanmin(grids.ssh(:));
-%     mm=smooth2a(grids.ssh,3,3)
-%     
-%      figure(5);
-%      ppcolor(mm)
-% %      caxis([-.3 .3])
-%      figure(1);
-%      ppcolor(grids.ssh)
-% %      caxis([-.3 .3])
-% figure(2);
-%     ppcolor(m)
-% % caxis([-.3 .3])
-% 
-% figure(3);
-% contour(m,[0 0])
-% hold on
-% contour(grids.ssh,[0 0],'color',[1 0 0])
-% 
-% figure(4);
-% subplot(1,3,1)
-% contourf(m,120)
-% subplot(1,3,2)
-% contourf(grids.ssh,120)
-% subplot(1,3,3)
-% contourf(mm,120)
-% 
-
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)

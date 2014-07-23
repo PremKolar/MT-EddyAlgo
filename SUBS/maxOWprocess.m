@@ -39,7 +39,7 @@ function  OWall=maxOWprocess(DD,metaD)
     Xfl(flgd)=[];
     Yfl(flgd)=[];
     vq = griddata(Xfl,Yfl,OWall.meaned.z(~flgd),Xq,Yq);
-    OWall.ziIntrl=smooth2a(NeighbourValue(isnan(vq),vq),3);
+    OWall.ziIntrl=round(smooth2a(NeighbourValue(isnan(vq),vq),10));
     %    pcolor(vqn);
     %    colorbar;
     

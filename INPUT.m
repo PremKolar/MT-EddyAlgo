@@ -13,7 +13,7 @@ function DD=INPUT
 %      DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19940201';
+    DD.time.till.str='19950101';
     %% window on globe
     DD.map.in.west=-75;
     DD.map.in.east= -60;
@@ -34,10 +34,12 @@ function DD=INPUT
     DD.thresh.life=3; % min num of living days for saving
     DD.thresh.amArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
-    DD.switchs.RossbyStuff=true;
+    DD.switchs.RossbyStuff=false;
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;
     DD.switchs.distlimit=false;
     DD.switchs.AmpAreaCheck=false;
-    DD.switchs.netUstuff=false;   
+    DD.switchs.netUstuff=true;
+    DD.switchs.meanUviaOW=true;
+    DD.switchs.spaciallyFilterSSH=false;
 end

@@ -15,13 +15,13 @@ function DD=INPUT
     DD.time.from.str='19940101';
     DD.time.till.str='19940201';
     %% window on globe
-    DD.map.in.west=-180;
-    DD.map.in.east= 180;
-    DD.map.in.south= -80;
-    DD.map.in.north= 80;
+    DD.map.in.west=-75;
+    DD.map.in.east= -60;
+    DD.map.in.south= 30;
+    DD.map.in.north= 45;
     %% output map res
-    DD.map.out.X=30*1+1; % TODO
-    DD.map.out.Y=20*1+1;
+    DD.map.out.X=15*1+1; % TODO
+    DD.map.out.Y=15*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.ssh_filter_size=1;

@@ -10,15 +10,15 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-    DD.debugmode=true;
+%      DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
     DD.time.till.str='19940201';
     %% window on globe
-    DD.map.in.west=-40;
-    DD.map.in.east= -30;
-    DD.map.in.south=20;
-    DD.map.in.north=30;
+    DD.map.in.west=-180;
+    DD.map.in.east= 180;
+    DD.map.in.south= -80;
+    DD.map.in.north= 80;
     %% output map res
     DD.map.out.X=30*1+1; % TODO
     DD.map.out.Y=20*1+1;

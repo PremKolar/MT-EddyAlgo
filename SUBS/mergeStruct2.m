@@ -1,6 +1,5 @@
-
 function [A,B]=mergeStruct2(A,B)
-    %% A into B   
+    %% A into B
     [A,B]=AintoB(A,B);
     %% new B into A
     [B,A]=AintoB(B,A);
@@ -8,7 +7,7 @@ function [A,B]=mergeStruct2(A,B)
     function [A,B]=AintoB(A,B)
         fields=fieldnames(A);
         for ff=1:numel(fields)
-            field=fields{ff};          
+            field=fields{ff};
             if isstruct(A.(field))
                 if ~isfield(B,field)
                     B.(field)=A.(field);
@@ -17,7 +16,7 @@ function [A,B]=mergeStruct2(A,B)
                 end
             else
                 if ~isfield(B,field)
-                    B.(field)=A.(field);               
+                    B.(field)=A.(field);
                 end
             end
         end

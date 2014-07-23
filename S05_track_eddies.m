@@ -207,7 +207,6 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
     for tt=1:length(tracks)
         tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
     end
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TDB]=filter4threshold(TDB,MD,thresh,sen)

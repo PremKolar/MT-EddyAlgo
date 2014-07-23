@@ -11,11 +11,11 @@ function [window,lonlat]=GetWindow2(file,mapin)
     %% full size
     window.fullsize=size(lonlat.lon);
     %% find rectangle enclosing all applicable data
-    [window.limits, window.type]=FindRectangle(window.flag);
+    [window.limits, window.type]=FindRectangle(window.flag,lonlat.lon);
     %% size
     window.size=WriteSize(window);
     %%
-    [window.iy,window.ix,window.seam]=ZonalProblem(window);   
+    [window.iy,window.ix,window.seam]=ZonalProblem(window);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [y,x,seam]=ZonalProblem(w)
@@ -72,7 +72,7 @@ function window=FindWindowMask(grids,M)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [limits,type]=FindRectangle(flag)
+function [limits,type]=FindRectangle(flag,lon)
     %% sum flag in both dirs
     cols=sum(flag,1);
     rows=sum(flag,2);
@@ -83,11 +83,22 @@ function [limits,type]=FindRectangle(flag)
     xa.nz=find(cols~=0,1,'first');
     xb.nz=find(cols~=0,1,'last');
     %% cases
-    if all(cols~=0) 
-        %% continuous in x
-        limits.west=1;
-        limits.east=length(cols);
-        type='globe';
+    if all(cols~=0)
+        %% check whether map.in spans globe
+        lonRange.del=max(max(diff(lon,1,2) ,[],1));
+        lonRange.min=min(lon(flag));
+        lonRange.max=max(lon(flag));
+        if lonRange.max - lonRange.min + lonRange.del >=  360
+            %% continuous in x
+            limits.west=1;
+            limits.east=length(cols);
+            type='globe';
+        else
+            %% non-continuous in x but full map in x
+            limits.west=1;
+            limits.east=length(cols);
+            type='normal';
+        end
     else
         if (xa.z==1 && xb.z==X)
             %% normal case

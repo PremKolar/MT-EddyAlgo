@@ -125,7 +125,7 @@ function path=findfiles(DD)
     %%
     [~,~,ext.raw]=fileparts(DD.map.in.fname); 
     patt=strsplit(DD.map.in.fname,'yyyymmdd');
-    path.raw.files=dir([path.raw.name,patt{1},'*',patt{2}]);
+    path.raw.files=dir([path.raw.name,patt{1},'*',ext.raw]);
     path.protoMaps.file=[path.root, 'protoMaps.mat'];
     path.meanU.file=[path.root, 'meanU.mat'];
     path.UV.files=dir([path.UV.name,'*.nc']);   

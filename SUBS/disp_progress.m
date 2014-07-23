@@ -23,7 +23,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function conclude
     %% wait for all workers
-    sleep(1)
+%     sleep(1)
     labBarrier
     %% let master handle I/O
     if labindex == 1
@@ -34,7 +34,7 @@ function conclude
     end
     %% wait for all workers
     labBarrier
-    sleep(1)
+%     sleep(1)
     %----------------------------------------------------------------------
     function c=initc
         c.files=dir('./.comm*');
@@ -83,7 +83,8 @@ function printout(T,L)
     %% build output
     strout=makeStrings;
     %% print
-    clc;sendoutStrings;
+%     clc;
+    sendoutStrings;
     %% waitbar
     spmdwaitbar(T.cc,L,30);
     %% SUBS

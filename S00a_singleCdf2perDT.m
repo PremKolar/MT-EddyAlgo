@@ -71,9 +71,17 @@ function [raw]=cdfData(DD)
     raw.(keys.z)=nc_varget(raw.file.in,keys.z);
     [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
     %% append zonal wings to x distance vector
-    [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));    
+    [raw.(keys.x), raw.wingIdx]=nonZonCont(raw.(keys.x)); 
+%     [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [rx, idx]=nonZonCont(rx)
+    X=length(rx);
+    idx=[ (1:X)  ];    
+    rx=reshape(rx(idx),size(idx));  
+end
+
 function [rx, idx]=AppenZonWingToX(rx)
     % take $rx(Xhalf+1:end); append it to $rx(-Xhalf:0); shift the
     % values of that piece down by $edgeValue; append $rx(1:Xhalf) to the end of

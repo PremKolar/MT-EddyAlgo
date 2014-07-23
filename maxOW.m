@@ -33,9 +33,14 @@ function postProc(rootdir,minOW,seasons)
     wi=minOW.Winter.ziIntrl;
     %% interpolate seasons
     YY=nan([365,size(su)]);
+    parfor ii=1:numel(su)
+        YYa{ii}=round(linspace(su(ii),wi(ii),182));
+        YYb{ii}=round(linspace(wi(ii),su(ii),183));
+    end    
+    
     for ii=1:numel(su)
-        YY(1:182,ii)=round(linspace(su(ii),wi(ii),182));
-        YY(183:end,ii)=round(linspace(wi(ii),su(ii),183));
+        YY(1:182,ii)=YYa{ii};
+        YY(183:end,ii)=YYb{ii};
     end
     save([rootdir 'ZIfullYear.mat'],'YY')  ;
     %% plot
@@ -45,8 +50,8 @@ function postProc(rootdir,minOW,seasons)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function histDepOw=histUniqDepths(depz,zi,owLg,owAx)    
-        histDepOw = histc(owLg( zi == depz ), owAx);
+function histDepOw=histUniqDepths(depz,zi,owLg,owAx)
+    histDepOw = histc(owLg( zi == depz ), owAx);
 end
 
 function plotstuff(full,depth)

@@ -45,7 +45,7 @@ function postProc(rootdir,minOW,seasons)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function histDepOw=histUniqDepths(depz,zi,owLg)    
+function histDepOw=histUniqDepths(depz,zi,owLg,owAx)    
         histDepOw = histc(owLg( zi == depz ), owAx);
 end
 
@@ -59,7 +59,7 @@ function plotstuff(full,depth)
     histDepOw=nan(numel(uniDepths),numel(owAx));
    
     parfor ud=1:numel(uniDepths)
-       histDepOw(ud,:)=histUniqDepths(uniDepths(ud),fuz,owLg)
+       histDepOw(ud,:)=histUniqDepths(uniDepths(ud),fuz,owLg,owAx)
     end
     histDepOw(histDepOw==0)=nan;
     bar3(log10(histDepOw));

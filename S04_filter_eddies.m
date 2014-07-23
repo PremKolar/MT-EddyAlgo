@@ -5,36 +5,37 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % walks through all the contours and decides whether they qualify
-function S04_filter_eddies
+function S04_filter_eddies  
 	%% init
-	DD=initialise('conts');
+	DD=initialise('conts',mfilename);
 	DD.threads.num=init_threads(DD.threads.num);
 	rossbyU=getRossbyPhaseSpeed(DD);
 	%% spmd
 	main(DD,rossbyU);
-	%% update infofile
+	%% update infofile    
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossbyU)
 	if DD.debugmode
-		spmd_body(DD,rossbyU,labindex)
+		spmd_body(DD,rossbyU)
 	else
 		spmd(DD.threads.num)
-			spmd_body(DD,rossbyU,labindex)
+			spmd_body(DD,rossbyU)
+            disp_progress('conclude');
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,rossbyU,labindex)
+function spmd_body(DD,rossbyU)
 	[JJ]=SetThreadVar(DD);
 	Td=disp_progress('init','filtering contours');
 	for jj=1:numel(JJ)
 		[EE,skip]=work_day(DD,JJ(jj),rossbyU);
 		%%
-		Td=disp_progress('disp',Td,diff(DD.threads.lims(labindex,:))+1,numel(JJ),skip);
+		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
 		if skip,disp(['skipping ' num2str(jj)]);continue;end
 		%% save
 		save_eddies(EE);
@@ -44,8 +45,8 @@ end
 function [EE,skip]=work_day(DD,JJ,rossbyU)
 	%% check for exisiting data
 	skip=false;
-	EE.filename.cont=JJ.files;   
-   	EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
+	EE.filename.cont=JJ.files;
+	EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
 	EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
 	if exist(EE.filename.self,'file'), skip=true; return; end
 	%% get ssh data
@@ -171,15 +172,12 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	else
 		ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
 	end
-	%TODO
+	%% correct x indices in case of global window
 	if strcmp(DD.map.window.type,'globe')
 		ee=correctXoverlap(ee,DD);
 	end
-	
-	
-	
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ee=correctXoverlap(ee,DD)
 	X=DD.map.window.fullsize(2);
 	Y=DD.map.window.size.Y;
@@ -201,13 +199,8 @@ function ee=correctXoverlap(ee,DD)
 		data(data<0.5)=X;
 		data(data<1)=1;
 		data(data>X)=X;
-	end	
+	end
 end
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

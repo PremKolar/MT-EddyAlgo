@@ -9,14 +9,15 @@ function S00a_singleCdf2perDT
     %% init dependencies
     addpath(genpath('./'));
     %% get user input
-    DD = initialise;
+    DD = initialise([],mfilename);
+    delete([DD.path.root,'DD.mat']); % full reboot
+    DD = initialise([],mfilename);
     %% get madeleine's data
     [raw]=cdfData(DD);
     %% get geo stuff
     [DD,raw]=geostuff(raw,DD);
     %% thread distro
-    disp('working through all timesteps for now!')
-    DD.threads.lims=thread_distro(DD.threads.num,numel(raw.TIME));
+    DD.threads.lims=thread_distro(DD.threads.num,DD.time.span/DD.time.delta_t);
     %% start threads
     init_threads(DD.threads.num);
     %% spmd
@@ -26,7 +27,7 @@ function S00a_singleCdf2perDT
     %% save UV
     saveUV(DD,raw);
     %% save info
-    conclude(DD);
+    conclude(DD,0);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,raw)
@@ -47,9 +48,8 @@ function spmd_body(DD,raw)
         [T]=disp_progress('calc',T,numel(CC),5);
         %% get current SSH
         raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
-        %% append 'zonal wings'
-        idx=[raw.idx.w raw.idx.full raw.idx.e];
-        raw.grids.ssh=raw.grids.ssh(:,idx);
+        %% append 'zonal wings'           
+        raw.grids.ssh=raw.grids.ssh(:,raw.wingIdx);
         %% op day
         operateDay(raw,DD,cc);
     end
@@ -70,26 +70,41 @@ function [raw]=cdfData(DD)
     raw.(keys.y)=nc_varget(raw.file.in,keys.y);
     raw.(keys.z)=nc_varget(raw.file.in,keys.z);
     [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
-    %% append zonal wings to x dim
-    RX=raw.(keys.x);
-    [rxi,summand]=zonwing(RX);
-    raw.(keys.x)=[RX(rxi.west)-summand ;RX ; RX(rxi.east)+summand];
-    raw.idx.full=rxi.center; raw.idx.w=rxi.west; raw.idx.e=rxi.east;
-    %-----------------------------------------------------------------------
-    function [rxi,summand]=zonwing(RX)
-        X=length(RX);
-        Xhalf=round(X/2);
-        rxi.center =1:X;
-        rxi.west  =X-Xhalf+1:X;
-        rxi.east   =1:Xhalf;
-        summand=repmat(RX(end),Xhalf,1);
-    end
+    %% append zonal wings to x distance vector
+    [raw.(keys.x), raw.wingIdx]=nonZonCont(raw.(keys.x)); 
+%     [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));    
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [rx, idx]=nonZonCont(rx)
+    X=length(rx);
+    idx=[ (1:X)  ];    
+    rx=reshape(rx(idx),size(idx));  
+end
+
+function [rx, idx]=AppenZonWingToX(rx)
+    % take $rx(Xhalf+1:end); append it to $rx(-Xhalf:0); shift the
+    % values of that piece down by $edgeValue; append $rx(1:Xhalf) to the end of
+    % the new $rx(end+1:Xhalf); shift that piece's values up by $edgeValue
+    X=length(rx);
+    Xhalf=floor(X/2);  
+    ii.east = (X-Xhalf+1:X) ;
+    ii.west = (1:Xhalf)   ;
+    idx=[ii.east   (1:X)     ii.west];
+    %% summand
+    su=zeros(size(idx));
+    edgeValue=repmat(rx(end)+diff(rx(end-1:end)), 1,  Xhalf);
+    su(ii.west)       = - edgeValue; 
+    su(ii.east + X)       =   edgeValue; 
+    %% cat &   correct  
+    rx=reshape(rx(idx),size(idx)) + su;  
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [DD,raw]=geostuff(raw,DD)
     [raw.grids.XX,raw.grids.YY]=meshgrid(raw.XT,raw.YT);
     raw.grids.lat=rad2deg(raw.grids.YY./earthRadius) + DD.parameters.boxlims.south;
-    raw.grids.lon=rad2deg(raw.grids.XX./(cosd(raw.grids.lat)*earthRadius)) +  DD.parameters.boxlims.west;
+    raw.grids.lon=rad2deg(raw.grids.XX./(cosd(raw.grids.lat)*earthRadius)) +  0; %%  + boxlims.west
     if max(diff(raw.grids.lon(:)))>300, error('dont put window on -180/180 meridian!'); end %#ok<ERTAG>
     [raw.grids.DY,raw.grids.DX]=DYDX(raw.grids.lat,raw.grids.lon);
     %% reset to exact values
@@ -98,10 +113,10 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.in.south=min(raw.grids.lat(:));
     DD.map.in.north=max(raw.grids.lat(:));
     %% reset out maps
-    DD.map.out.west=DD.parameters.boxlims.west;
-    DD.map.out.east=(DD.map.in.east-DD.map.in.west+1)*1/2+DD.map.out.west;
-    DD.map.out.south=DD.map.in.south;
-    DD.map.out.north=DD.map.in.north;
+    DD.map.out.west=0;
+    DD.map.out.east=ceil((DD.map.in.east-DD.map.in.west+1)/2);
+    DD.map.out.south=floor(DD.map.in.south);
+    DD.map.out.north=ceil(DD.map.in.north);
     %% use full map
     [Y,X]=size(raw.grids.lon);
     DD.map.window.size.X=X;
@@ -110,18 +125,16 @@ function [DD,raw]=geostuff(raw,DD)
     DD.map.window.limits.east=X;
     DD.map.window.limits.south=1;
     DD.map.window.limits.north=Y;
-    DD.map.window.size.Z=numel(raw.ZT);
+    DD.map.window.size.Z=numel(raw.ZT);  
     %% info
     mapInfo(Y,X,DD.map.in,DD.map.out)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapInfo(Y,X,map,mapout)
-    fprintf('built %ix%i grid \n',Y,X)
-    disp(' ')
-    fprintf('spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n',map.west,map.east,map.south,map.north)
-    fprintf('output spanning %05.1fW:%05.1fE / %05.1fS:%05.1fN \n\n',mapout.west,mapout.east,mapout.south,mapout.north)
-    warning('make sure to change values accordingly in input_vars.m if not done yet!') %#ok<WNTAG>
-    sleep(5)
+    fprintf('\n built %ix%i grid \n',Y,X)
+    fprintf('       spanning %5.1fW : %5.1fE and %5.1fS : %5.1fN \n',map.west,map.east,map.south,map.north)
+    fprintf('output spanning %5.0fW : %5.0fE and %5.0fS : %5.0fN \n\n',mapout.west,mapout.east,mapout.south,mapout.north)
+    sleep(1)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveraw(DD,raw)
@@ -159,7 +172,7 @@ function operateDay(raw,DD,cc)
     fo=strrep(fo,'yyyymmdd',timestr);
     raw.file.out=[path, fo];
     if exist(raw.file.out,'file'), return; end
-    %%
+    %% smooth out dummy values and nans
     foulIdx=(raw.grids.ssh>1000 | raw.grids.ssh<-1000 | isnan(raw.grids.ssh));
     raw.grids.ssh=double(NeighbourValue(foulIdx, raw.grids.ssh));
     %%
@@ -180,7 +193,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveUV(DD,raw)
     %%
-    [U,V]=getUV(raw,DD.path.raw.name);
+    [U,V]=getUV(raw,DD.path.raw.name,DD.map.in.keys);
     %%
     [S]=prepUVfile(U,V,DD);
     %%
@@ -238,11 +251,11 @@ function saveUV(DD,raw)
         nc_addvar(V.file,S.Z);
     end
     %-----------------------------------------------------------------------
-    function [U,V]=getUV(raw,rawpath)
-        u=nc_varget(raw.file.in,'U');
-        v=nc_varget(raw.file.in,'V');
-        idx=[raw.idx.w raw.idx.full raw.idx.e];
-        u=u(:,:,idx);v=v(:,:,idx);
+    function [U,V]=getUV(raw,rawpath,keys)
+        u=nc_varget(raw.file.in,keys.U);
+        v=nc_varget(raw.file.in,keys.V);
+
+        u=u(:,:,raw.wingIdx);v=v(:,:,raw.wingIdx);
         [z,y,x]=size(u);
         U.data=reshape(u,1,z,y,x);
         V.data=reshape(v,1,z,y,x);
@@ -253,9 +266,12 @@ function saveUV(DD,raw)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveN(DD,raw)
-    N=sqrt(abs(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])))));  % N IST NEGATIV IN DEN DATEN??
-    idx=[raw.idx.w raw.idx.full raw.idx.e];
-    N=N(:,:,idx);
+    Nin=sqrt(abs(double(squeeze(nc_varget(raw.file.in,DD.map.in.keys.N,[0 0 0 0],[1 inf inf inf])))));  % N IST NEGATIV IN DEN DATEN??
+    Nin(:,1:2,:)=repmat(Nin(:,3,:),[1,2,1]) ;
+    Nin(:,end-1:end,:)=repmat(Nin(:,end-3,:),[1,2,1]);
+    Nin(:,:,1:2)=repmat(Nin(:,:,3),[1,1,2]) ;
+    Nin(:,:,end-1:end)=repmat(Nin(:,:,end-3),[1,1,2]);    % WARUM NANS AM RAND?
+    N=Nin(:,:,raw.wingIdx);
     Nfile=DD.path.Rossby.Nfile;
     NCoverwriteornot(Nfile);
     nc_adddim(Nfile,'i_index',DD.map.window.size.X);

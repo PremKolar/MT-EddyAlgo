@@ -5,12 +5,12 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-    DD=initialise;
+    DD=initialise([],mfilename);
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez*3;
+    ticks.width=297/25.4*ticks.rez/3;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -42,24 +42,25 @@ function mainDB(DD,IN,ticks)
     disp('entering debug mode')
     ticks.rez=42;
     
-%     
-%          for sense=DD.FieldKeys.senses'; sen=sense{1};
-% %             TPa(DD,ticks,IN.tracks,sen);
-%             TPb(DD,ticks,IN.tracks,sen);
-%             TPc(DD,ticks,IN.tracks,sen);
-%             TPd(DD,ticks,IN.tracks,sen);
-%             TPe(DD,ticks,IN.tracks,sen);
-%             TPf(DD,ticks,IN.tracks,sen);
-%          end
-%           velZonmeans(DD,IN,ticks)
-%           scaleZonmeans(DD,IN,ticks)
-%     %
-%         histstuff(IN.vecs,DD,ticks)
+    
+             for sense=DD.FieldKeys.senses'; sen=sense{1};
+    %             TPa(DD,ticks,IN.tracks,sen);
+                TPb(DD,ticks,IN.tracks,sen);
+                TPc(DD,ticks,IN.tracks,sen);
+                TPd(DD,ticks,IN.tracks,sen);
+                TPe(DD,ticks,IN.tracks,sen);
+                TPf(DD,ticks,IN.tracks,sen);
+             end
+             if DD.switchs.RossbyStuff && DD.switchs.netUstuff
+              velZonmeans(DD,IN,ticks)
+              scaleZonmeans(DD,IN,ticks)
+        end
+            histstuff(IN.vecs,DD,ticks)
     mapstuff(IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=main(DD,IN,ticks)
-   job.zonmeans=taskfForZonMeans(DD,IN,ticks);
+    job.zonmeans=taskfForZonMeans(DD,IN,ticks);
     %%
     job.maphist= taskfForMapAndHist(DD,IN,ticks);
     %%
@@ -67,8 +68,8 @@ function job=main(DD,IN,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=taskfForZonMeans(DD,IN,ticks)
-    job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
-    job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
+	job(1)= batch(@velZonmeans, 0, {DD,IN,ticks});
+	job(2)=  batch(@scaleZonmeans, 0, {DD,IN,ticks});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(DD,IN,ticks)
@@ -77,7 +78,7 @@ function velZonmeans(DD,IN,ticks)
     cv=squeeze(nanmean(IN.maps.Cycs.vel.zonal.mean,2));
     plot(IN.la(:,1),acv	,'r')
     plot(IN.la(:,1),cv,'black')
-     axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
+    axis([DD.map.out.south DD.map.out.north min([min(acv) min(cv)]) max([max(acv) max(cv)]) ])
     legend('Rossby-wave phase-speed','anti-cyclones net zonal velocity','cyclones net zonal velocity')
     ylabel('[cm/s]')
     xlabel('[latitude]')
@@ -101,24 +102,26 @@ function scaleZonmeans(DD,IN,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  job=taskfForMapAndHist(DD,IN,ticks)
-     job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
-    job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
-    
+	job(1)=batch(@histstuff, 0, {IN.vecs,DD,ticks});
+	job(2)= batch(@mapstuff, 0, {IN.maps,IN.vecs,DD,ticks,IN.lo,IN.la});
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD)
     disp(['loading maps'])
     OUT.maps=load([DD.path.analyzed.name, 'maps.mat']);
-    OUT.maps.meanU=load(DD.path.meanU.file);
     OUT.la=OUT.maps.Cycs.lat;
     OUT.lo=OUT.maps.Cycs.lon;
+    if DD.switchs.netUstuff
+        OUT.maps.meanU=load(DD.path.meanU.file);
+    end
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
     root=DD.path.analyzedTracks.AC.name;
     OUT.ACs={DD.path.analyzedTracks.AC.files.name};
     Tac=disp_progress('init','collecting all ACs');
     for ff=1:numel(OUT.ACs)
-        Tac=disp_progress('calc',Tac,numel(OUT.ACs),100);
+        Tac=disp_progress('calc',Tac,numel(OUT.ACs),50);
         OUT.tracks.AntiCycs(ff)={[root OUT.ACs{ff}]};
     end
     %%
@@ -126,7 +129,7 @@ function [OUT]=inits(DD)
     OUT.Cs={DD.path.analyzedTracks.C.files.name};
     Tc=disp_progress('init','collecting all Cs');
     for ff=1:numel(OUT.Cs)
-        Tc=disp_progress('calc',Tc,numel(OUT.Cs),100);
+        Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
         OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
     end
     %% get vectors
@@ -135,60 +138,60 @@ function [OUT]=inits(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function histstuff(vecs,DD,ticks)
-    senses={'Cycs','AntiCycs'};
-    for sense=senses;sen=sense{1};
-        %%
-        if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end
-        lamin=round(nanmin(vecs.(sen).lat));
-        lamax=round(nanmax(vecs.(sen).lat));
-        lainc=5;
-        range.(sen).lat= round(linspace(lamin,lamax,(lamax-lamin+1)/lainc));
-        %%
-        agemin=round(nanmin(vecs.(sen).age));
-        agemax=round(nanmax(vecs.(sen).age));
-        ageinc=10;
-        range.(sen).age= round(linspace(agemin,agemax,(agemax-agemin+1)/ageinc));
-        %%
-        range.(sen).cum=range.(sen).age;
-        %%
-        [hc.(sen).lat]=numPerLat(vecs.(sen).lat,DD,ticks,range.(sen).lat,sen);
-        %%
-        [hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
-    end
-    
-    %%
-    ratioBar(hc,'lat', range.Cycs.lat);
-    tit='ratio of cyclones to anticyclones as function of latitude';
-    title(tit)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-latratio-' sen],DD.debugmode);
-    %%
-    ratioBar(hc,'age', range.Cycs.age);
-    tit='ratio of cyclones to anticyclones as function of age (at death)';
-    xlab='age [d] - gray scale indicates total number of eddies available';
-    title(tit);
-    xlabel(xlab)   ;
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-ageratio-' sen],DD.debugmode);
+	senses={'Cycs','AntiCycs'};
+	for sense=senses;sen=sense{1};
+		%%
+		if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);return;end
+		lamin=round(nanmin(vecs.(sen).lat));
+		lamax=round(nanmax(vecs.(sen).lat));
+		lainc=5;
+		range.(sen).lat= round(linspace(lamin,lamax,(lamax-lamin+1)/lainc));
+		%%
+		agemin=round(nanmin(vecs.(sen).age));
+		agemax=round(nanmax(vecs.(sen).age));
+		ageinc=10;
+		range.(sen).age= round(linspace(agemin,agemax,(agemax-agemin+1)/ageinc));
+		%%
+		range.(sen).cum=range.(sen).age;
+		%%
+		[hc.(sen).lat]=numPerLat(vecs.(sen).lat,DD,ticks,range.(sen).lat,sen);
+		%%
+		[hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
+	end
+	
+	%%
+	ratioBar(hc,'lat', range.Cycs.lat);
+	tit='ratio of cyclones to anticyclones as function of latitude';
+	title(tit)
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-latratio-' sen],DD.debugmode);
+	%%
+	ratioBar(hc,'age', range.Cycs.age);
+	tit='ratio of cyclones to anticyclones as function of age (at death)';
+	xlab='age [d] - gray scale indicates total number of eddies available';
+	title(tit);
+	xlabel(xlab)   ;
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-ageratio-' sen],DD.debugmode);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [totnum]=ratioBar(hc,field,xlab)
-    %% ratio cyc/acyc per lat
-    figure
-    %% find max length for ratio vecotr
-    len=nanmin([length(hc.Cycs.(field)),length(hc.AntiCycs.(field))]);
-    hc.rat.(field)=hc.Cycs.(field)(1:len)./hc.AntiCycs.(field)(1:len);
-    hc.rat.(field)(isinf(hc.rat.(field)))=nan;
-    hc.rat.(field)((hc.rat.(field)==0))=nan;
-    %% total length
-    totnum=hc.Cycs.(field)(1:len) + hc.AntiCycs.(field)(1:len);
-    %%%%
-    logyBar(totnum,hc.rat.(field))
-    %%%%
-    xt= (1:numel(xlab));
-    set(gca,'XTick',xt)
-    set(gca,'YTickMode','auto')
-    yt= get(gca,'YTick');
-    set(gca,'yticklabel',sprintf('%0.1f|',exp(yt)));
-    set(gca,'xticklabel',num2str(xlab));
+	%% ratio cyc/acyc per lat
+	figure
+	%% find max length for ratio vecotr
+	len=nanmin([length(hc.Cycs.(field)),length(hc.AntiCycs.(field))]);
+	hc.rat.(field)=hc.Cycs.(field)(1:len)./hc.AntiCycs.(field)(1:len);
+	hc.rat.(field)(isinf(hc.rat.(field)))=nan;
+	hc.rat.(field)((hc.rat.(field)==0))=nan;
+	%% total length
+	totnum=hc.Cycs.(field)(1:len) + hc.AntiCycs.(field)(1:len);
+	%%%%
+	logyBar(totnum,hc.rat.(field))
+	%%%%
+	xt= (1:numel(xlab));
+	set(gca,'XTick',xt)
+	set(gca,'YTickMode','auto')
+	yt= get(gca,'YTick');
+	set(gca,'yticklabel',sprintf('%0.1f|',exp(yt)));
+	set(gca,'xticklabel',num2str(xlab));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapstuff(maps,vecs,DD,ticks,lo,la)
@@ -268,8 +271,9 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVel' sen],DD.debugmode,'dpdf');
         %%
+        if DD.switchs.netUstuff
         figure
-        VV=maps.(sen).vel.net.mean*100;
+         VV=maps.(sen).vel.net.mean*100;
         pcolor(lo,la,VV);shading flat
         cb=decorate('vel',ticks,DD,sen,...
             ['(Zonal velocity -Mean Current @('...
@@ -277,6 +281,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             'm))'],'cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVelNet' sen],DD.debugmode,'dpdf');
+        end
         %%
         figure
         VV=maps.(sen).radius.mean.mean/1000;
@@ -284,37 +289,39 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         decorate('radius',ticks,DD,sen,'Radius','km',0,1);
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRad' sen],DD.debugmode,'dpdf');
         %%
+       if DD.switchs.RossbyStuff
         figure
         VV=log(maps.(sen).radius.toRo/2);
         pcolor(lo,la,VV);shading flat
-%         caxis([ticks.radiusToRo(1) ticks.radiusToRo(2)])
+        %         caxis([ticks.radiusToRo(1) ticks.radiusToRo(2)])
         cb=decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,10,1,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRadToRo' sen],DD.debugmode,'dpdf');
+      
         %
         %%
         figure
         VV=(maps.(sen).vel.zonal.mean-maps.Rossby.small.phaseSpeed)*100;
         pcolor(lo,la,VV);shading flat
-%         caxis([ticks.vel(1) ticks.vel(2)])
+        %         caxis([ticks.vel(1) ticks.vel(2)])
         cb=decorate('vel',ticks,DD,sen,['[Zonal U - c_1)]'],'cm/s',0,1);
         doublemap(cb,aut,win,[.9 1 .9])
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapUcDiff' sen],DD.debugmode,'dpdf');
         
     end
-    
+     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function job=trackPlots(DD,ticks,tracks)
-    senses=fieldnames(tracks);
-    for sense=senses'; sen=sense{1};
-        job(1)= batch(@TPa, 0, {DD,ticks,tracks,sen});
-        job(2)= batch(@TPb, 0, {DD,ticks,tracks,sen});
-        job(3)= batch(@TPc, 0, {DD,ticks,tracks,sen});
-        job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
-        job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
-        job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
-    end
+	senses=fieldnames(tracks);
+	for sense=senses'; sen=sense{1};
+		job(1)= batch(@TPa, 0, {DD,ticks,tracks,sen});
+		job(2)= batch(@TPb, 0, {DD,ticks,tracks,sen});
+		job(3)= batch(@TPc, 0, {DD,ticks,tracks,sen});
+		job(4)= batch(@TPd, 0, {DD,ticks,tracks,sen});
+		job(5)= batch(@TPe, 0, {DD,ticks,tracks,sen});
+		job(6)=  batch(@TPf, 0, {DD,ticks,tracks,sen});
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPa(DD,ticks,tracks,sen)
@@ -330,128 +337,128 @@ function TPa(DD,ticks,tracks,sen)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPb(DD,ticks,tracks,sen)
-    field='age';
-    drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
-    decorate(field,ticks,DD,sen,field,'d',1,1);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode,'dpng',1);
+	field='age';
+	drawColorLine(ticks,tracks.(sen),field,ticks.age(2),ticks.age(1),1,0) ;
+	decorate(field,ticks,DD,sen,field,'d',1,1);
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['age' sen],DD.debugmode,'dpng',1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPc(DD,ticks,tracks,sen)
-    drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
-    decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode,'dpng',1);
+	drawColorLine(ticks,tracks.(sen),'isoper',ticks.isoper(2),ticks.isoper(1),0,0) ;
+	decorate('isoper',ticks,DD,sen,'IQ',' ',0,100)
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['IQ' sen],DD.debugmode,'dpng',1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPd(DD,ticks,tracks,sen)
-    drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
-    decorate('radius',ticks,DD,sen,'Radius','km',0,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode,'dpng',1);
+	drawColorLine(ticks,tracks.(sen),'radiusmean',ticks.radius(2)*1000,ticks.radius(1)*1000,0,0) ;
+	decorate('radius',ticks,DD,sen,'Radius','km',0,1)
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['radius' sen],DD.debugmode,'dpng',1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPe(DD,ticks,tracks,sen)
-    drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
-    decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
-    
+	drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
+	decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPf(DD,ticks,tracks,sen)
-    drawColorLine(ticks,tracks.(sen),'peakampto_contour',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
-    decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_contour' sen],DD.debugmode)
+	drawColorLine(ticks,tracks.(sen),'peakampto_contour',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
+	decorate('amp',ticks,DD,sen,'Amp to contour','cm',1,1)
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_contour' sen],DD.debugmode)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logyBar(totnum,y)
-    len=numel(y);
-    y=log(y);
-    x=1:len;
-    y(totnum==0)=[];
-    x(totnum==0)=[];
-    totnum(totnum==0)=[];
-    
-    colors = flipud(bone(max(totnum)));
-    cols=colors(totnum,:);
-    for ii = 1:numel(x)
-        a=bar(x(ii), y(ii));
-        hold on
-        set(a,'facecolor', cols(ii,:));
-    end
-    cm=flipud(bone);
-    colormap(cm)
-    cb=colorbar;
-    zticks=linspace(2,max(totnum),5)';
-    zticklabel=num2str(round((zticks)));
-    caxis([zticks(1) zticks(end)])
-    set(cb,'ytick',zticks);
-    set(cb,'yticklabel',zticklabel);
+	len=numel(y);
+	y=log(y);
+	x=1:len;
+	y(totnum==0)=[];
+	x(totnum==0)=[];
+	totnum(totnum==0)=[];
+	
+	colors = flipud(bone(max(totnum)));
+	cols=colors(totnum,:);
+	for ii = 1:numel(x)
+		a=bar(x(ii), y(ii));
+		hold on
+		set(a,'facecolor', cols(ii,:));
+	end
+	cm=flipud(bone);
+	colormap(cm)
+	cb=colorbar;
+	zticks=linspace(2,max(totnum),5)';
+	zticklabel=num2str(round((zticks)));
+	caxis([zticks(1) zticks(end)])
+	set(cb,'ytick',zticks);
+	set(cb,'yticklabel',zticklabel);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat]=numPerLat(latin,DD,ticks,range,sen)
-    figure
-    lat=histc(latin,range);
-    semilogy(range,lat);
-    tit=['number of ',sen,' per 1deg lat'];
-    title([tit]);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
+	figure
+	lat=histc(latin,range);
+	semilogy(range,lat);
+	tit=['number of ',sen,' per 1deg lat'];
+	title([tit]);
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [age,cum]=ageCum(agein,DD,ticks,range,sen)
-    figure
-    agein(agein<DD.thresh.life)=[];
-    age=histc(agein,range);
-    semilogy(range,age)
-    tit=['number of ',sen,' per age'];
-    unit='d';
-    title([tit,' [',unit,']'])
-    cum=fliplr(cumsum(fliplr(age)));
-    semilogy(range,cum)
-    tit=['upper tail cumulative of ',sen,' per age'];
-    title([tit,' [',unit,']'])
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['ageUpCum-' sen ],DD.debugmode);
+	figure
+	agein(agein<DD.thresh.life)=[];
+	age=histc(agein,range);
+	semilogy(range,age)
+	tit=['number of ',sen,' per age'];
+	unit='d';
+	title([tit,' [',unit,']'])
+	cum=fliplr(cumsum(fliplr(age)));
+	semilogy(range,cum)
+	tit=['upper tail cumulative of ',sen,' per age'];
+	title([tit,' [',unit,']'])
+	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['ageUpCum-' sen ],DD.debugmode);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function doublemap(cb,cm1,cm2,centercol)
-    %% get colorbardata
-    zlim=(get(cb,'ylim'));
-    ztick=(get(cb,'ytick'));
-    zticklabel=(get(cb,'yticklabel'));
-    %% resample to fit ticks
-    
-    if numel(cm1)~=numel(cm2)
-        if numel(cm2)>numel(cm1)
-            cm1=resample(cm1,size(cm2,1),size(cm1,1));
-        else
-            cm2=resample(cm2,size(cm1,1),size(cm2,1));
-        end
-    end
-    
-    
-    
-    cm1r=resample(cm1,round(1000*abs(zlim(1))),round(1000*abs(zlim(1)) * abs(zlim(2)/zlim(1))));
-    cm2r=resample(cm2,round(1000*zlim(2)),round(1000*zlim(2)));
-    CM=[cm1r;flipud(cm2r)];
-    %% blend in the middle
-    midfilt=linspace(-1,zlim(2)/abs(zlim(1)),length(CM));
-    %     gp=repmat(gauspuls(midfilt,1,1,-1/5)',1,3);
-    gp=repmat(gauspuls(midfilt,1.5,1.5,-1/5)',1,3);
-    centercolvec=repmat(centercol,size(CM,1),1);
-    CM=(1-gp).*CM + gp.*centercolvec;
-    %% correct for round errors
-    CM(CM<0)=0;
-    CM(CM>1)=1;
-    %% reset to old params
-    colormap(CM);
-    caxis(zlim);
-    set(cb,'ytick',ztick);
-    set(cb,'yticklabel',zticklabel);
+	%% get colorbardata
+	zlim=(get(cb,'ylim'));
+	ztick=(get(cb,'ytick'));
+	zticklabel=(get(cb,'yticklabel'));
+	%% resample to fit ticks
+	
+	if numel(cm1)~=numel(cm2)
+		if numel(cm2)>numel(cm1)
+			cm1=resample(cm1,size(cm2,1),size(cm1,1));
+		else
+			cm2=resample(cm2,size(cm1,1),size(cm2,1));
+		end
+	end
+	
+	
+	
+	cm1r=resample(cm1,round(1000*abs(zlim(1))),round(1000*abs(zlim(1)) * abs(zlim(2)/zlim(1))));
+	cm2r=resample(cm2,round(1000*zlim(2)),round(1000*zlim(2)));
+	CM=[cm1r;flipud(cm2r)];
+	%% blend in the middle
+	midfilt=linspace(-1,zlim(2)/abs(zlim(1)),length(CM));
+	%     gp=repmat(gauspuls(midfilt,1,1,-1/5)',1,3);
+	gp=repmat(gauspuls(midfilt,1.5,1.5,-1/5)',1,3);
+	centercolvec=repmat(centercol,size(CM,1),1);
+	CM=(1-gp).*CM + gp.*centercolvec;
+	%% correct for round errors
+	CM(CM<0)=0;
+	CM(CM>1)=1;
+	%% reset to old params
+	colormap(CM);
+	caxis(zlim);
+	set(cb,'ytick',ztick);
+	set(cb,'yticklabel',zticklabel);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function drawcoast
-    load coast;
-    hold on; plot(long,lat,'LineWidth',0.5);
+	load coast;
+	hold on; plot(long,lat,'LineWidth',0.5);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
+
 function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     if nargin<10
         rats=false;
@@ -460,10 +467,10 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
         coast=true;
     end
     
-    %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    coast=false
-     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-     
+%     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     coast=false
+%     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
     axis(ticks.axis);
     set(gca,'ytick',ticks.y);
     set(gca,'xtick',ticks.x);
@@ -608,41 +615,41 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function overmain(ticks,DD)
-    [threadData]=inits(DD);
-    %%
-    if DD.debugmode
-        mainDB(DD,threadData,ticks);
-    else
-        disp('commencing plotting')
-        %#ok<*WNOFF>
-        %#ok<*WNON>
-        warning('off')
-        job=main(DD,threadData,ticks);
-        warning('on')
-        disp('plotting done!')
-        %% close pool for printing
-        matlabpool close
-        for field=fieldnames(job)';ff=field{1};
-            while ~all(strcmp({job.(ff)(:).State},'finished'))
-                disp('waiting for plots to finish')
-                sleep(5)
-                disp(job.(ff)(:))
-            end
-        end
-        disp('done!')
-        dirname=[DD.path.plots 'jammed/'];
-        dirname_cropped=[DD.path.plots 'cropped/'];
-        mkdirp(dirname);
-        mkdirp(dirname_cropped);
-        fnamebase= [datestr(now,'yyyymmdd-HHMM')];
-        fnamecompact=[fnamebase '_compact.pdf'];
-        fname=[fnamebase '_compact.pdf'];
-        disp(['pdfjamming all to ' dirname fname])
-        system(['pdfjam --nup 2x2 --a4paper -o ' dirname fnamecompact ' ' DD.path.plots '*pdf']);
-        system(['pdfjam --a4paper -o ' dirname fname ' ' DD.path.plots '*pdf']);
-        disp(['cropping'])
-        system(['pdfcrop  ' dirname fnamecompact]);
-        system(['pdfcrop  ' dirname fname]);
-        system(['mv ' dirname '*crop*.pdf ' dirname_cropped]);
-    end
+	[threadData]=inits(DD);
+	%%
+	if DD.debugmode
+		mainDB(DD,threadData,ticks);
+	else
+		disp('commencing plotting')
+		%#ok<*WNOFF>
+		%#ok<*WNON>
+		warning('off')
+		job=main(DD,threadData,ticks);
+		warning('on')
+		disp('plotting done!')
+		%% close pool for printing
+		matlabpool close
+		for field=fieldnames(job)';ff=field{1};
+			while ~all(strcmp({job.(ff)(:).State},'finished'))
+				disp('waiting for plots to finish')
+				sleep(5)
+				disp(job.(ff)(:))
+			end
+		end
+		disp('done!')
+		dirname=[DD.path.plots 'jammed/'];
+		dirname_cropped=[DD.path.plots 'cropped/'];
+		mkdirp(dirname);
+		mkdirp(dirname_cropped);
+		fnamebase= [datestr(now,'yyyymmdd-HHMM')];
+		fnamecompact=[fnamebase '_compact.pdf'];
+		fname=[fnamebase '_compact.pdf'];
+		disp(['pdfjamming all to ' dirname fname])
+		system(['pdfjam --nup 2x2 --a4paper -o ' dirname fnamecompact ' ' DD.path.plots '*pdf']);
+		system(['pdfjam --a4paper -o ' dirname fname ' ' DD.path.plots '*pdf']);
+		disp(['cropping'])
+		system(['pdfcrop  ' dirname fnamecompact]);
+		system(['pdfcrop  ' dirname fname]);
+		system(['mv ' dirname '*crop*.pdf ' dirname_cropped]);
+	end
 end

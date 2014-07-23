@@ -10,9 +10,10 @@
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
 % NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
+
 function S01b_fromTS
     %% set up
-    [DD]=set_up;
+    [DD]=S01b_ST_set_up;
     %% spmd
     main(DD)
     %% make netcdf
@@ -27,25 +28,9 @@ function main(DD)
     else
         spmd(DD.threads.num)
             spmd_body(DD);
+            disp_progress('conclude');
         end
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [DD]=set_up
-    %% init
-    DD=initialise;
-    %% check if exists already
-    [DD.path.Rossby.NCfile] = initNC(DD);
-    %% threads
-    DD.threads.num=init_threads(DD.threads.num);
-    %% find temp and salt files
-    [DD.path.TempSalt]=tempsalt(DD);
-    %% get window according to user input
-    [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt,DD.map.in,DD.TS.keys);
-    %% distro X lims to chunks
-    DD.RossbyStuff.lims.data=limsdata(DD.RossbyStuff.splits,DD.TS.window);
-    %% distro chunks to threads
-    DD.RossbyStuff.lims.loop=thread_distro(DD.threads.num,DD.RossbyStuff.splits);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
@@ -55,19 +40,6 @@ function spmd_body(DD)
     for chnk=lims.loop(id,1):lims.loop(id,2)
         Calculations(DD,chnk);
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lims=limsdata(splits,window)
-    %% set dimension for splitting (files dont fit in memory)
-    X=window.size.X;
-    %% distro X lims to chunks
-    lims=thread_distro(splits,X) + window.limits.west-1;
-    %% in case window crosses zonal bndry
-    lims(lims>window.fullsize(2)) = lims(lims>window.fullsize(2)) - window.fullsize(2);
-    %% in case one chunk crosses zonal bndry
-    td=lims(:,2)-lims(:,1) < 0; % find chunk
-    lims(td,1)=0; % let it start at 0
-    lims(find(td)-1,2)=window.fullsize(2)-1; % let the one before finish at end(X)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk)
@@ -170,7 +142,7 @@ function nc2matSave(DD,fn,idx,reallocIdx)
     in=nc_varget(DD.path.Rossby.NCfile,fn);
     %% save pop version either way
     out=in; %#ok<NASGU>
-    save([DD.path.Rossby.name, fn,'.mat'],'out'); 
+    save([DD.path.Rossby.name, fn,'.mat'],'out');
     %% remap
     if reallocIdx
         protoout=nan(DD.map.window.size.Y,DD.map.window.size.X);
@@ -180,7 +152,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function WriteNCfile(DD)
     %% init
-    splits=DD.RossbyStuff.splits;
+    splits=DD.parameters.RossbySplits;
     initNcFile(DD);
     %% cat chunks
     T=disp_progress('init','creating netcdf');
@@ -198,20 +170,18 @@ function nc2mat(DD)
     %% test for remap
     fns=ncfieldnames(DD.path.Rossby.NCfile);
     in=nc_varget(DD.path.Rossby.NCfile,fns{1});
+    reallocIdx=false;
     if numel(in)~=prod(struct2array(DD.map.window.size))
         reallocIdx=true;
         [idx,~]=reallocCase(DD);
+    else
+        idx=[];
     end
     %% save 2 mats
-    parfor ff=1:numel(fns)
+    for ff=1:numel(fns)
         fn=fns{ff};
         nc2matSave(DD,fn,idx,reallocIdx)
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [outfilename] = initNC(DD)
-    outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-    NCoverwriteornot(outfilename);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function catChunks2NetCDF(file,CK)
@@ -233,7 +203,7 @@ function CK=loadChunk(RossbyDir,chnk)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK,cc)
-    disp(['integrating Rossby Radius for chunk ',cc])
+    dispM(['integrating Rossby Radius for chunk ',cc],1)
     [~,YY,XX]=size(CK.N);
     M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
     R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
@@ -241,13 +211,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c1]=calcC_one(CK,cc)
     %    c=-beta/(k^2+(1/L_r)^2) approx -beta*L^2
-    disp(['applying long rossby wave disp rel for c1 for chunk ',cc])
+    dispM(['applying long rossby wave disp rel for c1 for chunk ',cc])
     c1=-CK.rossby.beta.*CK.rossby.Ro1.^2;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [N]=calcBrvaPvort(CK,cc)
     [ZZ,YY,XX]=size(CK.TEMP);
-    disp(['calculating brunt väisälä, chunk ',cc]);
+    dispM(['calculating brunt väisälä, chunk ',cc]);
     %% get full matrices for all variables
     M.depth=double(repmat(CK.DEPTH,[1,YY*XX]));
     M.lat=double(repmat(permute(CK.lat(:),[2 1]), [ZZ,1]));
@@ -260,7 +230,7 @@ function [N]=calcBrvaPvort(CK,cc)
     N=sqrt(reshape(brva,[ZZ-1,YY,XX]));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK,DD]=initCK(DD,chunk)
+function [CK]=initCK(DD,chunk)
     CK.chunk=chunk;
     CK.dim=ncArrayDims(DD,chunk);
     disp('getting temperature..')
@@ -288,23 +258,33 @@ function [lat,lon]=ChunkLatLon(DD,dim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function depth=ChunkDepth(DD)
-    depth=nc_varget(DD.path.TempSalt.salt,'depth_t');
+	depth=nc_varget(DD.path.TempSalt.salt(1),'depth_t');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim)
-    salt=squeeze(nc_varget(DD.path.TempSalt.salt,'SALT',dim.start2d,dim.len2d));
-    salt(salt==0)=nan;
-    salt=salt*1000; % to salinity unit. TODO: from input vars
+	num=numel(DD.path.TempSalt.salt);
+	salt=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt(1),'TEMP',dim.start2d,dim.len2d));
+	for ss=2:num
+		tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt(ss),'TEMP',dim.start2d,dim.len2d));
+		salt=salt + tmp;
+	end
+	salt(salt==0)=nan;
+	salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim)
-    temp=squeeze(nc_varget(DD.path.TempSalt.temp,'TEMP',dim.start2d,dim.len2d));
-    temp(temp==0)=nan;
+	num=numel(DD.path.TempSalt.temp);
+	temp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp(1),'TEMP',dim.start2d,dim.len2d));
+	for tt=2:num
+		tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp(tt),'TEMP',dim.start2d,dim.len2d));
+		temp=temp + tmp;
+	end
+	temp(temp==0)=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(DD,chnk)
-    lims=DD.RossbyStuff.lims.data;
-    j_indx_start = DD.TS.window.limits.south-1;
+	lims=DD.RossbyStuff.lims.data;
+	j_indx_start = DD.TS.window.limits.south-1;
     j_len = DD.TS.window.size.Y;
     dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
     dim.len2d = 	[inf inf j_len diff(lims(chnk,:))+1];
@@ -318,16 +298,5 @@ function dim=ncArrayDims(DD,chnk)
     dim.new.len =  dim.len1d;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [file]=tempsalt(DD)
-    %% find the temp and salt files
-    for kk=1:numel(DD.path.TempSalt.files)
-        if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'SALT'))
-            file.salt=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
-        end
-        if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'TEMP'))
-            file.temp=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
-        end
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 

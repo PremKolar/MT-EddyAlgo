@@ -4,14 +4,14 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S02_BruntVaisRossby
+function S01_BruntVaisRossby
     %% init
-    DD=initialise;
+    DD=initialise([],mfilename);
+    if ~DD.switchs.RossbyStuff,return;end
     switch DD.parameters.Nknown
         case false
             S01b_fromTS
         case true
             S01b_fromRaw
     end
-    conclude(DD);
 end

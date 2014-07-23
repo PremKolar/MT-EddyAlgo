@@ -37,15 +37,15 @@ function postProc(rootdir,minOW,seasons)
         YYa{ii}=round(linspace(su(ii),wi(ii),182));
         YYb{ii}=round(linspace(wi(ii),su(ii),183));
     end    
-    
-    for ii=1:numel(su)
-        YY(1:182,ii)=YYa{ii};
-        YY(183:end,ii)=YYb{ii};
-    end
+   YY=[reshape(cell2mat(YYa),182,[]) ; reshape(cell2mat(YYb),183,[])];    
     save([rootdir 'ZIfullYear.mat'],'YY')  ;
+    save
     %% plot
-    for s = 1:2
-        plotstuff(minOW.(seasons{s}),minOW.(seasons{1}).depth)
+    parfor s = 1:2
+        figure(s)
+        plotstuff(minOW.(seasons{s}).full,minOW.(seasons{1}).depth)
+        savefig('../PLOTS/',300,1200,800,seasons{s})
+         saveas(gcf,[seasons{s} '.fig']);    
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +88,6 @@ function plotstuff(full,depth)
     zlabel(['log10(count)']);
     set(gca,'ztick',nzt)
     set(gca,'zticklabel',nztl);
-    saveas(gcf,'yo.fig');
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

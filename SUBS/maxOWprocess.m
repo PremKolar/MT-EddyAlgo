@@ -22,6 +22,7 @@ function  OWall=maxOWprocess(DD,metaD)
         labBarrier;
     end
     OWall=ALL{1};
+    OWall.full=OWall;
     OWall.depth=nc_varget(NC.geo,'depth');
     %% focus on strong neg. okubo weiss
     clean=OWall.ow < 5*nanmean(OWall.ow(:));

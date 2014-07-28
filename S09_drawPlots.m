@@ -417,42 +417,7 @@ function [age,cum]=ageCum(agein,DD,ticks,range,sen)
 	savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['ageUpCum-' sen ],DD.debugmode);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function doublemap(cb,cm1,cm2,centercol)
-	%% get colorbardata
-	zlim=(get(cb,'ylim'));
-	ztick=(get(cb,'ytick'));
-	zticklabel=(get(cb,'yticklabel'));
-	%% resample to fit ticks
-	
-	if numel(cm1)~=numel(cm2)
-		if numel(cm2)>numel(cm1)
-			cm1=resample(cm1,size(cm2,1),size(cm1,1));
-		else
-			cm2=resample(cm2,size(cm1,1),size(cm2,1));
-		end
-	end
-	
-	
-	
-	cm1r=resample(cm1,round(1000*abs(zlim(1))),round(1000*abs(zlim(1)) * abs(zlim(2)/zlim(1))));
-	cm2r=resample(cm2,round(1000*zlim(2)),round(1000*zlim(2)));
-	CM=[cm1r;flipud(cm2r)];
-	%% blend in the middle
-	midfilt=linspace(-1,zlim(2)/abs(zlim(1)),length(CM));
-	%     gp=repmat(gauspuls(midfilt,1,1,-1/5)',1,3);
-	gp=repmat(gauspuls(midfilt,1.5,1.5,-1/5)',1,3);
-	centercolvec=repmat(centercol,size(CM,1),1);
-	CM=(1-gp).*CM + gp.*centercolvec;
-	%% correct for round errors
-	CM(CM<0)=0;
-	CM(CM>1)=1;
-	%% reset to old params
-	colormap(CM);
-	caxis(zlim);
-	set(cb,'ytick',ztick);
-	set(cb,'yticklabel',zticklabel);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function drawcoast
 	load coast;
 	hold on; plot(long,lat,'LineWidth',0.5);

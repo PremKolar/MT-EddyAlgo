@@ -32,18 +32,17 @@ function postProc(rootdir,minOW,seasons)
     su=minOW.Summer.ziIntrl;
     wi=minOW.Winter.ziIntrl;
     %% interpolate seasons
-    YY=nan([365,size(su)]);
-    parfor ii=1:numel(su)
+   parfor ii=1:numel(su)
         YYa{ii}=round(linspace(su(ii),wi(ii),182));
         YYb{ii}=round(linspace(wi(ii),su(ii),183));
     end    
-   YY=[reshape(cell2mat(YYa),182,[]) ; reshape(cell2mat(YYb),183,[])];    
+   YY=[reshape(cell2mat(YYa),[182,size(su)]) ; reshape(cell2mat(YYb),[183,size(su)])];     %#ok<NASGU>
     save([rootdir 'ZIfullYear.mat'],'YY')  ;
     save
     %% plot
-    parfor s = 1:2
+    for s = 1:2
         figure(s)
-        plotstuff(minOW.(seasons{s}).full,minOW.(seasons{1}).depth)
+        plotstuff(minOW.(seasons{s}).full,minOW.(seasons{1}).depth) %#ok<*PFBNS>
         savefig('../PLOTS/',300,1200,800,seasons{s})
          saveas(gcf,[seasons{s} '.fig']);    
     end

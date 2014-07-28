@@ -16,8 +16,8 @@ function DD=INPUT
     DD.time.till.str='19950101';
     %% window on globe
     DD.map.in.west=-75;
-    DD.map.in.east= -60;
-    DD.map.in.south= 30;
+    DD.map.in.east= -55;
+    DD.map.in.south= 25;
     DD.map.in.north= 45;
     %% output map res
     DD.map.out.X=15*1+1; % TODO

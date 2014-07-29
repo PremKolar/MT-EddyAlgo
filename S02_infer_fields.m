@@ -42,7 +42,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MeanSsh=saveMean(DD)
-    MeanSsh=nan(DD.map.window.size.Y*DD.map.window.size.X,1);
+    MeanSsh=nan(DD.map.window.sizePlus.Y*DD.map.window.sizePlus.X,1);
     Meancount=0;
     for ll=1:DD.threads.num
         cur=load(sprintf('meanTmp%03d.mat',ll));
@@ -50,7 +50,7 @@ function MeanSsh=saveMean(DD)
         Meancount=Meancount + cur.Mean.count;
         system(sprintf('rm meanTmp%03d.mat',ll));
     end
-    MeanSsh=reshape(MeanSsh,[DD.map.window.size.Y, DD.map.window.size.X])/Meancount; %#ok<NASGU>
+    MeanSsh=reshape(MeanSsh,[DD.map.window.sizePlus.Y, DD.map.window.sizePlus.X])/Meancount; 
     save([DD.path.root, 'meanSSH.mat'],'MeanSsh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,13 +71,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_meanSsh(DD,JJ)
     T=disp_progress('init','infering mean ssh');
-    Mean.SshSum=nan(DD.map.window.size.Y*DD.map.window.size.X,1);
+    Mean.SshSum=nan(DD.map.window.sizePlus.Y*DD.map.window.sizePlus.X,1);
     for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         ssh=extractdeepfield(load(JJ(jj).files),'grids.ssh')';
         %% mean ssh
-        Mean.SshSum=nansum([Mean.SshSum, ssh(:)],2);       
+        Mean.SshSum=nansum([Mean.SshSum, ssh],2);       
     end
     Mean.count=numel(JJ);
     save(sprintf('meanTmp%03d.mat',labindex),'Mean');
@@ -109,7 +109,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sshHighPass=filterStuff(gr,RS)
+function sshHighPass=filterStuff(gr,RS) %#ok<DEFNU>
     %% get center, minor and major axis for ellipse
     RossbyEqFlag=abs(gr.lat)<5  ;													%TODO {put before loop...
     semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));			%...

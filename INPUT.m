@@ -13,12 +13,12 @@ function DD=INPUT
 %       DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19990101';
+    DD.time.till.str='19940201';
     %% window on globe
-    DD.map.in.west=-90;
-    DD.map.in.east= 0;
-    DD.map.in.south= 0;
-    DD.map.in.north= 80;
+    DD.map.in.west=-110;
+    DD.map.in.east= -110;
+    DD.map.in.south= -60;
+    DD.map.in.north= -50;
     %% output map res
     DD.map.out.X=90*1+1; % TODO
     DD.map.out.Y=80*1+1;
@@ -39,7 +39,7 @@ function DD=INPUT
     DD.switchs.chelt=false;
     DD.switchs.distlimit=false;
     DD.switchs.AmpAreaCheck=false;
-    DD.switchs.netUstuff=true;
+    DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=true;
     DD.switchs.spaciallyFilterSSH=false;
     DD.switchs.filterSSHinTime=true;

@@ -16,6 +16,8 @@ function [window,lonlat]=GetWindow2(file,mapin)
     window.size=WriteSize(window);
     %%
     [window.iy,window.ix,window.seam]=ZonalProblem(window);
+     %% size    
+[window.sizePlus.Y, window.sizePlus.X] = size(window.ix); 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [y,x,seam]=ZonalProblem(w)
@@ -67,7 +69,7 @@ function window=FindWindowMask(grids,M)
     %% tag all grid points fullfilling all desired lat/lon limits
     if M.east>M.west
         window.flag= grids.lon>=M.west & grids.lon<=M.east & grids.lat>=M.south & grids.lat<=M.north ;
-    elseif M.west>M.east  %crossing 180 meridian
+    elseif M.west>=M.east  %crossing 180 meridian
         window.flag=((grids.lon>=M.west & grids.lon<=180) | (grids.lon>=-180 & grids.lon<=M.east)) & grids.lat>=M.south & grids.lat<=M.north ;
     end
 end

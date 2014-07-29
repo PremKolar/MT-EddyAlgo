@@ -9,11 +9,12 @@ function [DD]=maxOWsetUp(DD)
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
     [DD.path.TSow]=DataInit(DD);
-    %% get window according to user input
-    [DD.TSow.window,~]=GetWindow(DD.path.TSow.files(1).salt,DD.map.in,DD.TS.keys);
+    %% get window according to user input    
+    DD.TSow.window=getfield(load([DD.path.root 'window']),'window');
     %% get z info
     DD.TSow.window=mergeStruct2(DD.TSow.window, GetFields(DD.path.TSow.files(1).salt, cell2struct({DD.TS.keys.depth},'depth')));
     DD.TSow.window.size.Z=numel(DD.TSow.window.depth);
+    DD.TSow.window.size.X=DD.map.window.sizePlus.X;
     %%
     DD.path.TSow=appendFields(DD.path.TSow,Data2Init(DD));
     %% distro time steps to threads
@@ -35,36 +36,31 @@ function [out]=DataInit(DD)
             tt=tt+1;
             out.files(tt).temp=[DD.path.full3d.name DirIn(kk).name];
         end
-    end    
+    end
     out.fnum=numel(out.files);
     out.dir   = [DD.path.Rossby.name];
     out.dailyOWName   = [ out.dir 'OW_'];
     out.dailyRhoName   = [ out.dir 'rho_'];
 end
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out]=Data2Init(DD)
     TSow=DD.path.TSow;
     dim=DD.TSow.window.size;
     out=initNcRhoMeanPart('densityMean',dim,TSow.dir);
     parfor tt=1:TSow.fnum
+        disp(sprintf('init NC file %2d of %2d',tt,TSow.fnum));
         [rho(tt),OW(tt)]=parInitNcs(tt,dim,TSow);
     end
     out.geo=initNcGeoInfo(dim,TSow.dir);
     out.rho=rho;
     out.OW=OW;
-    
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [rho, OW]=parInitNcs(tt,dim,TSow)
     rho={initNcFile('density',dim,tt,TSow.dailyRhoName)};
     OW={initNcFile('OkuboWeiss',dim,tt,TSow.dailyOWName)};
-    
 end
-
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fname=initNcGeoInfo(WinSize,ds)
     fname=[ds  'LatLonDepth.nc' ];
     nc_create_empty(fname,'clobber');
@@ -87,9 +83,7 @@ function fname=initNcGeoInfo(WinSize,ds)
     varstruct.Dimension ={'j_index','i_index' };
     nc_addvar(fname,varstruct)
 end
-
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fname=initNcRhoMeanPart(toAdd,WinSize,ds)
     fname.mean=[ds  'RhoMean.nc' ];
     nc_create_empty(fname.mean,'clobber');
@@ -102,16 +96,18 @@ function fname=initNcRhoMeanPart(toAdd,WinSize,ds)
     varstruct.Dimension = {'k_index','j_index','i_index' };
     nc_addvar(fname.mean,varstruct)
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fname=initNcFile(toAdd,WinSize,ff,ds)
     fname=[ds sprintf('%04d.nc',ff) ];
-    nc_create_empty(fname,'clobber');
-    nc_adddim(fname,'k_index',WinSize.Z);
-    nc_adddim(fname,'i_index',WinSize.X);
-    nc_adddim(fname,'j_index',WinSize.Y);
-    %% rho
-    varstruct.Name = toAdd;
-    varstruct.Nctype = 'double';
-    varstruct.Dimension = {'k_index','j_index','i_index' };
-    nc_addvar(fname,varstruct)
+    if ~exist(fname,'file')
+        nc_create_empty(fname,'clobber');
+        nc_adddim(fname,'k_index',WinSize.Z);
+        nc_adddim(fname,'i_index',WinSize.X);
+        nc_adddim(fname,'j_index',WinSize.Y);
+        %% rho
+        varstruct.Name = toAdd;
+        varstruct.Nctype = 'double';
+        varstruct.Dimension = {'k_index','j_index','i_index' };
+        nc_addvar(fname,varstruct)
+    end
 end

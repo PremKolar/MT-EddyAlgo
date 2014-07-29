@@ -28,7 +28,10 @@ function d=spmd_body(DD,Dim,raw)
         %%
         calcOW(d,Dim,raw,gop(@vertcat,rhoMean));    
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
+    
+   
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcOW(d,Dim,raw,rhoMean)
     T=disp_progress('init','building okubo weiss netcdfs')  ;
     for zz = 0:Dim.ws.Z-1
@@ -156,16 +159,25 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out] = getNowAtY(FileIn,keys,Dim,dirOut,raw,YY)
     make1d = @(Axb,C) reshape(repmat(double(permute(Axb,[3,1,2])),C,1),[],1)   ;
+     getFromLin = @(M,ix) M(ix);
     Z=Dim.ws.Z;
     out.lat = make1d(raw.lat(YY,:),Z);
     out.lon = make1d(raw.lon(YY,:),Z);
     out.dx = make1d(raw.dx(YY,:),Z);
     out.dy = make1d(raw.dy(YY,:),Z);
     out.depth = repmat(double(raw.depth),numel(YY),1);
-    out.rawDepth = raw.depth;
-    out.temp = double(sparse(reshape(nc_varget(FileIn.temp,keys.temp,[0 Dim.strt], [1 Dim.len]),[],1)));
-    out.salt = double(sparse(reshape(nc_varget(FileIn.salt,keys.salt,[0 Dim.strt], [1 Dim.len]),[],1)))*1000;
+    out.rawDepth = raw.depth;    
+    for zz=0:Z-1   
+        dispM(sprintf('%3.0f prcnt',100*(zz+1)/Z))
+        st=[0 zz 0 0];
+        le=[1 1 inf inf];
+        temp(zz+1,:,:) = getFromLin(nc_varget(FileIn.temp,keys.temp,st,le),Dim.idxLin(YY,:));
+        salt(zz+1,:,:) = getFromLin(nc_varget(FileIn.salt,keys.salt,st,le),Dim.idxLin(YY,:));      
+    end       
+    out.temp = double(sparse(reshape(temp,[],1)));
+    out.salt = double(sparse(reshape(salt,[],1)))*1000;
     out.file = fileStuff(FileIn.salt, dirOut);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [RHO] = calcDens(TS,Dim)
@@ -179,13 +191,14 @@ end
 function [Dim,raw] = setup(DD)
     ws = DD.TSow.window.size;
     wl = DD.TSow.window.limits;
+    idxLin=drop_2d_to_1d(DD.TSow.window.iy,DD.TSow.window.ix,DD.TSow.window.fullsize(1));
     FileIn = DD.path.TSow.files(1);
     keys = DD.TS.keys;
     DimConst.strt = [ wl.south-1 wl.west-1 ];
     DimConst.len = [ ws.Y ws.X ];
     raw.depth = nc_varget(FileIn.salt,keys.depth);
-    raw.lat = nc_varget(FileIn.temp, keys.lat, DimConst.strt, DimConst.len);
-    raw.lon = nc_varget(FileIn.temp, keys.lon, DimConst.strt, DimConst.len);
+    raw.lat = ncVarFromLinIdx(FileIn.temp, keys.lat, idxLin);
+    raw.lon = ncVarFromLinIdx(FileIn.temp, keys.lon, idxLin);
     [raw.dy,raw.dx] = getdydx( raw.lat, raw.lon);
     raw.corio = coriolisStuff(raw.lat);
     Dim.strt(1) = 0;
@@ -194,14 +207,13 @@ function [Dim,raw] = setup(DD)
     Dim.len(3) = DimConst.len(2);
     %     Dim.len(2) = 1;
     Dim.ws=ws;
+    Dim.idxLin=idxLin;
     Dim.out.strt=[0 0 0];
     Dim.out.len=[1 DimConst.len];
     %% geo
     nc_varput(DD.path.TSow.geo,'depth',raw.depth);
     nc_varput(DD.path.TSow.geo,'lat',raw.lat);
-    nc_varput(DD.path.TSow.geo,'lon',raw.lon);
-    
-    
+    nc_varput(DD.path.TSow.geo,'lon',raw.lon);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = fileStuff(fin,dirout)

@@ -272,7 +272,7 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
 	y.max=max(z.coor.int.y);
 	circDiam=sqrt(ee.area.total/pi);
 	maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
-	chelt  = circDiam/maxDist;
+	chelt  = circDiam/((maxDist/2)^2);
 	if chelt >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -19,13 +19,38 @@ function S02_infer_fields
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
+    %% infer mean ssh
     if DD.debugmode
-        spmd_body(DD,RS);
+        [JJ]=SetThreadVar(DD);
+        spmd_meanSsh(DD,JJ);
     else
         spmd(DD.threads.num)
-            spmd_body(DD,RS);
+            [JJ]=SetThreadVar(DD);
+            spmd_meanSsh(DD,JJ);
         end
     end
+    MeanSsh=saveMean(DD);    
+    %% calc fields
+    if DD.debugmode
+        spmd_fields(DD,RS,JJ,MeanSsh);
+    else
+        spmd(DD.threads.num)
+            spmd_fields(DD,RS,JJ,MeanSsh);
+        end
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function MeanSsh=saveMean(DD)
+    MeanSsh=nan(DD.map.window.size.Y*DD.map.window.size.X,1);
+    Meancount=0;
+    for ll=1:DD.threads.num
+        cur=load(sprintf('meanTmp%03d.mat',ll));
+        MeanSsh=nansum([MeanSsh cur.Mean.SshSum],2);
+        Meancount=Meancount + cur.Mean.count;
+    end
+    MeanSsh=reshape(MeanSsh,[DD.map.window.size.Y, DD.map.window.size.X])/Meancount; %#ok<NASGU>
+    save([DD.path.root, 'meanSSH.mat'],'MeanSsh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD,gr)
@@ -43,9 +68,23 @@ function RS=getRossbyStuff(DD,gr)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,RS)
-    %% distro chunks to threads
-    [JJ]=SetThreadVar(DD);
+function spmd_meanSsh(DD,JJ)
+    T=disp_progress('init','infering mean ssh');
+    Mean.SshSum=nan(DD.map.window.size.Y*DD.map.window.size.X,1);
+    for jj=1:numel(JJ)
+        T=disp_progress('disp',T,numel(JJ),100);
+        %% load
+        ssh=extractdeepfield(load(JJ(jj).files),'grids.ssh')';
+        %% mean ssh
+        Mean.SshSum=nansum([Mean.SshSum, ssh(:)],2);       
+    end
+    Mean.count=numel(JJ);
+    save(sprintf('meanTmp%03d.mat',labindex),'Mean');
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function spmd_fields(DD,RS,JJ,MeanSsh)
     T=disp_progress('init','infering fields');
     for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
@@ -54,22 +93,27 @@ function spmd_body(DD,RS)
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS);
-        if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
-            grids.sshRaw=grids.ssh;           
-            grids.ssh=filterStuff(cut.grids,RS);
-        end
+       %% filter
+        if DD.switchs.filterSSHinTime
+           grids.sshRaw=grids.ssh;
+           grids.ssh=grids.ssh - MeanSsh;
+        end        
+%         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
+%             grids.sshRaw=grids.ssh;
+%             grids.ssh=filterStuff(cut.grids,RS);%         end
+       
         %% write
         save(JJ(jj).files,'grids','-append');
-    end
+    end  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sshHighPass=filterStuff(gr,RS)   
-    %% get center, minor and major axis for ellipse      
+function sshHighPass=filterStuff(gr,RS)
+    %% get center, minor and major axis for ellipse
     RossbyEqFlag=abs(gr.lat)<5  ;													%TODO {put before loop...
     semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));			%...
-	     semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));		%.}
-    [sshHighPass]=ellipseFltr(semi,gr.ssh);										
+    semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));		%.}
+    [sshHighPass]=ellipseFltr(semi,gr.ssh);
     %
     %     JET=repmat(jet,3,1);
     %     figure(1)
@@ -158,31 +202,31 @@ function gr=geostrophy(gr,corio,RS)
         gr.Lrhines=sqrt(gr.absUV./corio.beta);
         gr.L_R=abs(RS.c./corio.f);
         gr.Bu=(gr.L_R./gr.L).^2;
-	 end
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(grids)
-	%% calc U gradients	
-	dUdy=diff(grids.U,1,1);
-	dUdx=diff(grids.U,1,2);
-	dVdy=diff(grids.V,1,1);
-	dVdx=diff(grids.V,1,2);
-	def.dUdy= dUdy([1:end, end], :)  ./ grids.DY;
-	def.dUdx= dUdx(:,[1:end, end] )  ./ grids.DX;
-	def.dVdy= dVdy([1:end, end], :)  ./ grids.DY;
-	def.dVdx= dVdx(:,[1:end, end] )  ./ grids.DX;
+    %% calc U gradients
+    dUdy=diff(grids.U,1,1);
+    dUdx=diff(grids.U,1,2);
+    dVdy=diff(grids.V,1,1);
+    dVdx=diff(grids.V,1,2);
+    def.dUdy= dUdy([1:end, end], :)  ./ grids.DY;
+    def.dUdx= dUdx(:,[1:end, end] )  ./ grids.DX;
+    def.dVdy= dVdy([1:end, end], :)  ./ grids.DY;
+    def.dVdx= dVdx(:,[1:end, end] )  ./ grids.DX;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dsshdx,dsshdy]=dsshdxi(ssh,DX,DY)
     %% calc ssh gradients
-	 dsshdx=diff(ssh,1,2);
-    dsshdy=diff(ssh,1,1);	 
-	  dsshdx=dsshdx(:,[1:end, end])./ DX;
+    dsshdx=diff(ssh,1,2);
+    dsshdy=diff(ssh,1,1);
+    dsshdx=dsshdx(:,[1:end, end])./ DX;
     dsshdy=dsshdy([1:end, end],:)./ DY;
-%   
-% 	 
-% 	 dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
-%     dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
+    %
+    %
+    % 	 dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
+    %     dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=coriolisStuff(lat)

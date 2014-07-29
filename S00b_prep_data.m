@@ -6,10 +6,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % prepare ssh data
 % reads user input from input_vars.m and map_vars.m
-% This is the only file that would have to adapted to the strcture of the
-% input ssh data. This step is not officially part of the program. Use a
-% copy of this and adapt to your data, so that S01 gets the required input
-% structure.
 function S00b_prep_data
     %% set up
     [DD]=set_up;

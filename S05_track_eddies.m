@@ -94,8 +94,8 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
     IDc=num2cell(ID.old);
     %% find position in archive
     [~,idx.arch] = ismember(ID.old,ID.arch);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-    NEW.time.delT(isnan(NEW.time.delT))=1;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%   
+ NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set

@@ -78,7 +78,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
     %% append new ones to end of temp archive
     [tracks,NEW]=append_born(TDB, tracks, OLD,NEW,sen);
     %% write/kill dead
-    [tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, jj,sen);
+    [tracks]=archive_dead(TDB, tracks, OLD.eddies, DD, sen);
     %% swap
     OLD=NEW;
     
@@ -131,7 +131,7 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [tracks]=archive_dead(TDB, tracks, old,DD,jj,sen)
+function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
     %% collect all ID's in archive
     ArchIDs=cat(2,tracks.ID);
     %% all indeces in old set of dead eddies

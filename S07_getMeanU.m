@@ -20,93 +20,54 @@ function S07_getMeanU
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [means]=gMsFromOWcase(file,DD,dim)
-     cm1=bone;cm2=autumn;cm3=flipud(jet);cm4=bone;
-    minOWz=extractfield(load([DD.path.root 'ZIfullYear.mat']),'YY');
-    minOWz=round(squeeze(nanmean(reshape(minOWz,[365,[dim.length(3:end)]]),1)));
+    minOWz=reshape(extractdeepfield(load([DD.path.root 'minOW.mat']),'minOW.ziIntrl'),[dim.length(3:4)]);
     means.u=nan(size(minOWz));
     means.v=nan(size(minOWz));
-    
-  
     uniDepths=unique(minOWz(:))';
-    
     spmd(numel(file))
-  my.u=nan(size(minOWz));
-    my.v=nan(size(minOWz));
+        my.u=nan(size(minOWz));
+        my.v=nan(size(minOWz));
         kk=labindex;
         T=disp_progress('init','determinig mean uvs from z(min(ow(z,y,x)))');
         for zz=uniDepths
-            T=disp_progress('ojoih',T,numel(uniDepths),10);            
+            T=disp_progress('ojoih',T,numel(uniDepths),10);
             dim.start(2)=zz;
             dim.length(2)=1;
             uvtmp=nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length)/DD.parameters.meanUunit;
             my.u(minOWz==zz) = uvtmp(minOWz==zz);
             uvtmp=nc_varget(file(kk).V,DD.map.in.keys.V,dim.start,dim.length)/DD.parameters.meanUunit;
-            my.v(minOWz==zz) = uvtmp(minOWz==zz);            
+            my.v(minOWz==zz) = uvtmp(minOWz==zz);
         end
         my.u=gop(@vertcat,permute(my.u,[3,1,2]),1);
         my.v=gop(@vertcat,permute(my.v,[3,1,2]),1);
-    end    
+    end
     my=my{1};
+    dim=dim{1};
     means.u=squeeze(nanmean(my.u,1));
     means.v=squeeze(nanmean(my.v,1));
-   
-    lat=nc_varget(file(1).U,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
-    lon=nc_varget(file(1).U,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
-    depth=nc_varget(file(1).V,'depth_t');
-   
-    
-     uvtmp=(nc_varget(file(1).U,DD.map.in.keys.U,[0 0 dim.start(3:4)],[1 inf dim.length(3:4)])==0);          
-    
-   [~,bath]=min(flipud(uvtmp(:,:)),[],1);
-    bath=reshape(flipud(bath),size(uvtmp,2),[]);
-    
-    w=zeros(size(lat));
-    
-    
-%     figure(1)
-%     imagesc(means.u);cb=colorbar;
-%     doublemap(cb,cm1,cm2,[.9 .9 .8])
-%      figure(2)
-%     imagesc(means.v);cb=colorbar;
-%     doublemap(cb,cm1,cm2,[.9 .9 .8])
-       figure(3)
-     contour(lon,lat,minOWz,uniDepths(1:2:end));colormap(cm3);shading flat;cb=colorbar;
-%     surfc(lon,lat,minOWz/10);colormap(cm4);shading flat;cb=colorbar;
-yt=get(cb,'ytick')
-    set(cb,'yticklabel',round(depth(yt)))
-
-    hold on   
-%     quiver3(lon(1:20:end),lat(1:20:end),minOWz(1:20:end)/10,means.u(1:20:end),means.v(1:20:end),w((1:20:end)),5,'color','red','linewidth',1) 
-    quiver(lon(1:20:end),lat(1:20:end),means.u(1:20:end),means.v(1:20:end),2,'color','black','linewidth',1) 
-   
-%     nc_dump(file(1).U);
-%   view([-90,45])
-    dim.start(2)=10;
-    utmp=nc_varget(file(1).U,DD.map.in.keys.U,dim.start,dim.length)/DD.parameters.meanUunit;
-    vtmp=nc_varget(file(1).V,DD.map.in.keys.V,dim.start,dim.length)/DD.parameters.meanUunit;
-    
-%      figure(11)
-%     imagesc(utmp);cb=colorbar;
-%     doublemap(cb,cm1,cm2,[.9 .9 .8])
-%      figure(12)
-%     imagesc(vtmp);cb=colorbar;
-%     doublemap(cb,cm1,cm2,[.9 .9 .8])
-       figure(13)
-    contour(lon,lat,bath,uniDepths(1:2:end));colormap(cm3);shading flat;cb=colorbar;
-    yt=get(cb,'ytick')
-    set(cb,'yticklabel',round(depth(yt)))
-  
-    hold on   
-    quiver(lon(1:20:end),lat(1:20:end),utmp(1:20:end),vtmp(1:20:end),2,'color','black') 
-      
-    
-    
-    dujfj
-    
-    
-    
-    
-    
+%     %%
+%     cm1=bone;cm2=autumn;cm3=flipud(jet);cm4=bone;
+%     lat=nc_varget(file(1).U,DD.map.in.keys.lat,dim.start(3:4),dim.length(3:4));
+%     lon=nc_varget(file(1).U,DD.map.in.keys.lon,dim.start(3:4),dim.length(3:4));
+%     depth=nc_varget(file(1).V,'depth_t');
+%     uvtmp=(nc_varget(file(1).U,DD.map.in.keys.U,[0 0 dim.start(3:4)],[1 inf dim.length(3:4)])==0);
+%     [~,bath]=min(flipud(uvtmp(:,:)),[],1);
+%     bath=reshape(flipud(bath),size(uvtmp,2),[]);
+%     w=zeros(size(lat));  figure(3)
+%     contour(lon,lat,minOWz,uniDepths(1:2:end));colormap(cm3);shading flat;cb=colorbar;
+%     yt=get(cb,'ytick')
+%     set(cb,'yticklabel',round(depth(yt)))
+%     hold on
+%     quiver(lon(1:20:end),lat(1:20:end),means.u(1:20:end),means.v(1:20:end),2,'color','black','linewidth',1)
+%     dim.start(2)=10;
+%     utmp=nc_varget(file(1).U,DD.map.in.keys.U,dim.start,dim.length)/DD.parameters.meanUunit;
+%     vtmp=nc_varget(file(1).V,DD.map.in.keys.V,dim.start,dim.length)/DD.parameters.meanUunit;
+%     figure(13)
+%     contour(lon,lat,bath,uniDepths(1:2:end));colormap(cm3);shading flat;cb=colorbar;
+%     yt=get(cb,'ytick')
+%     set(cb,'yticklabel',round(depth(yt)))
+%     hold on
+%     quiver(lon(1:20:end),lat(1:20:end),utmp(1:20:end),vtmp(1:20:end),2,'color','black')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function means=getMeans(d,pos,dim,file,DD)

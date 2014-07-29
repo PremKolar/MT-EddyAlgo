@@ -7,16 +7,11 @@
 function maxOW
     %% init
     DD=initialise([],mfilename);
-    %% loop over seasons
-    seasons={'Summer','Winter'};
-    for s = 1:2
-        DD.path.full3d.name = DD.path.full3d.(seasons{s}).name;
-        minOW.(seasons{s})=main(DD);
-    end
+    minOW=main(DD);
     %% save
     save([DD.path.root 'minOW'])
     %% post process
-    postProc(DD.path.root,minOW,seasons)
+    postProc(DD.path.root,minOW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function minOW=main(DD)
@@ -28,24 +23,22 @@ function minOW=main(DD)
     minOW=maxOWprocess(DD,metaD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function postProc(rootdir,minOW,seasons)
-    su=minOW.Summer.ziIntrl;
-    wi=minOW.Winter.ziIntrl;
+function postProc(rootdir,minOW)
+    
     %% interpolate seasons
-   parfor ii=1:numel(su)
-        YYa{ii}=round(linspace(su(ii),wi(ii),182));
-        YYb{ii}=round(linspace(wi(ii),su(ii),183));
-    end    
-   YY=[reshape(cell2mat(YYa),[182,size(su)]) ; reshape(cell2mat(YYb),[183,size(su)])];     %#ok<NASGU>
-    save([rootdir 'ZIfullYear.mat'],'YY')  ;
-    save
+    %    parfor ii=1:numel(minOW.ziIntrl)
+    %         YYa{ii}=round(linspace(su(ii),wi(ii),182));
+    %         YYb{ii}=round(linspace(wi(ii),su(ii),183));
+    %     end
+    %    YY=[reshape(cell2mat(YYa),[182,size(su)]) ; reshape(cell2mat(YYb),[183,size(su)])];     %#ok<NASGU>
+    %     save([rootdir 'ZIfullYear.mat'],'YY')  ;
+    %     save
     %% plot
-    for s = 1:2
-        figure(s)
-        plotstuff(minOW.(seasons{s}).full,minOW.(seasons{1}).depth) %#ok<*PFBNS>
-        savefig('../PLOTS/',300,1200,800,seasons{s})
-         saveas(gcf,[seasons{s} '.fig']);    
-    end
+    
+    plotstuff(minOW.full,minOW.depth) %#ok<*PFBNS>
+    savefig('../PLOTS/',300,1200,800)
+    saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -54,16 +47,16 @@ function histDepOw=histUniqDepths(depz,zi,owLg,owAx)
 end
 
 function plotstuff(full,depth)
-     fuz=reshape(full.zi(~isnan(full.zi)),1,[]);
+    fuz=reshape(full.zi(~isnan(full.zi)),1,[]);
     uniDepths=unique(fuz);
     %     histc(full.zi(:), uniDepths)  ;
     set(0,'defaulttextinterpreter','latex')
     owLg=-full.ow;
     owAx=[0 logspace(log10(nanmean(owLg(:))),log10(nanmax(owLg(:))),40)];
     histDepOw=nan(numel(uniDepths),numel(owAx));
-   
+    
     parfor ud=1:numel(uniDepths)
-       histDepOw(ud,:)=histUniqDepths(uniDepths(ud),fuz,owLg,owAx)
+        histDepOw(ud,:)=histUniqDepths(uniDepths(ud),fuz,owLg,owAx)
     end
     histDepOw(histDepOw==0)=nan;
     bar3(log10(histDepOw));
@@ -87,6 +80,6 @@ function plotstuff(full,depth)
     zlabel(['log10(count)']);
     set(gca,'ztick',nzt)
     set(gca,'zticklabel',nztl);
-   
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

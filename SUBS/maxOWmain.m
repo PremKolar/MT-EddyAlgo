@@ -12,8 +12,10 @@ function metaD=maxOWmain(DD)
         spmd(DD.threads.num)
             d=spmd_body(DD,Dim,raw);
         end
+        
     end
-    metaD=d{1};
+
+     metaD=d{1};
     metaD.dim=Dim;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

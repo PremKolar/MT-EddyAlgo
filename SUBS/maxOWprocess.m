@@ -6,8 +6,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  OWall=maxOWprocess(DD,metaD)
-    NC=init(metaD);
-    splits=thread_distro(DD.threads.num,NC.S.Y)-1;
+    NC     =initNC(metaD);
+    splits =thread_distro(DD.threads.num,NC.S.Y)-1;
     NC.strt=splits(:,1);
     NC.len =splits(:,2)-NC.strt+1;
     spmd
@@ -48,11 +48,11 @@ function  OWall=maxOWprocess(DD,metaD)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function NC=init(metaD)
+function NC=initNC(metaD)
     NC.geo=metaD.daily.geoOut;
     NC.files(numel(metaD.daily.OWFout)).n=struct;
     [NC.files(:).n] = deal(metaD.daily.OWFout{:});
-    NC.S=  metaD.dim.ws;
+    NC.S=  metaD.dim.ws; %size    
     NC.timeStep = datenum('0815','mmdd');
     NC.S.T = numel(NC.files);
     NC.Sname=cell2struct(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Dimension'),{'Z','Y','X'},2);

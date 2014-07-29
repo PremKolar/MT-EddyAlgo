@@ -18,10 +18,11 @@ function metaD=maxOWmain(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function d=spmd_body(DD,Dim,raw)
-        d.daily=initbuildRho(Dim,DD);
+    
+    d.daily=initbuildRho(Dim,DD);
         buildRho(d.daily,raw,Dim) ;
         labBarrier   
-   save
+   
    
         
         d.mean=initbuildRhoMean(Dim,DD);
@@ -39,7 +40,7 @@ function calcOW(d,Dim,raw,rhoMean)
     for zz = 0:Dim.ws(1)-1
         T=disp_progress('show',T,Dim.ws(1),Dim.ws(1))  ;
         strt = [zz 0 0] ;
-        len = Dim.out.len ;
+        len = [1 Dim.ws(2:3)] ;
         for tt = d.daily.timesteps
             rhoHighPass=nc_varget(d.daily.Fout{tt+1},'density',strt,len) - squeeze(rhoMean(zz+1,:,:));
             %%
@@ -103,7 +104,7 @@ function s = initbuildRhoMean(Dim,DD)
     s.lims = DD.TSow.lims.inZ-1;
     s.Zsteps = s.lims(labindex,1):s.lims(labindex,2);
     s.files=DD.path.TSow.rho;
-    s.rhoAtZ=nan(numel(s.files),Dim.out.len(2), Dim.out.len(3));
+    s.rhoAtZ=nan(numel(s.files),Dim.ws(2), Dim.ws(3));
     s.Fout=DD.path.TSow.mean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,10 +132,12 @@ function  rhoAtZmean=buildRhoMean(s,Dim)
     for zz = s.Zsteps
         myzz=myzz+1;
         T=disp_progress('show',T,numel(s.Zsteps),numel(s.Zsteps))  ;
-        strt=[zz Dim.out.strt(2:3) ];
-        len =[1  Dim.out.len(2:3)  ];
-        rhoAtZ=nan(numel(s.files),Dim.out.len(2), Dim.out.len(3) );
+        strt=[zz 0 0 ];
+        len =[1  Dim.ws(2:3)  ];
+        rhoAtZ=nan(numel(s.files),Dim.ws(2), Dim.ws(3) );
+        Tr=disp_progress('init','looping over files')  ;
         for ff = 1:numel(s.files)
+            Tr=disp_progress('show',Tr,numel(s.files),10)  ;
             rhoAtZ(ff,:,:)=nc_varget(s.files{ff},'density',strt,len);
         end
         rhoAtZ(rhoAtZ>1e10)=nan;
@@ -145,13 +148,14 @@ end
 function buildRho(s,raw,Dim)
      Dim.strt=[0 0 0];
      Dim.len=Dim.ws;
-    DimOri=Dim;
-    
+    DimOri=Dim;    
     T=disp_progress('init','building density netcdfs')  ;
     for tt = s.timesteps
         T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
         Dim=DimOri;
+        Ty=disp_progress('init','looping over y chunks')  ;
         for cc = 1:numel(s.Ysteps)-1
+            Ty=disp_progress('show',Ty,numel(s.Ysteps),numel(s.Ysteps))  ;
             Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);          
             Dim.len(2)  = length(s.Ychunks{cc});
             [TS] = getNowAtY(s.Fin(tt+1),s.keys,Dim,s.dirOut,raw,s.Ychunks{cc}+1);

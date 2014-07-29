@@ -5,7 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,debug,frmt,saveFig)
-    if nargin<6,debug=false;end
+set(gcf,'renderer','painter')     
+set(gcf,'Visible','off')  
+if nargin<6,debug=false;end
     if debug,disp('yo');	return;	end
     if nargin < 7,	frmt='dpdf';	end
     if nargin < 8,	saveFig=false;	end
@@ -40,7 +42,7 @@ function printStuff(frmt,fname,resOut,xdim,ydim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function setupfigure(resOut,xdim,ydim)
-    set(gcf,'renderer','opengl');
+
     resHere=get(0,'ScreenPixelsPerInch');   
 %    ratioRes=resOut/resHere;
    ratioRes=1;

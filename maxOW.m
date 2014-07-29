@@ -10,8 +10,9 @@ function maxOW
     minOW=main(DD);
     %% save
     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
+    load([DD.path.root '0729-1752-minOW.mat'])
     %% post process
-    postProc(DD.path.root,minOW)
+    postProc(minOW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function minOW=main(DD)
@@ -24,7 +25,6 @@ function minOW=main(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function postProc(minOW)
-    
     %% interpolate seasons
     %    parfor ii=1:numel(minOW.ziIntrl)
     %         YYa{ii}=round(linspace(su(ii),wi(ii),182));
@@ -33,17 +33,10 @@ function postProc(minOW)
     %    YY=[reshape(cell2mat(YYa),[182,size(su)]) ; reshape(cell2mat(YYb),[183,size(su)])];     %#ok<NASGU>
     %     save([rootdir 'ZIfullYear.mat'],'YY')  ;
     %     save
-    %% plot
-    
+    %% plot    
     plotstuff(minOW.full,minOW.depth) %#ok<*PFBNS>
-    saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);
-    spmd
-        if labindex==1
-    savefig('../PLOTS/',300,1200,800,[datestr(now,'mmdd-HHMM') ]);
-        end
-    end
-   
-    
+    saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);    
+    savefig('../PLOTS/',100,1200,800,[datestr(now,'mmdd-HHMM') ]);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -72,11 +65,14 @@ function plotstuff(full,depth)
     set(gca,'ytick',nyt)
     set(gca,'yticklabel',nytl)
     ylabel(['depth [$km$]'])
-    %%
-    nxt=[find(diff(round(owAx/1e-6)))];
-    nxtl=round(owAx(nxt)/1e-6);
-    nxtl = cellfun( @(tk) sprintf('-%d',tk), num2cell(nxtl), 'uniformoutput',false)  ;
-    xlabel(['$10^6$ Okubo-Weiss Parameter [$1/m^{2}$]'])
+    %%  
+      nxt=[round(linspace(1,numel(owAx),5))];
+  nxtl=cellfun(@(x) sprintf('%5d',round(x)), num2cell(owAx(nxt)/1e-5),'uniformoutput',false);
+%     nxt=find(diff(round(owAx(2:end)/1e-6))) +1;
+%     nxtl=round(owAx(nxt)/1e-6);
+%     nxtl = cellfun( @(tk) sprintf('%d',tk), num2cell(nxtl), 'uniformoutput',false)  ;
+    xlabel(['$-10^5$ Okubo-Weiss Parameter [$1/m^{2}$]'])
+   set(gca,'xtick',nxt)
     set(gca,'xticklabel',nxtl)
     %%
     zt=get(gca,'ztick')  ;

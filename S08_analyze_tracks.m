@@ -10,37 +10,50 @@ function S08_analyze_tracks
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
- 	[map,vecs,minMax]=main(DD);
+ 	[map,vecs,minMax,CoIQ]=main(DD);
 	%%
-	seq_body(minMax,map,DD,vecs);
+	seq_body(minMax,map,DD,vecs,CoIQ);
 	%%
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [map,vecs,minMax]=main(DD)
+function [map,vecs,minMax,CoIQ]=main(DD)
 	if DD.debugmode
-		[map,vecs,minMax]=spmd_body(DD);
+		[map,vecs,minMax,CoIQ]=spmd_body(DD);
 	else
 		spmd(DD.threads.num)
-			[map,vecs,minMax]=spmd_body(DD);
+			[map,vecs,minMax,CoIQ]=spmd_body(DD);
+          
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
-function [MAP,V,MinMax]=spmd_body(DD)
-	%% get stuff
-	
+function [MAP,V,MinMax,CoIQ]=spmd_body(DD)
+	%% get stuff	
 	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');
-	for jj=JJ;
+	
+    CoIQ=struct;
+ nn=0;
+    for jj=JJ;
 		T=disp_progress('calc',T,numel(JJ),100);
 		%% get track
 		[TT]=getTrack(DD,jj); if isempty(TT),continue;end
-		%% resort tracks for output
+		%% chelt over IQ
+        nn_old=nn;
+     nn=nn+numel(TT.eddy.trck);
+     newIdx=nn_old+1:nn;
+      la=num2cell(extractfield(cat(1,TT.eddy.trck.geo),'lat'))';
+      area=num2cell(extractfield(cat(1,TT.eddy.trck.area),'total'))';
+      [CoIQ(newIdx,1).IQ]    =deal(TT.eddy.trck.isoper);    
+      [CoIQ(newIdx,1).chelt] =deal(TT.eddy.trck.chelt);      
+      [CoIQ(newIdx,1).lat]   =deal(la{:}); 
+      [CoIQ(newIdx,1).area]  =deal(area{:}); 
+        %% resort tracks for output
 		[MinMax]=resortTracks(DD,MinMax,TT);
 		%% mapstuff prep
 		switch TT.sense
@@ -49,7 +62,8 @@ function [MAP,V,MinMax]=spmd_body(DD)
 			case 1
 				[MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
 		end
-	end
+    end
+    CoIQ=gop(@vertcat, CoIQ);
 	%% get global extrms
 	MinMax=globalExtr(MinMax);
 end
@@ -74,12 +88,11 @@ function [ACs,Cs]=netVels(DD,map)
 	Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function seq_body(minMax,map,DD,vecs)
+function seq_body(minMax,map,DD,vecs,CoIQ)
 	[map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
 	%% get rossby radius
 	if DD.switchs.RossbyStuff
-		map.Rossby=loadRossby(DD);
-        
+		map.Rossby=loadRossby(DD);        
 		%% build radius/rossbyRadius ratio
 		map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
         map.AntiCycs.radius.to2Ro=map.AntiCycs.radius.mean.mean./(2*map.Rossby.small.radius);
@@ -90,8 +103,11 @@ function seq_body(minMax,map,DD,vecs)
 	%% build net vels
 	if DD.switchs.netUstuff
 		[map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
-	end
+    end
+    %% chelt over IQ
+    C.oIQ=CoIQ{1}; %#ok<NASGU>
 	%% save
+    save([DD.path.analyzed.name,'CoIQ.mat'],'-struct','C');
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end

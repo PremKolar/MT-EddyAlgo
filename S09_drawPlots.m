@@ -41,6 +41,47 @@ end
 function mainDB(DD,IN,ticks)
     disp('entering debug mode')
     ticks.rez=42;
+      CoIQ=getfield(load([DD.path.analyzed.name,'CoIQ.mat']),'oIQ');
+                C=cell2mat(struct2cell(CoIQ));
+    
+    
+    spmd(3)
+        switch labindex
+            case 1
+                scatter(C(1,:),C(2,:),C(4,:)/median(C(4,:))*10,C(3,:))
+                colorbar;
+                ylabel(colorbar,'latitude');
+                ylabel('CH');
+                xlabel('IQ');
+                title('Comparison of CH to IQ as a function(area,latitude).');
+                if DD.switchs.chelt
+                    slim=DD.thresh.shape.chelt;
+                    y=[slim slim];
+                    x=[0 max(C(1,:))];
+                    axis([min(C(1,:))  max(C(1,:)) 0 max(C(2,:))])
+                else
+                    slim=DD.thresh.shape.iq;
+                    x=[slim slim];
+                    y=[0 max(C(2,:))];
+                    axis([0 max(C(1,:)) min(C(2,:)) max(C(2,:))])
+                end
+                hold on
+                line(x,y)
+                %%
+            case 2
+                Cnrm=C;
+                Cnrm(1,:)=C(1,:)/max(C(1,:));
+                Cnrm(2,:)=C(2,:)/max(C(2,:));
+                hist(Cnrm(1:2,:)',100);
+                legend('iq','ch');
+                %%
+            case 3
+                hist((C(1,:)./C(2,:))',100)
+                title('IQ/CH')
+                %%
+        end
+        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,[sprintf('CoIQ%02d',labindex)],DD.debugmode,'dpdf');
+    end
     
     
              for sense=DD.FieldKeys.senses'; sen=sense{1};
@@ -51,7 +92,7 @@ function mainDB(DD,IN,ticks)
                 TPe(DD,ticks,IN.tracks,sen);
                 TPf(DD,ticks,IN.tracks,sen);
              end
-             if DD.switchs.RossbyStuff && DD.switchs.netUstuff
+       if DD.switchs.RossbyStuff && DD.switchs.netUstuff
               velZonmeans(DD,IN,ticks)
               scaleZonmeans(DD,IN,ticks)
         end
@@ -580,7 +621,8 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function overmain(ticks,DD)
-	[threadData]=inits(DD);
+
+    [threadData]=inits(DD);
 	%%
 	if DD.debugmode
 		mainDB(DD,threadData,ticks);

@@ -48,6 +48,7 @@ function MeanSsh=saveMean(DD)
         cur=load(sprintf('meanTmp%03d.mat',ll));
         MeanSsh=nansum([MeanSsh cur.Mean.SshSum],2);
         Meancount=Meancount + cur.Mean.count;
+        system(sprintf('rm meanTmp%03d.mat',ll));
     end
     MeanSsh=reshape(MeanSsh,[DD.map.window.size.Y, DD.map.window.size.X])/Meancount; %#ok<NASGU>
     save([DD.path.root, 'meanSSH.mat'],'MeanSsh')

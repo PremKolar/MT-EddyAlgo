@@ -21,7 +21,9 @@ function d=spmd_body(DD,Dim,raw)
         d.daily=initbuildRho(Dim,DD);
         buildRho(d.daily,raw,Dim) ;
         labBarrier   
-    %%        
+   save
+   
+        
         d.mean=initbuildRhoMean(Dim,DD);
         rhoMean=buildRhoMean(d.mean,Dim)    ;
         d.mean=rmfield(d.mean,'rhoAtZ');
@@ -34,8 +36,8 @@ end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcOW(d,Dim,raw,rhoMean)
     T=disp_progress('init','building okubo weiss netcdfs')  ;
-    for zz = 0:Dim.ws.Z-1
-        T=disp_progress('show',T,Dim.ws.Z,Dim.ws.Z)  ;
+    for zz = 0:Dim.ws(1)-1
+        T=disp_progress('show',T,Dim.ws(1),Dim.ws(1))  ;
         strt = [zz 0 0] ;
         len = Dim.out.len ;
         for tt = d.daily.timesteps
@@ -111,7 +113,7 @@ function s = initbuildRho(Dim,DD)
     s.lims = DD.TSow.lims.inTime-1;
     s.timesteps = s.lims(s.id,1):s.lims(s.id,2);
     s.keys = DD.TS.keys;
-    s.Ysteps=round(linspace(0,Dim.ws.Y-1,10));
+    s.Ysteps=round(linspace(0,Dim.ws(2)-1,100));
     for cc =1:numel(s.Ysteps)-1
         s.Ychunks{cc}=s.Ysteps(cc):s.Ysteps(cc+1)-1;
     end
@@ -124,7 +126,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  rhoAtZmean=buildRhoMean(s,Dim)
     T=disp_progress('init','building density netcdfs')  ;
-    rhoAtZmean=nan(numel(s.Zsteps),Dim.ws.Y,Dim.ws.X);
+    rhoAtZmean=nan(numel(s.Zsteps),Dim.ws(2),Dim.ws(3));
     myzz=0;
     for zz = s.Zsteps
         myzz=myzz+1;
@@ -141,43 +143,37 @@ function  rhoAtZmean=buildRhoMean(s,Dim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function buildRho(s,raw,Dim)
+     Dim.strt=[0 0 0];
+     Dim.len=Dim.ws;
     DimOri=Dim;
+    
     T=disp_progress('init','building density netcdfs')  ;
     for tt = s.timesteps
         T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
         Dim=DimOri;
         for cc = 1:numel(s.Ysteps)-1
-            Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);
-            Dim.out.strt(2) =               s.Ysteps(cc);
+            Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);          
             Dim.len(2)  = length(s.Ychunks{cc});
             [TS] = getNowAtY(s.Fin(tt+1),s.keys,Dim,s.dirOut,raw,s.Ychunks{cc}+1);
             rho = reshape(calcDens(TS,Dim.len),Dim.len);
-            nc_varput(s.Fout{tt+1},'density',rho,Dim.out.strt,Dim.len);
+            nc_varput(s.Fout{tt+1},'density',rho,Dim.strt,Dim.len);
         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out] = getNowAtY(FileIn,keys,Dim,dirOut,raw,YY)
     make1d = @(Axb,C) reshape(repmat(double(permute(Axb,[3,1,2])),C,1),[],1)   ;
-     getFromLin = @(M,ix) M(ix);
-    Z=Dim.ws.Z;
+    dsr = @(M) double(sparse(reshape(M,[],1)));
+    Z=Dim.ws(1);
     out.lat = make1d(raw.lat(YY,:),Z);
     out.lon = make1d(raw.lon(YY,:),Z);
     out.dx = make1d(raw.dx(YY,:),Z);
     out.dy = make1d(raw.dy(YY,:),Z);
     out.depth = repmat(double(raw.depth),numel(YY),1);
-    out.rawDepth = raw.depth;    
-    for zz=0:Z-1   
-        dispM(sprintf('%3.0f prcnt',100*(zz+1)/Z))
-        st=[0 zz 0 0];
-        le=[1 1 inf inf];
-        temp(zz+1,:,:) = getFromLin(nc_varget(FileIn.temp,keys.temp,st,le),Dim.idxLin(YY,:));
-        salt(zz+1,:,:) = getFromLin(nc_varget(FileIn.salt,keys.salt,st,le),Dim.idxLin(YY,:));      
-    end       
-    out.temp = double(sparse(reshape(temp,[],1)));
-    out.salt = double(sparse(reshape(salt,[],1)))*1000;
+    out.rawDepth = raw.depth;
+    out.temp = dsr(nc_varget(FileIn.temp,keys.temp,[0 Dim.strt],[1 Dim.len]));
+    out.salt = dsr(nc_varget(FileIn.salt,keys.salt,[0 Dim.strt],[1 Dim.len])*1000);
     out.file = fileStuff(FileIn.salt, dirOut);
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [RHO] = calcDens(TS,Dim)
@@ -190,26 +186,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Dim,raw] = setup(DD)
     ws = DD.TSow.window.size;
-    wl = DD.TSow.window.limits;
-    idxLin=drop_2d_to_1d(DD.TSow.window.iy,DD.TSow.window.ix,DD.TSow.window.fullsize(1));
     FileIn = DD.path.TSow.files(1);
-    keys = DD.TS.keys;
-    DimConst.strt = [ wl.south-1 wl.west-1 ];
-    DimConst.len = [ ws.Y ws.X ];
+    keys = DD.TS.keys;  
     raw.depth = nc_varget(FileIn.salt,keys.depth);
-    raw.lat = ncVarFromLinIdx(FileIn.temp, keys.lat, idxLin);
-    raw.lon = ncVarFromLinIdx(FileIn.temp, keys.lon, idxLin);
+    raw.lat = nc_varget(FileIn.temp, keys.lat);
+    raw.lon = nc_varget(FileIn.temp, keys.lon);
     [raw.dy,raw.dx] = getdydx( raw.lat, raw.lon);
-    raw.corio = coriolisStuff(raw.lat);
-    Dim.strt(1) = 0;
-    Dim.strt(2:3) = DimConst.strt;
-    Dim.len(1) = ws.Z;
-    Dim.len(3) = DimConst.len(2);
-    %     Dim.len(2) = 1;
-    Dim.ws=ws;
-    Dim.idxLin=idxLin;
-    Dim.out.strt=[0 0 0];
-    Dim.out.len=[1 DimConst.len];
+    raw.corio = coriolisStuff(raw.lat);   
+    Dim.ws=ws;  
     %% geo
     nc_varput(DD.path.TSow.geo,'depth',raw.depth);
     nc_varput(DD.path.TSow.geo,'lat',raw.lat);

@@ -10,7 +10,7 @@ function maxOW
     minOW=main(DD);
     %% save
     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
-    load([DD.path.root '0729-1752-minOW.mat'])
+%     load([DD.path.root '0729-1752-minOW.mat'])
     %% post process
     postProc(minOW)
 end

@@ -9,7 +9,7 @@ function maxOW
     DD=initialise([],mfilename);
     minOW=main(DD);
     %% save
-    save([DD.path.root 'minOW'])
+    save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
     %% post process
     postProc(DD.path.root,minOW)
 end
@@ -23,7 +23,7 @@ function minOW=main(DD)
     minOW=maxOWprocess(DD,metaD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function postProc(rootdir,minOW)
+function postProc(minOW)
     
     %% interpolate seasons
     %    parfor ii=1:numel(minOW.ziIntrl)
@@ -36,8 +36,13 @@ function postProc(rootdir,minOW)
     %% plot
     
     plotstuff(minOW.full,minOW.depth) %#ok<*PFBNS>
-    savefig('../PLOTS/',300,1200,800)
     saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);
+    spmd
+        if labindex==1
+    savefig('../PLOTS/',300,1200,800,[datestr(now,'mmdd-HHMM') ]);
+        end
+    end
+   
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -42,7 +42,7 @@ function [means]=gMsFromOWcase(file,DD,dim)
         my.v=gop(@vertcat,permute(my.v,[3,1,2]),1);
     end
     my=my{1};
-    dim=dim{1};
+    dim=dim{1}; %#ok<NASGU>
     means.u=squeeze(nanmean(my.u,1));
     means.v=squeeze(nanmean(my.v,1));
 %     %%
@@ -70,20 +70,7 @@ function [means]=gMsFromOWcase(file,DD,dim)
 %     quiver(lon(1:20:end),lat(1:20:end),utmp(1:20:end),vtmp(1:20:end),2,'color','black')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function means=getMeans(d,pos,dim,file,DD)
-    if DD.switchs.meanUviaOW
-        [means]=gMsFromOWcase(file,DD,dim);
-    else
-        [means]=gMsConstCase(file,DD,dim);
-    end
-    
-    
-    %-----------------------------------------------------------------------
-    
-    
-    
-    
-    function [means]=gMsConstCase
+ function [means]=gMsConstCase(file,DD,dim,d,pos)
         for kk=1:numel(file)
             disp(['found ' file(kk).U ' and ' file(kk).V])
             U(:,:,kk)=squeeze(nc_varget(file(kk).U,DD.map.in.keys.U,dim.start,dim.length))/DD.parameters.meanUunit; %#ok<*AGROW>
@@ -114,6 +101,13 @@ function means=getMeans(d,pos,dim,file,DD)
             means.small.zonal(li)=nanmean(means.zonal(lin==li));
         end
     end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function means=getMeans(d,pos,dim,file,DD)
+    if DD.switchs.meanUviaOW
+        [means]=gMsFromOWcase(file,DD,dim);
+    else
+        [means]=gMsConstCase(file,DD,dim,d,pos);
+    end     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [d,pos,dim]=getDims(file,DD)

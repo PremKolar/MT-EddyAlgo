@@ -35,8 +35,7 @@ function [out]=DataInit(DD)
             tt=tt+1;
             out.files(tt).temp=[DD.path.full3d.name DirIn(kk).name];
         end
-    end
-    
+    end    
     out.fnum=numel(out.files);
     out.dir   = [DD.path.Rossby.name];
     out.dailyOWName   = [ out.dir 'OW_'];

@@ -9,19 +9,19 @@ function S04_filter_eddies
 	%% init
 	DD=initialise('conts',mfilename);
 	DD.threads.num=init_threads(DD.threads.num);
-	rossbyU=getRossbyPhaseSpeed(DD);
+	rossby=getRossbyPhaseSpeedAndRadius(DD);
 	%% spmd
-	main(DD,rossbyU);
+	main(DD,rossby);
 	%% update infofile    
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function main(DD,rossbyU)
+function main(DD,rossby)
 	if DD.debugmode
-		spmd_body(DD,rossbyU)
+		spmd_body(DD,rossby)
 	else
 		spmd(DD.threads.num)
-			spmd_body(DD,rossbyU)
+			spmd_body(DD,rossby)
             disp_progress('conclude');
 		end
 	end
@@ -29,11 +29,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmd_body(DD,rossbyU)
+function spmd_body(DD,rossby)
 	[JJ]=SetThreadVar(DD);
 	Td=disp_progress('init','filtering contours');
 	for jj=1:numel(JJ)
-		[EE,skip]=work_day(DD,JJ(jj),rossbyU);
+		[EE,skip]=work_day(DD,JJ(jj),rossby);
 		%%
 		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
 		if skip,disp(['skipping ' num2str(jj)]);continue;end
@@ -42,7 +42,7 @@ function spmd_body(DD,rossbyU)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [EE,skip]=work_day(DD,JJ,rossbyU)
+function [EE,skip]=work_day(DD,JJ,rossby)
 	%% check for exisiting data
 	skip=false;
 	EE.filename.cont=JJ.files;
@@ -66,21 +66,21 @@ function [EE,skip]=work_day(DD,JJ,rossbyU)
 	%% avoid out of bounds integer coordinates close to boundaries
 	[ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
 	%% find them
-	EE=find_eddies(EE,ee_clean,rossbyU,cut,DD);
+	EE=find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function EE=find_eddies(EE,ee_clean,rossbyU,cut,DD)
+function EE=find_eddies(EE,ee_clean,rossby,cut,DD)
 	%% anti cyclones
-	EE.anticyclones=anti_cyclones(ee_clean,rossbyU,cut,DD);
+	EE.anticyclones=anti_cyclones(ee_clean,rossby,cut,DD);
 	%% cyclones
-	EE.cyclones=cyclones(ee_clean,rossbyU,cut,DD);
+	EE.cyclones=cyclones(ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
+function ACyc=anti_cyclones(ee,rossby,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at deepest eddies, upwards
 	for kk=1:numel(ee)
-		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,-1);
+		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
 		if PASS(kk), pp=pp+1;
 			%% append healthy found eddy
 			ACyc(pp)=ee_out;
@@ -93,11 +93,11 @@ function ACyc=anti_cyclones(ee,rossbyU,cut,DD)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cyc=cyclones(ee,rossbyU,cut,DD)
+function Cyc=cyclones(ee,rossby,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at highest eddies, downwards
 	for kk=numel(ee):-1:1
-		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossbyU,cut,DD,1);
+		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,1);
 		if PASS(kk),	pp=pp+1;
 			%% append healthy found eddy
 			Cyc(pp)=ee_out;
@@ -110,7 +110,7 @@ function Cyc=cyclones(ee,rossbyU,cut,DD)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
+function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
 	%% pre-nan-check
 	pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
 	if ~pass, return, end;
@@ -133,7 +133,8 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	[pass,ee.sense]=CR_sense(zoom,direction,ee.level);
 	if ~pass, return, end;
 	%% calculate area with respect to contour
-	[ee.area]=Area(zoom);
+	[ee.area,pass]=Area(zoom,rossby.L,DD.thresh.maxRadiusOverRossbyL);
+     if ~pass, return, end;
 	%% calc contour circumference in [SI]
 	[ee.circum.si]=EDDyCircumference(zoom);
 	%% filter eddies not circle-like enough
@@ -168,7 +169,7 @@ function [pass,ee]=run_eddy_checks(ee,rossbyU,cut,DD,direction)
 	ee.age=0;
 	%% append projected location
 	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
-		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossbyU,cut,DD)	;
+		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.U,cut,DD)	;
 	else
 		ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
 	end
@@ -309,12 +310,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % others
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function U=getRossbyPhaseSpeed(DD)
+function R=getRossbyPhaseSpeedAndRadius(DD)
 	if DD.switchs.RossbyStuff
-		U=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+		R.U=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+        R.L=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
 	else
-		U=[];
-	end
+		R.U=[];
+        R.L=[];
+    end  
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [centroid]=AreaCentroid(zoom,Y)
@@ -401,10 +404,15 @@ function save_eddies(EE)
 	save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area]=Area(z)
+function [area,pass]=Area(z,rossbyL,scaleThresh)
 	area=struct;
 	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
 	area.total=sum(area.pixels(:));
+    if sqrt(area.total/pi)/rossbyL > scaleThresh
+        pass=false;
+    else
+        pass=true;
+    end   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[mask_out]=EDDyPackMask(mask_in,limits,dims)

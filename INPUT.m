@@ -13,7 +13,7 @@ function DD=INPUT
 %       DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19990201';
+    DD.time.till.str='19950201';
     %% window on globe
     DD.map.in.west=-90;
     DD.map.in.east= 0;
@@ -26,6 +26,7 @@ function DD=INPUT
     DD.contour.step=0.01; % [SI]
     DD.thresh.ssh_filter_size=1;
     DD.thresh.radius=0; % [SI]
+    DD.thresh.maxRadiusOverRossbyL=10; % [SI]
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.2; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)

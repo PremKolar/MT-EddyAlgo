@@ -34,10 +34,10 @@ function DD=INPUT
     DD.thresh.dist=.1*24*60^2; % max distance travelled per day
     DD.thresh.life=3; % min num of living days for saving
     DD.thresh.amArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    %% switches
-    DD.switchs.RossbyStuff=false;
+    %% switches   
     DD.switchs.IQ=false;
     DD.switchs.chelt=true;
+    DD.switchs.RossbyStuff=true;  
     DD.switchs.distlimit=false;
     DD.switchs.AmpAreaCheck=false;
     DD.switchs.netUstuff=false;

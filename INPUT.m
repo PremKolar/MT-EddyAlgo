@@ -35,7 +35,7 @@ function DD=INPUT
     DD.thresh.life=3; % min num of living days for saving
     DD.thresh.amArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches
-    DD.switchs.RossbyStuff=false;
+    DD.switchs.RossbyStuff=true;
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;
     DD.switchs.distlimit=false;

@@ -14,7 +14,7 @@ function [DD]=S01b_ST_set_up
     %% find temp and salt files
     [DD.path.TempSalt]=tempsalt(DD);
     %% get window according to user input
-    [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt(1),DD.map.in,DD.TS.keys);
+    [DD.TS.window,~]=GetWindow(DD.path.TempSalt.salt{1},DD.map.in,DD.TS.keys);
     %% distro X lims to chunks
     DD.RossbyStuff.lims.data=limsdata(DD.parameters.RossbySplits,DD.TS.window);
     %% distro chunks to threads
@@ -45,11 +45,11 @@ function [file]=tempsalt(DD)
     for kk=1:numel(DD.path.TempSalt.files);
         if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'SALT'))
 			  ss=ss+1; 
-            file.salt(ss)=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+            file.salt{ss}=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
         end
         if ~isempty(strfind(upper(DD.path.TempSalt.files(kk).name),'TEMP'))
 			   tt=tt+1;
-            file.temp(tt)=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
+            file.temp{tt}=[DD.path.TempSalt.name DD.path.TempSalt.files(kk).name];
         end
     end
 end

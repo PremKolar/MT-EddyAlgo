@@ -10,10 +10,10 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-%       DD.debugmode=true;
+      DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19950201';
+    DD.time.till.str='19940201';
     %% window on globe
     DD.map.in.west=-90;
     DD.map.in.east= 0;

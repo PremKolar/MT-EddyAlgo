@@ -13,7 +13,7 @@ function fig=ppc(in)
 	fig=pcolor(downsize(full(double(squeeze(in))),X,Y));
 	shading flat
 	colorbar
-    med.u=nanmedian(nanmin(in(:))) ;
-    med.d=nanmedian(nanmax(in(:))) ;    
-    caxis([med.u med.d]);    
+%     med.u=nanmedian(nanmin(in(:))) ;
+%     med.d=nanmedian(nanmax(in(:))) ;    
+%     caxis([med.u med.d]);    
 end

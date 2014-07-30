@@ -126,9 +126,10 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     zoom.fields=EDDyCut_init(cut.grids,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask=EDDyCut_mask(zoom);
-    %% check for nans within eddy
+    %% check for nans matlab.matwithin eddy
     [pass]=CR_Nan(zoom);
-    if ~pass, return, end;
+    if ~pass, return, end;   
+  
     %% check for correct sense
     [pass,ee.sense]=CR_sense(zoom,direction,ee.level);
     if ~pass, return, end;
@@ -140,10 +141,13 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.circum.si]=EDDyCircumference(zoom);
     %% filter eddies not circle-like enough
     [pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
+ 
     if ~pass, return, end;
     %% get peak position and amplitude w.r.t contour
     [pass,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
+   
     if ~pass, return, end;
+  
     %% get profiles
     [ee.profiles]=EDDyProfiles(ee,zoom.fields);
     %% get radius according to max UV ie min vort
@@ -160,6 +164,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
     %%
     %     if DD.debugmode, plots4debug(zoom,ee); end
+  
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
     %% get area centroid (chelton style)
@@ -168,6 +173,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.geo]=geocoor(zoom,ee.volume);
     %% append 'age'
     ee.age=0;
+   
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.U,cut,DD)	;
@@ -178,6 +184,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     if strcmp(DD.map.window.type,'globe')
         ee=correctXoverlap(ee,DD);
     end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL=getLocalRossyRadius(rossbyL,coor)
@@ -282,10 +289,9 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
     x.min=min(z.coor.int.x);
     y.min=min(z.coor.int.y);
     x.max=max(z.coor.int.x);
-    y.max=max(z.coor.int.y);
-    circDiam=sqrt(ee.area.total/pi);
+    y.max=max(z.coor.int.y);   
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
-    chelt  = circDiam/((maxDist/2)^2);
+    chelt  = 4*ee.area.total/(pi*maxDist^2);
     if chelt >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -293,7 +299,7 @@ function [pass,isoper]=IsopQuo(ee,thresh)
     %% isoperimetric quotient
     % The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
     % ie isoper=4pi area/circum^2.  isoper(circle)==1;
-    isoper=12.5664*ee.area.total/ee.circum.si^2;
+    isoper=4*pi*ee.area.total/ee.circum.si^2;
     if isoper >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

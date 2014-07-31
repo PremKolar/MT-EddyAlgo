@@ -10,7 +10,7 @@ function S09_drawPlots
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez/3;
+    ticks.width=297/25.4*ticks.rez;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -44,7 +44,7 @@ function IQoverCH(DD,ticks)
     spmd(3)
         switch labindex
             case 1
-                scatter(C(1,:),C(2,:),C(4,:)/median(C(4,:))*10,C(3,:))
+                scatter(C(1,:),C(2,:),sqrt(C(4,:)/median(C(4,:))*10),C(3,:))
                 colorbar;
                 ylabel(colorbar,'latitude');
                 ylabel('CH');

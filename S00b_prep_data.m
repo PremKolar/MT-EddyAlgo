@@ -66,8 +66,6 @@ function [CUT]=CutMap(file,DD)
     [CUT]=ZonalAppend(raw_fields,DD.map.window);
     %% nan out land and make SI
     CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.parameters.ssh_unitFactor);
-%% no filter yet    
-CUT.MeanSSHsubtracted = false;
     %% get distance fields
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end

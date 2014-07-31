@@ -412,7 +412,7 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     %% build boundary mask
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
-    mask.logical=sparse(imfill(mask.logical,[yi.center xi.center],4));
+    mask.logical=sparse(imfill(mask.logical,double([yi.center xi.center]),4));
     mask.lin=find(mask.logical);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -10,10 +10,10 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-      DD.debugmode=true;
+%       DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19940201';
+    DD.time.till.str='19990101';
     %% window on globe
     DD.map.in.west=-90;
     DD.map.in.east= 0;
@@ -30,16 +30,16 @@ function DD=INPUT
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.2; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
-    DD.thresh.corners=6; % min number of data points for the perimeter of an eddy
+    DD.thresh.corners=10; % min number of data points for the perimeter of an eddy
     DD.thresh.dist=.1*24*60^2; % max distance travelled per day
-    DD.thresh.life=3; % min num of living days for saving
+    DD.thresh.life=10; % min num of living days for saving
     DD.thresh.amArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     %% switches   
     DD.switchs.IQ=false;
     DD.switchs.chelt=true;
     DD.switchs.RossbyStuff=true;  
-    DD.switchs.distlimit=false;
-    DD.switchs.AmpAreaCheck=false;
+    DD.switchs.distlimit=true;
+    DD.switchs.AmpAreaCheck=true;
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
     DD.switchs.spaciallyFilterSSH=false;

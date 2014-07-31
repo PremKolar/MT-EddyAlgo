@@ -136,7 +136,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     %% calculate area with respect to contour
     RoL=getLocalRossyRadius(rossby.L,ee.coordinates.int);
     [ee.area,pass]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
-    if ~pass, return, end;
+    if ~pass && ~DD.switchs.chelt, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si]=EDDyCircumference(zoom);
     %% filter eddies not circle-like enough
@@ -291,8 +291,16 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
     x.max=max(z.coor.int.x);
     y.max=max(z.coor.int.y);   
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
-    chelt  = 4*ee.area.total/(pi*maxDist^2);
-    if chelt >= thresh, pass=true; else pass=false; end
+    mlat=abs(nanmean(z.fields.lat(:))) ;
+    if mlat> 25
+    chelt  =1 - maxDist/4e5;
+    else
+       chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);  
+    end
+    
+     if chelt >= 0, pass=true; else pass=false; end    
+%     chelt  = 4*ee.area.total/(pi*maxDist^2);
+%     if chelt >= thresh, pass=true; else pass=false; end    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,isoper]=IsopQuo(ee,thresh)

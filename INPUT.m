@@ -10,7 +10,7 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;   
-%   DD.debugmode=true;
+%       DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
     DD.time.till.str='19990101';
@@ -38,8 +38,8 @@ function DD=INPUT
     DD.switchs.IQ=true;
     DD.switchs.chelt=0;
     DD.switchs.RossbyStuff=true;  
-    DD.switchs.distlimit=false;
-    DD.switchs.AmpAreaCheck=false;
+    DD.switchs.distlimit=true;
+    DD.switchs.AmpAreaCheck=true;
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
     DD.switchs.spaciallyFilterSSH=false;

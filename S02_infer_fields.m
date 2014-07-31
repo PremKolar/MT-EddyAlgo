@@ -20,16 +20,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
-    if DD.debugmode
-        [JJ]=SetThreadVar(DD);
-        spmd_meanSsh(DD,JJ);
-    else
-        spmd(DD.threads.num)
+    if ~exist([DD.path.root, 'meanSSH.mat'],'file')
+        if DD.debugmode
             [JJ]=SetThreadVar(DD);
             spmd_meanSsh(DD,JJ);
+        else
+            spmd(DD.threads.num)
+                [JJ]=SetThreadVar(DD);
+                spmd_meanSsh(DD,JJ);
+            end
         end
+        MeanSsh=saveMean(DD);
     end
-    MeanSsh=saveMean(DD);    
     %% calc fields
     if DD.debugmode
         spmd_fields(DD,RS,JJ,MeanSsh);
@@ -95,10 +97,13 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS);
        %% filter
-        if DD.switchs.filterSSHinTime
+        if DD.switchs.filterSSHinTime && ~cut.MeanSSHsubtracted
            grids.sshRaw=grids.ssh;
            grids.ssh=grids.ssh - MeanSsh;
-        end        
+           cut.MeanSSHsubtracted=true;
+        end 
+        
+        
 %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
 %             grids.sshRaw=grids.ssh;
 %             grids.ssh=filterStuff(cut.grids,RS);%         end

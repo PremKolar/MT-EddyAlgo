@@ -12,8 +12,11 @@ function DD=INPUT
     DD.debugmode=false;   
 %       DD.debugmode=true;
     %% time
-    DD.time.from.str='19940101';
-    DD.time.till.str='19990101';
+%     DD.time.from.str='19940101';
+%     DD.time.till.str='19990201';
+       
+    DD.time.from.str='19980101';
+     DD.time.till.str='20150101';
     %% window on globe
     DD.map.in.west=-70;
     DD.map.in.east= -40;
@@ -38,8 +41,8 @@ function DD=INPUT
     DD.switchs.IQ=true;
     DD.switchs.chelt=0;
     DD.switchs.RossbyStuff=true;  
-    DD.switchs.distlimit=true;
-    DD.switchs.AmpAreaCheck=true;
+    DD.switchs.distlimit=false;
+    DD.switchs.AmpAreaCheck=false;
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
     DD.switchs.spaciallyFilterSSH=false;

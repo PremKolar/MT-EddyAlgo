@@ -77,7 +77,7 @@ end
 function savepng4mov(d,ee,DD)
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];    
     if exist([ d.p sprintf('flat%06d.png',ee)],'file')
-        continue
+        return        
     end
     [~,fn,~] = fileparts(d.file);
     d.dtnm=datenum(fn(7:14),'yyyymmdd');

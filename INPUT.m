@@ -12,9 +12,6 @@ function DD=INPUT
     DD.debugmode=false;   
 %       DD.debugmode=true;
     %% time
-%     DD.time.from.str='19940101';
-%     DD.time.till.str='19990201';
-       
     DD.time.from.str='19980101';
      DD.time.till.str='20150101';
     %% window on globe
@@ -31,7 +28,7 @@ function DD=INPUT
     DD.thresh.radius=0; % [SI]
     DD.thresh.maxRadiusOverRossbyL=10; % [SI]
     DD.thresh.amp=0.01; % [SI]
-    DD.thresh.shape.iq=0.3; % isoperimetric quotient
+    DD.thresh.shape.iq=0.6; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     DD.thresh.corners=10; % min number of data points for the perimeter of an eddy
     DD.thresh.dist=.1*24*60^2; % max distance travelled per day
@@ -46,5 +43,5 @@ function DD=INPUT
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
     DD.switchs.spaciallyFilterSSH=false;
-    DD.switchs.filterSSHinTime=true;
+    DD.switchs.filterSSHinTime=false;
 end

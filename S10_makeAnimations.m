@@ -5,6 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S10_makeAnimations
+    system('RM /tmp/*')
     DD=initialise([],mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=297/25.4*ticks.rez*1;
@@ -24,7 +25,9 @@ function S10_makeAnimations
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
+    DD.frms=1000;
     animas(DD)
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
@@ -39,10 +42,10 @@ function animas(DD)
     d.climssh.max=nanmax(grid.grids.ssh(:));
     d.p=[DD.path.plots 'mpngs/'];
     mkdirp(d.p);
-    frms=3800;
+    frms=DD.frms;
     range=round(linspace(1,numel(DD.path.eddies.files),frms));
-    for cc=1:numel(range)
-        ee=range(cc)%
+   parfor cc=1:numel(range)
+        ee=range(cc);
         disp(num2str(100*ee/numel(DD.path.eddies.files)));
         savepng4mov(d,ee,DD)
     end
@@ -72,7 +75,7 @@ function savepng4mov(d,ee,DD)
         return
     end
     ssh=grid.grids.ssh;
-    pcolor(d.lon,d.lat,ssh);
+     pcolor(d.lon,d.lat,ssh);
     shading flat
     axis equal tight
     caxis([d.climssh.min d.climssh.max]);
@@ -88,10 +91,9 @@ function savepng4mov(d,ee,DD)
             plot(lo,la,'color',col(ss,:),'linewidth',1.5);
         end
     end
-    
     title([num2mstr(ee)])
     xlabel(datestr(d.dtnm))
-    savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
-    close all
+    
+     savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -31,15 +31,16 @@ function main(DD,RS)
             end
         end
         MeanSsh=saveMean(DD);
-    else
-       [JJ]=SetThreadVar(DD); 
+    else     
        load([DD.path.root, 'meanSSH.mat']);
     end
     %% calc fields
     if DD.debugmode
+          [JJ]=SetThreadVar(DD); 
         spmd_fields(DD,RS,JJ,MeanSsh);
     else
         spmd(DD.threads.num)
+              [JJ]=SetThreadVar(DD); 
             spmd_fields(DD,RS,JJ,MeanSsh);
         end
     end
@@ -96,25 +97,21 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-        if  ~isfield(cut,'filtered')
-            coriolis=coriolisStuff(cut.grids.lat);
-            %% calc
-            grids=geostrophy(cut.grids,coriolis,RS);
-            %% filter
-            if DD.switchs.filterSSHinTime 
-                grids.sshRaw=grids.ssh;
-                grids.ssh=grids.ssh - MeanSsh; 
-                filtered=true; %#ok<NASGU>
-                 save(JJ(jj).files,'filtered','-append');
-            end          
-            
-            %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
-            %             grids.sshRaw=grids.ssh;
-            %             grids.ssh=filterStuff(cut.grids,RS);%         end
-            
-            %% write           
-            save(JJ(jj).files,'grids','-append');
-        end
+        if isfield(cut.grids,'OW'), dispM('skipping'); end
+        coriolis=coriolisStuff(cut.grids.lat);
+        %% calc
+        grids=geostrophy(cut.grids,coriolis,RS);
+        %% filter
+        if DD.switchs.filterSSHinTime
+            grids.sshRaw=grids.ssh;
+            grids.ssh=grids.ssh - MeanSsh;
+        end        
+        %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
+        %             grids.sshRaw=grids.ssh;
+        %             grids.ssh=filterStuff(cut.grids,RS);%         end
+        
+        %% write        
+        save(JJ(jj).files,'grids','-append');       
     end
 end
 

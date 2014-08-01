@@ -33,46 +33,64 @@ function S10_makeAnimations
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     
     animas(DD)
-    %%
-    conclude(DD);
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
     file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
+    
     grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
     d.LON=grid.grids.lon;
     d.LAT=grid.grids.lat;
-    d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
-    d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
+    d.lon=grid.grids.lon;
+    d.lat=grid.grids.lat;
+  
+    
+    %     d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
+    %     d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
     d.climssh.min=nanmin(grid.grids.ssh(:));
     d.climssh.max=nanmax(grid.grids.ssh(:));
     d.p=[DD.path.plots 'mpngs/'];
     mkdirp(d.p);
-    
-    parfor ee=1:numel(DD.path.eddies.files)
-        disp(num2str(100*ee/numel(DD.path.eddies.files)))
+    frms=50;
+    range=round(linspace(1,numel(DD.path.eddies.files),50));
+     parfor cc=1:numel(range)
+         ee=range(cc)
+%     parfor ee=1:10:numel(DD.path.eddies.files)
+%         disp(datestr(d.dtnm))
+        disp(num2str(100*ee/numel(DD.path.eddies.files)));
         savepng4mov(d,ee,DD)
-    end
+     end
+    
+     fps=min([1 round(frms/60)]);
+     
     pn=pwd;
     cd(d.p)
-    system(['mencoder "mf://flat*.png" -mf fps=10 -o flat.avi -ovc lavc -lavcopts vcodec=mpeg4'])
-    system(['mencoder "mf://surf*.png" -mf fps=10 -o surf.avi -ovc lavc -lavcopts vcodec=mpeg4'])
-    system(['mplayer  surf.avi'])
+    system(['mencoder "mf://flat*.png" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=mpeg4'])
+%     system(['mencoder "mf://surf*.png" -mf fps=10 -o surf.avi -ovc lavc -lavcopts vcodec=mpeg4'])
+%     system(['mplayer  surf.avi'])
     system(['mplayer  flat.avi'])
     cd(pn)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savepng4mov(d,ee,DD)
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
+      d.dtnm=datenum(d.file(27:34),'yyyymmdd');
     ed=load(d.file);
     coor.c=[ed.cyclones.coordinates];
     coor.ac=[ed.anticyclones.coordinates];
     z.c=[ed.cyclones.level];
     z.ac=[ed.anticyclones.level];
     grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
-    ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
+    ssh=grid.grids.ssh;
+    %     ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
     %%
+    
+    
     pcolor(d.lon,d.lat,ssh);
+    shading flat
+    axis equal tight
     caxis([d.climssh.min d.climssh.max]);
     hold on
     sen={'ac';'c'};
@@ -96,7 +114,7 @@ function savepng4mov(d,ee,DD)
             t.file=[DD.path.tracks.name DD.path.tracks.files(tt).name];
             
             try
-                 tr=load(t.file); tr=tr.trck; 
+                tr=load(t.file); tr=tr.trck;
             catch
                 continue
             end
@@ -109,32 +127,35 @@ function savepng4mov(d,ee,DD)
         end
     end
     
-    
+    title([num2mstr(ee)])
+    xlabel(datestr(d.dtnm))
     savefig2png4mov(d.p,100,1600,1200,sprintf('flat%06d',ee))
     
     %%
-    figure
-    surf(d.lon,d.lat,ssh);
-    axis([min(d.lon(:)) max(d.lon(:)) min(d.lat(:)) max(d.lat(:)) d.climssh.min*2 d.climssh.max*2 d.climssh.min/2 d.climssh.max/2]);
-    hold on
-    sen={'ac';'c'};
-    col=[1 0 0; 1 1 1];
-    for ss=1:2
-        s=sen{ss};
-        for cc=1:numel(coor.(s))
-            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
-            lo=d.LON(linx);
-            la=d.LAT(linx);
-            zz=repmat(z.(s)(cc),1,numel(lo));
-            plot3(lo,la,zz,'color',col(ss,:),'linewidth',2);
-        end
-    end
-    
-    
-    
-    
-    
-    savefig2png4mov(d.p,100,1600,1200,sprintf('surf%06d',ee))
+    %     figure
+    %     contour3(double(d.lon),double(d.lat),3*ssh,3*nanmin(ssh(:)):.01:3*nanmax(ssh(:)));
+    %     axis tight equal
+    %     axis([min(d.lon(:)) max(d.lon(:)) min(d.lat(:)) max(d.lat(:)) d.climssh.min*2 d.climssh.max*2 d.climssh.min/2 d.climssh.max/2]);
+    %     hold on
+    %     sen={'ac';'c'};
+    %     col=[1 0 0; 1 1 1];
+    %     for ss=1:2
+    %         s=sen{ss};
+    %         for cc=1:numel(coor.(s))
+    %             linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
+    %             lo=d.LON(linx);
+    %             la=d.LAT(linx);
+    %             zz=repmat(z.(s)(cc),1,numel(lo));
+    %             plot3(lo,la,zz,'color',col(ss,:),'linewidth',2);
+    %         end
+    %     end
+    %
+    %      title([num2mstr(ee)])
+    %     xlabel(datestr(d.dtnm))
+    %
+    %
+    %
+    %     savefig2png4mov(d.p,100,1600,1200,sprintf('surf%06d',ee))
     close all
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

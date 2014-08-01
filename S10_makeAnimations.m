@@ -86,7 +86,11 @@ function savepng4mov(d,ee,DD)
     coor.ac=[ed.anticyclones.coordinates];
     z.c=[ed.cyclones.level];
     z.ac=[ed.anticyclones.level];
+    try
     grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
+    catch
+        return
+    end
     ssh=grid.grids.ssh;
     %     ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
     %%

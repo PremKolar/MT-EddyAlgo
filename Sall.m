@@ -8,7 +8,7 @@ S02_infer_fields
 S04_filter_eddies
 S05_track_eddies
 % maxOW
-%  S06_init_output_maps
+  S06_init_output_maps
 % % S07_getMeanU
 S08_analyze_tracks
 S09_drawPlots

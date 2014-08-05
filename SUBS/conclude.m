@@ -23,8 +23,8 @@ function conclude(DD,void)  %#ok<INUSD>
         clc
         disp([' ']);
         disp([' ']);
-        disp([' ']);
-        disp(['SUCCESS!!!']);
+        disp([' ']);     
+        disp([mfilename ' - SUCCESS!!!']);
         disp([' ']);
         try %#ok<TRYNC>
             tobetried

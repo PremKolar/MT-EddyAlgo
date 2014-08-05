@@ -5,38 +5,40 @@
 % Author:  NKkk
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOW
-    %% init
-    DD=initialise([],mfilename);
-    minOW=main(DD);
+dbstop if error  
+  %% init
+    %     DD=initialise([],mfilename);
+    %     main(DD);
     %% save
-    save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
-%     load([DD.path.root '0729-1752-minOW.mat'])
+    %     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
+    %     load([DD.path.root '0729-1752-minOW.mat'])
     %% post process
-    postProc(minOW)
+    postProc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function minOW=main(DD)
+function main(DD)
     %% set up
     [DD]=maxOWsetUp(DD);
     %% spmd
     metaD=maxOWmain(DD);
+    
     %%
-    minOW=maxOWprocess(DD,metaD);
+    maxOWprocess(metaD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function postProc(minOW)
-    %% interpolate seasons
-    %    parfor ii=1:numel(minOW.ziIntrl)
-    %         YYa{ii}=round(linspace(su(ii),wi(ii),182));
-    %         YYb{ii}=round(linspace(wi(ii),su(ii),183));
-    %     end
-    %    YY=[reshape(cell2mat(YYa),[182,size(su)]) ; reshape(cell2mat(YYb),[183,size(su)])];     %#ok<NASGU>
-    %     save([rootdir 'ZIfullYear.mat'],'YY')  ;
-    %     save
-    %% plot    
-    plotstuff(minOW.full,minOW.depth) %#ok<*PFBNS>
-    saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);    
-    savefig('../PLOTS/',100,1200,800,[datestr(now,'mmdd-HHMM') ]);    
+function postProc
+    geo=nc_getall('../datanetU/Rossby/LatLonDepth.nc');
+  
+
+  load('allOW.mat','allOW')    ;
+    load('zi.mat','ziOW');
+    load('ziItnrp.mat','ziIntrp');
+    load('ziWeighted.mat','ziWeighted');
+    
+    
+    plotstuff(allOW,ziOW,geo.depth.data) %#ok<*PFBNS>
+    saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);
+    savefig('../PLOTS/',100,1200,800,[datestr(now,'mmdd-HHMM') ]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -44,12 +46,13 @@ function histDepOw=histUniqDepths(depz,zi,owLg,owAx)
     histDepOw = histc(owLg( zi == depz ), owAx);
 end
 
-function plotstuff(full,depth)
-    fuz=reshape(full.zi(~isnan(full.zi)),1,[]);
+function plotstuff(ow,zi,depth)
+
+     fuz=reshape(full(~isnan(zi)),1,[]);
     uniDepths=unique(fuz);
     %     histc(full.zi(:), uniDepths)  ;
     set(0,'defaulttextinterpreter','latex')
-    owLg=-full.ow;
+    owLg=-ow;
     owAx=[0 logspace(log10(nanmean(owLg(:))),log10(nanmax(owLg(:))),40)];
     histDepOw=nan(numel(uniDepths),numel(owAx));
     
@@ -65,14 +68,14 @@ function plotstuff(full,depth)
     set(gca,'ytick',nyt)
     set(gca,'yticklabel',nytl)
     ylabel(['depth [$km$]'])
-    %%  
-      nxt=[round(linspace(1,numel(owAx),5))];
-  nxtl=cellfun(@(x) sprintf('%5d',round(x)), num2cell(owAx(nxt)/1e-5),'uniformoutput',false);
-%     nxt=find(diff(round(owAx(2:end)/1e-6))) +1;
-%     nxtl=round(owAx(nxt)/1e-6);
-%     nxtl = cellfun( @(tk) sprintf('%d',tk), num2cell(nxtl), 'uniformoutput',false)  ;
+    %%
+    nxt=[round(linspace(1,numel(owAx),5))];
+    nxtl=cellfun(@(x) sprintf('%5d',round(x)), num2cell(owAx(nxt)/1e-5),'uniformoutput',false);
+    %     nxt=find(diff(round(owAx(2:end)/1e-6))) +1;
+    %     nxtl=round(owAx(nxt)/1e-6);
+    %     nxtl = cellfun( @(tk) sprintf('%d',tk), num2cell(nxtl), 'uniformoutput',false)  ;
     xlabel(['$-10^5$ Okubo-Weiss Parameter [$1/m^{2}$]'])
-   set(gca,'xtick',nxt)
+    set(gca,'xtick',nxt)
     set(gca,'xticklabel',nxtl)
     %%
     zt=get(gca,'ztick')  ;
@@ -81,6 +84,7 @@ function plotstuff(full,depth)
     zlabel(['log10(count)']);
     set(gca,'ztick',nzt)
     set(gca,'zticklabel',nztl);
+    axis tight
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

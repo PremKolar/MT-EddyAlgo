@@ -5,44 +5,60 @@
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function metaD=maxOWmain(DD)
-    [Dim,raw] = setup(DD);    
+    [Dim,raw] = setup(DD);
     if DD.debugmode
         d=spmd_body(DD,Dim,raw);
-    else        
+    else
         spmd(DD.threads.num)
             d=spmd_body(DD,Dim,raw);
-        end        
+        end
     end
-     metaD=d{1};
+    metaD=d{1};
     metaD.dim=Dim;
+    
+    save metaD.mat metaD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function d=spmd_body(DD,Dim,raw)
-    
     d.daily=initbuildRho(Dim,DD);
-        buildRho(d.daily,raw,Dim) ;
-        labBarrier   
-   
-   
-        
-        d.mean=initbuildRhoMean(Dim,DD);
-        rhoMean=buildRhoMean(d.mean,Dim)    ;
-        d.mean=rmfield(d.mean,'rhoAtZ');
-        %%
-        calcOW(d,Dim,raw,gop(@vertcat,rhoMean));    
+    buildRho(d.daily,raw,Dim) ;
+    labBarrier
+%     [d.mean, skip]=initbuildRhoMean(DD);
+% %     if ~skip
+%        buildRhoMean(d.mean,Dim,DD.threads.num) ;
+%     end
+%     calcOW(d,Dim,raw);
+    labBarrier
 end
-%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function calcOW(d,Dim,raw)
+    %% init
+    todo=d.daily.timesteps;
+%     cc=0;
+%     for tt = d.daily.timesteps; cc=cc+1;
+%         [dr,fi,ex]=fileparts(d.daily.OWFout{tt+1}) ;
+%         finishedF{tt+1}=[dr '/done_' fi ex ];
+%         if ~exist(finishedF{tt+1},'file')
+%             initNcFile(d.daily.OWFout{tt+1},'OkuboWeiss',Dim.ws)
+%         else
+%             todo(cc)=nan;
+%         end
+%     end
+%     todo(isnan(todo))=[];
+    %% calc
     
-   
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function calcOW(d,Dim,raw,rhoMean)
+    
+    
+    
     T=disp_progress('init','building okubo weiss netcdfs')  ;
     for zz = 0:Dim.ws(1)-1
         T=disp_progress('show',T,Dim.ws(1),Dim.ws(1))  ;
         strt = [zz 0 0] ;
         len = [1 Dim.ws(2:3)] ;
-        for tt = d.daily.timesteps
-            rhoHighPass=nc_varget(d.daily.Fout{tt+1},'density',strt,len) - squeeze(rhoMean(zz+1,:,:));
+        Tt=disp_progress('init','looping over time')  ;
+        for tt = todo;
+            Tt=disp_progress('show',Tt,numel(d.daily.timesteps),10)  ;
+            rhoHighPass=nc_varget(d.daily.Fout{tt+1},'density',strt,len);% - nc_varget(d.mean.Fout,'densityMean',strt,len);
             %%
             %             depth = nc_varget(d.daily.geoOut,'depth');
             %% rho gradient
@@ -55,9 +71,18 @@ function calcOW(d,Dim,raw,rhoMean)
             deform = getDefo(uvg);
             %% okubo weiss
             OW = permute(okuweiss(deform),[3,1,2]);
-            nc_varput(d.daily.OWFout{tt+1},'OkuboWeiss',OW,strt,len);
+%             nc_varput(d.daily.OWFout{tt+1},'OkuboWeiss',OW,strt,len);   
+            NCcritWrite(d.daily.OWFout{tt+1},'OkuboWeiss',OW,strt,len)
         end
     end
+    
+    
+    
+    %%
+%     for tt = todo;
+%         system(['mv ' d.daily.OWFout{tt+1} ' '  finishedF{tt+1} ]);
+%     end
+    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,11 +125,11 @@ function [drdx,drdy] = getDrhodx(rho,dx,dy)
     drdy = drdy([1:end, end],:) ./ dy;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s = initbuildRhoMean(Dim,DD)
+function [s,skip] = initbuildRhoMean(DD)
+    skip=DD.path.TSow.meanExists;
     s.lims = DD.TSow.lims.inZ-1;
     s.Zsteps = s.lims(labindex,1):s.lims(labindex,2);
     s.files=DD.path.TSow.rho;
-    s.rhoAtZ=nan(numel(s.files),Dim.ws(2), Dim.ws(3));
     s.Fout=DD.path.TSow.mean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -115,7 +140,9 @@ function s = initbuildRho(Dim,DD)
     s.timesteps = s.lims(s.id,1):s.lims(s.id,2);
     s.keys = DD.TS.keys;
     s.Ysteps=round(linspace(0,Dim.ws(2)-1,100));
+     T=disp_progress('init','init Rho')  ;
     for cc =1:numel(s.Ysteps)-1
+        T=disp_progress('show',T,numel(s.Ysteps)-1,100)  ;
         s.Ychunks{cc}=s.Ysteps(cc):s.Ysteps(cc+1)-1;
     end
     s.Fin = DD.path.TSow.files;
@@ -125,44 +152,93 @@ function s = initbuildRho(Dim,DD)
     s.geoOut=DD.path.TSow.geo;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  rhoAtZmean=buildRhoMean(s,Dim)
-    T=disp_progress('init','building density netcdfs')  ;
-    rhoAtZmean=nan(numel(s.Zsteps),Dim.ws(2),Dim.ws(3));
+function  buildRhoMean(s,Dim)
+    %     T=disp_progress('init','building density mean')  ;
     myzz=0;
     for zz = s.Zsteps
         myzz=myzz+1;
-        T=disp_progress('show',T,numel(s.Zsteps),numel(s.Zsteps))  ;
+        %         T=disp_progress('show',T,numel(s.Zsteps),10)  ;
         strt=[zz 0 0 ];
         len =[1  Dim.ws(2:3)  ];
-        rhoAtZ=nan(numel(s.files),Dim.ws(2), Dim.ws(3) );
+        rhoAtZ=meanOverTime(s,Dim,strt,len);
+        rhoAtZ=reshape(rhoAtZ/numel(s.files),Dim.ws(2),[]);
+        rhoAtZ(rhoAtZ>1e10)=nan;
+        dispM(['rhoM for thread ' num2str(labindex) ' at z=' num2str(z)])
+        NCcritWrite(s.Fout,'densityMean',rhoAtZ,strt,len)
+        %  nc_varput(s.Fout,'densityMean',rhoAtZ,strt,len);
+        
+    end
+    %
+    %
+    %
+    %       labBarrier
+    %         if labindex>1
+    %             for ll=2:threads
+    %
+    %                 strt = labReceive( ll, Zstps);
+    %                  for zz = Zstps
+    %                 dispM(['rhoM for thread ' num2str(ll) ' at z=' num2str(z)])
+    %                 dM = labReceive( ll, zz ); %#ok<NASGU>
+    %                 strt = labReceive( ll, zz +1000 );
+    %                 nc_varput(s.Fout,'dM',rhoAtZ,strt,len);
+    %             end
+    %         else
+    %
+    %             labSend( densityMean, 1 ,zz) ;
+    %             labSend(strt , 1+1000 ,zz +1000 ) ;
+    %         end
+    %         labBarrier
+    %
+    %
+    %
+    
+    
+    %----------------------------------------------------------------------
+    function rhoAtZ=meanOverTime(s,Dim,strt,len)
+        rhoAtZ=nan(Dim.ws(2)*Dim.ws(3),1);
         Tr=disp_progress('init','looping over files')  ;
         for ff = 1:numel(s.files)
             Tr=disp_progress('show',Tr,numel(s.files),10)  ;
-            rhoAtZ(ff,:,:)=nc_varget(s.files{ff},'density',strt,len);
+            rhoAtZ=nansum([rhoAtZ, reshape(nc_varget(s.files{ff},'density',strt,len),[],1)],2);            
         end
-        rhoAtZ(rhoAtZ>1e10)=nan;
-        rhoAtZmean(myzz,:,:)=squeeze(nanmean(rhoAtZ,1));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function buildRho(s,raw,Dim)
-     Dim.strt=[0 0 0];
-     Dim.len=Dim.ws;
-    DimOri=Dim;    
+    Dim.strt=[0 0 0];
+    Dim.len=Dim.ws;
+    DimOri=Dim;
     T=disp_progress('init','building density netcdfs')  ;
     for tt = s.timesteps
-        T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
-        Dim=DimOri;
-        Ty=disp_progress('init','looping over y chunks')  ;
-        for cc = 1:numel(s.Ysteps)-1
-            Ty=disp_progress('show',Ty,numel(s.Ysteps),numel(s.Ysteps))  ;
-            Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);          
-            Dim.len(2)  = length(s.Ychunks{cc});
-            [TS] = getNowAtY(s.Fin(tt+1),s.keys,Dim,s.dirOut,raw,s.Ychunks{cc}+1);
-            rho = reshape(calcDens(TS,Dim.len),Dim.len);
-            nc_varput(s.Fout{tt+1},'density',rho,Dim.strt,Dim.len);
+        T=disp_progress('show',T,numel(s.timesteps),10)  ;
+        if ~exist(s.Fout{tt+1},'file')
+            Dim=DimOri;
+            Ty=disp_progress('init','looping over y chunks')  ;
+            initNcFile(s.Fout{tt+1},'density',Dim.ws)
+            for cc = 1:numel(s.Ysteps)-1
+                Ty=disp_progress('show',Ty,numel(s.Ysteps),5)  ;
+                Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);
+                Dim.len(2)  = length(s.Ychunks{cc});
+                [TS] = getNowAtY(s.Fin(tt+1),s.keys,Dim,s.dirOut,raw,s.Ychunks{cc}+1);
+                rho = reshape(calcDens(TS,Dim.len),Dim.len);
+                nc_varput(s.Fout{tt+1},'density',rho,Dim.strt,Dim.len);
+            end
         end
     end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function initNcFile(fname,toAdd,WinSize)
+    nc_create_empty(fname,'clobber');
+    nc_adddim(fname,'k_index',WinSize(1));
+    nc_adddim(fname,'i_index',WinSize(3));
+    nc_adddim(fname,'j_index',WinSize(2));
+    %% rho
+    varstruct.Name = toAdd;
+    varstruct.Nctype = 'double';
+    varstruct.Dimension = {'k_index','j_index','i_index' };
+    nc_addvar(fname,varstruct)
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out] = getNowAtY(FileIn,keys,Dim,dirOut,raw,YY)
@@ -191,17 +267,18 @@ end
 function [Dim,raw] = setup(DD)
     ws = DD.TSow.window.size;
     FileIn = DD.path.TSow.files(1);
-    keys = DD.TS.keys;  
+    keys = DD.TS.keys;
     raw.depth = nc_varget(FileIn.salt,keys.depth);
     raw.lat = nc_varget(FileIn.temp, keys.lat);
     raw.lon = nc_varget(FileIn.temp, keys.lon);
     [raw.dy,raw.dx] = getdydx( raw.lat, raw.lon);
-    raw.corio = coriolisStuff(raw.lat);   
-    Dim.ws=ws;  
+    raw.corio = coriolisStuff(raw.lat);
+    Dim.ws=ws;
+    
     %% geo
     nc_varput(DD.path.TSow.geo,'depth',raw.depth);
     nc_varput(DD.path.TSow.geo,'lat',raw.lat);
-    nc_varput(DD.path.TSow.geo,'lon',raw.lon);    
+    nc_varput(DD.path.TSow.geo,'lon',raw.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = fileStuff(fin,dirout)

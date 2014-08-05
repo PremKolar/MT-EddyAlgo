@@ -328,6 +328,10 @@ function [MD]=get_min_dists(OLD,NEW,sen,DD)
     %% find min dists
     [MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
     [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies,sen)

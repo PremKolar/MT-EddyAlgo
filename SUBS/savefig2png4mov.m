@@ -5,16 +5,13 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig2png4mov(outdir,rez,xdim,ydim,tit)
-%     set(gcf,'renderer','painter')
-%     set(gcf,'renderer','zbuffer')
-    % set(gcf,'Visible','off')
+    set(gcf,'renderer','painter')
     fname=[outdir,tit];
     mkdirp(outdir);
     %% set up figure
     setupfigure(rez,xdim,ydim)
     %% print
     printStuff('djpeg',fname,rez)
-  
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function printStuff(frmt,fname,rez)
@@ -23,7 +20,6 @@ function printStuff(frmt,fname,rez)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function setupfigure(rez,xdim,ydim)
-    
     resolution=get(0,'ScreenPixelsPerInch');
     xdim=xdim*rez/resolution;
     ydim=ydim*rez/resolution;
@@ -32,5 +28,4 @@ function setupfigure(rez,xdim,ydim)
     fsScaled=round(12/xa4*xdim)		;
     set(gca,'FontSize',fsScaled);
     set(findall(gcf,'type','text'),'FontSize',fsScaled);
-    
 end

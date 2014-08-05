@@ -1,6 +1,6 @@
 function DD=INPUTpop
     %% time step
-    DD.time.delta_t=1; % [days]!
+    DD.time.delta_t=7; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='../TempSaltUV/';

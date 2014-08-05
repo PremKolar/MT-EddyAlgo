@@ -46,7 +46,6 @@ function animas(DD)
     range=round(linspace(1,numel(DD.path.eddies.files),frms));
     for cc=1:numel(range)
         ee=range(cc);
-        %         disp(num2str(100*ee/numel(DD.path.eddies.files)));
         savepng4mov(d,ee,DD)
     end
     fps=max([1 round(frms/60)]);

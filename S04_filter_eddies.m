@@ -36,7 +36,7 @@ function spmd_body(DD,rossby)
         [EE,skip]=work_day(DD,JJ(jj),rossby);
         %%
         Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
-                 if skip,disp(['skipping ' num2str(jj)]);continue;end
+        if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
         save_eddies(EE);
     end
@@ -48,7 +48,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE.filename.cont=JJ.files;
     EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-         if exist(EE.filename.self,'file'), skip=true; return; end
+    if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);
@@ -122,14 +122,14 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     if ~pass, return, end;
     %% get coordinates for zoom cut
     [zoom]=get_window_limits(ee.coordinates,cut.dim,4);
-    %% cut out rectangle encompassing eddy range only
+    %% cut out rectangle encompassing eddy range only for further calcs
     zoom.fields=EDDyCut_init(cut.grids,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask=EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
     [pass]=CR_Nan(zoom);
-    if ~pass, return, end;
-    if ~any(zoom.mask.inside),pass=false; return; end
+    if ~pass, return, end;   
+  
     %% check for correct sense
     [pass,ee.sense]=CR_sense(zoom,direction,ee.level);
     if ~pass, return, end;
@@ -141,13 +141,13 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.circum.si]=EDDyCircumference(zoom);
     %% filter eddies not circle-like enough
     [pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
-    
+ 
     if ~pass, return, end;
     %% get peak position and amplitude w.r.t contour
     [pass,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
-    
+   
     if ~pass, return, end;
-    
+  
     %% get profiles
     [ee.profiles]=EDDyProfiles(ee,zoom.fields);
     %% get radius according to max UV ie min vort
@@ -164,16 +164,16 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
     %%
     %     if DD.debugmode, plots4debug(zoom,ee); end
-    
+  
     %% get center of 'volume'
-    [ee.volume]=CenterOfVolume(zoom,ee.area.intrp,cut.dim.Y);
+    [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
     %% get area centroid (chelton style)
     [ee.centroid]=AreaCentroid(zoom,cut.dim.Y);
     %% get coordinates
     [ee.geo]=geocoor(zoom,ee.volume);
     %% append 'age'
     ee.age=0;
-    
+   
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.U,cut,DD)	;
@@ -289,18 +289,18 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
     x.min=min(z.coor.int.x);
     y.min=min(z.coor.int.y);
     x.max=max(z.coor.int.x);
-    y.max=max(z.coor.int.y);
+    y.max=max(z.coor.int.y);   
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
     mlat=abs(nanmean(z.fields.lat(:))) ;
     if mlat> 25
-        chelt  =1 - maxDist/4e5;
+    chelt  =1 - maxDist/4e5;
     else
-        chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);
+       chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);  
     end
     
-    if chelt >= 0, pass=true; else pass=false; end
-    %     chelt  = 4*ee.area.total/(pi*maxDist^2);
-    %     if chelt >= thresh, pass=true; else pass=false; end
+     if chelt >= 0, pass=true; else pass=false; end    
+%     chelt  = 4*ee.area.total/(pi*maxDist^2);
+%     if chelt >= thresh, pass=true; else pass=false; end    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,isoper]=IsopQuo(ee,thresh)
@@ -435,8 +435,6 @@ function [area,pass]=Area(z,rossbyL,scaleThresh)
     area=struct;
     area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total=sum(area.pixels(:));
-    area.meanPerSquare=mean(z.fields.DX(z.mask.filled).*z.fields.DY(z.mask.filled));
-    area.intrp=area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
     if sqrt(area.total/pi)/rossbyL > scaleThresh
         pass=false;
     else
@@ -535,6 +533,7 @@ function [geo]=geocoor(zoom,volume)
     yz=volume.center.yz;
     geo.lat=interp2(zoom.fields.lat,xz,yz);
     geo.lon=interp2(zoom.fields.lon,xz,yz);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [volume]=CenterOfVolume(zoom,area,Y)
@@ -558,25 +557,22 @@ function [volume]=CenterOfVolume(zoom,area,Y)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [circum]=EDDyCircumference(z)
-    %% hypot exact coor diffs times dxdy at those coors
-    x=z.coor.exact.x;
-    y=z.coor.exact.y;
-    xi=z.coor.int.x;
-    yi=z.coor.int.y;
-    circum=sum(hypot(diff(y).*z.fields.DY(yi(2:end)),diff(x).*z.fields.DX(xi(2:end))));
+    %% get perimeter coor and check where x or y change
+    x=z.coor.int.x	;
+    y=z.coor.int.y;
+    dx=[0 ;abs(double(logical(diff(x))))];
+    dy=[0 ;abs(double(logical(diff(y))))];
+    circum=sum(hypot(z.fields.DX(x).*dx,z.fields.DY(y).*dy)); %positive bias at bad resolution!
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_mask(zoom)
     [Y,X]=size(zoom.fields.ssh);
     mask.rim_only=false(Y,X);
     mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
-    mask.filled=poly2mask(zoom.coor.exact.x,zoom.coor.exact.y,Y,X);
     mask.filled=logical(imfill(mask.rim_only,'holes'));
     mask.inside= mask.filled & ~mask.rim_only;
     mask.size.Y=Y;
     mask.size.X=X;
-    
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fields_out=EDDyCut_init(fields_in,zoom)

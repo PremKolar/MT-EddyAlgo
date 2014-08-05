@@ -7,7 +7,7 @@
 function S01_BruntVaisRossby
     %% init
     DD=initialise([],mfilename);
-    if ~DD.switchs.RossbyStuff,return;end
+    if ~DD.switchs.RossbyStuff || numel(DD.path.Rossby.files)>1 ,return;end
     switch DD.parameters.Nknown
         case false
             S01b_fromTS

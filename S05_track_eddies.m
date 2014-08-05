@@ -71,8 +71,8 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
     %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists,sen);
     %% filter for distance per day threshold
-    dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
-    TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
+%     dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
+%     TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
     %% append tracked to respective cell of temporary archive 'tracks'
     [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
     %% append new ones to end of temp archive
@@ -242,8 +242,7 @@ function [TDB]=tracked_dead_born(MD,sen)
     %% flag for fresh eddies with respect to new set
     TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
     %% indeces of deceised eddies with respect to old set
-    TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
-    
+    TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));    
     %% remember cross ref
     TDB.(sen).inNew.n2oi=n2oi;
 end
@@ -324,6 +323,10 @@ function [MD]=get_min_dists(OLD,NEW,sen,DD)
     %% find min dists
     [MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
     [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies,sen)

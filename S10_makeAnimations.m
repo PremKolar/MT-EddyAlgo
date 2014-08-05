@@ -46,13 +46,13 @@ function animas(DD)
     range=round(linspace(1,numel(DD.path.eddies.files),frms));
    parfor cc=1:numel(range)
         ee=range(cc);
-        disp(num2str(100*ee/numel(DD.path.eddies.files)));
+%         disp(num2str(100*ee/numel(DD.path.eddies.files)));
         savepng4mov(d,ee,DD)
     end
-    fps=min([1 round(frms/60)]);
+    fps=max([1 round(frms/60)]);
     pn=pwd;
     cd(d.p)
-    system(['mencoder "mf://flat*.png" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=mpeg4'])
+    system(['mencoder "mf://flat*.png" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=ljpeg'])
     system(['mplayer  flat.avi'])
     cd(pn)
 end
@@ -75,7 +75,11 @@ function savepng4mov(d,ee,DD)
         return
     end
     ssh=grid.grids.ssh;
-     pcolor(d.lon,d.lat,ssh);
+    
+  
+    
+    pcolor(d.lon,d.lat,ssh);
+      colorbar
     shading flat
     axis equal tight
     caxis([d.climssh.min d.climssh.max]);

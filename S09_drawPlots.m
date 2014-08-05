@@ -30,7 +30,7 @@ function S09_drawPlots
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
-    ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
+  ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     
     %% main
     overmain(ticks,DD)
@@ -171,10 +171,16 @@ function [OUT]=inits(DD)
     root=DD.path.analyzedTracks.C.name;
     OUT.Cs={DD.path.analyzedTracks.C.files.name};
     Tc=disp_progress('init','collecting all Cs');
-    for ff=1:numel(OUT.Cs)
-        Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
-        OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
+    if exist([DD.path.analyzed.name 'plotable.mat'],'file')
+        load([DD.path.analyzed.name 'plotable.mat'])
+    else
+        for ff=1:numel(OUT.Cs)
+            Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
+            OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
+        end
+        save([DD.path.analyzed.name 'plotable.mat'],'OUT')
     end
+    
     %% get vectors
     disp(['loading vectors'])
     OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);

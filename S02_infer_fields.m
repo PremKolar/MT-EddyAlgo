@@ -97,7 +97,8 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-        if isfield(cut.grids,'OW'), dispM('skipping'); end
+       
+        if isfield(cut.grids,'OW'), dispM('skipping');continue; end
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS);

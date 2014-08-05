@@ -36,7 +36,7 @@ function spmd_body(DD,rossby)
         [EE,skip]=work_day(DD,JJ(jj),rossby);
         %%
         Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
-        %         if skip,disp(['skipping ' num2str(jj)]);continue;end
+                 if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
         save_eddies(EE);
     end
@@ -48,7 +48,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE.filename.cont=JJ.files;
     EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-    %     if exist(EE.filename.self,'file'), skip=true; return; end
+         if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);

@@ -4,11 +4,11 @@ function ampOra
     addpath(genpath('./'))
    dbstop if error 
     
-    savestuff('trackiq2')
-    savestuff('trackiq4')
-    savestuff('trackiq6')
-    savestuff('trackiq8')
-    savestuff('trackch400')
+    savestuff('track_iq2')
+    savestuff('track_iq4')
+    savestuff('track_iq6')
+%     savestuff('trackiq8')
+%     savestuff('trackch400')
     
     
     system(['pdfjam -o tmp.pdf crpd*pdf'])

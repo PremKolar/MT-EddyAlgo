@@ -5,31 +5,32 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig2png4mov(outdir,rez,xdim,ydim,tit)
-set(gcf,'renderer','painter')     
-% set(gcf,'Visible','off')      
-fname=[outdir,tit];
+%     set(gcf,'renderer','painter')
+%     set(gcf,'renderer','zbuffer')
+    % set(gcf,'Visible','off')
+    fname=[outdir,tit];
     mkdirp(outdir);
     %% set up figure
     setupfigure(rez,xdim,ydim)
     %% print
-    printStuff('dpng',fname,rez)
-    close(gcf);
+    printStuff('djpeg',fname,rez)
+  
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function printStuff(frmt,fname,rez)
-    fnfull=[fname,'.',frmt(2:end)]
+    fnfull=[fname,'.',frmt(2:end)];
     eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function setupfigure(rez,xdim,ydim)
-   
-    resolution=get(0,'ScreenPixelsPerInch')
-    xdim=xdim*rez/resolution
-    ydim=ydim*rez/resolution
-    set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);      
-    xa4=11.692*resolution
+    
+    resolution=get(0,'ScreenPixelsPerInch');
+    xdim=xdim*rez/resolution;
+    ydim=ydim*rez/resolution;
+    set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
+    xa4=11.692*resolution;
     fsScaled=round(12/xa4*xdim)		;
-    set(gca,'FontSize',fsScaled)
-    set(findall(gcf,'type','text'),'FontSize',fsScaled)
+    set(gca,'FontSize',fsScaled);
+    set(findall(gcf,'type','text'),'FontSize',fsScaled);
     
 end

@@ -13,6 +13,8 @@ function S05_track_eddies
     %% parallel!
     init_threads(2);
     main(DD)
+    %% append ids to eddies (writing in spmd causes conflicts between the 2 workers)
+%     appendEds(DD)
     %% update infofile
     conclude(DD)
 end
@@ -54,14 +56,16 @@ function spmd_body(DD)
     T=disp_progress('init',['tracking ' sen]);
     for jj=2:numDays
         T=disp_progress('disp',T,numDays-1,499);
+        %% update eddy file
+        close_yesterday(sen,OLD)
         %% set up current day
         [NEW]=set_up_today(DD,jj,sen);
         %% do calculations and archivings
-        [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen);
+        [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
+function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
     %% in case of full globe only
     if phantoms
         [NEW]=kill_phantoms(NEW,sen);
@@ -71,8 +75,8 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,jj,phantoms,sen)
     %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists,sen);
     %% filter for distance per day threshold
-    dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
-    TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
+    %     dist_thresh=DD.checks.del_t(jj)*DD.thresh.dist;
+    %     TDB=filter4threshold(TDB,MinDists,dist_thresh,sen);
     %% append tracked to respective cell of temporary archive 'tracks'
     [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
     %% append new ones to end of temp archive
@@ -94,8 +98,8 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
     IDc=num2cell(ID.old);
     %% find position in archive
     [~,idx.arch] = ismember(ID.old,ID.arch);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%   
- NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
+    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set
@@ -113,12 +117,16 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    eddies=read_fields(DD,jj,'eddies');
-    NEW.eddies=rmfield(eddies,'filename');
+    NEW.eddies=read_fields(DD,jj,'eddies');
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
     [NEW.lon,NEW.lat]=get_geocoor(NEW.eddies,sen);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function close_yesterday(sen,OLD)
+    tmp=num2cell(cat(1,OLD.eddies.(sen).ID)); %#ok<NASGU>
+    save([OLD.eddies.filename.self '_ID_' sen ],'tmp');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,OLD,phantoms]=set_up_init(DD,sen)
@@ -155,7 +163,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function archive(trck,path,id)
     %% write out file (one per eddy)
-    EoD=[sprintf('%07i',id)];   
+    EoD=[sprintf('%07i',id)];
     filename=[ path.tracks.name 'TRACK' datestr(trck(1).daynum,'yyyymmdd')...
         '-' datestr(trck(end).daynum,'yyyymmdd') '_id' EoD '.mat'];
     trck(end).filename=filename;
@@ -189,9 +197,7 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW,sen)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [tracks,new_eddies]=init_day_one(eddies,sen)
-    %% init day one
-    new_eddies=rmfield(eddies,'filename');
+function [tracks,new_eddies]=init_day_one(new_eddies,sen)
     %% set initial ID's etc
     ee=(1:numel(new_eddies.(sen)));
     eec=num2cell(ee);
@@ -202,24 +208,23 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
     [tracks(ee).ID]=deal(eec{:});
     [tracks(ee).age]=deal(0);
     [tracks(ee).length]=deal(1);
-    
     %% prealloc for speed
     for tt=1:length(tracks)
         tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
     end
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [TDB]=filter4threshold(TDB,MD,thresh,sen)
-    dist=MD.(sen).new2old.dist;
-    %% find those that were supposedly tracked, yet dont fullfill threshold (for new)
-    tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
-    %% set them to ~tracked
-    TDB.(sen).inNew.tracked(tooQuick) = false;
-    %% instead set them to 'born'
-    TDB.(sen).inNew.born(tooQuick) = true; % all new born
-    %% add respective indices for old set to 'dead' flags (track broke off)
-    TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
-end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function [TDB]=filter4threshold(TDB,MD,thresh,sen)
+%     dist=MD.(sen).new2old.dist;
+%     %% find those that were supposedly tracked, yet dont fullfill threshold (for new)
+%     tooQuick = ((dist > thresh) & TDB.(sen).inNew.tracked);
+%     %% set them to ~tracked
+%     TDB.(sen).inNew.tracked(tooQuick) = false;
+%     %% instead set them to 'born'
+%     TDB.(sen).inNew.born(tooQuick) = true; % all new born
+%     %% add respective indices for old set to 'dead' flags (track broke off)
+%     TDB.(sen).inOld.dead(TDB.(sen).inNew.n2oi(tooQuick))=true; % not tracked!
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TDB]=tracked_dead_born(MD,sen)
     %% idx in old set of min dist claims by new set
@@ -243,7 +248,6 @@ function [TDB]=tracked_dead_born(MD,sen)
     TDB.(sen).inNew.born = ~TDB.(sen).inNew.tracked;
     %% indeces of deceised eddies with respect to old set
     TDB.(sen).inOld.dead=~ismember(1:length(o2ni),n2oi(TDB.(sen).inNew.tracked));
-    
     %% remember cross ref
     TDB.(sen).inNew.n2oi=n2oi;
 end
@@ -330,5 +334,18 @@ function [lon, lat]=get_geocoor(eddies,sen)
     lon.(sen)=extractfield(cat(1,eddies.(sen).geo),'lon');
     lat.(sen)=extractfield(cat(1,eddies.(sen).geo),'lat');
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function appendEds(DD)
+%     senses= {'cyclones','anticyclones'};
+%     feds=dir([DD.path.eddies.name '*.mat']);
+%     for ii=1:numel(feds)
+%         eddyfile = load([DD.path.eddies.name feds(ii).name]);
+%         for ss=1:2   ; sen=senses{ss};
+%             ID = getfield(load([DD.path.eddies.name feds(ii).name '_ID_' sen ],'-mat'),'tmp');
+%             [eddyfile.(sen)(:).ID]=deal(ID{:});
+%         end
+%         save([DD.path.eddies.name feds(ii).name],'-struct','eddyfile')
+%     end
+%     system(['rm ' [DD.path.eddies.name feds(ii).name '_ID_' sen ]])
+% end
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

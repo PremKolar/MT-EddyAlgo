@@ -120,7 +120,7 @@ function s = initbuildRho(Dim,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  buildRhoMean(s,Dim)
-	oneDit = @(md) md(:);
+	oneDit = @(md) reshape(md(:),[],1);
 	rhoMean=nan(Dim.ws(1)*Dim.ws(2)*Dim.ws(3),1);
 	spmd
 		T=disp_progress('init','building density mean')  ;

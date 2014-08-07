@@ -9,12 +9,13 @@ function metaD=maxOWmain(DD)
 	%%
 	spmd(DD.threads.num)
 		d.daily=initbuildRho(Dim,DD);
-		buildRho(d.daily,raw,Dim) ;
-		labBarrier
 	end
+	buildRho(d.daily,raw,Dim,DD.threads.num) ;
+	labBarrier
+	
 	%%
 	[s] = initbuildRhoMean(DD);
-% 	buildRhoMean(s,Dim);
+	buildRhoMean(s,Dim);
 	%%
 	calcOW(d,Dim,raw,s);
 	labBarrier
@@ -121,8 +122,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  buildRhoMean(s,Dim)
 	oneDit = @(md) reshape(md(:),[],1);
-	rhoMean=nan(Dim.ws(1)*Dim.ws(2)*Dim.ws(3),1);
 	spmd
+		rhoMean=codistributed(nan(Dim.ws(1)*Dim.ws(2)*Dim.ws(3),1));
 		T=disp_progress('init','building density mean')  ;
 		for ff = 1:numel(s.files)
 			T=disp_progress('show',T,numel(s.files),10)  ;
@@ -133,28 +134,32 @@ function  buildRhoMean(s,Dim)
 	nc_varput(s.Fout,'rhoMean',reshape(gather(rhoMean),[Dim.ws(1),Dim.ws(2),Dim.ws(3)]),[0 0 0],[Dim.ws(1),Dim.ws(2),Dim.ws(3)]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function buildRho(s,raw,Dim)
-	Dim.strt=[0 0 0];
-	Dim.len=Dim.ws;
-	DimOri=Dim;
-	T=disp_progress('init','building density netcdfs')  ;
+function buildRho(s,raw,Dim,threads)
+	spmd(threads)
+		oneDit = @(md) reshape(md,[],1);
+		locCo=@(x) getLocalPart(codistributed(oneDit(x)));
+		depth = locCo(repmat(double(raw.depth),Dim.ws(2)*Dim.ws(3),1));
+		lat = locCo(raw.lat);
+	end
 	for tt = s.timesteps
-		T=disp_progress('show',T,numel(s.timesteps),10)  ;
-		Dim=DimOri;
-		Ty=disp_progress('init','looping over y chunks')  ;
-		initNcFile(s.Fout{tt+1},'density',Dim.ws)
-		for cc = 1:numel(s.Ysteps)-1
-			Ty=disp_progress('show',Ty,numel(s.Ysteps),5)  ;
-			Dim.strt(2)  = DimOri.strt(2) + s.Ysteps(cc);
-			Dim.len(2)  = length(s.Ychunks{cc});
-			[TS] = getNowAtY(s.Fin(tt+1),s.keys,Dim,s.dirOut,raw,s.Ychunks{cc}+1);
-			rho = reshape(calcDens(TS,Dim.len),Dim.len);
-			rho(abs(rho>1e10) | rho==0)=nan;
-			nc_varput(s.Fout{tt+1},'density',rho,Dim.strt,Dim.len);
+		spmd(threads)
+			[temp,salt]=TSget(FileIn,keys,locCo);
+			RHO=makeRho(salt,temp,sw_pres(depth,lat));
 		end
+		nc_varput(s.Fout{tt+1},'density',RHO{1},[0 0 0], [Dim.ws(1),Dim.ws(2),Dim.ws(3)]);
 	end
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function R=makeRho(salt,temp,pres)
+	rho = sw_dens(salt,temp,pres);
+	rho(abs(rho>1e10) | rho==0)=nan;
+	R=gop(@vertcat, rho,1);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [T,S]=TSget(FileIn,keys,locCo)
+	T= locCo(nc_varget(FileIn.temp,keys.temp));
+	S= locCo(nc_varget(FileIn.salt,keys.salt)*1000);
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize)
 	nc_create_empty(fname,'clobber');
@@ -167,29 +172,6 @@ function initNcFile(fname,toAdd,WinSize)
 	varstruct.Dimension = {'k_index','j_index','i_index' };
 	nc_addvar(fname,varstruct)
 	
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [out] = getNowAtY(FileIn,keys,Dim,dirOut,raw,YY)
-	make1d = @(Axb,C) reshape(repmat(double(permute(Axb,[3,1,2])),C,1),[],1)   ;
-	dsr = @(M) double(sparse(reshape(M,[],1)));
-	Z=Dim.ws(1);
-	out.lat = make1d(raw.lat(YY,:),Z);
-	out.lon = make1d(raw.lon(YY,:),Z);
-	out.dx = make1d(raw.dx(YY,:),Z);
-	out.dy = make1d(raw.dy(YY,:),Z);
-	out.depth = repmat(double(raw.depth),numel(YY),1);
-	out.rawDepth = raw.depth;
-	out.temp = dsr(nc_varget(FileIn.temp,keys.temp,[0 Dim.strt],[1 Dim.len]));
-	out.salt = dsr(nc_varget(FileIn.salt,keys.salt,[0 Dim.strt],[1 Dim.len])*1000);
-	out.file = fileStuff(FileIn.salt, dirOut);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [RHO] = calcDens(TS,Dim)
-	depth=repmat(TS.depth,Dim(3),1);
-	RHO=dens(TS,depth)   ;
-	function rho=dens(TS,depth)
-		rho=sw_dens(TS.salt,TS.temp,sw_pres(depth,TS.lat));
-	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Dim,raw] = setup(DD)
@@ -207,13 +189,6 @@ function [Dim,raw] = setup(DD)
 	nc_varput(DD.path.TSow.geo,'depth',raw.depth);
 	nc_varput(DD.path.TSow.geo,'lat',raw.lat);
 	nc_varput(DD.path.TSow.geo,'lon',raw.lon);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out = fileStuff(fin,dirout)
-	dateIdx = regexp(fin,'[0-9]{8}');
-	dateN = fin(dateIdx:dateIdx+7);
-	out.date = datenum(dateN,'yyyymmdd');
-	out.fout = [ dirout, 'meanDens',dateN,'.mat'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = coriolisStuff(lat)

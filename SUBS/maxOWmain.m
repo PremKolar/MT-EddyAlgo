@@ -137,8 +137,9 @@ end
 function buildRho(s,raw,Dim,threads)
 	oneDit = @(md) reshape(md,[],1);
 	locCo=@(x) getLocalPart(codistributed(oneDit(x)));
+	yx2zyx= @(yx,Z) oneDit(repmat(permute(yx,[3,1,2]),[Z,1,1]));
 	rdepth=raw.depth;
-	rlat=raw.lat;
+	rlat=yx2zyx(raw.lat);
 	ws=Dim.ws;
 	spmd(threads)
 		

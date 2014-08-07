@@ -135,9 +135,10 @@ function  buildRhoMean(s,Dim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function buildRho(s,raw,Dim,threads)
+	oneDit = @(md) reshape(md,[],1);
+	locCo=@(x) getLocalPart(codistributed(oneDit(x)));
 	spmd(threads)
-		oneDit = @(md) reshape(md,[],1);
-		locCo=@(x) getLocalPart(codistributed(oneDit(x)));
+		
 		depth = locCo(repmat(double(raw.depth),Dim.ws(2)*Dim.ws(3),1));
 		lat = locCo(raw.lat);
 		T=disp_progress('init','building density netcdfs')  ;

@@ -14,7 +14,7 @@ function metaD=maxOWmain(DD)
 	end
 	%%
 	[s] = initbuildRhoMean(DD);
-	buildRhoMean(s,Dim);
+% 	buildRhoMean(s,Dim);
 	%%
 	calcOW(d,Dim,raw,s);
 	labBarrier

@@ -5,136 +5,101 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S10_makeAnimations
-    DD=initialise([],mfilename);
-    %%	set ticks here!
-    %     ticks.rez=200;
+    system('RM /tmp/*')
+    DD=initialise('eddies',mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
-    %           ticks.rez=42;
     ticks.width=297/25.4*ticks.rez*1;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
-    %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
     ticks.x= 0;
     ticks.age=[1,3*365,10];
-    %     ticks.isoper=[DD.thresh.shape.iq,1,10];
     ticks.isoper=[.6,1,10];
     ticks.radius=[20,150,9];
     ticks.radiusToRo=[0.2,5,11];
     ticks.amp=[1,20,7];
-    %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
     ticks.visitsunique=[1,3,3];
     ticks.dist=[-1500;1000;21];
-    %ticks.dist=[-100;50;16];
     ticks.disttot=[1;2000;10];
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
-    
+    DD.frms=1000;
     animas(DD)
-    %%
-    conclude(DD);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
     file1=[DD.path.eddies.name DD.path.eddies.files(1).name];
+    
     grid=load(cell2mat(extractdeepfield(load(file1),'filename.cut')));
     d.LON=grid.grids.lon;
     d.LAT=grid.grids.lat;
-    d.lon=downsize(d.LON,DD.map.out.X*2,DD.map.out.Y);
-    d.lat=downsize(d.LAT,DD.map.out.X*2,DD.map.out.Y);
+    d.lon=grid.grids.lon;
+    d.lat=grid.grids.lat;
     d.climssh.min=nanmin(grid.grids.ssh(:));
     d.climssh.max=nanmax(grid.grids.ssh(:));
     d.p=[DD.path.plots 'mpngs/'];
     mkdirp(d.p);
-    
-    parfor ee=1:numel(DD.path.eddies.files)
-        disp(num2str(100*ee/numel(DD.path.eddies.files)))
+    frms=DD.frms;
+    range=round(linspace(1,numel(DD.path.eddies.files),frms));
+    for cc=1:numel(range)
+        ee=range(cc);
         savepng4mov(d,ee,DD)
     end
+    fps=max([1 round(frms/60)]);
     pn=pwd;
     cd(d.p)
-    system(['mencoder "mf://flat*.png" -mf fps=10 -o flat.avi -ovc lavc -lavcopts vcodec=mpeg4'])
-    system(['mencoder "mf://surf*.png" -mf fps=10 -o surf.avi -ovc lavc -lavcopts vcodec=mpeg4'])
-    system(['mplayer  surf.avi'])
-    system(['mplayer  flat.avi'])
+    system(['mencoder "mf://flat*.jpeg" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=ljpeg'])
+    %     system(['mencoder "mf://surf*.png" -mf fps=' num2str(fps) ' -o surf.avi -ovc lavc -lavcopts vcodec=ljpeg'])
     cd(pn)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savepng4mov(d,ee,DD)
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
+    if exist([ d.p sprintf('flat%06d.png',ee)],'file')
+        return
+    end
+    [~,fn,~] = fileparts(d.file);
+    d.dtnm=datenum(fn(7:14),'yyyymmdd');
     ed=load(d.file);
-    coor.c=[ed.cyclones.coordinates];
-    coor.ac=[ed.anticyclones.coordinates];
-    z.c=[ed.cyclones.level];
-    z.ac=[ed.anticyclones.level];
-    grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
-    ssh=downsize(grid.grids.ssh,2*DD.map.out.X,DD.map.out.Y);
+    try
+        grd=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
+    catch
+        return
+    end
+    ssh=grd.grids.ssh;
+    [Y,X]=size(ssh);    %#ok<NASGU>
+  figure(1)  
+  
     %%
-    pcolor(d.lon,d.lat,ssh);
+     clf  %  pcolor(d.lon,d.lat,ssh);
+    %     pcolor(ssh);
+    surf(ssh,'FaceColor','interp','FaceLighting','phong');
+    view(2)
+    camlight left
+    set(gcf,'Renderer','zbuffer')
+    shading flat
+    axis tight
     caxis([d.climssh.min d.climssh.max]);
     hold on
-    sen={'ac';'c'};
-    col=[1 0 0; 1 1 1];
+    sen={'cyclones','anticyclones'};
+    col=[1 1 1; .2 .2 .2];
     for ss=1:2
         s=sen{ss};
-        for cc=1:numel(coor.(s))
-            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
-            lo=d.LON(linx);
-            la=d.LAT(linx);
-            plot(lo,la,'color',col(ss,:),'linewidth',1.5);
+        for cc=1:numel(ed.(s))
+%             id=ed.(s)(cc).ID; %#ok<NASGU>
+%             peak=ed.(s)(cc).trackref;
+            lo=ed.(s)(cc).coordinates.exact.x;
+            la=ed.(s)(cc).coordinates.exact.y;
+            za=smooth(ssh(drop_2d_to_1d(round(la),round(lo),Y)));
+            plot3(lo,la,za+10,'color',col(ss,:),'linewidth',2.5);
+            %             plot3(peak.x,peak.y,5,'*');
         end
     end
-    
-    dayNow.n=ed.anticyclones(1).daynum;
-    dayNow.s=datestr(dayNow.n,'yyyymmdd');
-    for tt=1:numel(DD.path.tracks.files)
-        from=datenum(DD.path.tracks.files(tt).name(6:13),'yyyymmdd');
-        till=datenum(DD.path.tracks.files(tt).name(15:22),'yyyymmdd');
-        if from<=dayNow.n && till>=dayNow.n
-            t.file=[DD.path.tracks.name DD.path.tracks.files(tt).name];
-            
-            try
-                 tr=load(t.file); tr=tr.trck; 
-            catch
-                continue
-            end
-            daynums=cat(2,tr.daynum);
-            [~,nn]=min(abs(daynums-dayNow.n));
-            tr=tr(1:nn);
-            lo=extractdeepfield(tr,'geo.lon');
-            la=extractdeepfield(tr,'geo.lat');
-            plot(lo,la,'color',rainbow(1,1,1,max([100-nn,0]),100),'linewidth',1.5);
-        end
-    end
-    
-    
-    savefig2png4mov(d.p,100,1600,1200,sprintf('flat%06d',ee))
-    
-    %%
-    figure
-    surf(d.lon,d.lat,ssh);
-    axis([min(d.lon(:)) max(d.lon(:)) min(d.lat(:)) max(d.lat(:)) d.climssh.min*2 d.climssh.max*2 d.climssh.min/2 d.climssh.max/2]);
-    hold on
-    sen={'ac';'c'};
-    col=[1 0 0; 1 1 1];
-    for ss=1:2
-        s=sen{ss};
-        for cc=1:numel(coor.(s))
-            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
-            lo=d.LON(linx);
-            la=d.LAT(linx);
-            zz=repmat(z.(s)(cc),1,numel(lo));
-            plot3(lo,la,zz,'color',col(ss,:),'linewidth',2);
-        end
-    end
-    
-    
-    
-    
-    
-    savefig2png4mov(d.p,100,1600,1200,sprintf('surf%06d',ee))
-    close all
+    title([num2mstr(ee)])
+    xlabel(datestr(d.dtnm))
+    savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

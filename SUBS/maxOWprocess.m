@@ -7,8 +7,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function  OWall=maxOWprocess(DD,metaD)
 
-function  OWall=maxOWprocess(metaD)
-    DD=initialise([],mfilename);   
+function  maxOWprocess(metaD)
+   
+ if exist('zi.mat','file')
+    return
+ end
+     
+     
+ DD=initialise([],mfilename);   
     NC     =initNC(metaD);
     splits =thread_distro(DD.threads.num,NC.S.Y)-1;
     NC.strt=splits(:,1);
@@ -16,12 +22,10 @@ function  OWall=maxOWprocess(metaD)
     S=cell2mat(struct2cell(NC.S))';
     NC.OWzi=[DD.path.Rossby.name 'OWzi.nc'];
     NC.OWa=[DD.path.Rossby.name 'OWa.nc'];
-    try    %#ok<*TRYNC>
+   
         initNcFile(NC.OWzi,'zi',S([4 2 3]));
-    end
-    try
-        initNcFile(NC.OWa,'OW',S([4 2 3]));
-    end
+         initNcFile(NC.OWa,'OW',S([4 2 3]));
+   
         
     spmd
         spmdBcalc(NC);
@@ -52,12 +56,6 @@ function  OWall=maxOWprocess(metaD)
     OWall.ziIntrl=round(smooth2a(NeighbourValue(isnan(vq),vq),10));
     %    pcolor(vqn);
     %    colorbar;
-    
-  
-    
-    
-   
-  
     
     allOW=OWall.ow;
     depthOW=OWall.depth;
@@ -122,46 +120,27 @@ function spmdBcalc(NC)
     for tt=1:TT
         out.a=[    tt-1     NC.strt(labindex)   0   ];
         out.b=[  1   NC.len(labindex)    NC.S.X  ];
-        disp(num2str(tt))
-        %% get dims for nc read
-        
+        disp(num2str(tt));        
         %% load okubo weiss parameter
         OW=nc_varget(NC.files(tt).n,'OkuboWeiss',in.a,in.b);
         %% kill flags
         OW(abs(OW)>1)=nan;
         %% get bathymetry and dims
-        if tt==1
-            %         lat=nc_varget(NC.files(tt).n,'lat',in.a(3:4),in.b(3:4));
-            %         lon=nc_varget(NC.files(tt).n,'lon',in.a(3:4),in.b(3:4));
-            %             lon=nc_varget(NC.files(tt).n,'lon',in.a,in.b);
-            %             depth=nc_varget(NC.files(tt).n,'depth');
-            %             depth(abs(depth)>1e10)=nan;
-            [~,~,~,bath]=getBathym(OW);
-            %             out.ow=nan(TT,Yi,X);
-            %             out.zi=nan(TT,Yi,X);
+        if tt==1         
+            [~,~,~,bath]=getBathym(OW);      
         end
         %% min in z
         [owm,zi]=nanmin(OW(2:bath-1,:,:),[], 1);
         zi=zi -1; % correct for (2: ...)
         %% save
-        
-
-        
-      
         NCcritWrite(NC.OWzi,'zi',zi,out.a,out.b)
-        NCcritWrite(NC.OWa,'OW',owm,out.a,out.b)
-        
-      
-        
-        
-        %         out.ow(tt,:,:)= owm;
-        %         out.zi(tt,:,:)= zi;
+        NCcritWrite(NC.OWa,'OW',owm,out.a,out.b)        
     end
 end
 
 function initNcFile(fname,toAdd,WinSize)
     
-    nc_create_empty(fname,'noclobber');
+    nc_create_empty(fname,'clobber');
     nc_adddim(fname,'t_index',WinSize(1));
     nc_adddim(fname,'i_index',WinSize(3));
     nc_adddim(fname,'j_index',WinSize(2));

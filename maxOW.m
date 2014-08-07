@@ -5,10 +5,10 @@
 % Author:  NKkk
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOW
-dbstop if error  
-  %% init
-    %     DD=initialise([],mfilename);
-    %     main(DD);
+    dbstop if error
+    %% init
+    DD=initialise([],mfilename);
+    main(DD);
     %% save
     %     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
     %     load([DD.path.root '0729-1752-minOW.mat'])
@@ -21,22 +21,16 @@ function main(DD)
     [DD]=maxOWsetUp(DD);
     %% spmd
     metaD=maxOWmain(DD);
-    
     %%
     maxOWprocess(metaD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function postProc
-    geo=nc_getall('../datanetU/Rossby/LatLonDepth.nc');
-  
-
-  load('allOW.mat','allOW')    ;
-    load('zi.mat','ziOW');
-    load('ziItnrp.mat','ziIntrp');
-    load('ziWeighted.mat','ziWeighted');
-    
-    
-    plotstuff(allOW,ziOW,geo.depth.data) %#ok<*PFBNS>
+    geo=nc_getall('../datanetU/Rossby/LatLonDepth.nc');load('allOW.mat','allOW')    ;
+    load zi
+    load ziItnrp
+    load ziWeighted
+    plotstuff(ziWeighted,ziIntrp,allOW,ziOW,geo.depth.data) %#ok<*PFBNS>
     saveas(gcf,[datestr(now,'mmdd-HHMM') '.fig']);
     savefig('../PLOTS/',100,1200,800,[datestr(now,'mmdd-HHMM') ]);
 end
@@ -46,11 +40,38 @@ function histDepOw=histUniqDepths(depz,zi,owLg,owAx)
     histDepOw = histc(owLg( zi == depz ), owAx);
 end
 
-function plotstuff(ow,zi,depth)
-
-     fuz=reshape(full(~isnan(zi)),1,[]);
+function plotstuff(ziWeighted,~,ow,zi,depth)
+    zI=squeeze(nanmean(zi,1));
+    [yq,xq]=find(isnan(zI));
+    [y,x]=find(~isnan(zI));
+    v=zI(~isnan(zI));
+    vq = griddata(x,y,v,xq,yq,'nearest');
+    zI(isnan(zI))=vq;
+    figure
+    
+    a=flipud(zI);
+    cm=[[1 1 1];jet]
+    imagesc(a)
+    colormap(cm) ;
+    colorbar
+    %%
+    zI=squeeze(nanmean(ziWeighted,1));
+    [yq,xq]=find(isnan(zI));
+    [y,x]=find(~isnan(zI));
+    v=zI(~isnan(zI));
+    vq = griddata(x,y,v,xq,yq,'nearest');
+    zI(isnan(zI))=vq;
+    figure
+    
+    a=flipud(zI);
+    cm=[[1 1 1];jet]
+    imagesc(a)
+    colormap(cm) ;
+    colorbar
+    %%
+    fuz=reshape(zi(~isnan(zi)),1,[]);
     uniDepths=unique(fuz);
-    %     histc(full.zi(:), uniDepths)  ;
+    %     hist(zi(:), uniDepths)  ;
     set(0,'defaulttextinterpreter','latex')
     owLg=-ow;
     owAx=[0 logspace(log10(nanmean(owLg(:))),log10(nanmax(owLg(:))),40)];
@@ -62,6 +83,7 @@ function plotstuff(ow,zi,depth)
     histDepOw(histDepOw==0)=nan;
     bar3(log10(histDepOw));
     view(60.5,28)
+    axis tight
     %%
     nyt=ceil(linspace(find(~isnan(depth),1),numel(depth),7));
     nytl =cellfun( @(tk) sprintf('%3.2f',tk), num2cell(depth(nyt)/1000), 'uniformoutput',false)  ;
@@ -85,6 +107,8 @@ function plotstuff(ow,zi,depth)
     set(gca,'ztick',nzt)
     set(gca,'zticklabel',nztl);
     axis tight
+    
+    
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

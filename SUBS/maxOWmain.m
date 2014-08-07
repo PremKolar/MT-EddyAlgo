@@ -150,6 +150,10 @@ function buildRho(s,raw,Dim,threads)
 		spmd(threads)
 			T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
 			[temp,salt]=TSget(s.Fin(tt+1),s.keys,locCo);
+			size(salt)
+			size(temp)
+			size(depth)
+			size(lat)
 			RHO=makeRho(salt,temp,reshape(sw_pres(depth,lat),[],1));
 		end
 		nc_varput(s.Fout{tt+1},'density',RHO{1},[0 0 0], [Dim.ws(1),Dim.ws(2),Dim.ws(3)]);

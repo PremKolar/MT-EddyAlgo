@@ -139,10 +139,9 @@ function buildRho(s,raw,Dim,threads)
 	locCo=@(x) getLocalPart(codistributed(oneDit(x)));
 	yx2zyx= @(yx,Z) oneDit(repmat(permute(yx,[3,1,2]),[Z,1,1]));
 	rdepth=raw.depth;
-	rlat=yx2zyx(raw.lat);
 	ws=Dim.ws;
+	rlat=yx2zyx(raw.lat,ws(1));
 	spmd(threads)
-		
 		depth = locCo(repmat(double(rdepth),ws(2)*ws(3),1));
 		lat = locCo(rlat);
 		T=disp_progress('init','building density netcdfs')  ;

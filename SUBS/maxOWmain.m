@@ -8,9 +8,9 @@ function metaD=maxOWmain(DD)
 	[Dim,raw] = setup(DD);
 	%%
 	spmd(DD.threads.num)
-		d.daily=initbuildRho(Dim,DD);
+		daily=initbuildRho(Dim,DD);
 	end
-	buildRho(d.daily,raw,Dim,DD.threads.num) ;
+	buildRho(daily,raw,Dim,DD.threads.num) ;
 	labBarrier
 	
 	%%

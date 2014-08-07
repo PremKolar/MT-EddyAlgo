@@ -140,9 +140,11 @@ function buildRho(s,raw,Dim,threads)
 		locCo=@(x) getLocalPart(codistributed(oneDit(x)));
 		depth = locCo(repmat(double(raw.depth),Dim.ws(2)*Dim.ws(3),1));
 		lat = locCo(raw.lat);
+		T=disp_progress('init','building density netcdfs')  ;
 	end
 	for tt = s.timesteps
 		spmd(threads)
+			T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
 			[temp,salt]=TSget(FileIn,keys,locCo);
 			RHO=makeRho(salt,temp,sw_pres(depth,lat));
 		end

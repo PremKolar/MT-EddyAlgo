@@ -52,11 +52,6 @@ function [out]=Data2Init(DD)
         fprintf('init NC file %2d of %2d\n',tt,TSow.fnum); %#ok<PFBNS>
         [rho(tt),OW(tt)]=parInitNcs(tt,TSow);
     end
-    
-    parfor tt=1:TSow.fnum
-        fprintf('init NC file %2d of %2d\n',tt,TSow.fnum);
-        parInitNcsNCinit(rho{tt},OW{tt},dim);
-    end
     out.rho=rho;
     out.OW=OW;
 end
@@ -92,28 +87,6 @@ function fname=initNcGeoInfo(WinSize,ds)
         disp([fname 'exists'])
     end
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  parInitNcsNCinit(rho,OW,dim)
-    
-    addvar('density',rho);
-    addvar('OkuboWeiss',OW)  ;
-    
-    function addvar(var,fname)
-        if ~exist(fname,'file')
-            nc_create_empty(fname,'clobber');
-            nc_adddim(fname,'i_index',dim(3));
-            nc_adddim(fname,'j_index',dim(2));
-            nc_adddim(fname,'k_index',dim(1));
-            %% rho
-            varstruct.Name = var;
-            varstruct.Nctype = 'double';
-            varstruct.Dimension ={'k_index','j_index','i_index' };
-            nc_addvar(fname,varstruct);
-        end
-    end
-end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fname=initNcFile(ff,ds)
     fname=[ds sprintf('%04d.nc',ff) ];

@@ -35,8 +35,12 @@ function calcOW(daily,raw,MS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(daily,f,my,toAdd,tt)
-    OW=fA(f,daily.Fout{tt},daily.OWFout{tt},my,toAdd)      ;
-    fB(OW,daily.OWFout{tt},toAdd,f);
+    if ~exist(daily.OWFout{tt},'file')
+        tmpFile=[daily.OWFout{tt} 'tmp'];
+        OW=fA(f,daily.Fout{tt},tmpFile,my,toAdd)      ;
+        fB(OW,tmpFile,toAdd,f);
+        system(['mv ' tmpFile ' ' daily.OWFout{tt}])
+    end
 end
 function OW=fA(f,rhoFile,OWFile,my,toAdd)
     OW=spmdBlockB(f,rhoFile,my);
@@ -51,31 +55,39 @@ end
 function f=OWfuncs
     f.ncv=@(d,field) nc_varget(d,field);
     f.ncvOne = @(A) getLocalPart(codistributed(A,codistributor1d(1)));
-    f.getHP = @(cf,RM) f.ncvOne(f.ncv(cf,'density')) -  RM;
     f.repinZ = @(A,z) repmat(permute(A,[3,1,2]),[z,1,1]);
     f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  my=spmdBlockA(MeanFile,raw,f)
     disp('init okubo weiss calcs...')
     spmd
-        my.RhoMean=f.ncvOne(f.ncv(MeanFile,'RhoMean'));
+        my.RhoMean=single(f.ncvOne(f.ncv(MeanFile,'RhoMean')));
         my.Z=size(my.RhoMean,1);
-        my.dx=f.repinZ(raw.dx,my.Z);
-        my.dy=f.repinZ(raw.dy,my.Z);
-        my.GOverF=  f.repinZ(raw.corio.GOverF,my.Z);
-        my.depth=f.ncvOne(raw.depth);      
+        my.dx=single(f.repinZ(raw.dx,my.Z));
+        my.dy=single(f.repinZ(raw.dy,my.Z));
+        my.GOverF=single(f.repinZ(raw.corio.GOverF,my.Z));
+        my.depth=single(f.ncvOne(raw.depth));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW = spmdBlockB(f,currFile,my)
-    vc2mstr=@(ow) gcat(ow,1);
+    f=funcs(f);
+    OW=f.slMstrPrt(extrOW(my,f,currFile));
+end
+function ow=extrOW(my,f,cF)
     spmd
-        my.rhoHighPass=f.getHP(currFile,my.RhoMean);
-        ow = vc2mstr(okuweiss(getDefo(UVgrads(getVels(my),my.dx,my.dy))));
+        my.rhoHighPass=f.getHP(cF,f) - my.RhoMean;
+        UV=getVels(my);
+        uvg=UVgrads(UV,my.dx,my.dy);
+        ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);
         labBarrier
     end
-    OW=ow{1};
+end
+function f=funcs(f)
+    f.vc2mstr=@(ow,dim) gcat(ow,dim,1);
+    f.getHP = @(cf,f) f.ncvOne(f.ncv(cf,'density'));
+    f.slMstrPrt = @(p) p{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d)
@@ -139,19 +151,28 @@ function [s,f] = initbuildRho(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  buildRhoMean(threads,s,Dim,f)
-    initNcFile(s.Fout,'RhoMean',Dim.ws);
-    spmd(threads)
-        rhoMean = f.locCo(nan(Dim.ws));
-        T=disp_progress('init','building density mean')  ;
-        labBarrier
+    if ~exist(s.Fout,'file')
+        selMstr=@(x) x{1};
+        rhoMean=selMstr(buildRhoMeanOperate(threads,s,Dim,f));
+        f.ncvp([s.Fout 'tmp'],'RhoMean',f.mDit(rhoMean,Dim.ws),[0 0 0], [Dim.ws]);
+        system(['mv ' s.Fout 'tmp ' s.Fout]);
     end
-    %%
-    spmd(threads)
-        rhoMean=gop(@vertcat,spmdRhoMeanBlock(f,s,rhoMean,T),1);
-        labBarrier
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function  rhoMean=buildRhoMeanOperate(threads,s,Dim,f)
+    if ~exist(s.Fout,'file')
+        initNcFile([s.Fout 'tmp'],'RhoMean',Dim.ws);
+        spmd(threads)
+            rhoMean = f.locCo(nan(Dim.ws));
+            T=disp_progress('init','building density mean')  ;
+            labBarrier
+        end
+        %%
+        spmd(threads)
+            rhoMean=gop(@vertcat,spmdRhoMeanBlock(f,s,rhoMean,T),1);
+            labBarrier
+        end
     end
-    %%
-    f.ncvp(s.Fout,'RhoMean',f.mDit(rhoMean{1},Dim.ws),[0 0 0], [Dim.ws]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rhoMean=spmdRhoMeanBlock(f,s,rhoMean,T)
@@ -168,8 +189,9 @@ function buildRho(s,raw,Dim,threads,f)
     for tt = s.timesteps
         if ~exist(s.Fout{tt},'file')
             [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat);
-            initNcFile(s.Fout{tt},'density',Dim.ws);
-            f.ncvp(s.Fout{tt},'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
+            initNcFile([s.Fout{tt} 'temp'],'density',Dim.ws);
+            f.ncvp([s.Fout{tt} 'temp'],'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
+            system(['mv ' s.Fout{tt} 'temp '  s.Fout{tt}]);
         end
     end
 end

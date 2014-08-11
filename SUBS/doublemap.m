@@ -4,37 +4,28 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function CM=doublemap(cb,cm1,cm2,centercol,center)
-	%% get colorbardata
-	if nargin<5
-        center=0;
+function CM=doublemap(abc,cm1,cm2,centercol,alpha)
+    %% get colorbardata
+    if nargin<4
+        alpha=1;
     end
-    zlim=(get(cb,'ylim'))-center;
-	ztick=(get(cb,'ytick'));
-	zticklabel=(get(cb,'yticklabel'));
-	%% resample to fit ticks	
-	if numel(cm1)~=numel(cm2)
-		if numel(cm2)>numel(cm1)
-			cm1=resample(cm1,size(cm2,1),size(cm1,1));
-		else
-			cm2=resample(cm2,size(cm1,1),size(cm2,1));
-		end
-    end
-	cm1r=resample(cm1,round(1000*abs(zlim(1))),round(1000*abs(zlim(1)) * abs(zlim(2)/zlim(1))));
-	cm2r=resample(cm2,round(1000*zlim(2)),round(1000*zlim(2)));
-	CM=[cm1r;flipud(cm2r)];
-	%% blend in the middle
-	midfilt=linspace(-1,zlim(2)/abs(zlim(1)),length(CM));
-	%     gp=repmat(gauspuls(midfilt,1,1,-1/5)',1,3);
-	gp=repmat(gauspuls(midfilt,1.5,1.5,-1/5)',1,3);
-	centercolvec=repmat(centercol,size(CM,1),1);
-	CM=(1-gp).*CM + gp.*centercolvec;
-	%% correct for round errors
-	CM(CM<0)=0;
-	CM(CM>1)=1;
-	%% reset to old params
-	colormap(CM);
-	caxis(zlim);
-	set(cb,'ytick',ztick);
-	set(cb,'yticklabel',zticklabel);
+    %% resample to fit ticks
+    dt=diff(abc([1 3]));
+    da=diff(abc([1 2]));
+    db=diff(abc([2 3]));
+    cm1=resample(cm1,da,db);
+    cm1=resample(cm1,100,size(cm1,1));
+    cm2=resample(cm2,100,size(cm2,1));
+    CM=[cm1;flipud(cm2)];
+    %% blend in the middle
+    nrm=@(x) (x-min(x(:)))/max(x(:)-min(x(:)));
+    gp=repmat(gausswin(size(CM,1),alpha),1,3);
+    centercolvec=repmat(centercol,size(CM,1),1);
+    CM=nrm((1-gp).*CM + gp.*centercolvec);
+    %% correct for round errors
+    CM(CM<0)=0;
+    CM(CM>1)=1;
+    %% reset to old params
+    colormap(CM);
+    caxis(zlim);
 end

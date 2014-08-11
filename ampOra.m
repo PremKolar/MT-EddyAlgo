@@ -1,5 +1,4 @@
 
-
 function ampOra
     addpath(genpath('./'))
     dbstop if error
@@ -98,15 +97,6 @@ function AOplots(track,DD)
     set(gca,'xtick',xtck(xr))
     set(gca,'xticklabel',repmat([],1,numel(xr)))
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
     %%
     subplot(2,1,2,'align')
     try
@@ -117,9 +107,7 @@ function AOplots(track,DD)
     THR=log(repmat(thresh,length(xAX),1));
     xAXdouble=repmat(xAX',1,2);
     hold on
-    
-    
-    
+       
     IQ=log(iq)-mean(log(iq));
     difabs= @(a) fliplr(log([1 a(2:end)./a(1:end-1)]))';
     %      difabs= @(a) fliplr(([1 a(2:end)./a(1:end-1)]));
@@ -148,13 +136,8 @@ function AOplots(track,DD)
     set(AX(2),'yticklabel',iqYtL);
     set(H2,'Clipping','off');
     xx=get(gca,'position');
-    set(gca,'position',xx+[0 .1 0 0]);
-    
-    
-    plot(xAXdouble,THR,'color','red')
-    
-    
-    
+    set(gca,'position',xx+[0 .1 0 0]);      
+    plot(xAXdouble,THR,'color','red')  
 end
 function [OUT]=extractdeepfield(IN,fieldnameToAccess)
     field = textscan(fieldnameToAccess,'%s','Delimiter','.');

@@ -5,9 +5,8 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,debug,frmt,saveFig)
-    set(0,'DefaultAxesFontSize', 12)
 set(gcf,'renderer','painter')     
-% set(gcf,'Visible','off')  
+set(gcf,'Visible','off')  
 if nargin<6,debug=false;end
     if debug,disp('yo');	return;	end
     if nargin < 7,	frmt='dpdf';	end
@@ -38,7 +37,7 @@ function printStuff(frmt,fname,resOut,xdim,ydim)
         disp(['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';'])
         eval(['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';'])
         system(['convert -density ' num2str(resOut) 'x' num2str(resOut) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
-%         system(['pdfcrop ' fname '.pdf ' fname '.pdf']);
+        system(['pdfcrop ' fname '.pdf ' fname '.pdf']);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,20 +49,8 @@ function setupfigure(resOut,xdim,ydim)
     set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);    
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
    
-%     
-% AxesH    = findobj(gcf, 'Type', 'text');
-% YLabelHC = get(AxesH, 'YLabel');
-% YLabelH  = [YLabelHC{:}];
-% set(YLabelH, 'String', 'Y-label')
-% TitleHC  = get(AxesH, 'Title');
-% TitleH   = [TitleHC{:}];
-% set(TitleH, 'String', 'The title');
-%     set(gca,'FontSize',12)
-  
-   tt= [findall(gcf,'type','text') ;findall(gca,'type','text')]  ;
-  for t=tt'    
-   set(t,'FontSize',12)
-  end
+    set(gca,'FontSize',12)
+    set(findall(gcf,'type','text'),'FontSize',12)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function quickhack(fname)

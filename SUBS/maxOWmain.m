@@ -4,23 +4,20 @@
 % Matlab:7.9
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOWmain(DD)
+function metaData=maxOWmain(DD)
     [Dim,raw] = setup(DD);
-    [daily,sMean]=rhoStuff(DD,raw,Dim);
-    calcOW(daily,raw,sMean);
-    %%
-    %     metaD=d{1};
-    %     metaD.dim=Dim;
-    %     save metaD.mat metaD
+    [metaData,sMean]=rhoStuff(DD,raw,Dim);
+    calcOW(metaData,raw,sMean);
+    save metaD.mat metaData
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [daily,sMean]=rhoStuff(DD,raw,Dim) %#ok<INUSD>
-    [daily,funcs]=initbuildRho(DD); %#ok<NASGU>
-    %      buildRho(daily,raw,Dim,DD.threads.num,funcs) ;
+function [daily,sMean]=rhoStuff(DD,raw,Dim)
+    [daily,funcs]=initbuildRho(DD);
+    buildRho(daily,raw,Dim,DD.threads.num,funcs) ;
     labBarrier
     %%
     sMean = initbuildRhoMean(DD);
-    %     buildRhoMean(DD.threads.num,sMean,Dim,funcs);
+    buildRhoMean(DD.threads.num,sMean,Dim,funcs);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcOW(daily,raw,MS)
@@ -32,23 +29,23 @@ function calcOW(daily,raw,MS)
     %%
     toAdd={'OkuboWeiss','log10NegOW'};
     for tt = daily.timesteps;
-        [T,OW]=loopA(T,daily,f,my,toAdd,tt);
-        loopB(f,daily,OW,toAdd,tt)
-    end    
+        T=disp_progress('show',T,numel(daily.timesteps),numel(daily.timesteps));
+        loop(daily,f,my,toAdd,tt);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function loopB(f,daily,OW,toAdd,tt)
-    f.ncVP(daily.OWFout{tt},OW,toAdd{1});
-    OW(isinf(OW) | OW>0 | isnan(OW) )=0;
-    OW = log10(abs(OW));
-    OW(isinf(OW)) = -realmax('single');
-    f.ncVP(daily.OWFout{tt},OW,toAdd{2});
+function loop(daily,f,my,toAdd,tt)
+    OW=fA(f,daily.Fout{tt},daily.OWFout{tt},my,toAdd)      ;
+    fB(OW,daily.OWFout{tt},toAdd,f);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [T,OW]=loopA(T,daily,f,my,toAdd,tt)
-    T=disp_progress('show',T,numel(daily.timesteps),numel(daily.timesteps));
-    OW=spmdBlockB(f,daily.Fout{tt},my);
-    initOWNcFile(daily.OWFout{tt},toAdd,size(OW));
+function OW=fA(f,rhoFile,OWFile,my,toAdd)
+    OW=spmdBlockB(f,rhoFile,my);
+    initOWNcFile(OWFile,toAdd,size(OW));
+end
+function fB(OW,OWFile,tA,f)
+    f.ncVP(OWFile,OW,tA{1});
+    OW(isinf(OW) | OW>=0 | isnan(OW) )=nan;
+    f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=OWfuncs
@@ -67,12 +64,12 @@ function  my=spmdBlockA(MeanFile,raw,f)
         my.dx=f.repinZ(raw.dx,my.Z);
         my.dy=f.repinZ(raw.dy,my.Z);
         my.GOverF=  f.repinZ(raw.corio.GOverF,my.Z);
-        my.depth=f.ncvOne(raw.depth);
+        my.depth=f.ncvOne(raw.depth);      
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW = spmdBlockB(f,currFile,my)
-    vc2mstr=@(ow) gop(@vertcat,ow,1);
+    vc2mstr=@(ow) gcat(ow,1);
     spmd
         my.rhoHighPass=f.getHP(currFile,my.RhoMean);
         ow = vc2mstr(okuweiss(getDefo(UVgrads(getVels(my),my.dx,my.dy))));
@@ -82,15 +79,18 @@ function OW = spmdBlockB(f,currFile,my)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d)
-    ow = (-d.vorticity.^2+d.divergence.^2+d.stretch.^2+d.shear.^2)/2;
+    ow = (-(d.vorticity).^2+d.divergence.^2+d.stretch.^2+d.shear.^2)/2;
     %     ow(abs(ow)>1) = nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function defo = getDefo(uvg)
+    meanin4d = @(A,B) squeeze(mean([permute(A,[4,1,2,3]);permute(B,[4,1,2,3])],1));
     defo.vorticity = uvg.dVdx - uvg.dUdy;
-    defo.divergence = uvg.dUdx + uvg.dVdy;
-    defo.stretch = uvg.dUdx - uvg.dVdy;
     defo.shear = uvg.dVdx + uvg.dUdy;
+    %     defo.divergence = uvg.dUdx + uvg.dVdy;
+    %     defo.stretch = uvg.dUdx - uvg.dVdy;
+    defo.divergence = 0;
+    defo.stretch = - 2* meanin4d(uvg.dVdy,uvg.dUdx);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function uvg = UVgrads(UV,dx,dy)
@@ -166,11 +166,11 @@ function buildRho(s,raw,Dim,threads,f)
     [depth,lat,T]=spmdInit(threads,raw,Dim,f);
     %%
     for tt = s.timesteps
-        
-        [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat);
-        initNcFile(s.Fout{tt},'density',Dim.ws);
-        f.ncvp(s.Fout{tt},'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
-        
+        if ~exist(s.Fout{tt},'file')
+            [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat);
+            initNcFile(s.Fout{tt},'density',Dim.ws);
+            f.ncvp(s.Fout{tt},'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

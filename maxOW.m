@@ -12,14 +12,14 @@ function maxOW
     %     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
     %     load([DD.path.root '0729-1752-minOW.mat'])
     %% post process
-    postProc
+     postProc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
     %% set up
     [DD]=maxOWsetUp(DD);
     %% spmd
-    maxOWmain(DD);
+    metaD=maxOWmain(DD);
     %%
     maxOWprocess(metaD);
 end

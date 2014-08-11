@@ -36,7 +36,7 @@ function spmd_body(DD,rossby)
         [EE,skip]=work_day(DD,JJ(jj),rossby);
         %%
         Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
-                 if skip,disp(['skipping ' num2str(jj)]);continue;end
+        if skip,disp(['skipping ' num2str(jj)]);continue;end
         %% save
         save_eddies(EE);
     end
@@ -48,7 +48,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE.filename.cont=JJ.files;
     EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-%          if exist(EE.filename.self,'file'), skip=true; return; end
+    %          if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);
@@ -57,7 +57,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     catch %#ok<CTCH>
         % TODO update dt!!!
         skip=true;
-%         return
+        %         return
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
@@ -79,11 +79,11 @@ end
 function ACyc=anti_cyclones(ee,rossby,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
-  
-  for kk=1:numel(ee)
+    
+    for kk=1:numel(ee)
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
-       
- if PASS(kk), pp=pp+1;
+        
+        if PASS(kk), pp=pp+1;
             %% append healthy found eddy
             ACyc(pp)=ee_out;
             %% nan out ssh where eddy was found
@@ -138,18 +138,15 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     %% calculate area with respect to contour
     RoL=getLocalRossyRadius(rossby.L,ee.coordinates.int);
     [ee.area,pass]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
-    if ~pass && ~DD.switchs.chelt, return, end;
+    if ~pass && DD.switchs.maxRadiusOverRossbyL, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si]=EDDyCircumference(zoom);
     %% filter eddies not circle-like enough
     [pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
-    
     if ~pass, return, end;
     %% get peak position and amplitude w.r.t contour
     [pass,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
-    
     if ~pass, return, end;
-    
     %% get profiles
     [ee.profiles]=EDDyProfiles(ee,zoom.fields);
     %% get radius according to max UV ie min vort
@@ -161,12 +158,8 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
     [pass,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
-    if ~pass, return, end;
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
-    %%
-    %     if DD.debugmode, plots4debug(zoom,ee); end
-    
     %% get center of 'volume'
     [ee.volume]=CenterOfVolume(zoom,ee.area.intrp,cut.dim.Y);
     %% get area centroid (chelton style)
@@ -175,7 +168,6 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     [ee.geo]=geocoor(zoom,ee.volume);
     %% append 'age'
     ee.age=0;
-    
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.U,cut,DD)	;
@@ -186,21 +178,14 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     if strcmp(DD.map.window.type,'globe')
         ee=correctXoverlap(ee,DD);
     end
-%%
- ee.VoA=VolumeOverAreaQuotient(ee);
+    %% calc vol/area^1.5 quotient
+    ee.VoA=VolumeOverAreaQuotient(ee);
 end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function VoA=VolumeOverAreaQuotient(ee)
-  VoA=ee.volume.total/ee.area.intrp.^(3/2);  
+    VoA=ee.volume.total/ee.area.intrp.^(3/2);
 end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
 function RoL=getLocalRossyRadius(rossbyL,coor)
     [Y,X]=size(rossbyL);
     x=round(mean(coor.x));
@@ -285,7 +270,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
     [passes.iq,IQ]=IsopQuo(ee,thresh.iq);
-    [passes.chelt,chelt]=chelton_shape(z,ee,thresh.chelt);
+    [passes.chelt,chelt]=chelton_shape(z);
     if switches.IQ && ~switches.chelt
         pass=passes.iq;
     elseif switches.chelt && ~switches.IQ
@@ -297,7 +282,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,chelt]=chelton_shape(z,ee,thresh)
+function [pass,chelt]=chelton_shape(z)
     % (diameter of circle with equal area)/(maximum distance between nodes)
     %% get max dist in x | y
     x.min=min(z.coor.int.x);
@@ -307,14 +292,11 @@ function [pass,chelt]=chelton_shape(z,ee,thresh)
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
     mlat=abs(nanmean(z.fields.lat(:))) ;
     if mlat> 25
-        chelt  =1 - maxDist/4e5;
+        chelt  = 1 - maxDist/4e5;
     else
         chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);
     end
-    
     if chelt >= 0, pass=true; else pass=false; end
-    %     chelt  = 4*ee.area.total/(pi*maxDist^2);
-    %     if chelt >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,isoper]=IsopQuo(ee,thresh)

@@ -48,7 +48,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE.filename.cont=JJ.files;
     EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-         if exist(EE.filename.self,'file'), skip=true; return; end
+%          if exist(EE.filename.self,'file'), skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);
@@ -57,7 +57,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     catch %#ok<CTCH>
         % TODO update dt!!!
         skip=true;
-        return
+%         return
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
@@ -79,9 +79,11 @@ end
 function ACyc=anti_cyclones(ee,rossby,cut,DD)
     PASS=false(numel(ee),1);	pp=0;
     %% loop over eddies, starting at deepest eddies, upwards
-    for kk=1:numel(ee)
+  
+  for kk=1:numel(ee)
         [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
-        if PASS(kk), pp=pp+1;
+       
+ if PASS(kk), pp=pp+1;
             %% append healthy found eddy
             ACyc(pp)=ee_out;
             %% nan out ssh where eddy was found
@@ -184,9 +186,21 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     if strcmp(DD.map.window.type,'globe')
         ee=correctXoverlap(ee,DD);
     end
-    
+%%
+ ee.VoA=VolumeOverAreaQuotient(ee);
 end
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function VoA=VolumeOverAreaQuotient(ee)
+  VoA=ee.volume.total/ee.area.intrp.^(3/2);  
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 function RoL=getLocalRossyRadius(rossbyL,coor)
     [Y,X]=size(rossbyL);
     x=round(mean(coor.x));

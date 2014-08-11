@@ -5,18 +5,14 @@
 % Author:  NKkk
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function  OWall=maxOWprocess(DD,metaD)
-
-function  maxOWprocess(metaD,DD)
-    
-    
-    
-    NC     =initNC(metaD);
+function  maxOWprocess
+load metaData  DD  
+NC=initNC(metaData);
     S=cell2mat(struct2cell(NC.S))';
     NC.OWzi=[DD.path.Rossby.name 'OWzi.nc'];
     NC.OWa=[DD.path.Rossby.name 'OWa.nc'];
-    initNcFile(NC.OWzi,'zi',S([4 2 3]),{'t_index','j_index','i_index' });
-    initNcFile(NC.OWa,'OW',S([4 2 3]),{'t_index','j_index','i_index' });
+    initNcFile(NC.OWzi,'zi',[S([4 2 3])],{'t_index','j_index','i_index' });
+    initNcFile(NC.OWa,'OW',[S([4 2 3])],{'t_index','j_index','i_index' });
     
     spmdBcalc(NC,DD.path.Rossby.name);
     

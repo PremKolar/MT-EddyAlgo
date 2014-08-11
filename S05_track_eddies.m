@@ -285,8 +285,8 @@ function pass=getAmpAreaThreshMatrix(OLD,NEW,sen,ampArea)
     %% get amp and area
     amp.old=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_mean');
     amp.new=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_mean');
-    area.old=extractdeepfield(OLD.eddies.(sen),'area.total');
-    area.new=extractdeepfield(NEW.eddies.(sen),'area.total');
+    area.old=extractdeepfield(OLD.eddies.(sen),'area.intrp');
+    area.new=extractdeepfield(NEW.eddies.(sen),'area.intrp');
     %% get factors between all new and all old
     [AMP.old,AMP.new]=meshgrid(amp.old,amp.new);
     [AREA.old,AREA.new]=meshgrid(area.old,area.new);
@@ -295,6 +295,13 @@ function pass=getAmpAreaThreshMatrix(OLD,NEW,sen,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
+   
+%     prcnt.amp=sum(sum(AMPfac <= ampArea(2) & AMPfac >= ampArea(1)))/numel(AMPfac)*100;
+%      prcnt.area=sum(sum(AREAfac <= ampArea(2) & AREAfac >= ampArea(1)))/numel(AMPfac)*100;
+% x=1:numel(AREAfac);
+% y=[ones(1,numel(AMPfac))*ampArea(1);ones(1,numel(AMPfac))*ampArea(2)];
+% semilogy(x,sort(AMPfac(:)),'b',x,sort(AREAfac(:)),'red',x,y,'black');
+% legend(sprintf('amp (%2.0f %% passed)',prcnt.amp),sprintf('area (%2.0f %% passed)',prcnt.area),'thresholds');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM]=checkAmpAreaBounds(OLD,NEW,sen,ampArea,LOM,LAM)
@@ -322,11 +329,7 @@ function [MD]=get_min_dists(OLD,NEW,sen,DD)
     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
     %% find min dists
     [MD.(sen).new2old.dist,MD.(sen).new2old.idx]=min(DIST,[],1);
-    [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);
-    
-    
-    
-    
+    [MD.(sen).old2new.dist,MD.(sen).old2new.idx]=min(DIST,[],2);       
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies,sen)

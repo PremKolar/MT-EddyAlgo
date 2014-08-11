@@ -171,15 +171,15 @@ function [OUT]=inits(DD)
     root=DD.path.analyzedTracks.C.name;
     OUT.Cs={DD.path.analyzedTracks.C.files.name};
     Tc=disp_progress('init','collecting all Cs');
-    if exist([DD.path.analyzed.name 'plotable.mat'],'file')
-        load([DD.path.analyzed.name 'plotable.mat'])
-    else
+%     if exist([DD.path.analyzed.name 'plotable.mat'],'file')
+%         load([DD.path.analyzed.name 'plotable.mat'])
+%     else
         for ff=1:numel(OUT.Cs)
             Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
             OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
         end
         save([DD.path.analyzed.name 'plotable.mat'],'OUT')
-    end
+%     end
     
     %% get vectors
     disp(['loading vectors'])

@@ -32,7 +32,7 @@ function [DD]=set_up
     DD = initialise('raw',mfilename);
     %% get sample window
     file=SampleFile(DD);
-    [window]=GetWindow2(file,DD.map.in);   
+    [window]=GetWindow2(file,DD.map.in);
     DD.map.window=window;
     save([DD.path.root 'window.mat'],'window');
 end
@@ -111,10 +111,18 @@ end
 function file=SampleFile(DD)
     dir_in =DD.path.raw;
     pattern_in=DD.map.in.fname;
+    readable=false;
     sample_time=DD.time.from.str;
-    file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
-    if ~exist(file,'file')
-        error([file,' doesnt exist! choose other start date!'])
+    while ~readable
+        file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
+        try
+            nc_dump(file);           
+        catch me
+            disp(me)
+            sample_time=datestr(DD.time.from.num + DD.time.delta_t,'yyyymmdd');
+            continue
+        end
+        readable=true;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

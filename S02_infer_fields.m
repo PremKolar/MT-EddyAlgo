@@ -20,21 +20,27 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
-    if DD.debugmode
-        [JJ]=SetThreadVar(DD);
-        spmd_meanSsh(DD,JJ);
-    else
-        spmd(DD.threads.num)
+    if ~exist([DD.path.root, 'meanSSH.mat'],'file')
+        if DD.debugmode
             [JJ]=SetThreadVar(DD);
             spmd_meanSsh(DD,JJ);
+        else
+            spmd(DD.threads.num)
+                [JJ]=SetThreadVar(DD);
+                spmd_meanSsh(DD,JJ);
+            end
         end
+        MeanSsh=saveMean(DD);
+    else     
+       load([DD.path.root, 'meanSSH.mat']);
     end
-    MeanSsh=saveMean(DD);    
     %% calc fields
     if DD.debugmode
+          [JJ]=SetThreadVar(DD); 
         spmd_fields(DD,RS,JJ,MeanSsh);
     else
         spmd(DD.threads.num)
+              [JJ]=SetThreadVar(DD); 
             spmd_fields(DD,RS,JJ,MeanSsh);
         end
     end
@@ -91,21 +97,23 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
+       
+        if isfield(cut.grids,'OW'), dispM('skipping');continue; end
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS);
-       %% filter
+        %% filter
         if DD.switchs.filterSSHinTime
-           grids.sshRaw=grids.ssh;
-           grids.ssh=grids.ssh - MeanSsh;
+            grids.sshRaw=grids.ssh;
+            grids.ssh=grids.ssh - MeanSsh;
         end        
-%         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
-%             grids.sshRaw=grids.ssh;
-%             grids.ssh=filterStuff(cut.grids,RS);%         end
-       
-        %% write
-        save(JJ(jj).files,'grids','-append');
-    end  
+        %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
+        %             grids.sshRaw=grids.ssh;
+        %             grids.ssh=filterStuff(cut.grids,RS);%         end
+        
+        %% write        
+        save(JJ(jj).files,'grids','-append');       
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -43,10 +43,9 @@ function II=get_contours(dd,TT)
     %% check
     if exist(CONT.filename,'file')
         dispM([CONT.filename ' exists'])
-        %         return
+        return
     end
-    %% loop over levels
-    disp('getting contours........')
+    %% loop over levels   
     CONT.all=contourc(II.grids.ssh,II.levels)';
     %% save data
     save(CONT.filename,'-struct','CONT');

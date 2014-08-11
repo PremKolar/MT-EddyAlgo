@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S10_makeAnimations
     system('RM /tmp/*')
-    DD=initialise('eddies',mfilename);
+    DD=initialise([],mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=297/25.4*ticks.rez*1;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
@@ -27,7 +27,6 @@ function S10_makeAnimations
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     DD.frms=1000;
     animas(DD)
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)

@@ -5,17 +5,19 @@
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function metaData=maxOWmain(DD)
-    [Dim,raw] = setup(DD);
-    [metaData,sMean]=rhoStuff(DD,raw,Dim);
-    calcOW(metaData,raw,sMean);
+     metaData=initbuildRho(DD);
+%     [Dim,raw] = setup(DD);
+%     [metaData,sMean]=rhoStuff(DD,raw,Dim);   
+     
+%     calcOW(metaData,raw,sMean);
     save metaD.mat metaData
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [daily,sMean]=rhoStuff(DD,raw,Dim)
+function [daily,sMean]=rhoStuff(DD,raw,Dim)    
     [daily,funcs]=initbuildRho(DD);
     buildRho(daily,raw,Dim,DD.threads.num,funcs) ;
     labBarrier
-    %%
+%     %%
     sMean = initbuildRhoMean(DD);
     buildRhoMean(DD.threads.num,sMean,Dim,funcs);
 end
@@ -35,11 +37,11 @@ function calcOW(daily,raw,MS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(daily,f,my,toAdd,tt)
-    if ~exist(daily.OWFout{tt},'file')
+    if ~exist(daily.Fout{tt},'file')
         tmpFile=[daily.OWFout{tt} 'tmp'];
         OW=fA(f,daily.Fout{tt},tmpFile,my,toAdd)      ;
         fB(OW,tmpFile,toAdd,f);
-        system(['mv ' tmpFile ' ' daily.OWFout{tt}])
+        system(['mv ' tmpFile ' ' daily.Fout{tt}])
     end
 end
 function OW=fA(f,rhoFile,OWFile,my,toAdd)

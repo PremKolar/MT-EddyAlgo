@@ -4,8 +4,7 @@
 % Matlab:  7.9
 % Author:  NKkk
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOW
-    dbstop if error
+function maxOW   
     %% init
     DD=initialise([],mfilename);
     main(DD);
@@ -20,7 +19,7 @@ function main(DD)
     %% set up
     [DD]=maxOWsetUp(DD);
     %% spmd
-    metaD=maxOWmain(DD);
+    maxOWmain(DD);
     %%
     maxOWprocess(metaD);
 end

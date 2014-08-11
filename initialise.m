@@ -42,6 +42,7 @@ function DD=initialise(toCheck,parentFunc)
 	%----------------------------------------------------------------------
 	%----------------------------------------------------------------------
 	function preInits
+		system('rm -rf /tmp/*')
 		addpath(genpath('./'));  %#ok<*MCAP>
 		%         warning on backtrace;
 		warning('off','SNCTOOLS:nc_getall:dangerous');

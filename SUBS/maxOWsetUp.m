@@ -18,6 +18,7 @@ function [DD]=maxOWsetUp(DD)
     DD.path.TSow=appendFields(DD.path.TSow,Data2Init(DD));
     %% distro time steps to threads
     DD.TSow.lims.inTime=thread_distro(DD.threads.num,numel(DD.path.TSow.files));
+    DD.TSow.lims.timesteps=1:numel(DD.path.TSow.files);
     DD.TSow.lims.inZ=thread_distro(DD.threads.num,DD.TSow.window.size(1));
     
 end

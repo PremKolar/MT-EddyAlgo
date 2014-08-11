@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NKkk
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOW   
+function maxOW
     %% init
     DD=initialise([],mfilename);
     main(DD);
@@ -12,7 +12,7 @@ function maxOW
     %     save([DD.path.root datestr(now,'mmdd-HHMM-') 'minOW'],'minOW')
     %     load([DD.path.root '0729-1752-minOW.mat'])
     %% post process
-     postProc
+    postProc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -21,7 +21,9 @@ function main(DD)
     %% spmd
     metaD=maxOWmain(DD);
     %%
-    maxOWprocess(metaD);
+    save main2.mat
+    load main2
+    maxOWprocess(metaD,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function postProc

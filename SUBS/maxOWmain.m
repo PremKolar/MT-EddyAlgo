@@ -5,17 +5,19 @@
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function metaData=maxOWmain(DD)
-    [Dim,raw] = setup(DD);
-    [metaData,sMean]=rhoStuff(DD,raw,Dim);
-    calcOW(metaData,raw,sMean);
+     metaData=initbuildRho(DD);
+%     [Dim,raw] = setup(DD);
+%     [metaData,sMean]=rhoStuff(DD,raw,Dim);   
+     
+%     calcOW(metaData,raw,sMean);
     save metaD.mat metaData
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [daily,sMean]=rhoStuff(DD,raw,Dim)
+function [daily,sMean]=rhoStuff(DD,raw,Dim)    
     [daily,funcs]=initbuildRho(DD);
     buildRho(daily,raw,Dim,DD.threads.num,funcs) ;
     labBarrier
-    %%
+%     %%
     sMean = initbuildRhoMean(DD);
     buildRhoMean(DD.threads.num,sMean,Dim,funcs);
 end
@@ -35,8 +37,12 @@ function calcOW(daily,raw,MS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(daily,f,my,toAdd,tt)
-    OW=fA(f,daily.Fout{tt},daily.OWFout{tt},my,toAdd)      ;
-    fB(OW,daily.OWFout{tt},toAdd,f);
+    if ~exist(daily.Fout{tt},'file')
+        tmpFile=[daily.OWFout{tt} 'tmp'];
+        OW=fA(f,daily.Fout{tt},tmpFile,my,toAdd)      ;
+        fB(OW,tmpFile,toAdd,f);
+        system(['mv ' tmpFile ' ' daily.Fout{tt}])
+    end
 end
 function OW=fA(f,rhoFile,OWFile,my,toAdd)
     OW=spmdBlockB(f,rhoFile,my);
@@ -64,7 +70,7 @@ function  my=spmdBlockA(MeanFile,raw,f)
         my.dx=f.repinZ(raw.dx,my.Z);
         my.dy=f.repinZ(raw.dy,my.Z);
         my.GOverF=  f.repinZ(raw.corio.GOverF,my.Z);
-        my.depth=f.ncvOne(raw.depth);      
+        my.depth=f.ncvOne(raw.depth);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -139,19 +145,23 @@ function [s,f] = initbuildRho(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  buildRhoMean(threads,s,Dim,f)
-    initNcFile(s.Fout,'RhoMean',Dim.ws);
-    spmd(threads)
-        rhoMean = f.locCo(nan(Dim.ws));
-        T=disp_progress('init','building density mean')  ;
-        labBarrier
+    if ~exist(s.Fout,'file')
+        initNcFile([s.Fout 'tmp'],'RhoMean',Dim.ws);
+        spmd(threads)
+            rhoMean = f.locCo(nan(Dim.ws));
+            T=disp_progress('init','building density mean')  ;
+            labBarrier
+        end
+        %%
+        spmd(threads)
+            rhoMean=gop(@vertcat,spmdRhoMeanBlock(f,s,rhoMean,T),1);
+            labBarrier
+        end
+        %%
+        f.ncvp([s.Fout 'tmp'],'RhoMean',f.mDit(rhoMean{1},Dim.ws),[0 0 0], [Dim.ws]);
+        system(['mv ' s.Fout 'tmp ' s.Fout]);
+        
     end
-    %%
-    spmd(threads)
-        rhoMean=gop(@vertcat,spmdRhoMeanBlock(f,s,rhoMean,T),1);
-        labBarrier
-    end
-    %%
-    f.ncvp(s.Fout,'RhoMean',f.mDit(rhoMean{1},Dim.ws),[0 0 0], [Dim.ws]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rhoMean=spmdRhoMeanBlock(f,s,rhoMean,T)
@@ -168,8 +178,9 @@ function buildRho(s,raw,Dim,threads,f)
     for tt = s.timesteps
         if ~exist(s.Fout{tt},'file')
             [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat);
-            initNcFile(s.Fout{tt},'density',Dim.ws);
-            f.ncvp(s.Fout{tt},'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
+            initNcFile([s.Fout{tt} 'temp'],'density',Dim.ws);
+            f.ncvp([s.Fout{tt} 'temp'],'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
+            system(['mv ' s.Fout{tt} 'temp '  s.Fout{tt}]);
         end
     end
 end

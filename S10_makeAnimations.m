@@ -4,8 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S10_makeAnimations
-    system('RM /tmp/*')
+function S10_makeAnimations    
     DD=initialise([],mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=297/25.4*ticks.rez*1;

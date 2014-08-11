@@ -185,8 +185,16 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
         ee=correctXoverlap(ee,DD);
     end
     
+    
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 function RoL=getLocalRossyRadius(rossbyL,coor)
     [Y,X]=size(rossbyL);
     x=round(mean(coor.x));

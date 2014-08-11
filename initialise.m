@@ -59,6 +59,7 @@ function DD=initialise(toCheck,parentFunc)
 	end
 	%----------------------------------------------------------------------
 	function dbStuff
+         system('rm -rf /tmp/*')
 		echo off all; diary off;
 		if DD.debugmode
 			%echo on all

@@ -59,7 +59,7 @@ function DD=initialise(toCheck,parentFunc)
 		%     dispmem;
 	end
 	%----------------------------------------------------------------------
-	function dbStuff
+	function dbStuff       
 		echo off all; diary off;
 		if DD.debugmode
 			%echo on all

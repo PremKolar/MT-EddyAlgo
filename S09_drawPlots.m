@@ -10,7 +10,7 @@ function S09_drawPlots
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez/3;
+    ticks.width=297/25.4*ticks.rez;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
@@ -30,7 +30,7 @@ function S09_drawPlots
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
-    ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
+  ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     
     %% main
     overmain(ticks,DD)
@@ -44,7 +44,7 @@ function IQoverCH(DD,ticks)
     spmd(3)
         switch labindex
             case 1
-                scatter(C(1,:),C(2,:),C(4,:)/median(C(4,:))*10,C(3,:))
+                scatter(C(1,:),C(2,:),sqrt(C(4,:)/median(C(4,:))*10),C(3,:))
                 colorbar;
                 ylabel(colorbar,'latitude');
                 ylabel('CH');
@@ -171,10 +171,16 @@ function [OUT]=inits(DD)
     root=DD.path.analyzedTracks.C.name;
     OUT.Cs={DD.path.analyzedTracks.C.files.name};
     Tc=disp_progress('init','collecting all Cs');
-    for ff=1:numel(OUT.Cs)
-        Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
-        OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
-    end
+%     if exist([DD.path.analyzed.name 'plotable.mat'],'file')
+%         load([DD.path.analyzed.name 'plotable.mat'])
+%     else
+        for ff=1:numel(OUT.Cs)
+            Tc=disp_progress('calc',Tc,numel(OUT.Cs),50);
+            OUT.tracks.Cycs(ff)={[root OUT.Cs{ff}]};
+        end
+        save([DD.path.analyzed.name 'plotable.mat'],'OUT')
+%     end
+    
     %% get vectors
     disp(['loading vectors'])
     OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);

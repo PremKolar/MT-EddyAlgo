@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S10_makeAnimations
     system('RM /tmp/*')
-    DD=initialise('eddies',mfilename);
+    DD=initialise([],mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=297/25.4*ticks.rez*1;
     ticks.height=ticks.width * DD.map.out.Y/DD.map.out.X;
@@ -27,7 +27,6 @@ function S10_makeAnimations
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     DD.frms=1000;
     animas(DD)
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
@@ -57,6 +56,7 @@ function animas(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savepng4mov(d,ee,DD)
+
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
     if exist([ d.p sprintf('flat%06d.png',ee)],'file')
         return
@@ -80,6 +80,7 @@ function savepng4mov(d,ee,DD)
     view(2)
     camlight left
     set(gcf,'Renderer','zbuffer')
+
     shading flat
     axis tight
     caxis([d.climssh.min d.climssh.max]);

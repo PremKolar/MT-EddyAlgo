@@ -1,13 +1,13 @@
 function DD=INPUTpop
     %% time step
-    DD.time.delta_t=1; % [days]!
+    DD.time.delta_t=7; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='../TempSaltUV/';
-    DD.path.UV.name='../TempSaltUV/';	
-     DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
-     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-	 %% map in keys
+    DD.path.UV.name='../TempSaltUV/';
+    DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
+    DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
+    %% map in keys
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
     DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
     DD.map.in.keys.lat='U_LAT_2D';
@@ -21,7 +21,7 @@ function DD=INPUTpop
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
-
+    
     %% temp salt keys
     DD.TS.keys.lat='U_LAT_2D';
     DD.TS.keys.lon='U_LON_2D';
@@ -42,9 +42,9 @@ function DD=INPUTpop
     %{...
     DD.parameters.SSHAdepth=-25;
     %...}
-     %%
-  DD.switches.rehashMapDims=true; %!!
-  
+    %%
+    DD.switches.rehashMapDims=true; %!!
+    
     
     
     

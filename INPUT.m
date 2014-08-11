@@ -12,7 +12,7 @@ function DD=INPUT
     %       DD.debugmode=true;
     %% time
     DD.time.from.str='19940102';
-    DD.time.till.str='19950102';
+    DD.time.till.str='19970101';
     %% window on globe
     DD.map.in.west=-80;
     DD.map.in.east= 0;

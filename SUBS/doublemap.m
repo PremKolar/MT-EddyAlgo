@@ -26,6 +26,5 @@ function CM=doublemap(abc,cm1,cm2,centercol,alpha)
     CM(CM<0)=0;
     CM(CM>1)=1;
     %% reset to old params
-    colormap(CM);
-    caxis(zlim);
+    colormap(CM);  
 end

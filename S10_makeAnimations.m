@@ -56,6 +56,7 @@ function animas(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savepng4mov(d,ee,DD)
+
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
     if exist([ d.p sprintf('flat%06d.png',ee)],'file')
         return
@@ -79,6 +80,7 @@ function savepng4mov(d,ee,DD)
     view(2)
     camlight left
     set(gcf,'Renderer','zbuffer')
+
     shading flat
     axis tight
     caxis([d.climssh.min d.climssh.max]);

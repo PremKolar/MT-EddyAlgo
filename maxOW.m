@@ -14,10 +14,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)   ;dF 
     maxOWPrep(maxOWsetUp(DD))
-    maxOWrho
+%     maxOWrho
     maxOWrhoMean
-    maxOWcalc
-    maxOWprocess
+%     maxOWcalc
+%     maxOWprocess
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

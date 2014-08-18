@@ -116,10 +116,10 @@ function UV = getVels(fname,f);dF
 	m = matfile(fname)
 	dispM('getting UV')
 	rhoNill = 1000
-	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ);
+	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ)
 	size(dRho)
 	[Y,X]=size(m.dx)
-	
+	save(sprintf('db%02d.mat',labindex)) 
 	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoNill;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;

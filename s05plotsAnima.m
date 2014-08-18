@@ -7,7 +7,7 @@
 % walks through all the contours and decides whether they qualify
 function s05plotsAnima
 	%% init
-	DD=initialise('conts',mfilename);
+	DD=initialise('eddies',mfilename);
 	DD.threads.num=init_threads(DD.threads.num);
 	%% spmd
 	main(DD);

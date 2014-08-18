@@ -6,6 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Madeleine Version
 function S00a_singleCdf2perDT
+warning('off','MATLAB:mir_warning_unrecognized_pragma')
     %% init dependencies
     addpath(genpath('./'));
     %% get user input

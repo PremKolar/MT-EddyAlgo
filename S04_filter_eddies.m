@@ -66,37 +66,65 @@ function [EE,skip]=work_day(DD,JJ,rossby)
 	%% avoid out of bounds integer coordinates close to boundaries
 	[ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
 	%% find them
+	
 	EE=find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function EE=find_eddies(EE,ee_clean,rossby,cut,DD)
 	%% anti cyclones
-	EE.anticyclones=anti_cyclones(ee_clean,rossby,cut,DD);
+	ee_clean(1).filename=EE.filename;
+	EE.anticyclones=Fanti_cyclones(ee_clean,rossby,cut,DD);
 	%% cyclones
-	EE.cyclones=cyclones(ee_clean,rossby,cut,DD);
+	% 	EE.cyclones=Fcyclones(ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ACyc=anti_cyclones(ee,rossby,cut,DD)
-	PASS=false(numel(ee),1);	pp=0;
+function ACyc=Fanti_cyclones(ee,rossby,cut,DD) %#ok<*INUSD>
+	PASS=false(numel(ee),1);
+	pp=0; %#ok<*NASGU>
 	%% loop over eddies, starting at deepest eddies, upwards
+	mkdirp('jpegs');
+	ACyc=[];
+	figure(1);
+	load(ee(1).filename.self);
 	for kk=1:numel(ee)
-		fprintf('%3d promil\n',round(1000*kk/numel(ee)))
-		
-		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
-		if PASS(kk), pp=pp+1;
-			%% append healthy found eddy
-			ACyc(pp)=ee_out; %#ok<*AGROW>
-			%% nan out ssh where eddy was found
-			cut.grids.ssh(ee_out.mask)=nan;
-		end
+		x=ee(kk).coordinates.exact.x;
+		y=ee(kk).coordinates.exact.y;
+		hold on;
+		plot(x,y,'color',rainbow(1,1,1,kk,numel(ee)));
 	end
-	
-	if ~any(PASS)
-		error('no anticyclones made it through the filter...')
+	for kk=1:numel(anticyclones)
+		x=anticyclones(kk).coordinates.exact.x;
+		y=anticyclones(kk).coordinates.exact.y;
+		hold on
+		plot(x,y,'color','black','linewidth',2)
 	end
+	for kk=1:numel(cyclones)
+		x=cyclones(kk).coordinates.exact.x;
+		y=cyclones(kk).coordinates.exact.y;
+		hold on
+		plot(x,y,'--','color','black','linewidth',2)
+	end
+	axis tight;
+	savefig2png4mov('./jpegs',100,800,600,datestr(ee(1).daynum,'yymmdd'));
+	%
+	% for kk=1:numel(ee)
+	% % 		fprintf('%3d promil\n',round(1000*kk/numel(ee)))
+	%
+	% 		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
+	% 		if PASS(kk), pp=pp+1;
+	% 			%% append healthy found eddy
+	% 			ACyc(pp)=ee_out; %#ok<*AGROW>
+	% 			%% nan out ssh where eddy was found
+	% 			cut.grids.ssh(ee_out.mask)=nan;
+	% 		end
+	% 	end
+	%
+	% 	if ~any(PASS)
+	% 		error('no anticyclones made it through the filter...')
+	% 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cyc=cyclones(ee,rossby,cut,DD)
+function Cyc=Fcyclones(ee,rossby,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at highest eddies, downwards
 	for kk=numel(ee):-1:1
@@ -633,6 +661,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ee,cut]=CleanEDDies(ee,cut,contstep)  %#ok<INUSD>
 	[cut.dim.Y,cut.dim.X]=size(cut.grids.ssh);
+	
 	for jj=1:numel(ee)
 		x=ee(jj).coordinates.int.x;
 		y=ee(jj).coordinates.int.y;
@@ -646,6 +675,7 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep)  %#ok<INUSD>
 		ee(jj).coordinates.int.x=x;
 		ee(jj).coordinates.int.y=y;
 	end
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plots4debug(zoom,ee)  %#ok<*DEFNU>

@@ -40,7 +40,7 @@ function  my=OWinit(MeanFile,raw,f);dF
         spmd
             my=MY{labindex}; %#ok<NODEF>
         end
-    catch
+    catch %#ok<CTCH>
         spmd
             my.RhoMean=single(f.ncvOne(f.ncv(MeanFile,'RhoMean')));
             my.Z=size(my.RhoMean,1);

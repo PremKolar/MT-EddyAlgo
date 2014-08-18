@@ -21,6 +21,8 @@ function  buildRhoMean(threads,s,Dim); dF
 		rhoMean=buildRhoMeanOperate(threads,s,Dim);
 		f.ncvp([s.Fout 'tmp'],'RhoMean',f.mDit(rhoMean,Dim.ws),[0 0 0], [Dim.ws]);
 		system(['mv ' s.Fout 'tmp ' s.Fout]);
+	else
+		disp('rho_mean exists. skipping...');sleep(1);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,12 +48,12 @@ function rhoMean=spmdRhoMeanBlock(f,s,rhoMean); dF
 	T=disp_progress('init','building density mean')  ;
 	for ff = 1:numel(s.files)
 		T=disp_progress('show',T,numel(s.files))  ;
-dispM('codstributing')
+		dispM('codstributing')
 		rhoMnew=f.locCo(f.ncvg(s.files{ff},'density'),1);
-dispM('summing')
+		dispM('summing')
 		rhoMean=multiDnansum(rhoMean,rhoMnew);
 	end
-dispM('dividing')
+	dispM('dividing')
 	rhoMean=rhoMean./numel(s.files);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

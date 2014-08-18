@@ -11,7 +11,7 @@ warning('off','MATLAB:mir_warning_unrecognized_pragma')
     addpath(genpath('./'));
     %% get user input
     DD = initialise([],mfilename);
-    delete([DD.path.root,'DD.mat']); % full reboot
+   warning('off','MATLAB:DELETE:FileNotFound'); delete([DD.path.root,'DD.mat']); % full reboot
     DD = initialise([],mfilename);
     %% get madeleine's data
     [raw]=cdfData(DD);
@@ -48,9 +48,7 @@ function spmd_body(DD,raw)
     for cc=CC
         [T]=disp_progress('calc',T,numel(CC),5);
         %% get current SSH
-        raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
-		  [~,a]=lastwarn;
-		  disp(a)
+        raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));		 
         %% append 'zonal wings'           
         raw.grids.ssh=raw.grids.ssh(:,raw.wingIdx);
         %% op day

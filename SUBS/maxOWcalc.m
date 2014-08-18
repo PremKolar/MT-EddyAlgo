@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc;dF
 	load DD
-	DD=main(DD,DD.MD,DD.f,DD.raw); %#ok<NODEF>
+	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,9 +51,8 @@ function  OWinit(MeanFile,raw,f);dF
 		my.depth=single(f.ncvOne(raw.depth));
 	end
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [my,ow]=extrOW(f,cF);dF
+function [my,ow]=extrOW(f,cF);dF;labBarrier;
 	fname=sprintf('thread%02d.mat',labindex);
 	my = matfile(fname,'Writable',true);
 	dispM('filtering high pass rho')
@@ -99,20 +98,19 @@ function UV = getVels(fname,f);dF
 	m = matfile(fname);
 	dispM('getting UV')
 	rhoRef = 1000;
-	dRho = getDrhodx(fname,f);
+	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,f.yx2zyx);
 	[Y,X]=size(m.dx);
 	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoRef;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dRho = getDrhodx(fname,f);dF
+function dRho = getDrhodx(rHP,dx,dy,yx2zyx);dF
 	%% calc density gradients
-	m = matfile(fname);
-	drdx = diff(m.rhoHighPass,1,3);
-	drdy = diff(m.rhoHighPass,1,2);
-	dRho.dx = drdx(:,:,[1:end, end]) ./ f(m.dx,m.Z);
-	dRho.dy = drdy(:,[1:end, end],:) ./ f(m.dy,m.Z);
+	drdx = diff(rHP,1,3);
+	drdy = diff(rHP,1,2);
+	dRho.dx = drdx(:,:,[1:end, end]) ./ yx2zyx(dx,Z);
+	dRho.dy = drdy(:,[1:end, end],:) ./ yx2zyx(dy,Z);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initOWNcFile(fname,toAdd,WinSize);dF
@@ -128,5 +126,23 @@ function initOWNcFile(fname,toAdd,WinSize);dF
 		varstruct.Dimension = {'k_index','j_index','i_index' };
 		nc_addvar(fname,varstruct)
 	end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function f=funcs
+	f.oneDit = @(md) reshape(md,[],1);
+	f.mDit = @(od,ws) reshape(od,[ws(1),ws(2),ws(3)]);
+	f.locCo = @(x,dim) getLocalPart(codistributed(x,codistributor1d(dim)));
+	f.yx2zyx = @(yx,Z) f.oneDit(repmat(permute(yx,[3,1,2]),[Z,1,1]));
+	f.ncvp = @(file,field,array,Ds,De) nc_varput(file,field,array,Ds,De);
+	%%
+	f.ncvg = @(file,field) nc_varget(file,field);
+	f.nansumNcvg = @(A,file,field,dim) nansum([A,f.locCo(f.ncvg(file,field),dim)],2);
+	f.ncv=@(d,field) nc_varget(d,field);
+	f.ncvOne = @(A) getLocalPart(codistributed(A,codistributor1d(1)));
+	f.repinZ = @(A,z) repmat(permute(A,[3,1,2]),[z,1,1]);
+	f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));
+	f.vc2mstr=@(ow,dim) gcat(ow,dim,1);
+	f.getHP = @(cf,f) f.ncvOne(f.ncv(cf,'density'));
+	f.slMstrPrt = @(p) p{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

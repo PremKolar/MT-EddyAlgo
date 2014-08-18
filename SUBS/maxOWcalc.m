@@ -40,7 +40,9 @@ function  tFN=OWinit(MeanFile,raw,f,dim);dF
 	zsplit=diff(round(linspace(0,dim(1),matlabpool('size')+1)));
 	spmd(matlabpool('size'))
 		threadFname=sprintf('thread%02d.mat',labindex);
-		dumpmatfile(threadFname,MeanFile,raw,f,zsplit);
+		if ~exist(threadFname,'file')
+			dumpmatfile(threadFname,MeanFile,raw,f,zsplit);
+		end
 		tFN=gop(@vertcat,{threadFname},1);
 		labBarrier
 	end

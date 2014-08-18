@@ -14,7 +14,7 @@ end
 function DD=main(DD,MD,f,raw);dF
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
 	echo	on all
-	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim);
+	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim.ws);
 	echo	off all
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
@@ -31,6 +31,7 @@ function DD=main(DD,MD,f,raw);dF
 		delete(tFN{tfn})
 	end
 end
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,tA,currFile,OWFile);dF
 	OW=extrOW(f,currFile);

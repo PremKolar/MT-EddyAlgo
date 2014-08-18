@@ -69,11 +69,10 @@ function ow = okuweiss(d);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function defo = getDefo(uvg);dF
-	meanin4d = @(A,B) squeeze(mean([permute(A,[4,1,2,3]);permute(B,[4,1,2,3])],1));
 	defo.vorticity = uvg.dVdx - uvg.dUdy;
 	defo.shear = uvg.dVdx + uvg.dUdy;
 	defo.divergence = 0;
-	defo.stretch = - 2* meanin4d(uvg.dVdy,uvg.dUdx);
+	defo.stretch = - 2* multiDnansum(uvg.dVdy,uvg.dUdx)/2;
 	%     defo.divergence = uvg.dUdx + uvg.dVdy;
 	%     defo.stretch = uvg.dUdx - uvg.dVdy;
 end
@@ -98,19 +97,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function UV = getVels(m,f);dF
 	rhoRef = 1000;
-	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f)
-	[Y,X]=size(m.dx)
-	gzOverRhoF = m.GOverF .* repmat(depth,[1,Y,X]) / rhoRef;
+	dRho = getDrhodx(m,f);
+	[Y,X]=size(m.dx);
+	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoRef;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dRho = getDrhodx(rhoHighPass,dx,dy,Z,f);dF
+function dRho = getDrhodx(m,f);dF
 	%% calc density gradients
-	drdx = diff(rhoHighPass,1,3);
-	drdy = diff(rhoHighPass,1,2);
-	dRho.dx = drdx(:,:,[1:end, end]) ./ f(dx,Z);
-	dRho.dy = drdy(:,[1:end, end],:) ./ f(dy,Z);
+	drdx = diff(m.rhoHighPass,1,3);
+	drdy = diff(m.rhoHighPass,1,2);
+	dRho.dx = drdx(:,:,[1:end, end]) ./ f(m.dx,m.Z);
+	dRho.dy = drdy(:,[1:end, end],:) ./ f(m.dy,m.Z);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initOWNcFile(fname,toAdd,WinSize);dF

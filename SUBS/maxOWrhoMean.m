@@ -6,8 +6,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWrhoMean; dF;load DD
     DD.MD.sMean = initbuildRhoMean(DD.path.TSow); %#ok<NODEF>
+	 DD.Dim
     buildRhoMean(DD.threads.num,DD.MD.sMean,DD.Dim);
-    save DD;end
+    save DD;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [s] = initbuildRhoMean(TSow); dF
     s.files=TSow.rho;

@@ -14,7 +14,7 @@ function DD=main(DD,MD,f,raw);dF
 	getmy=@(varstr) extractfield(load(varstr),varstr);
 	f.getHP = @(cf,f,fi) single(f.ncvOne(f.ncv(cf,fi)));
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	OWinit(MD.sMean.Fout,raw,f);
+	tFN=OWinit(MD.sMean.Fout,raw,f);
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -23,6 +23,9 @@ function DD=main(DD,MD,f,raw);dF
 			loop(f,toAdd,MD.Fout{tt},tmpFile);
 			system(['mv ' tmpFile ' ' MD.OWFout{tt}])
 		end
+	end
+	for tfn=1:numel(tFN)
+		delete(tFN{tfn})
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,19 +40,23 @@ function loop(f,tA,currFile,OWFile);dF
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  OWinit(MeanFile,raw,f);dF
+function  tFN=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
 		threadFname=sprintf('thread%02d.mat',labindex);
-		my = matfile(threadFname,'Writable',true);
-		my.threadFname=threadFname;
-		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
-		my.Z=size(my.RhoMean,1);
-		my.dx=single(raw.dx); %#ok<*NASGU>
-		my.dy=single(raw.dy);
-		my.GOverF=single(raw.corio.GOverF);
-		my.depth=single(f.ncvOne(raw.depth));
+		if ~exist(threadFname,'file')
+			my = matfile(threadFname,'Writable',true);
+			my.threadFname=threadFname;
+			my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
+			my.Z=size(my.RhoMean,1);
+			my.dx=single(raw.dx); %#ok<*NASGU>
+			my.dy=single(raw.dy);
+			my.GOverF=single(raw.corio.GOverF);
+			my.depth=single(f.ncvOne(raw.depth));
+		end
+		tFN=gop(@vertcat,{threadFname},1);
 	end
+	tFN=tFN{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [my,ow]=extrOW(f,cF);dF;labBarrier;

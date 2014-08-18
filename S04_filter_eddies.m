@@ -80,6 +80,8 @@ function ACyc=anti_cyclones(ee,rossby,cut,DD)
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at deepest eddies, upwards
 	for kk=1:numel(ee)
+		fprintf('%3d promil\n',round(1000*kk/numel(ee)))
+		
 		[PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
 		if PASS(kk), pp=pp+1;
 			%% append healthy found eddy
@@ -88,6 +90,7 @@ function ACyc=anti_cyclones(ee,rossby,cut,DD)
 			cut.grids.ssh(ee_out.mask)=nan;
 		end
 	end
+	
 	if ~any(PASS)
 		error('no anticyclones made it through the filter...')
 	end
@@ -152,7 +155,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
 	%% test
 	pass=CR_radius(ee.radius.mean,DD.thresh.radius);
 	if ~pass, return, end;
-	disp('blubb')
+	
 	%% get ideal ellipse contour
 	zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
 	%% get effective amplitude relative to ellipse;
@@ -179,7 +182,7 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
 	end
 	%% calc vol/area^1.5 quotient
 	ee.VoA=VolumeOverAreaQuotient(ee);
-	disp('blibb')
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function VoA=VolumeOverAreaQuotient(ee)

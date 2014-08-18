@@ -32,7 +32,7 @@ function DD=INPUTmad
     %% parameters 
     DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
     DD.parameters.SSHAdepth=-25;
-    DD.parameters.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+    DD.parameters.ssh_unitFactor = 1000; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     DD.parameters.meanU=-200; % depth from which to take mean U
     DD.parameters.meanUunit=1; %

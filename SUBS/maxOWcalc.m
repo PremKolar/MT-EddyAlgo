@@ -32,7 +32,7 @@ end
 function loop(f,tA,currFile,OWFile);dF
 	fname=sprintf('thread%02d.mat',labindex);
 	my = matfile(fname,'Writable',true);
-	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
+	my.rhoHighPass=f.getHP(currFile,f,'density') - my.RhoMean;
 	my.UV=getVels(fname,f);	
 	
 	spmd

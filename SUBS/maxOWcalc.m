@@ -54,18 +54,13 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [my,ow]=extrOW(f,cF);dF
-	% 	fname.temp=sprintf('thread%02dtemp.mat',labindex);
-	fname.root=sprintf('thread%02d.mat',labindex);
-	my = matfile(fname.root,'Writable',true);
+	fname=sprintf('thread%02d.mat',labindex);
+	my = matfile(fname,'Writable',true);
 	dispM('filtering high pass rho')
 	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
-	whos my
-	my %#ok<NOPRT>
-	my.UV=getVels(fname.root,f);
-	labBarrier;
-	uvg=UVgrads(fname.root,f.repinZ);
-	ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);
-	labBarrier
+	my.UV=getVels(fname,f);	labBarrier;
+	uvg=UVgrads(fname,f.repinZ);
+	ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);	labBarrier
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d);dF

@@ -22,9 +22,9 @@ function DD=main(DD,MD,f,raw);dF
 			system(['mv ' tmpFile ' ' MD.OWFout{tt}])
 		end
 	end
-		for tfn=1:numel(tFN)
-			delete(tFN{tfn})
-		end
+	for tfn=1:numel(tFN)
+		delete(tFN{tfn})
+	end
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,11 +42,9 @@ function  tFN=OWinit(MeanFile,raw,f,dim);dF
 		threadFname=sprintf('thread%02d.mat',labindex);
 		dumpmatfile(threadFname,MeanFile,raw,f,zsplit);
 		tFN=gop(@vertcat,{threadFname},1);
-	end
-	tFN=tFN{1};
-	spmd(matlabpool('size'))
 		labBarrier
 	end
+	tFN=tFN{1};
 end
 function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	[Y,X]=size(raw.lat);
@@ -59,7 +57,7 @@ function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my.dx=single(raw.dx); %#ok<*NASGU>
 	my.dy=single(raw.dy);
 	my.GOverF=single(raw.corio.GOverF);
-	my.depth=f.locCo(f.repinYX(raw.depth,Y,X),my.codisp); 
+	my.depth=f.locCo(f.repinYX(raw.depth,Y,X),my.codisp);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW=extrOW(f,cF);dF
@@ -67,9 +65,9 @@ function OW=extrOW(f,cF);dF
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
-				rhoNow=f.getHP(cF,f,'density',my.codisp);
+		rhoNow=f.getHP(cF,f,'density',my.codisp);
 		labBarrier;
-				my.rhoHighPass=rhoNow - my.RhoMean;
+		my.rhoHighPass=rhoNow - my.RhoMean;
 	end
 	clear rhoNow my
 	spmd(matlabpool('size'))
@@ -118,11 +116,9 @@ function UV = getVels(fname,f);dF
 	dispM('getting UV')
 	rhoNill = 1000;
 	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ);
-	save(sprintf('db%02d.mat',labindex))
 	gzOverRhoF = (f.repinZ(m.GOverF,m.Z) .* m.depth) / rhoNill;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
-	UV
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dRho = getDrhodx(rHP,dx,dy,Z,repinZ);dF
@@ -150,7 +146,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
 	f.ncv=@(d,field) nc_varget(d,field);
-	f.ncvOne = @(A) getLocalPart(codistributed(A,codistributor1d(1)));
 	f.repinYX = @(A,Y,X) repmat(reshape(A(:),[],1),[1,Y,X]);
 	f.repinZ = @(A,z) repmat(permute(A,[3,1,2]),[z,1,1]);
 	f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));

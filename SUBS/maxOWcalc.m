@@ -40,7 +40,7 @@ end
 function  my=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
-		threadFname=sprintf('thread%2d.mat',labindex);
+		threadFname=sprintf('thread%02d.mat',labindex);
 		my = matfile(threadFname,'Writable',true);
 		my.threadFname=threadFname;
 		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
@@ -59,7 +59,7 @@ function [myB,ow]=extrOW(my,f,cF);dF
 	% 		my.RhoMean=my.RhoMean;
 	% 		labBarrier
 	% 	end
-	threadFname=sprintf('thread%2dB.mat',labindex);
+	threadFname=sprintf('thread%02dB.mat',labindex);
 	myB = matfile(threadFname,'Writable',true);
 	myB.threadFname=threadFname;
 	myB.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;

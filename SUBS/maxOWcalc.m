@@ -30,10 +30,8 @@ function DD=main(DD,MD,f,raw);dF
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function loop(f,tA,currFile,OWFile);dF
-	
-	[~,ow]=extrOW(f,currFile);
-	
+function loop(f,tA,currFile,OWFile);dF	
+	[~,ow]=extrOW(f,currFile);	
 	OW=f.slMstrPrt(ow);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
@@ -54,7 +52,6 @@ function  tFN=OWinit(MeanFile,raw,f);dF
 			my.dy=single(raw.dy);
 			my.GOverF=single(raw.corio.GOverF);
 			my.depth=single(f.ncvOne(raw.depth));
-			% 			my.zz=gop(@vertcat,)
 		end
 		tFN=gop(@vertcat,{threadFname},1);
 	end

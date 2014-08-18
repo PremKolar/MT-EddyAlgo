@@ -7,7 +7,7 @@
 function DD=INPUT
     DD.template='mad';
     %% threads / debug
-    DD.threads.num=1;
+    DD.threads.num=2;
     DD.debugmode=false;
 %           DD.debugmode=true;
     %% time

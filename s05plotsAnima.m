@@ -73,6 +73,7 @@ end
 function makejpegs(EE,ee)
 	load(EE.filename.self);
 	load(EE.filename.cont);
+	whos
 	figure(labindex);clf;
 	for kk=1:numel(ee)
 		x=ee(kk).coordinates.exact.x;

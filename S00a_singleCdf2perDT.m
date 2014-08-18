@@ -11,7 +11,7 @@ warning('off','MATLAB:mir_warning_unrecognized_pragma')
     addpath(genpath('./'));
     %% get user input
     DD = initialise([],mfilename);
-    delete([DD.path.root,'DD.mat']); % full reboot
+   warning('off','MATLAB:DELETE:FileNotFound'); delete([DD.path.root,'DD.mat']); % full reboot
     DD = initialise([],mfilename);
     %% get madeleine's data
     [raw]=cdfData(DD);

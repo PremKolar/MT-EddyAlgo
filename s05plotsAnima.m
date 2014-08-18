@@ -13,7 +13,9 @@ function s05plotsAnima
 	main(DD);
 	%% update infofile
 	conclude(DD);
-	system(['mencoder "mf://*.jpeg" -mf fps=10  -o flat.avi -ovc lavc -lavcopts  vcodec=ljpeg'])
+	system(['mencoder "mf://*.jpeg" -mf fps=20  -o flat.avi -ovc lavc -lavcopts  vcodec=ljpeg'])
+	system(['rm ./*.jpeg'])
+	system(['mplayer flat.avi'])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -94,7 +96,7 @@ function makejpegs(EE,ee)
 	end
 	axis tight;
 	title(datestr(ee(1).daynum));
- 	savefig2png4mov('./jpegs',100,800,600,datestr(ee(1).daynum,'yymmdd'));
+ 	savefig2png4mov('./',100,800,600,datestr(ee(1).daynum,'yymmdd'));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE]=eddies2struct(CC,thresh)

@@ -98,8 +98,7 @@ function uvg = UVgrads(fname,repinZ);dF
 	m=matfile(fname);
 	dd.y= @(in)  diff(in,1,2);
 	dd.x= @(in)  diff(in,1,3);
-	z=size(m.UV.u,1);
-	uvg = getuvg(m.UV.u,m.UV.v,m.dy,m.dx,dd,repinZ,z);
+	uvg = getuvg(m.UV.u,m.UV.v,m.dy,m.dx,dd,repinZ,m.Z);
 end
 function uvg=getuvg(u,v,dy,dx,dd,repinZ,z);dF
 	uvg.dUdy = inxOry(dd.y(u),'y',dy,z,repinZ);

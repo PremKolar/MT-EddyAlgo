@@ -6,15 +6,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc
 	load DD
-	dbstop in maxOWcalc at 85
+% 	dbstop in maxOWcalc at 85
 	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
-	
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	tFN=OWinit(MD.sMean.Fout,raw,f);
+	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim);
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -30,18 +29,18 @@ function DD=main(DD,MD,f,raw);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,tA,currFile,OWFile);dF
-	[~,ow]=extrOW(f,currFile);
-	OW=f.slMstrPrt(ow);
+	OW=extrOW(f,currFile);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
 	OW(isinf(OW) | OW>=0 | isnan(OW) )=nan;
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  tFN=OWinit(MeanFile,raw,f);dF
+function  tFN=OWinit(MeanFile,raw,f,dim);dF
+	zsplit=diff(round(linspace(0,dim(1),matlabpool('size')+1)));
 	spmd(matlabpool('size'))
 		threadFname=sprintf('thread%02d.mat',labindex);
-		dumpmatfile(threadFname,MeanFile,raw,f);
+		dumpmatfile(threadFname,MeanFile,raw,f,zsplit);
 		tFN=gop(@vertcat,{threadFname},1);
 	end
 	tFN=tFN{1};
@@ -49,10 +48,12 @@ function  tFN=OWinit(MeanFile,raw,f);dF
 		labBarrier
 	end
 end
-function dumpmatfile(threadFname,MeanFile,raw,f)
+function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my = matfile(threadFname,'Writable',true);
 	my.threadFname=threadFname;
-	my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
+	my.zsplit=zsplit;
+	my.codisp = codistributor1d(1, zsplit);
+	my.RhoMean=f.getHPalt(MeanFile,f,'RhoMean',my.codisp);
 	my.Z=size(my.RhoMean,1);
 	my.dx=single(raw.dx); %#ok<*NASGU>
 	my.dy=single(raw.dy);
@@ -60,39 +61,23 @@ function dumpmatfile(threadFname,MeanFile,raw,f)
 	my.depth=single(f.ncvOne(raw.depth));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [my,ow]=extrOW(f,cF);dF
+function OW=extrOW(f,cF);dF
 	spmd(matlabpool('size'))
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
-		rhoNow=f.getHP(cF,f,'density');
+		rhoNow=f.getHPalt(cF,f,'density',my.codisp);
 		labBarrier;
-	end
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	spmd(matlabpool('size'))
 		my.rhoHighPass=rhoNow - my.RhoMean;
+	end
+	clear rhoNow my
+	spmd(matlabpool('size'))
+		my = matfile(fname,'Writable',true);
 		my.UV=getVels(fname,f);	labBarrier;
 		uvg=UVgrads(fname,f.repinZ);
 		ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);	labBarrier
 	end
+	OW=ow{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d);dF
@@ -140,7 +125,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dRho = getDrhodx(rHP,dx,dy,Z,yx2zyx);dF
 	%% calc density gradients
-	
 	drdx = diff(rHP,1,3);
 	drdy = diff(rHP,1,2);
 	dRho.dx = drdx(:,:,[1,1:end]) ./ yx2zyx(dx,Z);
@@ -177,6 +161,8 @@ function f=funcs
 	f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));
 	f.vc2mstr=@(ow,dim) gcat(ow,dim,1);
 	f.getHP = @(cf,f,fi) single(f.locCo(f.ncv(cf,fi),1));
+	f.locCoalt = @(x,cod) getLocalPart(codistributed(x,cod));
+	f.getHPalt = @(cf,f,fi,cod) single(f.locCoalt(f.ncv(cf,fi),cod));
 	f.slMstrPrt = @(p) p{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

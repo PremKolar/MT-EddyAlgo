@@ -12,7 +12,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim.ws);
+	% 	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim.ws);
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -22,9 +22,9 @@ function DD=main(DD,MD,f,raw);dF
 			system(['mv ' tmpFile ' ' MD.OWFout{tt}])
 		end
 	end
-	for tfn=1:numel(tFN)
-		delete(tFN{tfn})
-	end
+	% 	for tfn=1:numel(tFN)
+	% 		delete(tFN{tfn})
+	% 	end
 end
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,9 +67,9 @@ function OW=extrOW(f,cF);dF
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
-		rhoNow=f.getHP(cF,f,'density',my.codisp);
+		% 		rhoNow=f.getHP(cF,f,'density',my.codisp);
 		labBarrier;
-		my.rhoHighPass=rhoNow - my.RhoMean;
+		% 		my.rhoHighPass=rhoNow - my.RhoMean;
 	end
 	clear rhoNow my
 	spmd(matlabpool('size'))
@@ -119,8 +119,8 @@ function UV = getVels(fname,f);dF
 	rhoNill = 1000
 	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ)
 	size(dRho)
-	save(sprintf('db%02d.mat',labindex)) 
-	gzOverRhoF = (m.GOverF .* m.depth) / rhoNill;
+	save(sprintf('db%02d.mat',labindex))
+	gzOverRhoF = (f.repinZ(m.GOverF,m.Z) .* m.depth) / rhoNill;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
 	UV

@@ -6,25 +6,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWrho
     load DD
-    DD.MD=main(DD,DD.raw,DD.Dim,DD.f);
+    DD.MD=main(DD,DD.raw,DD.Dim,DD.f); %#ok<NODEF>
     save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MD]=main(DD,raw,Dim,f)
-     [MD]=initbuildRho(DD);
+    [MD]=initbuildRho(DD);
     buildRho(MD,raw,Dim,DD.threads.num,f) ;
-    MD.sMean = initbuildRhoMean(DD);
-    buildRhoMean(DD.threads.num,MD.sMean,Dim,f);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [s] = initbuildRhoMean(DD)
-    s.files=DD.path.TSow.rho;
-    s.Fout=[DD.path.TSow.dailyRhoName 'mean.nc'];
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [s] = initbuildRho(DD)
-   dF
-   s.timesteps= DD.TSow.lims.timesteps;
+function [s] = initbuildRho(DD);  dF
+    s.timesteps= DD.TSow.lims.timesteps;
     s.keys = DD.TS.keys;
     s.Fin = DD.path.TSow.files;
     s.dirOut=DD.path.full3d.name;
@@ -33,40 +25,8 @@ function [s] = initbuildRho(DD)
     s.geoOut=DD.path.TSow.geo;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  buildRhoMean(threads,s,Dim,f)
-    if ~exist(s.Fout,'file')
-        selMstr=@(x) x{1};
-        rhoMean=selMstr(buildRhoMeanOperate(threads,s,Dim,f));
-        f.ncvp([s.Fout 'tmp'],'RhoMean',f.mDit(rhoMean,Dim.ws),[0 0 0], [Dim.ws]);
-        system(['mv ' s.Fout 'tmp ' s.Fout]);
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  rhoMean=buildRhoMeanOperate(threads,s,Dim,f)
-    if ~exist(s.Fout,'file')
-        initNcFile([s.Fout 'tmp'],'RhoMean',Dim.ws);
-        spmd(threads)
-            rhoMean = f.locCo(nan(Dim.ws));
-            T=disp_progress('init','building density mean')  ;
-            labBarrier
-        end
-        %%
-        spmd(threads)
-            rhoMean=gop(@vertcat,spmdRhoMeanBlock(f,s,rhoMean,T),1);
-            labBarrier
-        end
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function rhoMean=spmdRhoMeanBlock(f,s,rhoMean,T)
-    for ff = 1:numel(s.files)
-        T=disp_progress('show',T,numel(s.files),10)  ;
-        rhoMean=f.nansumNcvg(rhoMean,s.files{ff},'density');
-    end
-    rhoMean=rhoMean/numel(s.files);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function buildRho(s,raw,Dim,threads,f)
+    dF
     [depth,lat,T]=spmdInit(threads,raw,Dim,f);
     %%
     for tt = s.timesteps

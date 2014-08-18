@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOWsetUp(DD)
+function DD=maxOWsetUp(DD)
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
@@ -20,7 +20,7 @@ function maxOWsetUp(DD)
     DD.TSow.lims.inTime=thread_distro(DD.threads.num,numel(DD.path.TSow.files));
     DD.TSow.lims.timesteps=1:numel(DD.path.TSow.files);
     DD.TSow.lims.inZ=thread_distro(DD.threads.num,DD.TSow.window.size(1));
-    save DD
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out]=DataInit(DD)

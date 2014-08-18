@@ -62,7 +62,7 @@ function DD=initialise(toCheck,parentFunc)
 		echo off all; diary off;
 		if DD.debugmode
 			%echo on all
-			diary on;
+% 			diary on;
 			dbstop if error;
 		else
 			

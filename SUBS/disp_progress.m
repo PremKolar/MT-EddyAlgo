@@ -5,6 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [T]=disp_progress(type,Tin,L,num_prints)
+    if nargin==3
+        num_prints=L;
+    end
     if strcmp(type,'conclude')
         conclude; T=[]; return
     end

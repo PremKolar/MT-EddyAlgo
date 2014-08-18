@@ -4,16 +4,15 @@
 % Matlab:7.9
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOWcalc;dF
+function maxOWcalc
 	load DD
-	dbstop in maxOWcalc at 68
+	dbstop in maxOWcalc at 85
 	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
-	getmy=@(varstr) extractfield(load(varstr),varstr);
-	f.getHP = @(cf,f,fi) single(f.ncvOne(f.ncv(cf,fi)));
+	
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
 	tFN=OWinit(MD.sMean.Fout,raw,f);
 	toAdd={'OkuboWeiss','log10NegOW'};
@@ -30,8 +29,8 @@ function DD=main(DD,MD,f,raw);dF
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function loop(f,tA,currFile,OWFile);dF	
-	[~,ow]=extrOW(f,currFile);	
+function loop(f,tA,currFile,OWFile);dF
+	[~,ow]=extrOW(f,currFile);
 	OW=f.slMstrPrt(ow);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
@@ -40,29 +39,29 @@ function loop(f,tA,currFile,OWFile);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  tFN=OWinit(MeanFile,raw,f);dF
-	disp('init okubo weiss calcs...')
-	spmd
+	spmd(matlabpool('size'))
 		threadFname=sprintf('thread%02d.mat',labindex);
-% 		if ~exist(threadFname,'file')
-			my = matfile(threadFname,'Writable',true);
-			my.threadFname=threadFname;
-			my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
-			my.Z=size(my.RhoMean,1);	myZ=my.Z;
-			my.dx=single(raw.dx); %#ok<*NASGU>
-			my.dy=single(raw.dy);
-			my.GOverF=single(raw.corio.GOverF);
-			my.depth=single(f.ncvOne(raw.depth));
-% 		end
+		dumpmatfile(threadFname,MeanFile,raw,f);
 		tFN=gop(@vertcat,{threadFname},1);
 	end
 	tFN=tFN{1};
-	spmd
+	spmd(matlabpool('size'))
 		labBarrier
 	end
 end
+function dumpmatfile(threadFname,MeanFile,raw,f)
+	my = matfile(threadFname,'Writable',true);
+	my.threadFname=threadFname;
+	my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
+	my.Z=size(my.RhoMean,1);
+	my.dx=single(raw.dx); %#ok<*NASGU>
+	my.dy=single(raw.dy);
+	my.GOverF=single(raw.corio.GOverF);
+	my.depth=single(f.ncvOne(raw.depth));
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [my,ow]=extrOW(f,cF);dF
-	spmd
+	spmd(matlabpool('size'))
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
@@ -88,7 +87,7 @@ function [my,ow]=extrOW(f,cF);dF
 	
 	
 	
-	spmd
+	spmd(matlabpool('size'))
 		my.rhoHighPass=rhoNow - my.RhoMean;
 		my.UV=getVels(fname,f);	labBarrier;
 		uvg=UVgrads(fname,f.repinZ);
@@ -177,7 +176,7 @@ function f=funcs
 	f.repinZ = @(A,z) repmat(permute(A,[3,1,2]),[z,1,1]);
 	f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));
 	f.vc2mstr=@(ow,dim) gcat(ow,dim,1);
-	f.getHP = @(cf,f) f.ncvOne(f.ncv(cf,'density'));
+	f.getHP = @(cf,f,fi) single(f.locCo(f.ncv(cf,fi),1));
 	f.slMstrPrt = @(p) p{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

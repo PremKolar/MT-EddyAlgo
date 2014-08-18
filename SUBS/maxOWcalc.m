@@ -28,7 +28,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,my,tA,currFile,OWFile);dF
 	spmd
-		[~,ow]=extrOW(my,f,currFile);
+		[~,ow]=extrOW(f,currFile);
 	end
 	OW=f.slMstrPrt(ow);
 	initOWNcFile(OWFile,tA,size(OW));
@@ -53,20 +53,14 @@ function  my=OWinit(MeanFile,raw,f);dF
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [myB,ow]=extrOW(my,f,cF);dF
-	% 	spmd
-	% 		dx=my.dx;dy=my.dy;Z=my.Z;GOverF=my.GOverF;depth=my.depth;
-	% 		my.RhoMean=my.RhoMean;
-	% 		labBarrier
-	% 	end
-	threadFname=sprintf('thread%02dB.mat',labindex);
-	myB = matfile(threadFname,'Writable',true);
-	myB.threadFname=threadFname;
-	myB.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
-	myB.UV=getVels(my.depth,my.GOverF,my.rhoHighPass,my.dx,my.dy,my.Z,f);
+function [my,ow]=extrOW(f,cF);dF
+	threadFname=sprintf('thread%02d.mat',labindex);
+	my = matfile(threadFname,'Writable',true);	
+	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
+	my.UV=getVels(my,f);
 	labBarrier;
-	myB.uvg=UVgrads(myB.UV,my.dx,my.dy,f.repinZ);
-	ow = f.vc2mstr(okuweiss(getDefo(myB.uvg)),1);
+	uvg=UVgrads(my,f.repinZ);
+	ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);
 	labBarrier
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,14 +78,14 @@ function defo = getDefo(uvg);dF
 	%     defo.stretch = uvg.dUdx - uvg.dVdy;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function uvg = UVgrads(UV,dx,dy,f);dF
+function uvg = UVgrads(m,f);dF
 	dd.y= @(in)  diff(in,1,2);
 	dd.x= @(in)  diff(in,1,3);
-	z=size(UV.u,1);
-	uvg.dUdy = inxOry(dd.y(UV.u),'y',dy,z,f);
-	uvg.dUdx = inxOry(dd.x(UV.u),'x',dx,z,f);
-	uvg.dVdy = inxOry(dd.y(UV.v),'y',dy,z,f);
-	uvg.dVdx = inxOry(dd.x(UV.v),'x',dx,z,f);
+	z=size(m.UV.u,1);
+	uvg.dUdy = inxOry(dd.y(m.UV.u),'y',m.dy,z,f);
+	uvg.dUdx = inxOry(dd.x(m.UV.u),'x',m.dx,z,f);
+	uvg.dVdy = inxOry(dd.y(m.UV.v),'y',m.dy,z,f);
+	uvg.dVdx = inxOry(dd.x(m.UV.v),'x',m.dx,z,f);
 end
 function out=inxOry(in,inxy,dxy,z,f);dF
 	denom=f(dxy,z);
@@ -102,11 +96,11 @@ function out=inxOry(in,inxy,dxy,z,f);dF
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function UV = getVels(depth,GOverF,rhoHighPass,dx,dy,Z,f);dF
+function UV = getVels(m,f);dF
 	rhoRef = 1000;
-	dRho = getDrhodx(rhoHighPass,dx,dy,Z,f)
-	[Y,X]=size(dx)
-	gzOverRhoF = GOverF .* repmat(depth,[1,Y,X]) / rhoRef;
+	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f)
+	[Y,X]=size(m.dx)
+	gzOverRhoF = m.GOverF .* repmat(depth,[1,Y,X]) / rhoRef;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
 end

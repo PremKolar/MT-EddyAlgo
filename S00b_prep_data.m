@@ -9,7 +9,6 @@
 function S00b_prep_data
     %% set up
     [DD]=set_up;
-	 sleep(5)
     %% spmd
     main(DD)
     %% save info
@@ -40,13 +39,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% distro days to threads
-    [II]=SetThreadVar(DD); sleep(5)
+    [II]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
     for cc=1:numel(II);
         %% 
-		  sleep(5)
-        [T]=disp_progress('calc',T,numel(II),100);
+		  [T]=disp_progress('calc',T,numel(II),100);
         %% get data
         [file,exists]=GetCurrentFile(II(cc),DD)  ; if exists.out,disp('exists');return;end
         %% cut data

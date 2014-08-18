@@ -1,5 +1,6 @@
+S00a_singleCdf2perDT
   S00b_prep_data
-   S01_BruntVaisRossby
+  S01_BruntVaisRossby
 S02_infer_fields
  S03_contours
  S04_filter_eddies

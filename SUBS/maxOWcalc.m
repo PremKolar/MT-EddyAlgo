@@ -6,24 +6,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc
 	load DD
-	% 	dbstop in maxOWcalc at 85
 	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	echo	on all
 	tFN=OWinit(MD.sMean.Fout,raw,f,DD.Dim.ws);
-	echo	off all
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
 		if ~exist(MD.OWFout{tt},'file')
 			tmpFile=[MD.OWFout{tt} 'tmp'];
-			echo	on all
 			loop(f,toAdd,MD.Fout{tt},tmpFile);
-			echo	off all
 			system(['mv ' tmpFile ' ' MD.OWFout{tt}])
 		end
 	end
@@ -155,7 +150,7 @@ function f=funcs
 	f.oneDit = @(md) reshape(md,[],1);
 	f.mDit = @(od,ws) reshape(od,[ws(1),ws(2),ws(3)]);
 	f.locCo = @(x,dim) getLocalPart(codistributed(x,codistributor1d(dim)));
-	f.yx2zyx = @(yx,Z) f.oneDit(repmat(permute(yx,[3,1,2]),[Z,1,1]));
+	f.yx2zyx = @(yx,Z) repmat(permute(yx,[3,1,2]),[Z,1,1]);
 	f.ncvp = @(file,field,array,Ds,De) nc_varput(file,field,array,Ds,De);
 	%%
 	f.ncvg = @(file,field) nc_varget(file,field);

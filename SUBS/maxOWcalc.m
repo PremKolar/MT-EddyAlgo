@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc;dF
 	load DD
-	dbstop in maxOWcalc at 50
+	dbstop in maxOWcalc at 71
 	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
@@ -31,14 +31,9 @@ function DD=main(DD,MD,f,raw);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,tA,currFile,OWFile);dF
-	fname=sprintf('thread%02d.mat',labindex);
-	my = matfile(fname,'Writable',true);
-	my.rhoHighPass=f.getHP(currFile,f,'density') - my.RhoMean;
-	my.UV=getVels(fname,f);	
 	
-	spmd
-		[~,ow]=extrOW(f,currFile);
-	end
+	[~,ow]=extrOW(f,currFile);
+	
 	OW=f.slMstrPrt(ow);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
@@ -48,43 +43,38 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  tFN=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
-
-	
-f
-threadFname=sprintf('thr%02d.mat',labindex);
-
-
-
-spmd
-	
-	
+	spmd
 		threadFname=sprintf('thread%02d.mat',labindex);
 		if ~exist(threadFname,'file')
 			my = matfile(threadFname,'Writable',true);
 			my.threadFname=threadFname;
 			my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
-			my.Z=size(my.RhoMean,1);	myZ=my.Z;		
+			my.Z=size(my.RhoMean,1);	myZ=my.Z;
 			my.dx=single(raw.dx); %#ok<*NASGU>
 			my.dy=single(raw.dy);
 			my.GOverF=single(raw.corio.GOverF);
 			my.depth=single(f.ncvOne(raw.depth));
-% 			my.zz=gop(@vertcat,)
+			% 			my.zz=gop(@vertcat,)
 		end
-		
-		
 		tFN=gop(@vertcat,{threadFname},1);
 	end
 	tFN=tFN{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [my,ow]=extrOW(f,cF);dF;labBarrier;
-	fname=sprintf('thread%02d.mat',labindex);
-	my = matfile(fname,'Writable',true);
-	dispM('filtering high pass rho')
-	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
-	my.UV=getVels(fname,f);	labBarrier;
-	uvg=UVgrads(fname,f.repinZ);
-	ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);	labBarrier
+	spmd
+		fname=sprintf('thread%02d.mat',labindex);
+		my = matfile(fname,'Writable',true);
+		dispM('filtering high pass rho')
+		rhoNow=f.getHP(cF,f,'density');
+	end
+	
+	spmd
+		my.rhoHighPass=rhoNow - my.RhoMean;
+		my.UV=getVels(fname,f);	labBarrier;
+		uvg=UVgrads(fname,f.repinZ);
+		ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);	labBarrier
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d);dF

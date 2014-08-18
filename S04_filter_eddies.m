@@ -42,7 +42,7 @@ function spmd_body(DD,rossby)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [EE,skip]=work_day(DD,JJ,rossby);disp(mfilename); sleep(1)
+function [EE,skip]=work_day(DD,JJ,rossby);dbstack 
 	%% check for exisiting data
 	skip=false;
 	EE.filename.cont=JJ.files;
@@ -69,14 +69,14 @@ function [EE,skip]=work_day(DD,JJ,rossby);disp(mfilename); sleep(1)
 	EE=find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function EE=find_eddies(EE,ee_clean,rossby,cut,DD);disp(mfilename); sleep(1)
+function EE=find_eddies(EE,ee_clean,rossby,cut,DD);dbstack 
 	%% anti cyclones
 	EE.anticyclones=anti_cyclones(ee_clean,rossby,cut,DD);
 	%% cyclones
 	EE.cyclones=cyclones(ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ACyc=anti_cyclones(ee,rossby,cut,DD);disp(mfilename); sleep(1)
+function ACyc=anti_cyclones(ee,rossby,cut,DD);dbstack 
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at deepest eddies, upwards
 	for kk=1:numel(ee)
@@ -93,7 +93,7 @@ function ACyc=anti_cyclones(ee,rossby,cut,DD);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cyc=cyclones(ee,rossby,cut,DD);disp(mfilename); sleep(1)
+function Cyc=cyclones(ee,rossby,cut,DD);dbstack 
 	PASS=false(numel(ee),1);	pp=0;
 	%% loop over eddies, starting at highest eddies, downwards
 	for kk=numel(ee):-1:1
@@ -110,7 +110,7 @@ function Cyc=cyclones(ee,rossby,cut,DD);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction);disp(mfilename); sleep(1)
+function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction);dbstack 
 	%% pre-nan-check
 	pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
 	if ~pass, return, end;
@@ -180,11 +180,11 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction);disp(mfilename); 
 	ee.VoA=VolumeOverAreaQuotient(ee);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function VoA=VolumeOverAreaQuotient(ee);disp(mfilename); sleep(1)
+function VoA=VolumeOverAreaQuotient(ee);dbstack 
 	VoA=ee.volume.total/ee.area.intrp.^(3/2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function RoL=getLocalRossyRadius(rossbyL,coor);disp(mfilename); sleep(1)
+function RoL=getLocalRossyRadius(rossbyL,coor);dbstack 
 	[Y,X]=size(rossbyL);
 	x=round(mean(coor.x));
 	y=round(mean(coor.y));
@@ -195,7 +195,7 @@ function RoL=getLocalRossyRadius(rossbyL,coor);disp(mfilename); sleep(1)
 	RoL=rossbyL(y,x);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ee=correctXoverlap(ee,DD);disp(mfilename); sleep(1)
+function ee=correctXoverlap(ee,DD);dbstack 
 	X=DD.map.window.fullsize(2);
 	Y=DD.map.window.size.Y;
 	[ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
@@ -221,7 +221,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,sense]=CR_sense(zoom,direc,level);disp(mfilename); sleep(1)
+function [pass,sense]=CR_sense(zoom,direc,level);dbstack 
 	pass=false;
 	sense=struct;
 	%% water column up: seeking anti cyclones; down: cyclones
@@ -240,17 +240,17 @@ function [pass,sense]=CR_sense(zoom,direc,level);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function pass=CR_radius(radius,thresh);disp(mfilename); sleep(1)
+function pass=CR_radius(radius,thresh);dbstack 
 	if radius>=thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function pass=CR_RimNan(coor, Y, ssh);disp(mfilename); sleep(1)
-	disp(mfilename)
+function pass=CR_RimNan(coor, Y, ssh);dbstack 
+	dbstack
 	pass=true;
 	if any(isnan(ssh(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,peak,base]=CR_AmpPeak(ee,z,thresh);disp(mfilename); sleep(1)
+function [pass,peak,base]=CR_AmpPeak(ee,z,thresh);dbstack 
 	pass=false;
 	%%
 	peak.mean_ssh=mean(z.fields.ssh(z.mask.filled));
@@ -267,7 +267,7 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh);disp(mfilename); sleep(1)
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches);disp(mfilename); sleep(1)
+function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches);dbstack 
 	[passes.iq,IQ]=IsopQuo(ee,thresh.iq);
 	[passes.chelt,chelt]=chelton_shape(z);
 	if switches.IQ && ~switches.chelt
@@ -281,7 +281,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches);disp(mfilename); sleep(1
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,chelt]=chelton_shape(z);disp(mfilename); sleep(1)
+function [pass,chelt]=chelton_shape(z);dbstack 
 	% (diameter of circle with equal area)/(maximum distance between nodes)
 	%% get max dist in x | y
 	x.min=min(z.coor.int.x);
@@ -298,7 +298,7 @@ function [pass,chelt]=chelton_shape(z);disp(mfilename); sleep(1)
 	if chelt >= 0, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,isoper]=IsopQuo(ee,thresh);disp(mfilename); sleep(1)
+function [pass,isoper]=IsopQuo(ee,thresh);dbstack 
 	%% isoperimetric quotient
 	% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
 	% ie isoper=4pi area/circum^2.  isoper(circle)==1;
@@ -306,7 +306,7 @@ function [pass,isoper]=IsopQuo(ee,thresh);disp(mfilename); sleep(1)
 	if isoper >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass]=CR_2dEDDy(coor);disp(mfilename); sleep(1)
+function [pass]=CR_2dEDDy(coor);dbstack 
 	if (max(coor.x)-min(coor.x)<2) || (max(coor.y)-min(coor.y)<2)
 		pass=false;
 	else
@@ -314,12 +314,12 @@ function [pass]=CR_2dEDDy(coor);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass]=CR_Nan(z);disp(mfilename); sleep(1)
+function [pass]=CR_Nan(z);dbstack 
 	ssh=z.fields.ssh(z.mask.filled);
 	if ~any(isnan(ssh(:))), pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass]=CR_ClosedRing(ee);disp(mfilename); sleep(1)
+function [pass]=CR_ClosedRing(ee);dbstack 
 	x=ee.coordinates.int.x;
 	y=ee.coordinates.int.y;
 	if abs(x(1)-x(end))>1 || abs(y(1)-y(end))>1;
@@ -331,7 +331,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % others
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function R=getRossbyPhaseSpeedAndRadius(DD);disp(mfilename); sleep(1)
+function R=getRossbyPhaseSpeedAndRadius(DD);dbstack 
 	if DD.switchs.RossbyStuff
 		R.U=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
 		R.L=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
@@ -342,7 +342,7 @@ function R=getRossbyPhaseSpeedAndRadius(DD);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [centroid]=AreaCentroid(zoom,Y);disp(mfilename); sleep(1)
+function [centroid]=AreaCentroid(zoom,Y);dbstack 
 	%% factor each grid cell equally (compare to CenterOfVolume())
 	ssh=double(logical(zoom.ssh_BasePos));
 	%% get centroid:   COVs = \frac{1}{A} \sum_{i=1}^n 1 \vec{x}_i,
@@ -361,7 +361,7 @@ function [centroid]=AreaCentroid(zoom,Y);disp(mfilename); sleep(1)
 	centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD);disp(mfilename); sleep(1)
+function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD);dbstack 
 	%% get tracking reference point
 	trackref=getTrackRef(ee,DD.parameters.trackingRef);
 	%% get rossby wave phase speed
@@ -411,7 +411,7 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD);disp(mfilename); 
 	mask.lin=find(mask.logical);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TR=getTrackRef(ee,tr);disp(mfilename); sleep(1)
+function TR=getTrackRef(ee,tr);dbstack 
 	switch tr
 		case 'centroid'
 			TR=ee.centroid;
@@ -422,11 +422,11 @@ function TR=getTrackRef(ee,tr);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function save_eddies(EE);disp(mfilename); sleep(1)
+function save_eddies(EE);dbstack 
 	save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass]=Area(z,rossbyL,scaleThresh);disp(mfilename); sleep(1)
+function [area,pass]=Area(z,rossbyL,scaleThresh);dbstack 
 	area=struct;
 	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
 	area.total=sum(area.pixels(:));
@@ -439,18 +439,18 @@ function [area,pass]=Area(z,rossbyL,scaleThresh);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[mask_out]=EDDyPackMask(mask_in,limits,dims);disp(mfilename); sleep(1)
+function	[mask_out]=EDDyPackMask(mask_in,limits,dims);dbstack 
 	mask_out=false(dims);
 	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2))=mask_in;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,amp] = EDDyAmp2Ellipse(peak,zoom,thresh);disp(mfilename); sleep(1)
+function [pass,amp] = EDDyAmp2Ellipse(peak,zoom,thresh);dbstack 
 	%% mean amplitude with respect to ellipse contour
 	amp=abs(zoom.fields.ssh(peak)-nanmean(zoom.fields.ssh(zoom.mask.ellipse)));
 	if amp>=thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ellipse]=EDDyEllipse(ee,mask);disp(mfilename); sleep(1)
+function [ellipse]=EDDyEllipse(ee,mask);dbstack 
 	%% get center, minor and major axis for ellipse
 	xa=ee.radius.coor.Xwest;
 	xb=ee.radius.coor.Xeast;
@@ -475,7 +475,7 @@ function [ellipse]=EDDyEllipse(ee,mask);disp(mfilename); sleep(1)
 	ellipse(xlin)=true;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function prof=EDDyProfiles(ee,fields);disp(mfilename); sleep(1)
+function prof=EDDyProfiles(ee,fields);dbstack 
 	%% detect meridional and zonal profiles shifted to baselevel of current level
 	offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
 	%%	zonal cut
@@ -488,7 +488,7 @@ function prof=EDDyProfiles(ee,fields);disp(mfilename); sleep(1)
 	prof.y.V=fields.V(:,ee.peak.z.x) ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function radius=EDDyRadiusFromUV(peak,prof,fields);disp(mfilename); sleep(1)
+function radius=EDDyRadiusFromUV(peak,prof,fields);dbstack 
 	%% differentiate velocities to find first local extremata away from peak ie
 	%% maximum orbital speed
 	%% ie those distances at which the orbital velocity seizes to increase
@@ -525,14 +525,14 @@ function radius=EDDyRadiusFromUV(peak,prof,fields);disp(mfilename); sleep(1)
 	radius.coor=coor;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [geo]=geocoor(zoom,volume);disp(mfilename); sleep(1)
+function [geo]=geocoor(zoom,volume);dbstack 
 	xz=volume.center.xz;
 	yz=volume.center.yz;
 	geo.lat=interp2(zoom.fields.lat,xz,yz);
 	geo.lon=interp2(zoom.fields.lon,xz,yz);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [volume]=CenterOfVolume(zoom,area,Y);disp(mfilename); sleep(1)
+function [volume]=CenterOfVolume(zoom,area,Y);dbstack 
 	%% get "volume" of eddy
 	ssh=zoom.ssh_BasePos;
 	volume.total=mean(ssh(:))*area;
@@ -552,7 +552,7 @@ function [volume]=CenterOfVolume(zoom,area,Y);disp(mfilename); sleep(1)
 	volume.center.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [circum]=EDDyCircumference(z);disp(mfilename); sleep(1)
+function [circum]=EDDyCircumference(z);dbstack 
 	%% hypot exact coor diffs times dxdy at those coors
 	x=z.coor.exact.x;
 	y=z.coor.exact.y;
@@ -561,7 +561,7 @@ function [circum]=EDDyCircumference(z);disp(mfilename); sleep(1)
 	circum=sum(hypot(diff(y).*z.fields.DY(yi(2:end)),diff(x).*z.fields.DX(xi(2:end))));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mask=EDDyCut_mask(zoom);disp(mfilename); sleep(1)
+function mask=EDDyCut_mask(zoom);dbstack 
 	[Y,X]=size(zoom.fields.ssh);
 	mask.rim_only=false(Y,X);
 	mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
@@ -574,7 +574,7 @@ function mask=EDDyCut_mask(zoom);disp(mfilename); sleep(1)
 	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function fields_out=EDDyCut_init(fields_in,zoom);disp(mfilename); sleep(1)
+function fields_out=EDDyCut_init(fields_in,zoom);dbstack 
 	ya=zoom.limits.y(1);
 	yb=zoom.limits.y(2);
 	xa=zoom.limits.x(1);
@@ -586,7 +586,7 @@ function fields_out=EDDyCut_init(fields_in,zoom);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [z]=get_window_limits(coor,dim,enlargeFac);disp(mfilename); sleep(1)
+function [z]=get_window_limits(coor,dim,enlargeFac);dbstack 
 	z.coor=coor;
 	%% output
 	z.limits.x(1)=min(coor.int.x);
@@ -600,7 +600,7 @@ function [z]=get_window_limits(coor,dim,enlargeFac);disp(mfilename); sleep(1)
 	z.coor.exact.y=z.coor.exact.y -double(z.limits.y(1))  +1;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function inout=enlarge_window(inout,factor,dim);disp(mfilename); sleep(1)
+function inout=enlarge_window(inout,factor,dim);dbstack 
 	half_width =round((diff(inout.x)+1)*(factor-1)/2);
 	half_height=round((diff(inout.y)+1)*(factor-1)/2);
 	inout.x(1)=max([1 inout.x(1)-half_width]);
@@ -609,7 +609,7 @@ function inout=enlarge_window(inout,factor,dim);disp(mfilename); sleep(1)
 	inout.y(2)=min([dim.Y inout.y(2)+half_height]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [EE]=eddies2struct(CC,thresh);disp(mfilename); sleep(1)
+function [EE]=eddies2struct(CC,thresh);dbstack 
 	EE=struct;
 	ii=1;cc=0;
 	while ii<size(CC,1);
@@ -627,7 +627,7 @@ function [EE]=eddies2struct(CC,thresh);disp(mfilename); sleep(1)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ee,cut]=CleanEDDies(ee,cut,contstep);disp(mfilename); sleep(1) %#ok<INUSD>
+function [ee,cut]=CleanEDDies(ee,cut,contstep);dbstack  %#ok<INUSD>
 	[cut.dim.Y,cut.dim.X]=size(cut.grids.ssh);
 	for jj=1:numel(ee)
 		x=ee(jj).coordinates.int.x;
@@ -644,7 +644,7 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep);disp(mfilename); sleep(1) %#ok<IN
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plots4debug(zoom,ee);disp(mfilename); sleep(1) %#ok<*DEFNU>
+function plots4debug(zoom,ee);dbstack  %#ok<*DEFNU>
 	%     close all
 	%     figure('Position',[1926 250 560 420])
 	subplot(1,2,1)

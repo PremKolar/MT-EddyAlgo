@@ -41,7 +41,7 @@ function  threadFname=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
 		threadFname=sprintf('thread%2d.mat',labindex);
-		my = matfile(threadFname);
+		my = matfile(threadFname,'Writable',true);
 		my.threadFname=threadFname;
 		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');		
 		my.Z=size(RhoMean,1);

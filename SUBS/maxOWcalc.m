@@ -58,7 +58,7 @@ function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my.dx=single(raw.dx); %#ok<*NASGU>
 	my.dy=single(raw.dy);
 	my.GOverF=single(raw.corio.GOverF);
-	my.depth=single(f.ncvOne(raw.depth));
+	my.depth=single(f.ncvOne(reshape(raw.depth,[],1)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW=extrOW(f,cF);dF
@@ -119,7 +119,7 @@ function UV = getVels(fname,f);dF
 	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ);
 	size(dRho)
 	[Y,X]=size(m.dx)
-	m
+	
 	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoNill;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;

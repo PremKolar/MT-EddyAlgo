@@ -6,6 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc;dF
 	load DD
+	dbstop in maxOWcalc at 50
 	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
 	save DD
 end
@@ -48,10 +49,15 @@ end
 function  tFN=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 
+	
 f
+threadFname=sprintf('thr%02d.mat',labindex);
+
 
 
 spmd
+	
+	
 		threadFname=sprintf('thread%02d.mat',labindex);
 		if ~exist(threadFname,'file')
 			my = matfile(threadFname,'Writable',true);

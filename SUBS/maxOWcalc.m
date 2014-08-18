@@ -43,7 +43,7 @@ function  tFN=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
 		threadFname=sprintf('thread%02d.mat',labindex);
-		if ~exist(threadFname,'file')
+% 		if ~exist(threadFname,'file')
 			my = matfile(threadFname,'Writable',true);
 			my.threadFname=threadFname;
 			my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
@@ -52,19 +52,41 @@ function  tFN=OWinit(MeanFile,raw,f);dF
 			my.dy=single(raw.dy);
 			my.GOverF=single(raw.corio.GOverF);
 			my.depth=single(f.ncvOne(raw.depth));
-		end
+% 		end
 		tFN=gop(@vertcat,{threadFname},1);
 	end
 	tFN=tFN{1};
+	spmd
+		labBarrier
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [my,ow]=extrOW(f,cF);dF;labBarrier;
+function [my,ow]=extrOW(f,cF);dF
 	spmd
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
 		rhoNow=f.getHP(cF,f,'density');
+		labBarrier;
 	end
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	spmd
 		my.rhoHighPass=rhoNow - my.RhoMean;

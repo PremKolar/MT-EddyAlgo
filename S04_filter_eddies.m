@@ -241,7 +241,7 @@ function [pass,sense]=CR_sense(zoom,direc,level)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function pass=CR_radius(radius,thresh);dbs=dbstack;disp(dbs(1).name)
+function pass=CR_radius(radius,thresh)
 	if radius>=thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,7 +250,7 @@ function pass=CR_RimNan(coor, Y, ssh)
 	if any(isnan(ssh(drop_2d_to_1d(coor.y, coor.x, Y)))), pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,peak,base]=CR_AmpPeak(ee,z,thresh);dbs=dbstack;disp(dbs(1).name)
+function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	pass=false;
 	%%
 	peak.mean_ssh=mean(z.fields.ssh(z.mask.filled));
@@ -267,7 +267,7 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh);dbs=dbstack;disp(dbs(1).name)
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches);dbs=dbstack;disp(dbs(1).name)
+function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 	[passes.iq,IQ]=IsopQuo(ee,thresh.iq);
 	[passes.chelt,chelt]=chelton_shape(z);
 	if switches.IQ && ~switches.chelt
@@ -281,7 +281,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches);dbs=dbstack;disp(dbs(1).
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,chelt]=chelton_shape(z);dbs=dbstack;disp(dbs(1).name)
+function [pass,chelt]=chelton_shape(z)
 	% (diameter of circle with equal area)/(maximum distance between nodes)
 	%% get max dist in x | y
 	x.min=min(z.coor.int.x);
@@ -298,7 +298,7 @@ function [pass,chelt]=chelton_shape(z);dbs=dbstack;disp(dbs(1).name)
 	if chelt >= 0, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,isoper]=IsopQuo(ee,thresh);dbs=dbstack;disp(dbs(1).name)
+function [pass,isoper]=IsopQuo(ee,thresh)
 	%% isoperimetric quotient
 	% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
 	% ie isoper=4pi area/circum^2.  isoper(circle)==1;
@@ -426,7 +426,7 @@ function save_eddies(EE)
 	save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass]=Area(z,rossbyL,scaleThresh);dbs=dbstack;disp(dbs(1).name)
+function [area,pass]=Area(z,rossbyL,scaleThresh)
 	area=struct;
 	area.pixels=(z.fields.DX.*z.fields.DY).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
 	area.total=sum(area.pixels(:));

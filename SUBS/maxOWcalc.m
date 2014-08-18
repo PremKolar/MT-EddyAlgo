@@ -14,10 +14,7 @@ function DD=main(DD,MD,f,raw);dF
 	getmy=@(varstr) extractfield(load(varstr),varstr);
 	f.getHP = @(cf,f,fi) single(f.ncvOne(f.ncv(cf,fi)));
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	threadFname=OWinit(MD.sMean.Fout,raw,f);
-	spmd
-		my = matfile(threadFname);	
-	end
+	my=OWinit(MD.sMean.Fout,raw,f);
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -30,47 +27,47 @@ function DD=main(DD,MD,f,raw);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,my,tA,currFile,OWFile);dF
-	OW=extrOW(my,f,currFile);
+	spmd
+		[~,ow]=extrOW(my,f,currFile);
+	end
+	OW=f.slMstrPrt(ow);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
 	OW(isinf(OW) | OW>=0 | isnan(OW) )=nan;
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  threadFname=OWinit(MeanFile,raw,f);dF
+function  my=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
 		threadFname=sprintf('thread%2d.mat',labindex);
 		my = matfile(threadFname,'Writable',true);
 		my.threadFname=threadFname;
-		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');		
-		my.Z=size(RhoMean,1);
+		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
+		my.Z=size(my.RhoMean,1);
 		my.dx=single(raw.dx); %#ok<*NASGU>
 		my.dy=single(raw.dy);
 		my.GOverF=single(raw.corio.GOverF);
 		my.depth=single(f.ncvOne(raw.depth));
-	end	
+	end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OW=extrOW(my,f,cF);dF
-	spmd
-		dx=my.dx;dy=my.dy;Z=my.Z;GOverF=my.GOverF;depth=my.depth;
-		RhoMean=my.RhoMean;
-		labBarrier
-	end
-	clear my
-	spmd
-		rhoHighPass=f.getHP(cF,f,'density') - RhoMean;
-		UV=getVels(depth,GOverF,rhoHighPass,dx,dy,Z,f);
-		labBarrier
-	end
-	spmd
-		uvg=UVgrads(UV,dx,dy,f.repinZ);
-		ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);
-		labBarrier
-	end
-	OW=f.slMstrPrt(ow);
+function [myB,ow]=extrOW(my,f,cF);dF
+	% 	spmd
+	% 		dx=my.dx;dy=my.dy;Z=my.Z;GOverF=my.GOverF;depth=my.depth;
+	% 		my.RhoMean=my.RhoMean;
+	% 		labBarrier
+	% 	end
+	threadFname=sprintf('thread%2dB.mat',labindex);
+	myB = matfile(threadFname,'Writable',true);
+	myB.threadFname=threadFname;
+	myB.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
+	myB.UV=getVels(my.depth,my.GOverF,my.rhoHighPass,my.dx,my.dy,my.Z,f);
+	labBarrier;
+	myB.uvg=UVgrads(myB.UV,my.dx,my.dy,f.repinZ);
+	ow = f.vc2mstr(okuweiss(getDefo(myB.uvg)),1);
+	labBarrier
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ow = okuweiss(d);dF

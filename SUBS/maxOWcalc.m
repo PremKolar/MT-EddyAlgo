@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc;dF
 	load DD
-	DD=main(DD,DD.MD,DD.f,DD.raw); %#ok<NASGU,NODEF>
+	DD=main(DD,DD.MD,DD.f,DD.raw); %#ok<NODEF>
 	save DD
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,13 +20,13 @@ function DD=main(DD,MD,f,raw);dF
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
 		if ~exist(MD.OWFout{tt},'file')
 			tmpFile=[MD.OWFout{tt} 'tmp'];
-			loop(f,my,toAdd,MD.Fout{tt},tmpFile);
+			loop(f,toAdd,MD.Fout{tt},tmpFile);
 			system(['mv ' tmpFile ' ' MD.OWFout{tt}])
 		end
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function loop(f,my,tA,currFile,OWFile);dF
+function loop(f,tA,currFile,OWFile);dF
 	spmd
 		[~,ow]=extrOW(f,currFile);
 	end
@@ -54,14 +54,16 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [my,ow]=extrOW(f,cF);dF
-	threadFname=sprintf('thread%02d.mat',labindex);
-	my = matfile(threadFname,'Writable',true);	
+	% 	fname.temp=sprintf('thread%02dtemp.mat',labindex);
+	fname.root=sprintf('thread%02d.mat',labindex);
+	my = matfile(fname.root,'Writable',true);
+	dispM('filtering high pass rho')
 	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
 	whos my
-	my
-	my.UV=getVels(my,f);
+	my %#ok<NOPRT>
+	my.UV=getVels(fname.root,f);
 	labBarrier;
-	uvg=UVgrads(my,f.repinZ);
+	uvg=UVgrads(fname.root,f.repinZ);
 	ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);
 	labBarrier
 end
@@ -79,7 +81,8 @@ function defo = getDefo(uvg);dF
 	%     defo.stretch = uvg.dUdx - uvg.dVdy;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function uvg = UVgrads(m,f);dF
+function uvg = UVgrads(fname,f);dF
+	m=matfile(fname);
 	dd.y= @(in)  diff(in,1,2);
 	dd.x= @(in)  diff(in,1,3);
 	z=size(m.UV.u,1);
@@ -97,17 +100,20 @@ function out=inxOry(in,inxy,dxy,z,f);dF
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function UV = getVels(m,f);dF
+function UV = getVels(fname,f);dF
+	m = matfile(fname);
+	dispM('getting UV')
 	rhoRef = 1000;
-	dRho = getDrhodx(m,f)
+	dRho = getDrhodx(fname,f);
 	[Y,X]=size(m.dx);
 	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoRef;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dRho = getDrhodx(m,f);dF
+function dRho = getDrhodx(fname,f);dF
 	%% calc density gradients
+	m = matfile(fname);
 	drdx = diff(m.rhoHighPass,1,3)
 	drdy = diff(m.rhoHighPass,1,2)
 	dRho.dx = drdx(:,:,[1:end, end]) ./ f(m.dx,m.Z);

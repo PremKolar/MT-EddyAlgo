@@ -29,7 +29,7 @@ function  rhoMean=buildRhoMeanOperate(threads,s,Dim); dF
     f=funcs;
     initNcFile([s.Fout 'tmp'],'RhoMean',Dim.ws);
     spmd(threads)
-        rhoMean = f.locCo(nan(Dim.ws),3);
+        rhoMean = f.locCo(nan(Dim.ws),1);
         labBarrier
     end
     %%
@@ -45,7 +45,7 @@ function rhoMean=spmdRhoMeanBlock(f,s,rhoMean); dF
     T=disp_progress('init','building density mean')  ;
     for ff = 1:numel(s.files)
         T=disp_progress('show',T,numel(s.files))  ;
-        rhoMnew=f.locCo(f.ncvg(s.files{ff},'density'),3);
+        rhoMnew=f.locCo(f.ncvg(s.files{ff},'density'),1);
         rhoMean=multiDnansum(rhoMean,rhoMnew);
     end
     rhoMean=rhoMean./numel(s.files);

@@ -59,7 +59,7 @@ function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my.dx=single(raw.dx); %#ok<*NASGU>
 	my.dy=single(raw.dy);
 	my.GOverF=single(raw.corio.GOverF);
-	my.depth=single(f.ncvOne(f.repinYX(raw.depth,Y,X)));
+	my.depth=f.locCo(f.repinYX(raw.depth,Y,X),my.codisp); 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW=extrOW(f,cF);dF

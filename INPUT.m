@@ -5,14 +5,14 @@
 %     'mad'      - template for Madeleine's data
 
 function DD=INPUT
-    DD.template='pop';
+    DD.template='mad';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-    %       DD.debugmode=true;
+          DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19990201';
+    DD.time.till.str='19950101';
     %% window on globe
     DD.map.in.west=-75;
     DD.map.in.east= -50;
@@ -23,7 +23,6 @@ function DD=INPUT
     DD.map.out.Y=15*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
-    %     DD.thresh.ssh_filter_size=1;
     DD.thresh.radius=0; % [SI]
     DD.thresh.maxRadiusOverRossbyL=10; % [SI]
     DD.thresh.amp=0.01; % [SI]

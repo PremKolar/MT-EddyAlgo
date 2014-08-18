@@ -3,9 +3,6 @@ function DD=INPUTmad
     DD.time.delta_t=3; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
-    %{...
-    DD.path.TempSalt.name='../TempSaltUV/';
-    %...}
     DD.path.UV.name='../rawZ/';
     DD.path.raw.name='../rawZ/';
     %% map in keys
@@ -19,16 +16,6 @@ function DD=INPUTmad
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
-    %{...
-    DD.map.in.keys.lat='lat';
-    DD.map.in.keys.lon='lon';  
-    %% temp salt keys
-    DD.TS.keys.lat='U_LAT_2D';
-    DD.TS.keys.lon='U_LON_2D';
-    DD.TS.keys.salt='SALT';
-    DD.TS.keys.temp='TEMP';
-    DD.TS.keys.depth='depth_t'; 
-    %...}
     %% parameters 
     DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
     DD.parameters.SSHAdepth=-25;
@@ -41,7 +28,7 @@ function DD=INPUTmad
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
     %%
-     DD.switches.rehashMapDims=false; %!!
+    DD.switches.rehashMapDims=false; %!!
     %% special:    
     DD.parameters.boxlims.south=10;
    

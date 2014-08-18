@@ -49,6 +49,7 @@ function  tFN=OWinit(MeanFile,raw,f,dim);dF
 	end
 end
 function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
+	[Y,X]=size(raw.lat);
 	my = matfile(threadFname,'Writable',true);
 	my.threadFname=threadFname;
 	my.zsplit=zsplit;
@@ -58,7 +59,7 @@ function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my.dx=single(raw.dx); %#ok<*NASGU>
 	my.dy=single(raw.dy);
 	my.GOverF=single(raw.corio.GOverF);
-	my.depth=single(f.ncvOne(reshape(raw.depth,[],1)));
+	my.depth=single(f.ncvOne(f.repinYX(raw.depth,Y,X)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW=extrOW(f,cF);dF
@@ -118,11 +119,11 @@ function UV = getVels(fname,f);dF
 	rhoNill = 1000
 	dRho = getDrhodx(m.rhoHighPass,m.dx,m.dy,m.Z,f.repinZ)
 	size(dRho)
-	[Y,X]=size(m.dx)
 	save(sprintf('db%02d.mat',labindex)) 
-	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoNill;
+	gzOverRhoF = (m.GOverF .* m.depth) / rhoNill;
 	UV.u = -dRho.dy .* gzOverRhoF;
 	UV.v = dRho.dx .*  gzOverRhoF;
+	UV
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dRho = getDrhodx(rHP,dx,dy,Z,repinZ);dF
@@ -151,6 +152,7 @@ end
 function f=funcs
 	f.ncv=@(d,field) nc_varget(d,field);
 	f.ncvOne = @(A) getLocalPart(codistributed(A,codistributor1d(1)));
+	f.repinYX = @(A,Y,X) repmat(reshape(A(:),[],1),[1,Y,X]);
 	f.repinZ = @(A,z) repmat(permute(A,[3,1,2]),[z,1,1]);
 	f.ncVP = @(file,OW,field)  nc_varput(file,field,single(OW));
 	f.vc2mstr=@(ow,dim) gcat(ow,dim,1);

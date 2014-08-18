@@ -47,18 +47,25 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  tFN=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
-	spmd
+
+f
+
+
+spmd
 		threadFname=sprintf('thread%02d.mat',labindex);
 		if ~exist(threadFname,'file')
 			my = matfile(threadFname,'Writable',true);
 			my.threadFname=threadFname;
 			my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
-			my.Z=size(my.RhoMean,1);
+			my.Z=size(my.RhoMean,1);	myZ=my.Z;		
 			my.dx=single(raw.dx); %#ok<*NASGU>
 			my.dy=single(raw.dy);
 			my.GOverF=single(raw.corio.GOverF);
 			my.depth=single(f.ncvOne(raw.depth));
+% 			my.zz=gop(@vertcat,)
 		end
+		
+		
 		tFN=gop(@vertcat,{threadFname},1);
 	end
 	tFN=tFN{1};

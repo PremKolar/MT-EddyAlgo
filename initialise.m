@@ -7,6 +7,7 @@
 function DD=initialise(toCheck,parentFunc)
 	%%
 	preInits
+	if nargin==0, return;end
 	%% get user input
 	DD = get_input;
 	%% check whether info file exists already

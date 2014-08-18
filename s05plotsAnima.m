@@ -33,7 +33,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
 	[JJ]=SetThreadVar(DD);
-	Td=disp_progress('init','filtering contours');
+	Td=disp_progress('init','making jpegs for movie');
 	for jj=1:numel(JJ)
 		work_day(DD,JJ(jj));
 		Td=disp_progress('disp',Td,numel(JJ),numel(JJ));

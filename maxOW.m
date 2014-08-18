@@ -9,15 +9,15 @@ function maxOW
     DD=initialise([],mfilename);
     main(DD);
     %% post process
-    maxOWpostProc
+%     maxOWpostProc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)   ;dF 
     maxOWPrep(maxOWsetUp(DD))
 %     maxOWrho
     maxOWrhoMean
-%     maxOWcalc
-%     maxOWprocess
+     maxOWcalc
+     maxOWprocess
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

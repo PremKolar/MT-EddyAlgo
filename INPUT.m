@@ -7,9 +7,9 @@
 function DD=INPUT
     DD.template='mad';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=2;
     DD.debugmode=false;
-%            DD.debugmode=true;
+           DD.debugmode=true;
     %% time
     DD.time.from.str='19091231';
     DD.time.till.str='19100724';

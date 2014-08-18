@@ -45,12 +45,11 @@ function  allVars=OWinit(MeanFile,raw,f);dF
 	spmd
 		RhoMean=f.getHP(MeanFile,f,'RhoMean');
 	end
-	allVars=saveWhos(RhoMean,raw)
+	allVars=saveWhos(size(RhoMean,1),raw,f)
 end
-function allVars=saveWhos(RhoMean,raw)
+function allVars=saveWhos(Z,raw,f)
 	spmd
-		Z=size(RhoMean,1); %#ok<*NASGU>
-		dx=single(raw.dx);
+		dx=single(raw.dx); %#ok<*NASGU>
 		dy=single(raw.dy);
 		GOverF=single(raw.corio.GOverF);
 		depth=single(f.ncvOne(raw.depth));

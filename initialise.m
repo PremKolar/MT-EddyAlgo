@@ -33,7 +33,7 @@ function DD=initialise(toCheck,parentFunc)
 	%% load workers
 	DD.threads.num=init_threads(DD.threads.num);
 	if DD.threads.num>DD.time.span/DD.time.delta_t
-		error(toomanythreads,'too many threads for not enough timesteps!!!')
+		warning('toomanythreads','too many threads for not enough timesteps!!!')
 	end
 	%% monitoring stuff
 	monitorStuff

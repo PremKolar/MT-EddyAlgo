@@ -14,7 +14,7 @@ function DD=main(DD,MD,f,raw);dF
 	getmy=@(varstr) extractfield(load(varstr),varstr);
 	f.getHP = @(cf,f,fi) single(f.ncvOne(f.ncv(cf,fi)));
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	my=OWinit(MD.sMean.Fout,raw,f);
+	OWinit(MD.sMean.Fout,raw,f);
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -37,7 +37,7 @@ function loop(f,tA,currFile,OWFile);dF
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  my=OWinit(MeanFile,raw,f);dF
+function  OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
 		threadFname=sprintf('thread%02d.mat',labindex);
@@ -114,8 +114,8 @@ end
 function dRho = getDrhodx(fname,f);dF
 	%% calc density gradients
 	m = matfile(fname);
-	drdx = diff(m.rhoHighPass,1,3)
-	drdy = diff(m.rhoHighPass,1,2)
+	drdx = diff(m.rhoHighPass,1,3);
+	drdy = diff(m.rhoHighPass,1,2);
 	dRho.dx = drdx(:,:,[1:end, end]) ./ f(m.dx,m.Z);
 	dRho.dy = drdy(:,[1:end, end],:) ./ f(m.dy,m.Z);
 end

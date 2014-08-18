@@ -13,10 +13,10 @@ function s05plotsAnima
 	main(DD);
 	%% update infofile
 	conclude(DD);
+	system(['mencoder "mf://*.jpeg" -mf fps=10  -o flat.avi -ovc lavc -lavcopts  vcodec=ljpeg'])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-	diary yo.txt
 	if DD.debugmode
 		spmd_body(DD)
 	else
@@ -70,10 +70,9 @@ function EE=find_eddies(EE,ee_clean)
 	makejpegs(EE,ee_clean);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function makejpegs(EE,ee)
+function makejpegs(EE,ee)	
 	load(EE.filename.self);
 	load(EE.filename.cont);
-	whos
 	figure(labindex);clf;
 	for kk=1:numel(ee)
 		x=ee(kk).coordinates.exact.x;
@@ -95,7 +94,7 @@ function makejpegs(EE,ee)
 	end
 	axis tight;
 	title(datestr(ee(1).daynum));
-% 	savefig2png4mov('./jpegs',100,800,600,datestr(ee(1).daynum,'yymmdd'));
+ 	savefig2png4mov('./jpegs',100,800,600,datestr(ee(1).daynum,'yymmdd'));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE]=eddies2struct(CC,thresh)

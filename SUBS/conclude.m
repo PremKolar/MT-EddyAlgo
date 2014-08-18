@@ -20,7 +20,7 @@ function conclude(DD,void)  %#ok<INUSD>
     end
     %----------------------------------------------------------------------
     function inform
-        clc
+        
         disp([' ']);
         disp([' ']);
         disp([' ']);     

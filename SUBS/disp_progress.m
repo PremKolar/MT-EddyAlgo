@@ -65,7 +65,7 @@ function T=init(Tin)
     T.time=0;
     T.name=Tin;
     T.tic=tic;
-    clc
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=later(T,L,num_prints)

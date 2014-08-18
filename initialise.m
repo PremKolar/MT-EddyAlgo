@@ -45,7 +45,7 @@ function DD=initialise(toCheck,parentFunc)
 		addpath(genpath('./'));  %#ok<*MCAP>
 		%         warning on backtrace;
 		warning('off','SNCTOOLS:nc_getall:dangerous');
-		rehash; clc; close all;
+		rehash; close all;
 		format shortg;
 		dbstop if error;
 	end

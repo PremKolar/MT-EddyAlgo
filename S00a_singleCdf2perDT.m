@@ -48,8 +48,8 @@ function spmd_body(DD,raw)
         [T]=disp_progress('calc',T,numel(CC),5);
         %% get current SSH
         raw.grids.ssh=squeeze(nc_varget(raw.file.in,DD.map.in.keys.ssh,[cc-1,raw.SSHzIdx-1,0,0],[1,1,inf,inf]));
-		  lastwarn
-		  sleep(5)
+		  [~,a]=lastwarn;
+		  disp(a)
         %% append 'zonal wings'           
         raw.grids.ssh=raw.grids.ssh(:,raw.wingIdx);
         %% op day

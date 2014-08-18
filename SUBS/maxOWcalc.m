@@ -11,10 +11,16 @@ function maxOWcalc;dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
+	getmy=@(varstr) extractfield(load(varstr),varstr);
 	f.getHP = @(cf,f,fi) single(f.ncvOne(f.ncv(cf,fi)));
 	T=disp_progress('init','building okubo weiss netcdfs')  ;
-	OWinit(MD.sMean.Fout,raw,f);
-	load my;	 spmd;	 my=MY{labindex}; 	 end %#ok<USENS>
+	allVars=OWinit(MD.sMean.Fout,raw,f)
+	spmd
+		for v=1:numel(allVars)
+			var=allVars{v}
+			my.(var)=getmy(var)
+		end
+	end
 	toAdd={'OkuboWeiss','log10NegOW'};
 	for tt = MD.timesteps;
 		T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
@@ -34,20 +40,26 @@ function loop(f,my,tA,currFile,OWFile);dF
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function  OWinit(MeanFile,raw,f);dF
+function  allVars=OWinit(MeanFile,raw,f);dF
 	disp('init okubo weiss calcs...')
 	spmd
-		my.RhoMean=f.getHP(MeanFile,f,'RhoMean');
-		% 		my.RhoMean=single(f.ncvOne(f.ncv(MeanFile,'RhoMean')));
-		my.Z=size(my.RhoMean,1);
-		my.dx=single(raw.dx);
-		my.dy=single(raw.dy);
-		my.GOverF=single(raw.corio.GOverF);
-		my.depth=single(f.ncvOne(raw.depth));
+		RhoMean=f.getHP(MeanFile,f,'RhoMean');
 	end
-	[MY]={(my{:})}; %#ok<NASGU>
-	save('my.mat','MY');
+	allVars=saveWhos(RhoMean,raw)
+end
+function allVars=saveWhos(RhoMean,raw)
+	spmd
+		Z=size(RhoMean,1); %#ok<*NASGU>
+		dx=single(raw.dx);
+		dy=single(raw.dy);
+		GOverF=single(raw.corio.GOverF);
+		depth=single(f.ncvOne(raw.depth));
+	end
+	%%
+	allVars=extractfield(whos,'name');
+	for v=1:numel(allVars)
+		save(allVars{v},allVars{v})
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function OW=extrOW(my,f,cF);dF

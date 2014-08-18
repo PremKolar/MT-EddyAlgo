@@ -7,12 +7,12 @@
 function DD=INPUT
     DD.template='mad';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=1;
     DD.debugmode=false;
           DD.debugmode=true;
     %% time
     DD.time.from.str='19940101';
-    DD.time.till.str='19950101';
+    DD.time.till.str='19960101';
     %% window on globe
     DD.map.in.west=-75;
     DD.map.in.east= -50;

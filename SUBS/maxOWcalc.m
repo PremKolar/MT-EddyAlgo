@@ -30,6 +30,11 @@ function DD=main(DD,MD,f,raw);dF
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,tA,currFile,OWFile);dF
+	fname=sprintf('thread%02d.mat',labindex);
+	my = matfile(fname,'Writable',true);
+	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
+	my.UV=getVels(fname,f);	
+	
 	spmd
 		[~,ow]=extrOW(f,currFile);
 	end
@@ -114,10 +119,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dRho = getDrhodx(rHP,dx,dy,Z,yx2zyx);dF
 	%% calc density gradients
+	
 	drdx = diff(rHP,1,3);
 	drdy = diff(rHP,1,2);
-	dRho.dx = drdx(:,:,[1:end, end]) ./ yx2zyx(dx,Z);
-	dRho.dy = drdy(:,[1:end, end],:) ./ yx2zyx(dy,Z);
+	dRho.dx = drdx(:,:,[1,1:end]) ./ yx2zyx(dx,Z);
+	dRho.dy = drdy(:,[1,1:end],:) ./ yx2zyx(dy,Z);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initOWNcFile(fname,toAdd,WinSize);dF

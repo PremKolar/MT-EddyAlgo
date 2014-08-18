@@ -47,7 +47,7 @@ function DD=initialise(toCheck,parentFunc)
 		%         warning on backtrace;
 		warning('off','SNCTOOLS:nc_getall:dangerous');
 		rehash; clc; close all;
-		format shortg;
+		format shorteng;
 		dbstop if error;
 	end
 	%----------------------------------------------------------------------

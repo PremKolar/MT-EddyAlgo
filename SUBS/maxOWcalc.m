@@ -57,6 +57,8 @@ function [my,ow]=extrOW(f,cF);dF
 	threadFname=sprintf('thread%02d.mat',labindex);
 	my = matfile(threadFname,'Writable',true);	
 	my.rhoHighPass=f.getHP(cF,f,'density') - my.RhoMean;
+	whos my
+	my
 	my.UV=getVels(my,f);
 	labBarrier;
 	uvg=UVgrads(my,f.repinZ);
@@ -97,7 +99,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function UV = getVels(m,f);dF
 	rhoRef = 1000;
-	dRho = getDrhodx(m,f);
+	dRho = getDrhodx(m,f)
 	[Y,X]=size(m.dx);
 	gzOverRhoF = m.GOverF .* repmat(m.depth,[1,Y,X]) / rhoRef;
 	UV.u = -dRho.dy .* gzOverRhoF;
@@ -106,8 +108,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dRho = getDrhodx(m,f);dF
 	%% calc density gradients
-	drdx = diff(m.rhoHighPass,1,3);
-	drdy = diff(m.rhoHighPass,1,2);
+	drdx = diff(m.rhoHighPass,1,3)
+	drdy = diff(m.rhoHighPass,1,2)
 	dRho.dx = drdx(:,:,[1:end, end]) ./ f(m.dx,m.Z);
 	dRho.dy = drdy(:,[1:end, end],:) ./ f(m.dy,m.Z);
 end

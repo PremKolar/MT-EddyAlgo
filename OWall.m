@@ -1,3 +1,3 @@
-maxOWprocessInit
+% maxOWprocessInit
 maxOWprocMeanOW
 maxOWprocCalc

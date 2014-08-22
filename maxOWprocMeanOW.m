@@ -13,15 +13,17 @@ function maxOWprocMeanOW
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC)
-	disp('getting logOwSum')
-	tic
-	spmd,	codi=codistributor1d(3);end
-	logOwSum=nan(NC.S.Z,NC.S.Y,NC.S.X,codi);
-	toc
-	disp('getting logOwCount')
-	tic
-	logOwCount=ones(NC.S.Z,NC.S.Y,NC.S.X,codi);
-	toc
+	spmd
+		dispM('getting logOwSum')
+		tic
+		codi=codistributor1d(3);
+		logOwSum=nan(NC.S.Z,NC.S.Y,NC.S.X,codi);
+		toc
+		dispM('getting logOwCount')
+		tic
+		logOwCount=ones(NC.S.Z,NC.S.Y,NC.S.X,codi);
+		toc
+	end
 	for tt=1:NC.S.T
 		tic
 		fprintf('prog %02d%%\n',round(tt/NC.S.T*100))

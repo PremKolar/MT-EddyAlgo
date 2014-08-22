@@ -28,7 +28,6 @@ function logOwMean=main(NC,f)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
-	f.ncvOne = @(A,dim) getLocalPart(codistributed(A,codistributor1d(dim)));
 	f.cod = @(A) codistributed(A,codistributor1d(ndims(A)));
 	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
 end

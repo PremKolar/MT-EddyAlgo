@@ -14,14 +14,14 @@ function maxOWprocMeanOW
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC,f)
-	spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
-	spmd	
+	spmd
 		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
 		labBarrier;
 		for tt=drange(1:NC.S.T)
-			fprintf('lab%02d at tt=%02d\n',labindex,tt)	
+			fprintf('lab%02d at tt=%02d\n',labindex,tt)
 			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
-			logOwSum=spmdmDnansumlog(logOwSum,newOw);
+			% 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
+			logOwSum= f.cod(multiDnansum(logOwSum, log10OW(newOw,nan)));
 		end
 	end
 	logOwMean=gather(logOwSum/NC.S.T);

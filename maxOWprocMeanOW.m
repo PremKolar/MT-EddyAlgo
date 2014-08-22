@@ -13,31 +13,42 @@ function maxOWprocMeanOW
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC)
-	[logOwSum, ~,~]=spmdCoDisp(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
-	[logOwCount, ~,~]=spmdCoDisp(ones(NC.S.Z,NC.S.Y,NC.S.X),3);
+	disp('getting logOwSum')
+	tic
+	[logOwSum]=spmdCoDisp(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+	toc
+	disp('getting logOwCount')
+	tic
+	[logOwCount]=spmdCoDisp(ones(NC.S.Z,NC.S.Y,NC.S.X),3);
+	toc
 	for tt=1:NC.S.T
+		tic
 		fprintf('prog %02d%%\n',round(tt/NC.S.T*100))
 		newOw=spmdCoDisp(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
+		toc
+		tic
 		nanflag=isnan(newOw);
 		newOw(nanflag)=0;
 		logOwSum=logOwSum+newOw;
 		logOwCount(~nanflag)=logOwCount(~nanflag)+1;
+		toc
 	end
 	logOwSum(logOwCount==0)=nan;
 	logOwSum=logOwSum./logOwCount;
 	logOwMean=gather(logOwSum);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [out,codisp,lim]=spmdCoDisp(in,dim)
+% function [out,codisp,lim]=spmdCoDisp(in,dim)
+function [out]=spmdCoDisp(in,dim)
 	spmd
 		out=codistributed(in,codistributor1d(dim));
-		codisp=getCodistributor(out);
-		parti=getfield(codisp,'Partition');
-		LIM.a=[1 cumsum(parti(1:end-1))];
-		LIM.b=LIM.a + parti;
-		lim.a=LIM.a(labindex);
-		lim.b=LIM.b(labindex);
-		lim.len=lim.b-lim.a+1;
+		% 		codisp=getCodistributor(out);
+		% 		parti=getfield(codisp,'Partition');
+		% 		LIM.a=[1 cumsum(parti(1:end-1))];
+		% 		LIM.b=LIM.a + parti;
+		% 		lim.a=LIM.a(labindex);
+		% 		lim.b=LIM.b(labindex);
+		% 		lim.len=lim.b-lim.a+1;
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

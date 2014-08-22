@@ -99,9 +99,9 @@ function spmdBcalc(NC)
 	NCf1=NC.files(1).n;
 	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
 	%%
-	T=disp_progress('init','building okubo weiss netcdfs')  ;
+	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
-			T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
+			T=disp_progress('show',T,numel(NC.S.T));
 		daily=initDaily(NC,tt);
 		%% get min in z
 		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'));

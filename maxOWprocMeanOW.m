@@ -17,19 +17,19 @@ function logOwMean=main(NC,f)
 	spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
 	spmd
 		T=disp_progress('init','calcing hor means of OW')  ;
-		logOwSum=f.ncvOne(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
 		for tt=1:NC.S.T
 			T=disp_progress('show',T,NC.S.T);
-			newOw=f.ncvOne(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
+			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
-		end
-		logOwMean=f.gCat(logOwSum/NC.S.T);
+		end	
 	end
-	logOwMean=logOwMean{1};
+	logOwMean=gather(logOwSum/NC.S.T);	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
 	f.ncvOne = @(A,dim) getLocalPart(codistributed(A,codistributor1d(dim)));
+	f.cod = @(A) codistributed(A,codistributor1d(ndims(A)));
 	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

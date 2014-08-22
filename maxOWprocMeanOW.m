@@ -7,36 +7,37 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWprocMeanOW
 	load NC
-	f=funcs;
-	logOwMean=main(NC,f);
+	logOwMean=main(NC);
 	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMean);
 	save logOwMean
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function logOwMean=main(NC,f)
-	spmd
-		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
-		labBarrier;
-		for tt=drange(1:NC.S.T)
-			fprintf('lab%02d at tt=%02d\n',labindex,tt)
-			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
-			% 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
-			logOwSum= f.cod(multiDnansum(logOwSum, log10OW(newOw,nan)));
-		end
+function logOwMean=main(NC)
+	[logOwSum, ~,~]=spmdCoDisp(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+	[logOwCount, ~,~]=spmdCoDisp(ones(NC.S.Z,NC.S.Y,NC.S.X),3);
+	for tt=1:NC.S.T
+		fprintf('prog %02d%%\n',round(tt/NC.S.T*100))
+		newOw=spmdCoDisp(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
+		nanflag=isnan(newOw);
+		newOw(nanflag)=0;
+		logOwSum=logOwSum+newOw;
+		logOwCount(~nanflag)=logOwCount(~nanflag)+1;
 	end
-	logOwMean=gather(logOwSum/NC.S.T);
+	logOwSum(logOwCount==0)=nan;
+	logOwSum=logOwSum./logOwCount;
+	logOwMean=gather(logOwSum);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function f=funcs
-	f.cod = @(A,dim) codistributed(A,codistributor1d(dim));
-	% 	f.cod = @(A) getLocalPart(codistributed(A,codistributor1d(ndims(A))));
-	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
+function [out,codisp,lim]=spmdCoDisp(in,dim)
+	spmd
+		out=codistributed(in,codistributor1d(dim));
+		codisp=getCodistributor(out);
+		parti=getfield(codisp,'Partition');
+		LIM.a=[1 cumsum(parti(1:end-1))];
+		LIM.b=LIM.a + parti;
+		lim.a=LIM.a(labindex);
+		lim.b=LIM.b(labindex);
+		lim.len=lim.b-lim.a+1;
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [OW]=log10OW(OW,dummy)
-	tag=isnan(OW) | isinf(OW) | OW>=0;
-	OW(tag)=dummy;
-	OW=log10(-OW);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

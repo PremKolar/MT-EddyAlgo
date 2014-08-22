@@ -134,7 +134,8 @@ function f=funcs
 	f.log10OW = @(OW,dummy) log10(-prep4log(OW,dummy));
 end
 function [OW]=prep4log(OW,dummy)
-	OW(isnan(OW) || isinf(OW) || OW>=0)=dummy;
+	tag=isnan(OW) | isinf(OW) | OW>=0;
+	OW(tag)=dummy;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [owMin,MinZi]=spmdBlck(data,bath,f)

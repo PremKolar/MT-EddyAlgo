@@ -9,7 +9,7 @@ function  maxOWprocess
 	dbstop if error
 	load DD
 	load metaData
-	xdghn
+	save
 	NC=initNC(metaData,DD.path.Rossby.name);
 	spmdBcalc(NC);
 	

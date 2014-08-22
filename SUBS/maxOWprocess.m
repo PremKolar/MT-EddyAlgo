@@ -99,7 +99,7 @@ end
 function spmdBcalc(NC)
 	f=funcs;
 	ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
-	ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.y s.x]);
+	ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Y s.X]);
 	%% get bathymetry
 	NCf1=NC.files(1).n;
 	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));

@@ -5,7 +5,7 @@
 % Author:  NKkk
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  maxOWprocess
+function  maxOWprocessInit
 	dbstop if error
 	try
 		load DD
@@ -14,11 +14,7 @@ function  maxOWprocess
 		DD=initialise([],mfilename);
 		save DD
 	end
-	
-	
-	NC=initNC(DD);
-	spmdBcalc(NC);
-	
+	NC=initNC(DD);	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function NC=initNC(DD)
@@ -39,23 +35,30 @@ function NC=initNC(DD)
 	S=cell2mat(struct2cell(NC.S))';
 	NC.new.dimName = {'t_index','j_index','i_index' };
 	NC.new.dimNum  = S([4 2 3]);
-	NC.new.minOW.varName     =  'minOW';
-	NC.new.minOWzi.varName   =  'zOfMinOW';
+	NC.new.minOW.varName     =  'log10 of vertical minimum of Okubo-Weiss';
 	NC.new.minOW.fileName    =  [NC.outdir 'minOW.nc'];
+	NC.new.minOWzi.varName   =  'z(log10(min(Okubo-Weiss,z)))';
 	NC.new.minOWzi.fileName  =  [NC.outdir 'zOfminOW.nc'];
+	
+	NC.new.OWmean.varName     =  'time mean of OW';
+	NC.new.OWmean.fileName    =  [NC.outdir 'OWmean.nc'];
 	%% init
 	NC.iniNewNC = @(n,f,D,Dn) initNcFile(n.(f).fileName,n.(f).varName,D,Dn);
 	try NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName);
 	catch NCexist;		disp(NCexist);	end
 	try NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
 	catch NCexist;		disp(NCexist);	end
+	
+	try NC.iniNewNC(NC.new,'OWmean',  {'z_index','j_index','i_index' } ,[NC.S.Z NC.S.Y NC.S.X]);
+	catch NCexist;		disp(NCexist);	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function daily=initDaily(NC,tt)
 	daily.minOWzi.varName = NC.new.minOWzi.varName;
 	daily.minOW.varName   = NC.new.minOW.varName;
-	daily.minOWzi.fileName = [NC.outdir sprintf('zOfminOW_%04d.nc',tt)];
-	daily.minOW.fileName   = [NC.outdir sprintf('minOW_%04d.nc',   tt)];
+	daily.minOWzi.fileName =  sprintf('%s%s_%04d.nc',NC.outdir,NC.new.minOWzi.fileName,tt);
+	daily.minOW.fileName   =  sprintf('%s%s_%04d.nc',NC.outdir, NC.new.minOW.fileName ,tt);
+	%%
 	NC.iniNewNC(daily,'minOWzi',NC.new.dimNum(2:end),NC.new.dimName(2:end));
 	NC.iniNewNC(daily,'minOW',  NC.new.dimNum(2:end),NC.new.dimName(2:end));
 end
@@ -65,16 +68,17 @@ function spmdBcalc(NC)
 	ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
 	ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Y s.X]);
 	%% get bathymetry
-	NCf1=NC.files(1).full;
-	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
+	bath=getBathym(nc_varget(NC.files(1).full,'OkuboWeiss'));
+	%%
+	OWmean=makeOWmean(f,NC);
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
-		T=disp_progress('show',T,numel(NC.S.T));
+		T=disp_progress('show',T,NC.S.T);
 		try daily=initDaily(NC,tt); catch exst; disp(exst); continue; end
 		%% get min in z
-		log10data = f.log10OW(nc_varget(NC.files(tt).full,'OkuboWeiss'),-1);
-		[owMin,MinZi]=spmdBlck(log10data,bath,f);
+		
+		[owMin,MinZi]=spmdBlck(NC.files(tt).full,bath,f,OWmean);
 		%% write daily
 		ncPut(daily,'minOWzi',MinZi);
 		ncPut(daily,'minOW',owMin);
@@ -84,30 +88,53 @@ function spmdBcalc(NC)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Z,Y,X,bath]=getBathym(OW)
+function logOwMean=makeOWmean(f,NC)
+	T=disp_progress('init','calcing hor means of OW')  ;
+	spmd
+		logOwSum=f.ncvOne(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+	end
+	for tt=1:NC.S.T
+		T=disp_progress('show',T,NC.S.T);
+		%% get min in z
+		spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
+		spmd
+			newOw=f.ncvOne(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
+			logOwSum=spmdmDnansumlog(logOwSum,newOw);
+		end
+	end
+	spmd
+		logOwMean=logOwSum/NC.S.T;
+		logOwMeanCat=f.gCat(logOwMean);
+	end
+	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMeanCat{1});
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [bath]=getBathym(OW)
 	[Z,Y,X]=size(OW);
 	OW2d=reshape(OW,[Z,Y*X]);
 	[~,bathUpdown]=min(isnan(flipud(OW2d)),[],1);
-	bath=reshape( Z-bathUpdown + 1, [Y,X]);
+	spmd
+		bath=f.ncvOne(reshape( Z-bathUpdown + 1, [Y,X]),2);
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
 	f.ncvOne = @(A,dim) getLocalPart(codistributed(A,codistributor1d(dim)));
-	f.nanminFrom2toFloor = @(OW,bath) nanmin(OW(2:bath-1,:,:),[], 1);
+	
 	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
-	f.log10OW = @(OW,dummy) log10(-prep4log(OW,dummy));
-end
-function [OW]=prep4log(OW,dummy)
-	tag=isnan(OW) | isinf(OW) | OW>=0;
-	OW(tag)=dummy;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [owMin,MinZi]=spmdBlck(data,bath,f)
+function [OW]=log10OW(OW,dummy)
+	tag=isnan(OW) | isinf(OW) | OW>=0;
+	OW(tag)=dummy;
+	OW=log10(-OW);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [owMin,MinZi]=spmdBlck(currFile,mybath,f,OWmean)
+	nanmaxFrom2toFloor = @(OW,bath) nanmax(OW(2:bath-1,:,:),[], 1);
 	spmd
-		%% min in z
-		mydata=f.ncvOne(data,3);
-		mybath=f.ncvOne(bath,2);
-		[owMin,MinZi]=f.nanminFrom2toFloor(mydata,mybath);
+		mydata= 	f.ncvOne(log10OW(nc_varget(currFile,'OkuboWeiss'),nan),3);
+		[owMin,MinZi]=nanmaxFrom2toFloor(mydata./OWmean,mybath);
 		MinZi=f.gCat(MinZi-1,2); % correct for (2: ...)
 		owMin=f.gCat(owMin,2);
 	end

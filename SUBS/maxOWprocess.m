@@ -86,7 +86,7 @@ function daily=initDaily(NC,tt)
 	daily.minOWzi.varName = NC.new.minOWzi.varName;
 	daily.minOW.varName   = NC.new.minOW.varName;
 	daily.minOWzi.fileName = [NC.outdir sprintf('zOfminOW_%04d.nc',tt)];
-	daily.minOW.fileName   = [dirbase sprintf('minOW_%04d.nc',tt)];
+	daily.minOW.fileName   = [NC.outdir sprintf('minOW_%04d.nc',   tt)];
 	NC.iniNewNC(daily,'minOWzi',NC.new.dimNum(2:end),NC.new.dimName(2:end));
 	NC.iniNewNC(daily,'minOW',  NC.new.dimNum(2:end),NC.new.dimName(2:end));
 end
@@ -99,7 +99,9 @@ function spmdBcalc(NC)
 	NCf1=NC.files(1).n;
 	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
 	%%
+	T=disp_progress('init','building okubo weiss netcdfs')  ;
 	for tt=1:NC.S.T
+			T=disp_progress('show',T,numel(MD.timesteps),numel(MD.timesteps));
 		daily=initDaily(NC,tt);
 		%% get min in z
 		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'));

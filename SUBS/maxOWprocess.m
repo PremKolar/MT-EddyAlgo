@@ -8,17 +8,14 @@
 function  maxOWprocess
 	dbstop if error
 	try
-		load
+		load DD
 	catch yo
 		disp(yo)
-		try
-			load DD
-		catch yo2
-			disp(yo2)
-			DD=initialise([],mfilename);
-		end
-		save
+		DD=initialise([],mfilename);
+		save DD
 	end
+	
+	
 	NC=initNC(DD);
 	spmdBcalc(NC);
 	
@@ -63,36 +60,33 @@ function  maxOWprocess
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function NC=initNC(DD)
-	outdir=DD.path.okuboWeiss.name;
-	NC.geo= [DD.path.okuboWeiss.name 'LatLonDepth.nc'];
-	OWfiles=dir([DD.path.OkuboWeiss.name,'OW_*.nc']);
-	
-	
-	NC.files(numel(metaD.OWFout)).n=struct;
-	NC.outdir=outdir;
-	finishedF=cell(size(metaD.OWFout));
-	for cc=1:numel(metaD.OWFout)
-		[dr,fi,ex]=fileparts(metaD.OWFout{cc}) ;
-		finishedF{cc}=[dr '/' fi ex ];
+	file2dimname=@(f) getfield(nc_getvarinfo(f,'OkuboWeiss'),'Dimension');
+	file2dimnum=@(f) getfield(nc_getvarinfo(f,'OkuboWeiss'),'Size');
+	%%
+	NC.outdir=DD.path.OkuboWeiss.name;
+	NC.geo= [DD.path.OkuboWeiss.name 'LatLonDepth.nc'];
+	NC.files=dir([DD.path.OkuboWeiss.name,'OW_*.nc']);
+	for cc=1:numel(NC.files)
+		NC.files(cc).full= [DD.path.OkuboWeiss.name NC.files(cc).name];
 	end
-	[NC.files(:).n] = deal(finishedF{:});
-	NC.timeStep = datenum('0815','mmdd');
-	NC.S=cell2struct(num2cell(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Size')),{'Z','Y','X'},2);
+	smple=NC.files(1).full;
+	NC.Sname=cell2struct(file2dimname(smple),{'Z','Y','X'},2);
+	NC.S=cell2struct(num2cell(file2dimnum(smple)),{'Z','Y','X'},2);
 	NC.S.T = numel(NC.files);
-	NC.Sname=cell2struct(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Dimension'),{'Z','Y','X'},2);
-	
 	%%
 	S=cell2mat(struct2cell(NC.S))';
 	NC.new.dimName = {'t_index','j_index','i_index' };
 	NC.new.dimNum  = S([4 2 3]);
-	NC.new.minOW.varName		 =		'minOW';
-	NC.new.minOWzi.varName	 =		'zOfMinOW';
-	NC.new.minOW.fileName	 =		[outdir 'minOW.nc'];
-	NC.new.minOWzi.fileName  =		[outdir 'zOfminOW.nc'];
+	NC.new.minOW.varName     =  'minOW';
+	NC.new.minOWzi.varName   =  'zOfMinOW';
+	NC.new.minOW.fileName    =  [NC.outdir 'minOW.nc'];
+	NC.new.minOWzi.fileName  =  [NC.outdir 'zOfminOW.nc'];
 	%% init
 	NC.iniNewNC = @(n,f,D,Dn) initNcFile(n.(f).fileName,n.(f).varName,D,Dn);
-	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName);
-	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
+	try NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName);
+	catch NCexist;		disp(NCexist);	end
+	try NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
+	catch NCexist;		disp(NCexist);	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function daily=initDaily(NC,tt)
@@ -116,7 +110,7 @@ function spmdBcalc(NC)
 	for tt=1:NC.S.T
 		T=disp_progress('show',T,numel(NC.S.T));
 		daily=initDaily(NC,tt);
-		%% get min in z		
+		%% get min in z
 		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'),-1);
 		[owMin,MinZi]=spmdBlck(log10data,bath,f);
 		%% write daily
@@ -160,7 +154,7 @@ function [owMin,MinZi]=spmdBlck(data,bath,f)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize,dimName)
-	nc_create_empty(fname,'clobber');
+	nc_create_empty(fname,'noclobber');
 	varstruct.Name = toAdd;
 	varstruct.Nctype = 'double';
 	for ww=1:numel(WinSize)

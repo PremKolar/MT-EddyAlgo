@@ -15,13 +15,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC,f)
 	spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
-	spmd
-		T=disp_progress('init','calcing hor means of OW')  ;
-		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X));
+	spmd	
+		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+		labBarrier;
 		for tt=drange(1:NC.S.T)
-			fprintf('lab%02d at tt=%02d',labindex,tt)
-			T=disp_progress('show',T,NC.S.T);
-			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'));
+			fprintf('lab%02d at tt=%02d\n',labindex,tt)	
+			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
 		end
 	end
@@ -29,7 +28,7 @@ function logOwMean=main(NC,f)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
-	f.cod = @(A) codistributed(A,codistributor1d(ndims(A)));
+	f.cod = @(A,dim) codistributed(A,codistributor1d(dim));
 	% 	f.cod = @(A) getLocalPart(codistributed(A,codistributor1d(ndims(A))));
 	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
 end

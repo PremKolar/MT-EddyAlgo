@@ -6,8 +6,9 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  maxOWprocess
-	load metaData  DD
-	
+dbstop if error	
+load metaData  DD
+	xdghn
 	NC=initNC(metaData,DD.path.Rossby.name);
 	spmdBcalc(NC);
 	

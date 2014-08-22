@@ -6,13 +6,14 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  maxOWprocess
-	if ~exist('matlab.mat','file')
-		dbstop if error
+	dbstop if error
+	try
+		load
+	catch yo
+		disp(yo)
 		load DD
 		load metaData
 		save
-	else
-		load
 	end
 	NC=initNC(metaData,DD.path.Rossby.name);
 	spmdBcalc(NC);
@@ -108,7 +109,7 @@ function spmdBcalc(NC)
 		T=disp_progress('show',T,numel(NC.S.T));
 		daily=initDaily(NC,tt);
 		%% get min in z
-		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'),1);
+		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'),-1);
 		[owMin,MinZi]=spmdBlck(log10data,bath,f);
 		%% write daily
 		ncPut(daily,'minOWzi',MinZi);

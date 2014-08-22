@@ -17,10 +17,10 @@ function logOwMean=main(NC,f)
 	spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
 	spmd
 		T=disp_progress('init','calcing hor means of OW')  ;
-		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+		logOwSum=f.cod(nan(NC.S.Z,NC.S.Y,NC.S.X));
 		for tt=1:NC.S.T
 			T=disp_progress('show',T,NC.S.T);
-			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
+			newOw=f.cod(nc_varget(NC.files(tt).full,'OkuboWeiss'));
 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
 		end	
 	end

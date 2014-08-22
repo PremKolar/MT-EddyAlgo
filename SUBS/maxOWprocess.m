@@ -99,7 +99,7 @@ end
 function spmdBcalc(NC)
 	f=funcs;
 	ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
-	ncPutBig=@(n,f,data,t)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 inf inf]);
+	ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.y s.x]);
 	%% get bathymetry
 	NCf1=NC.files(1).n;
 	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
@@ -108,15 +108,15 @@ function spmdBcalc(NC)
 	for tt=1:NC.S.T
 		T=disp_progress('show',T,numel(NC.S.T));
 		daily=initDaily(NC,tt);
-		%% get min in z
+		%% get min in z		
 		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'),-1);
 		[owMin,MinZi]=spmdBlck(log10data,bath,f);
 		%% write daily
 		ncPut(daily,'minOWzi',MinZi);
 		ncPut(daily,'minOW',owMin);
 		%% put to big files too
-		ncPutBig(NC.new,'minOWzi',MinZi,tt-1);
-		ncPutBig(NC.new,'minOW',owMin,tt-1);
+		ncPutBig(NC.new,'minOWzi',MinZi,tt-1,NC.S);
+		ncPutBig(NC.new,'minOW',owMin,tt-1,NC.S);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

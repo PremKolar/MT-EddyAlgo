@@ -19,44 +19,6 @@ function  maxOWprocess
 	NC=initNC(DD);
 	spmdBcalc(NC);
 	
-	%
-	%
-	%     %% focus on strong neg. okubo weiss
-	%     clean=OWall.ow < 5*nanmean(OWall.ow(:));
-	%     OWall.ow(~clean) = nan;
-	%     OWall.zi(~clean) = nan;
-	%     %% ow weighted mean of zi
-	%     OWall.owSum      = repmat(nansum(OWall.ow,1),[NC.S.T,1,1]);
-	%     OWall.ziWeighted = OWall.ow.*OWall.zi./OWall.owSum;
-	%     OWall.meaned.z           = squeeze(nansum(OWall.ziWeighted, 1));
-	%     OWall.meaned.ow          = squeeze(nanmean(OWall.ow, 1));
-	%     flgd=~squeeze(nansum(clean,1));
-	%     [y,x]=size(OWall.meaned.z);
-	%     [Xq,Yq]=meshgrid(1:x,1:y);
-	%     Xfl=Xq;Yfl=Yq;
-	%     Xfl(flgd)=[];
-	%     Yfl(flgd)=[];
-	%     vq = griddata(Xfl,Yfl,OWall.meaned.z(~flgd),Xq,Yq);
-	%     OWall.ziIntrl=round(smooth2a(NeighbourValue(isnan(vq),vq),10));
-	%     %    pcolor(vqn);
-	%     %    colorbar;
-	%
-	%     allOW=OWall.ow;
-	%     depthOW=OWall.depth;
-	%     ziOW=OWall.zi;
-	%     ziIntrp=OWall.ziIntrl;
-	%     ziWeighted=OWall.ziWeighted;
-	%
-	%
-	%     save('allOW.mat','allOW','-v7.3')
-	%     save('zi.mat','ziOW','-v7.3')
-	%     save('ziItnrp.mat','ziIntrp','-v7.3')
-	%     save('ziWeighted.mat','ziWeighted','-v7.3')
-	%
-	%
-	%
-	%
-	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function NC=initNC(DD)
@@ -103,15 +65,15 @@ function spmdBcalc(NC)
 	ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
 	ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Y s.X]);
 	%% get bathymetry
-	NCf1=NC.files(1).n;
+	NCf1=NC.files(1).full;
 	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
 		T=disp_progress('show',T,numel(NC.S.T));
-		daily=initDaily(NC,tt);
+		try daily=initDaily(NC,tt); catch exst; disp(exst); continue; end
 		%% get min in z
-		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'),-1);
+		log10data = f.log10OW(nc_varget(NC.files(tt).full,'OkuboWeiss'),-1);
 		[owMin,MinZi]=spmdBlck(log10data,bath,f);
 		%% write daily
 		ncPut(daily,'minOWzi',MinZi);
@@ -170,5 +132,43 @@ end
 
 
 
+
+%
+%
+%     %% focus on strong neg. okubo weiss
+%     clean=OWall.ow < 5*nanmean(OWall.ow(:));
+%     OWall.ow(~clean) = nan;
+%     OWall.zi(~clean) = nan;
+%     %% ow weighted mean of zi
+%     OWall.owSum      = repmat(nansum(OWall.ow,1),[NC.S.T,1,1]);
+%     OWall.ziWeighted = OWall.ow.*OWall.zi./OWall.owSum;
+%     OWall.meaned.z           = squeeze(nansum(OWall.ziWeighted, 1));
+%     OWall.meaned.ow          = squeeze(nanmean(OWall.ow, 1));
+%     flgd=~squeeze(nansum(clean,1));
+%     [y,x]=size(OWall.meaned.z);
+%     [Xq,Yq]=meshgrid(1:x,1:y);
+%     Xfl=Xq;Yfl=Yq;
+%     Xfl(flgd)=[];
+%     Yfl(flgd)=[];
+%     vq = griddata(Xfl,Yfl,OWall.meaned.z(~flgd),Xq,Yq);
+%     OWall.ziIntrl=round(smooth2a(NeighbourValue(isnan(vq),vq),10));
+%     %    pcolor(vqn);
+%     %    colorbar;
+%
+%     allOW=OWall.ow;
+%     depthOW=OWall.depth;
+%     ziOW=OWall.zi;
+%     ziIntrp=OWall.ziIntrl;
+%     ziWeighted=OWall.ziWeighted;
+%
+%
+%     save('allOW.mat','allOW','-v7.3')
+%     save('zi.mat','ziOW','-v7.3')
+%     save('ziItnrp.mat','ziIntrp','-v7.3')
+%     save('ziWeighted.mat','ziWeighted','-v7.3')
+%
+%
+%
+%
 
 

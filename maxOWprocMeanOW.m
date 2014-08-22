@@ -9,27 +9,23 @@ function maxOWprocMeanOW
 	load NC
 	f=funcs;
 	logOwMean=main(NC,f);
-	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMean{1});
+	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMean);
 	save logOwMean
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC,f)
-	T=disp_progress('init','calcing hor means of OW')  ;
+	spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
 	spmd
+		T=disp_progress('init','calcing hor means of OW')  ;
 		logOwSum=f.ncvOne(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
-	end
-	for tt=1:NC.S.T
-		T=disp_progress('show',T,NC.S.T);
-		%% get min in z
-		spmdmDnansumlog=@(old,new)  multiDnansum(old, log10OW(new,nan));
-		spmd
+		for tt=1:NC.S.T
+			T=disp_progress('show',T,NC.S.T);
 			newOw=f.ncvOne(nc_varget(NC.files(tt).full,'OkuboWeiss'),3);
 			logOwSum=spmdmDnansumlog(logOwSum,newOw);
 		end
-	end
-	spmd
 		logOwMean=f.gCat(logOwSum/NC.S.T);
 	end
+	logOwMean=logOwMean{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs

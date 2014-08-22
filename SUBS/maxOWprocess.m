@@ -6,25 +6,16 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  maxOWprocess
-load metaData  DD  
-NC=initNC(metaData);
-    S=cell2mat(struct2cell(NC.S))';
-    NC.OWzi=[DD.path.Rossby.name 'OWzi.nc'];
-    NC.OWa=[DD.path.Rossby.name 'OWa.nc'];
-    initNcFile(NC.OWzi,'zi',[S([4 2 3])],{'t_index','j_index','i_index' });
-    initNcFile(NC.OWa,'OW',[S([4 2 3])],{'t_index','j_index','i_index' });
-    
-    spmdBcalc(NC,DD.path.Rossby.name);
-    
-    %
-    %     OWall.zi=nc_varget(NC.OWzi,'zi') ;
-    %     OWall.ow=nc_varget(NC.OWa,'OW') ;
-    %     OWall.depth=nc_varget(NC.geo,'depth');
-    %
-    %
-    %
-    %     %% focus on strong neg. okubo weiss
-    %     clean=OWall.ow < 5*nanmean(OWall.ow(:));
+	load metaData  DD
+
+	NC=initNC(metaData,DD.path.Rossby.name);
+	S=cell2mat(struct2cell(NC.S))';	
+	spmdBcalc(NC);
+	
+	%
+	%
+	%     %% focus on strong neg. okubo weiss
+	%     clean=OWall.ow < 5*nanmean(OWall.ow(:));
     %     OWall.ow(~clean) = nan;
     %     OWall.zi(~clean) = nan;
     %     %% ow weighted mean of zi
@@ -54,88 +45,98 @@ NC=initNC(metaData);
     %     save('zi.mat','ziOW','-v7.3')
     %     save('ziItnrp.mat','ziIntrp','-v7.3')
     %     save('ziWeighted.mat','ziWeighted','-v7.3')
-    %
-    %
-    %
-    %
-    
+	 %
+	 %
+	 %
+	 %
+	 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function NC=initNC(metaD)
-    NC.geo=metaD.geoOut;
-    NC.files(numel(metaD.OWFout)).n=struct;
-    for cc=1:numel(metaD.OWFout)
-        [dr,fi,ex]=fileparts(metaD.OWFout{cc}) ;
-        finishedF{cc}=[dr '/' fi ex ];
-    end
-    [NC.files(:).n] = deal(finishedF{:});
-    
-    NC.timeStep = datenum('0815','mmdd');
-    NC.S=cell2struct(num2cell(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Size')),{'Z','Y','X'},2);
-    NC.S.T = numel(NC.files);
-    NC.Sname=cell2struct(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Dimension'),{'Z','Y','X'},2);
+function NC=initNC(metaD,outdir)
+	NC.geo=metaD.geoOut;
+	NC.files(numel(metaD.OWFout)).n=struct;
+	NC.outdir=outdir;
+	finishedF=cell(size(metaD.OWFout));
+	for cc=1:numel(metaD.OWFout)
+		[dr,fi,ex]=fileparts(metaD.OWFout{cc}) ;
+		finishedF{cc}=[dr '/' fi ex ];
+	end
+	[NC.files(:).n] = deal(finishedF{:});
+	NC.timeStep = datenum('0815','mmdd');
+	NC.S=cell2struct(num2cell(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Size')),{'Z','Y','X'},2);
+	NC.S.T = numel(NC.files);
+	NC.Sname=cell2struct(getfield(nc_getvarinfo(NC.files(1).n,'OkuboWeiss'),'Dimension'),{'Z','Y','X'},2);
+	NC.new.dimName = {'t_index','j_index','i_index' };
+	NC.new.dimNum  = S([4 2 3]);
+	NC.new.minOW.varName		 =		'minOW';
+	NC.new.minOWzi.varName	 =		'zOfMinOW';
+	NC.new.minOW.fileName	 =		[outdir 'minOW.nc'];
+	NC.new.minOWzi.fileName  =		[outdir 'zOfminOW.nc'];
+	%% init
+	NC.iniNewNC = @(n,f,D,Dn) initNcFile(n.(f).fileName,n.(f).varName,D,Dn);
+	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName);
+	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function daily=initDaily(NC,tt)
+	 daily.minOWzi.varName = NC.new.minOWzi.varName;
+    daily.minOW.varName   = NC.new.minOW.varName;
+    daily.minOWzi.fileName = [NC.outdir sprintf('zOfminOW_%04d.nc',tt)];
+    daily.minOW.fileName   = [dirbase sprintf('minOW_%04d.nc',tt)];	
+	 NC.iniNewNC(daily,'minOWzi',NC.new.dimNum(2:end),NC.new.dimName(2:end));
+    NC.iniNewNC(daily,'minOW',  NC.new.dimNum(2:end),NC.new.dimName(2:end));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function spmdBcalc(NC)
+	f=funcs;
+	ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
+	ncPutBig=@(n,f,data,t)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 inf inf]);
+	%% get bathymetry
+	NCf1=NC.files(1).n;
+	[~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
+	%%
+	for tt=1:NC.S.T
+		daily=initDaily(NC,tt);
+		%% get min in z
+		log10data = f.log10OW(nc_varget(NC.files(tt).n,'OkuboWeiss'));
+		[owMin,MinZi]=spmdBlck(log10data,bath,f);
+		%% write daily
+		ncPut(daily,'minOWzi',MinZi);
+		ncPut(daily,'minOW',owMin);
+		%% put to big files too
+		ncPutBig(NC.new,'minOWzi',MinZi,tt-1);
+		ncPutBig(NC.new,'minOW',owMin,tt-1);
+	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [Z,Y,X,bath]=getBathym(OW)
-    [Z,Y,X]=size(OW);
-    OW2d=reshape(OW,[Z,Y*X]);
-    [~,bathUpdown]=min(isnan(flipud(OW2d)),[],1);
-    bath=reshape( Z-bathUpdown + 1, [Y,X]);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function daily=initDaily(dirbase,tt,S)
-    daily.OWzi=[dirbase sprintf('OWzi_%04d.nc',tt)];
-    daily.OWa=[dirbase sprintf('OWa_%04d.nc',tt)];
-    initNcFile(daily.OWzi,'zi',S,{'j_index','i_index' });
-    initNcFile(daily.OWa,'OW',S,{'j_index','i_index' });
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function spmdBcalc(NC,dirbase)
-    f=funcs;
-    %% get bathymetry
-    NCf1=NC.files(1).n;
-    [~,~,~,bath]=getBathym(nc_varget(NCf1,'OkuboWeiss'));
-    %%
-    for tt=1:NC.S.T
-        daily=initDaily(dirbase,tt,[NC.S.Y NC.S.X]);
-        %%
-        [zi,owm]=spmdBlck(nc_varget(NC.files(tt).n,'OkuboWeiss'),bath,f);
-        nc_varput(daily.OWzi,'zi',squeeze(zi));
-        nc_varput(daily.OWa,'OW',squeeze(owm));
-        %%
-        [zi,owm]=spmdBlck(-nc_varget(NC.files(tt).n,'log10NegOW'),bath,f);
-        
-        %             OW=-ncvOne(nc_varget(NC.files(tt).n,'log10NegOW'));
-        %             %% max in z
-        %             [owm,zi]=nanmin(OW(2:bath-1,:,:),[], 1);
-        %             zi=gcat(zi-1,3,1); % correct for (2: ...)
-        %             owm=gcat(owm,3,1);
-        %         end
-        %
-        
-        %         nc_varput(NC.OWzi,'zi',zi,[tt-1 0 0],[1 NC.S.Y NC.S.X])
-        %          nc_varput(NC.OWa,'OW',owm,[tt-1 0 0],[1 NC.S.Y NC.S.X])
-        %          nc_varput(NC.OWa,'OW',owm)
-    end
+	[Z,Y,X]=size(OW);
+	OW2d=reshape(OW,[Z,Y*X]);
+	[~,bathUpdown]=min(isnan(flipud(OW2d)),[],1);
+	bath=reshape( Z-bathUpdown + 1, [Y,X]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs
-    f.ncvOne = @(A,dim) getLocalPart(codistributed(A,codistributor1d(dim)));
-    f.nm = @(OW,bath) nanmin(OW(2:bath-1,:,:),[], 1);
-    f.gc = @(a,dim) gcat(squeeze(a),dim,1);
+	f.ncvOne = @(A,dim) getLocalPart(codistributed(A,codistributor1d(dim)));
+	f.nanminFrom2toFloor = @(OW,bath) nanmin(OW(2:bath-1,:,:),[], 1);
+	f.gCat = @(a,dim) gcat(squeeze(a),dim,1);
+	f.log10OW = @(OW,dummy) log10(-prep4log(OW,dummy));	
+end
+function [OW]=prep4log(OW,dummy)	
+	OW(isnan(OW) || isinf(OW) || OW>=0)=dummy;	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [zi,owm]=spmdBlck(data,bath,f)
+function [owMin,MinZi]=spmdBlck(data,bath,f)
     spmd
         %% min in z
         mydata=f.ncvOne(data,3);
         mybath=f.ncvOne(bath,2);
-        [owm,zi]=f.nm(mydata,mybath);
-        zi=f.gc(zi-1,2); % correct for (2: ...)
-        owm=f.gc(owm,2);
+        [owMin,MinZi]=f.nanminFrom2toFloor(mydata,mybath);
+        MinZi=f.gCat(MinZi-1,2); % correct for (2: ...)
+        owMin=f.gCat(owMin,2);
     end
-    zi=zi{1};
-    owm=owm{1};
+    MinZi=MinZi{1};
+    owMin=owMin{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize,dimName)

@@ -15,6 +15,7 @@ end
 function logOwMean=main(NC)
 	disp('getting logOwSum')
 	tic
+	NC.S
 	[logOwSum]=spmdCoDisp(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
 	toc
 	disp('getting logOwCount')
@@ -40,6 +41,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function [out,codisp,lim]=spmdCoDisp(in,dim)
 function [out]=spmdCoDisp(in,dim)
+	
 	spmd
 		out=codistributed(in,codistributor1d(dim));
 		% 		codisp=getCodistributor(out);

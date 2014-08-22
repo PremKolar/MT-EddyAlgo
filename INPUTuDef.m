@@ -6,7 +6,8 @@ function DD=INPUTuDef
     %[~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='/dir/to/saltAndTempFiles/';
  DD.path.UV.name='/dir/to/MeanCurrentVelFiles/';
-        DD.path.raw.name='/dir/to/raw/data/';     
+        DD.path.raw.name='/dir/to/raw/data/';   
+		  DD.path.OkuboWeiss.name='/dir/to/OkuboWeiss/';   
     %% map in keys  
     DD.map.in.fname='RAWyyyymmdd.nc';
     DD.map.in.keys.lat='U_LAT_2D';

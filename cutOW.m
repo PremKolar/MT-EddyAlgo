@@ -5,21 +5,17 @@
 % Author:  NKkk
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  maxOWprocess
+function  cutOW
 	dbstop if error
 	try
 		load
 	catch yo
 		disp(yo)
-		try
-			load DD
-		catch yo2
-			disp(yo2)
-			DD=initialise([],mfilename);
-		end
+		load DD
+		load metaData
 		save
 	end
-	NC=initNC(DD);
+	NC=initNC(metaData,DD.path.Rossby.name);
 	spmdBcalc(NC);
 	
 	%
@@ -62,12 +58,8 @@ function  maxOWprocess
 	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function NC=initNC(DD)
-	outdir=DD.path.okuboWeiss.name;
-	NC.geo= [DD.path.okuboWeiss.name 'LatLonDepth.nc'];
-	OWfiles=dir([DD.path.OkuboWeiss.name,'OW_*.nc']);
-	
-	
+function NC=initNC(metaD,outdir)
+	NC.geo=metaD.geoOut;
 	NC.files(numel(metaD.OWFout)).n=struct;
 	NC.outdir=outdir;
 	finishedF=cell(size(metaD.OWFout));

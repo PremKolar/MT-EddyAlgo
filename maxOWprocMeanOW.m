@@ -15,12 +15,12 @@ end
 function logOwMean=main(NC)
 	disp('getting logOwSum')
 	tic
-	NC.S
-	[logOwSum]=spmdCoDisp(nan(NC.S.Z,NC.S.Y,NC.S.X),3);
+	spmd,	codi=codistributor1d(3);end
+	logOwSum=nan(NC.S.Z,NC.S.Y,NC.S.X,codi);
 	toc
 	disp('getting logOwCount')
 	tic
-	[logOwCount]=spmdCoDisp(ones(NC.S.Z,NC.S.Y,NC.S.X),3);
+	logOwCount=ones(NC.S.Z,NC.S.Y,NC.S.X,codi);
 	toc
 	for tt=1:NC.S.T
 		tic

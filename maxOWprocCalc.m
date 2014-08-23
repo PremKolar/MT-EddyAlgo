@@ -9,29 +9,35 @@ function f=funcs
 	f.locCo=@(in,codi) getLocalPart(codistributed(in,codi));
 	f.ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
 	f.ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Y s.X]);
+	f.ncPutYref=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Z s.X]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function main(NC)	
+function main(NC)
 	codi=codistributor1d(3);
 	f=funcs;
+	Yref=500;
 	%% get bathymetry
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
 		T=disp_progress('show',T,NC.S.T);
 		%% get min in z
-		srthdr
+		currFile=NC.files(tt).full;
 		spmd
-			mydata= 		log10OW(f.locNC(currFile,codi),nan);	
+			mydata= 		log10OW(f.locNC(currFile,codi),nan);
 			[owMin,MinZi]=nanmax(mydata(2:end,:,:),[], 1);
 			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
 			owMin=gcat(squeeze(owMin),2,1);
+			Yref=gcat(squeeze(mydata(:,Yref,:)),2,1);
 		end
 		MinZi=MinZi{1};
 		owMin=owMin{1};
-		%% put to big files too
+		Yref=Yref{1};
+		%% put to big files
+		owYref
 		f.ncPutBig(NC.new,'minOWzi',MinZi,tt-1,NC.S);
 		f.ncPutBig(NC.new,'minOW',owMin,tt-1,NC.S);
+		f.ncPutYref(NC.new,'owYref',Yref,tt-1,NC.S);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

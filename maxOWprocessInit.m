@@ -40,6 +40,8 @@ function NC=initNC(DD)
 	NC.new.minOW.fileName    =  [NC.outdir 'minOW.nc'];
 	NC.new.minOWzi.varName   =  'z-index_log10-Okubo-Weiss_hor-meaned';
 	NC.new.minOWzi.fileName  =  [NC.outdir 'zOfminOW.nc'];
+	NC.new.owYref.varName   =  'owAtYref';
+	NC.new.owYref.fileName  =  [NC.outdir 'owYref.nc'];
 	
 	NC.new.OWmean.varName     =  'time-mean-of-OW';
 	NC.new.OWmean.fileName    =  [NC.outdir 'OWmean.nc'];
@@ -51,6 +53,9 @@ function NC=initNC(DD)
 	catch NCexist;		disp(NCexist);	end	
 	try NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'z_index','j_index','i_index' });
 	catch NCexist;		disp(NCexist);	end		
+	try NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','z_index','i_index' });
+	catch NCexist;		disp(NCexist);	end	
+		
 	NC.funcs=funcs;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

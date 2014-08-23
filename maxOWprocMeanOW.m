@@ -1,8 +1,9 @@
 function maxOWprocMeanOW
 	load NC
 	logOwMean=main(NC);
-	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMean);
 	save logOwMean
+	nc_varput(NC.new.OWmean.fileName ,NC.new.OWmean.varName,logOwMean);
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function logOwMean=main(NC)

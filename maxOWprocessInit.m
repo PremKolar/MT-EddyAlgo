@@ -36,23 +36,21 @@ function NC=initNC(DD)
 	S=cell2mat(struct2cell(NC.S))';
 	NC.new.dimName = {'t_index','j_index','i_index' };
 	NC.new.dimNum  = S([4 2 3]);
-	NC.new.minOW.varName     =  'log10 of vertical minimum of Okubo-Weiss';
+	NC.new.minOW.varName     =  'log10-Okubo-Weiss_hor-meaned';
 	NC.new.minOW.fileName    =  [NC.outdir 'minOW.nc'];
-	NC.new.minOWzi.varName   =  'z(log10(min(Okubo-Weiss,z)))';
+	NC.new.minOWzi.varName   =  'z-index_log10-Okubo-Weiss_hor-meaned';
 	NC.new.minOWzi.fileName  =  [NC.outdir 'zOfminOW.nc'];
 	
-	NC.new.OWmean.varName     =  'time mean of OW';
+	NC.new.OWmean.varName     =  'time-mean-of-OW';
 	NC.new.OWmean.fileName    =  [NC.outdir 'OWmean.nc'];
 	%% init
 	NC.iniNewNC = @(n,f,D,Dn) initNcFile(n.(f).fileName,n.(f).varName,D,Dn);
 	try NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName);
 	catch NCexist;		disp(NCexist);	end
 	try NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
-	catch NCexist;		disp(NCexist);	end
-	
-	try NC.iniNewNC(NC.new,'OWmean',  {'z_index','j_index','i_index' } ,[NC.S.Z NC.S.Y NC.S.X]);
 	catch NCexist;		disp(NCexist);	end	
-	
+	try NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'z_index','j_index','i_index' });
+	catch NCexist;		disp(NCexist);	end		
 	NC.funcs=funcs;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

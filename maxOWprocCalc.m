@@ -15,14 +15,14 @@ function f=funcs
 	f.ncPutXYref=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Z s.X]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function deepestLin=preploop(NC)
-	NC.codi=codistributor1d(3);
+function [deepestLin,codi]=preploop(NC)
+	codi=codistributor1d(3);
 	f=funcs;
 	%% get bathymetry
 	[~,bathym]=max(~isnan(nc_varget(NC.files(1).full,'OkuboWeiss')));
 	ndgridFromSize=@(in)  ndgrid(1:size(in,1),1:size(in,2));
 	spmd
-		deepest  =  f.locCo(bathym,NC.codi)-1;
+		deepest  =  f.locCo(bathym,codi)-1;
 		deepest(deepest==0)=1;
 		[Y,X]=ndgridFromSize(squeeze(deepest));
 		deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));
@@ -77,7 +77,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(NC)
 	%%
-	NC.deepestLin=preploop(NC);
+	[NC.deepestLin NC.codi]=preploop(NC);
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T

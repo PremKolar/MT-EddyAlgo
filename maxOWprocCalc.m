@@ -33,7 +33,7 @@ function deepestLin=preploop(NC)
 	end	%%
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function calcMinZi(NC)
+function calcMinZi(NC,tt)
 	f=funcs;
 	spmd
 		mydata=log10OW(f.locNC(NC.currFile,NC.codi),nan);
@@ -50,7 +50,7 @@ function calcMinZi(NC)
 	f.ncPutBig(NC.new,'minOW',owMin,tt-1,NC.S);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function calcYref(NC)
+function calcYref(NC,tt)
 	f=funcs;
 	spmd
 		mydata= 		log10OW(f.locNC(NC.currFile,NC.codi),nan);
@@ -61,7 +61,7 @@ function calcYref(NC)
 	f.ncPutYref(NC.new,'owYref',owYref,tt-1,NC.S);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function calcXYref(NC)
+function calcXYref(NC,tt)
 	f=funcs;
 	owXY=log10OW(nc_varget(NC.currFile,'OkuboWeiss',[0 NC.yxref-1],[inf 1 1]),nan);
 	f.ncPutXYref(NC.new,'owXYref',owXY,tt-1,NC.S);
@@ -77,11 +77,11 @@ function main(NC)
 		%% get min in z
 		NC.currFile=NC.files(tt).full;
 		%%
-% 		calcMinZi(NC)
+% 		calcMinZi(NC,tt)
 		%%
-% 		calcYref(NC)
+% 		calcYref(NC,tt)
 		%%
-		calcXYref(NC)
+		calcXYref(NC,tt)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

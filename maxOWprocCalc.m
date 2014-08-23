@@ -30,6 +30,14 @@ function deepestLin=preploop(NC)
 		deepest  = deepest -1;
 		deepest(deepest==0)=1;
 		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
+		%3rd deepest
+		deepest  = deepest -1;
+		deepest(deepest==0)=1;
+		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
+		%4th deepest
+		deepest  = deepest -1;
+		deepest(deepest==0)=1;
+		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
 	end	%%
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,9 +85,9 @@ function main(NC)
 		%% get min in z
 		NC.currFile=NC.files(tt).full;
 		%%
-% 		calcMinZi(NC,tt)
+		 		calcMinZi(NC,tt)
 		%%
-% 		calcYref(NC,tt)
+		 		calcYref(NC,tt)
 		%%
 		calcXYref(NC,tt)
 	end

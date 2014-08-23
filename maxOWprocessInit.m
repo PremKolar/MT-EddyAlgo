@@ -61,10 +61,10 @@ function NC=initNC(DD)
 	%% init
 	NC.iniNewNC = @(n,f,D,Dn,geo) initNcFile(n.(f).fileName,n.(f).varName,D,Dn,geo);
 	
-% 	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
-% 	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
-% 	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'k_index','j_index','i_index' },geo);
-% 	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
+	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
+	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'k_index','j_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index' },geo);
 	NC.iniNewNC(NC.new,'owXYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index'},geo);
 	
 	NC.funcs=funcs;

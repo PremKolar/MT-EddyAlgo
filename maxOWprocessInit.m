@@ -64,8 +64,8 @@ function NC=initNC(DD)
 % 	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
 % 	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
 % 	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'k_index','j_index','i_index' },geo);
-% 	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index' },[]);
-	NC.iniNewNC(NC.new,'owXYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index'},[]);
+% 	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'owXYref' ,[NC.S.T NC.S.Z],  {'t_index','k_index'},geo);
 	
 	NC.funcs=funcs;
 end

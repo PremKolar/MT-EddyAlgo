@@ -28,15 +28,15 @@ function main(NC)
 			[owMin,MinZi]=nanmax(mydata(2:end,:,:),[], 1);
 			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
 			owMin=gcat(squeeze(owMin),2,1);
-			Yref=gcat(squeeze(mydata(:,Yref,:)),2,1);
+			owYref=gcat(squeeze(mydata(:,Yref,:)),2,1);
 		end
 		MinZi=MinZi{1};
 		owMin=owMin{1};
-		Yref=Yref{1};
+		owYref=owYref{1};
 		%% put to big files
 		f.ncPutBig(NC.new,'minOWzi',MinZi,tt-1,NC.S);
 		f.ncPutBig(NC.new,'minOW',owMin,tt-1,NC.S);
-		f.ncPutYref(NC.new,'owYref',Yref,tt-1,NC.S);
+		f.ncPutYref(NC.new,'owYref',owYref,tt-1,NC.S);
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

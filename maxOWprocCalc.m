@@ -22,7 +22,7 @@ function deepestLin=preploop(NC)
 	[~,bathym]=max(~isnan(nc_varget(NC.files(1).full,'OkuboWeiss')));
 	ndgridFromSize=@(in)  ndgrid(1:size(in,1),1:size(in,2));
 	spmd
-		deepest  =  f.locCo(bathym,codi)-1;
+		deepest  =  f.locCo(bathym,NC.codi)-1;
 		deepest(deepest==0)=1;
 		[Y,X]=ndgridFromSize(squeeze(deepest));
 		deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));

@@ -9,7 +9,8 @@ end
 function logOwMean=main(NC)
 	codi=codistributor1d(3);
 	localNCget=@(in,codi) getLocalPart(codistributed(in,codi));
-	spmd		
+	spmd
+		
 		logOwSum=localNCget(nc_varget(NC.files(1).full,'OkuboWeiss'),codi);
 		nanflag=isnan(logOwSum);
 		logOwSum(nanflag)=0;

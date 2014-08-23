@@ -17,6 +17,14 @@ function main(NC)
 	f=funcs;
 	Yref=500;
 	%% get bathymetry
+	[~,bathym]=max(~isnan(nc_varget(NC.files(1).full,'OkuboWeiss')));
+	ndgridFromSize=@(in)  ndgrid(1:size(in,1),1:size(in,2));
+	spmd
+		deepest  =  f.locCo(bathym,codi)-1;
+		deepest(deepest==0)=1;
+		[Y,X]=ndgridFromSize(squeeze(deepest));
+		deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));
+	end
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
@@ -25,6 +33,8 @@ function main(NC)
 		currFile=NC.files(tt).full;
 		spmd
 			mydata= 		log10OW(f.locNC(currFile,codi),nan);
+			%% kill bottom layer
+			mydata(deepestLin)=nan;
 			[owMin,MinZi]=nanmax(mydata(2:end,:,:),[], 1);
 			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
 			owMin=gcat(squeeze(owMin),2,1);
@@ -45,4 +55,4 @@ function [OW]=log10OW(OW,dummy)
 	OW(tag)=dummy;
 	OW=log10(-OW);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

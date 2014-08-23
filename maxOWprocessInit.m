@@ -44,9 +44,9 @@ function NC=initNC(DD)
 	S=cell2mat(struct2cell(NC.S))';
 	NC.new.dimName = {'t_index','j_index','i_index' };
 	NC.new.dimNum  = S([4 2 3]);
-	NC.new.minOW.varName     =  'log10-Okubo-Weiss_hor-meaned';
+	NC.new.minOW.varName     =  'minOkuWeiss';
 	NC.new.minOW.fileName    =  [NC.outdir 'minOW.nc'];
-	NC.new.minOWzi.varName   =  'z-index_log10-Okubo-Weiss_hor-meaned';
+	NC.new.minOWzi.varName   =  'zi-ofMinOkuWeiss';
 	NC.new.minOWzi.fileName  =  [NC.outdir 'zOfminOW.nc'];
 	NC.new.owYref.varName   =  'owAtYref';
 	NC.new.owYref.fileName  =  [NC.outdir 'owYref.nc'];
@@ -59,8 +59,8 @@ function NC=initNC(DD)
 	
 	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
 	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
-	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'z_index','j_index','i_index' },geo);
-	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','z_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'k_index','j_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','k_index','i_index' },geo);
 	
 	NC.funcs=funcs;
 end
@@ -83,21 +83,32 @@ nc_create_empty(fname,'clobber');
 	varstruct.Dimension = dimName;
 	nc_addvar(fname,varstruct)
 	
+
+	try %#ok<*TRYNC>
+		nc_adddim(fname,'k_index',numel(geo.depth));
+	end
+	try 
+		nc_adddim(fname,'j_index',size(geo.lat,1));
+	end
+	try
+		nc_adddim(fname,'i_index',size(geo.lat,2));
+	end
+	
 	varstruct.Name = 'depth';
 	varstruct.Nctype = 'single';
-	varstruct.Dimension = 'z_index';
+	varstruct.Dimension = {'k_index'};
 	nc_addvar(fname,varstruct)
-	nc_varput(fname,'depth',single(geo.depth))
+	nc_varput(fname,'depth',single(geo.depth));
 	
 	varstruct.Name = 'lat';
 	varstruct.Nctype = 'single';
-	varstruct.Dimension = {'y_index','x_index'};
+	varstruct.Dimension = {'j_index','i_index'};
 	nc_addvar(fname,varstruct)
 	nc_varput(fname,'depth',single(geo.lat))
 	
 	varstruct.Name = 'lon';
 	varstruct.Nctype = 'single';
-	varstruct.Dimension = {'y_index','x_index'};
+	varstruct.Dimension = {'j_index','i_index'};
 	nc_addvar(fname,varstruct)
 	nc_varput(fname,'depth',single(geo.lon))
 end

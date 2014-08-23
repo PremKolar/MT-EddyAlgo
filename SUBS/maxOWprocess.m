@@ -49,7 +49,7 @@ function NC=initNC(DD)
 	try NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName);
 	catch NCexist;		disp(NCexist);	end
 	
-	try NC.iniNewNC(NC.new,'OWmean',  {'z_index','j_index','i_index' } ,[NC.S.Z NC.S.Y NC.S.X]);
+	try NC.iniNewNC(NC.new,'OWmean',  {'k_index','j_index','i_index' } ,[NC.S.Z NC.S.Y NC.S.X]);
 	catch NCexist;		disp(NCexist);	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -22,7 +22,8 @@ function main(NC,OWmean,f)
 			lowm=locCo(OWmean,codi);
 			mydata= 		log10OW(locNC(currFile,codi),nan);
 			mybath=locCo(bath,codi);
-			[owMin,MinZi]=nanmaxFrom2toFloor(mydata./lowm,mybath);
+			[owMin,MinZi]=nanmaxFrom2toFloor(mydata,mybath);
+% 			[owMin,MinZi]=nanmaxFrom2toFloor(mydata./lowm,mybath);
 			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
 			owMin=gcat(squeeze(owMin),2,1);
 		end

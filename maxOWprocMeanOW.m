@@ -11,7 +11,7 @@ function logOwMean=main(NC)
 	spmd
 		logOwSum=getLocalPart(nan(NC.S.Z,NC.S.Y,NC.S.X,codi));
 		logOwCount=getLocalPart(ones(NC.S.Z,NC.S.Y,NC.S.X,codi));
-		T=disp_progress('init','building okubo weiss netcdfs')  ;
+		T=disp_progress('init','buildingmean')  ;
 		for tt=1:NC.S.T
 			T=disp_progress('show',T,NC.S.T);
 			newOw=localNCget(nc_varget(NC.files(tt).full,'OkuboWeiss'),codi);

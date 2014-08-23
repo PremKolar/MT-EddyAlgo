@@ -56,7 +56,6 @@ function NC=initNC(DD)
 	%% init
 	NC.iniNewNC = @(n,f,D,Dn,geo) initNcFile(n.(f).fileName,n.(f).varName,D,Dn,geo);
 	
-	
 	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
 	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
 	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'k_index','j_index','i_index' },geo);
@@ -71,10 +70,7 @@ function f=funcs
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize,dimName,geo)
-
-	ydg
-
-nc_create_empty(fname,'clobber');
+	nc_create_empty(fname,'clobber');
 	varstruct.Name = toAdd;
 	varstruct.Nctype = 'double';
 	for ww=1:numel(WinSize)
@@ -82,35 +78,35 @@ nc_create_empty(fname,'clobber');
 	end
 	varstruct.Dimension = dimName;
 	nc_addvar(fname,varstruct)
-	
-
-	try %#ok<*TRYNC>
-		nc_adddim(fname,'k_index',numel(geo.depth));
-	end
-	try 
-		nc_adddim(fname,'j_index',size(geo.lat,1));
+	try
+		try %#ok<*TRYNC>
+			nc_adddim(fname,'k_index',numel(geo.depth));
+		end
+		varstruct.Name = 'depth';
+		varstruct.Nctype = 'single';
+		varstruct.Dimension = {'k_index'};
+		nc_addvar(fname,varstruct)
+		nc_varput(fname,'depth',single(geo.depth));
 	end
 	try
-		nc_adddim(fname,'i_index',size(geo.lat,2));
+		try
+			nc_adddim(fname,'j_index',size(geo.lat,1));
+		end
+		try
+			nc_adddim(fname,'i_index',size(geo.lat,2));
+		end
+		varstruct.Name = 'lat';
+		varstruct.Nctype = 'single';
+		varstruct.Dimension = {'j_index','i_index'};
+		nc_addvar(fname,varstruct)
+		nc_varput(fname,'depth',single(geo.lat))
+		
+		varstruct.Name = 'lon';
+		varstruct.Nctype = 'single';
+		varstruct.Dimension = {'j_index','i_index'};
+		nc_addvar(fname,varstruct)
+		nc_varput(fname,'depth',single(geo.lon))
 	end
-	
-	varstruct.Name = 'depth';
-	varstruct.Nctype = 'single';
-	varstruct.Dimension = {'k_index'};
-	nc_addvar(fname,varstruct)
-	nc_varput(fname,'depth',single(geo.depth));
-	
-	varstruct.Name = 'lat';
-	varstruct.Nctype = 'single';
-	varstruct.Dimension = {'j_index','i_index'};
-	nc_addvar(fname,varstruct)
-	nc_varput(fname,'depth',single(geo.lat))
-	
-	varstruct.Name = 'lon';
-	varstruct.Nctype = 'single';
-	varstruct.Dimension = {'j_index','i_index'};
-	nc_addvar(fname,varstruct)
-	nc_varput(fname,'depth',single(geo.lon))
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

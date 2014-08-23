@@ -6,6 +6,10 @@ function maxOWprocCalc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(NC,OWmean,f)
+	nanmaxFrom2toFloor = @(OW,bath) nanmax(OW(2:squeeze(bath-1),:,:),[], 1);
+	codi=codistributor1d(3);
+	locNC=@(in,codi) getLocalPart(codistributed(nc_varget(in,'OkuboWeiss'),codi));
+	locCo=@(in,codi) getLocalPart(codistributed(in,codi));
 	%% get bathymetry
 	bath=getBathym(nc_varget(NC.files(1).full,'OkuboWeiss'));
 	%%
@@ -14,7 +18,16 @@ function main(NC,OWmean,f)
 		T=disp_progress('show',T,NC.S.T);
 		try daily=initDaily(NC,tt); catch exst; disp(exst); continue; end
 		%% get min in z
-		[owMin,MinZi]=spmdBlck(NC.files(tt).full,bath,f,OWmean);
+		spmd
+			lowm=locCo(OWmean,codi);
+			mydata= 		log10OW(locNC(currFile,codi),nan);
+			mybath=locCo(bath,codi);
+			[owMin,MinZi]=nanmaxFrom2toFloor(mydata./lowm,mybath);
+			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
+			owMin=gcat(squeeze(owMin),2,1);
+		end
+		MinZi=MinZi{1};
+		owMin=owMin{1};
 		%% write daily
 		f.ncPut(daily,'minOWzi',MinZi);
 		f.ncPut(daily,'minOW',owMin);
@@ -38,9 +51,7 @@ function [bath]=getBathym(OW)
 	[Z,Y,X]=size(OW);
 	OW2d=reshape(OW,[Z,Y*X]);
 	[~,bathUpdown]=min(isnan(flipud(OW2d)),[],1);
-	spmd
-		bath=f.ncvOne(reshape( Z-bathUpdown + 1, [Y,X]),2);
-	end
+	bath=permute(reshape( Z-bathUpdown + 1, [Y,X]),[3,1,2]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function f=funcs

@@ -34,6 +34,7 @@ function deepestLin=preploop(NC)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcMinZi(NC)
+	f=funcs;
 	spmd
 		mydata=log10OW(f.locNC(NC.currFile,NC.codi),nan);
 		%% kill bottom layer
@@ -50,6 +51,7 @@ function calcMinZi(NC)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcYref(NC)
+	f=funcs;
 	spmd
 		mydata= 		log10OW(f.locNC(NC.currFile,NC.codi),nan);
 		owYref=gcat(squeeze(mydata(:,NC.Yref,:)),2,1);
@@ -60,6 +62,7 @@ function calcYref(NC)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcXYref(NC)
+	f=funcs;
 	owXY=log10OW(nc_varget(NC.currFile,'OkuboWeiss',[0 NC.yxref-1],[inf 1 1]),nan);
 	f.ncPutXYref(NC.new,'owXYref',owXY,tt-1,NC.S);
 end

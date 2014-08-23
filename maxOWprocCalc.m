@@ -41,12 +41,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcMinZi(NC,tt,deepestLin)
 	f=funcs;
-	deepestLin=reshape(deepestLin,[1,NC.S.Y,NC.S.X]);
+	%% kill bottom layer
+	data = nc_varget(NC.currFile,'OkuboWeiss');
+	data(deepestLin)=nan;
 	spmd
-		mydL=f.locCo(deepestLin,NC.codi);
-		mydata=log10OW(f.locNC(NC.currFile,NC.codi),nan);
-		%% kill bottom layer
-		mydata(mydL)=nan;	
+		mydata=log10OW(f.locCo(data,NC.codi),nan);
 		[owMin,MinZi]=nanmax(mydata(:,:,:),[], 1);
 		MinZi=gcat(squeeze(MinZi),2,1);
 		owMin=gcat(squeeze(owMin),2,1);

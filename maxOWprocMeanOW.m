@@ -20,8 +20,8 @@ function logOwMean=main(NC)
 		logOwCount=getLocalPart(ones(NC.S.Z,NC.S.Y,NC.S.X,codi));
 		toc
 		lens=gcat(size(logOwCount,codi.Dimension));
-		ends=cumsum(lens);
-		strts=ends-lens + 1;
+		ends=cumsum(lens)
+		strts=ends-lens + 1
 		for tt=1:NC.S.T
 			tic
 			fprintf('prog %02d%%\n',round(tt/NC.S.T*100))

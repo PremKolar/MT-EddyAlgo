@@ -17,36 +17,36 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [deepestLin,codi]=preploop(NC)
 	codi=codistributor1d(3);
-	f=funcs;
 	%% get bathymetry
 	[~,bathym]=max(~isnan(nc_varget(NC.files(1).full,'OkuboWeiss')));
 	ndgridFromSize=@(in)  ndgrid(1:size(in,1),1:size(in,2));
-	spmd
-		deepest  =  f.locCo(bathym,codi)-1;
-		deepest(deepest==0)=1;
-		[Y,X]=ndgridFromSize(squeeze(deepest));
-		deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));
-		%2nd deepest
-		deepest  = deepest -1;
-		deepest(deepest==0)=1;
-		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
-		%3rd deepest
-		deepest  = deepest -1;
-		deepest(deepest==0)=1;
-		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
-		%4th deepest
-		deepest  = deepest -1;
-		deepest(deepest==0)=1;
-		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
-	end	%%
+	deepest  =  bathym-1;
+	deepest(deepest==0)=1;
+	[Y,X]=ndgridFromSize(squeeze(deepest));
+	deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));
+	%2nd deepest
+	deepest  = deepest -1;
+	deepest(deepest==0)=1;
+	deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
+	%3rd deepest
+	deepest  = deepest -1;
+	deepest(deepest==0)=1;
+	deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
+	%4th deepest
+	deepest  = deepest -1;
+	deepest(deepest==0)=1;
+	deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
+	%%
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function calcMinZi(NC,tt)
+function calcMinZi(NC,tt,deepestLin)
 	f=funcs;
+	deepestLin=reshape(deepestLin,[1,NC.S.Y,NC.S.X]);
 	spmd
+		mydL=f.locCo(deepestLin,NC.codi);
 		mydata=log10OW(f.locNC(NC.currFile,NC.codi),nan);
 		%% kill bottom layer
-		mydata(NC.deepestLin)=nan;
+		mydata(mydL)=nan;	
 		[owMin,MinZi]=nanmax(mydata(:,:,:),[], 1);
 		MinZi=gcat(squeeze(MinZi),2,1);
 		owMin=gcat(squeeze(owMin),2,1);
@@ -77,7 +77,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(NC)
 	%%
-	[NC.deepestLin NC.codi]=preploop(NC);
+	[deepestLin NC.codi]=preploop(NC);
 	%%
 	T=disp_progress('init','min OW''s')  ;
 	for tt=1:NC.S.T
@@ -85,9 +85,9 @@ function main(NC)
 		%% get min in z
 		NC.currFile=NC.files(tt).full;
 		%%
-		 		calcMinZi(NC,tt)
+		calcMinZi(NC,tt,deepestLin)
 		%%
-		 		calcYref(NC,tt)
+		calcYref(NC,tt)
 		%%
 		calcXYref(NC,tt)
 	end

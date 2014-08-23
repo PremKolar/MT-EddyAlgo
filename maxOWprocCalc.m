@@ -24,6 +24,10 @@ function main(NC)
 		deepest(deepest==0)=1;
 		[Y,X]=ndgridFromSize(squeeze(deepest));
 		deepestLin = sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:));
+		%2nd deepest
+		deepest  = deepest -1;
+		deepest(deepest==0)=1;
+		deepestLin = [reshape(deepestLin,1,[]) reshape(sub2ind([NC.S.Z,NC.S.Y,NC.S.X], deepest(:), Y(:), X(:)),1,[])];
 	end
 	%%
 	T=disp_progress('init','min OW''s')  ;
@@ -36,7 +40,7 @@ function main(NC)
 			%% kill bottom layer
 			mydata(deepestLin)=nan;
 			[owMin,MinZi]=nanmax(mydata(:,:,:),[], 1);
-			MinZi=gcat(squeeze(MinZi),2,1); 
+			MinZi=gcat(squeeze(MinZi),2,1);
 			owMin=gcat(squeeze(owMin),2,1);
 			owYref=gcat(squeeze(mydata(:,Yref,:)),2,1);
 		end

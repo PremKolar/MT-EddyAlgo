@@ -19,14 +19,14 @@ function logOwMean=main(NC)
 		logOwSum=getLocalPart(nan(NC.S.Z,NC.S.Y,NC.S.X,codi));
 		logOwCount=getLocalPart(ones(NC.S.Z,NC.S.Y,NC.S.X,codi));
 		toc
-		lens=gcat(size(logOwCount,codi.Dimension))
-		ends=cumsum(lens)
-		strts=ends-lens + 1
+		lens=gcat(size(logOwCount,codi.Dimension));
+		ends=cumsum(lens);
+		strts=ends-lens + 1;
 		for tt=1:NC.S.T
 			tic
 			fprintf('prog %02d%%\n',round(tt/NC.S.T*100))
 			ncchunkS=[0 0 strts(labindex)-1];
-			ncchunkL=[0 0  lens(labindex)];
+			ncchunkL=[inf inf  lens(labindex)];
 			newOw=nc_varget(NC.files(tt).full,'OkuboWeiss',ncchunkS,ncchunkL);
 			toc
 			tic

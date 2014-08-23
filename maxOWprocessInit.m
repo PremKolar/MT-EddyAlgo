@@ -57,15 +57,11 @@ function NC=initNC(DD)
 	NC.iniNewNC = @(n,f,D,Dn,geo) initNcFile(n.(f).fileName,n.(f).varName,D,Dn,geo);
 	
 	
-	try NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
-	catch NCexist;		disp(NCexist);	end
-	try NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
-	catch NCexist;		disp(NCexist);	end	
-	try NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'z_index','j_index','i_index' },geo);
-	catch NCexist;		disp(NCexist);	end		
-	try NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','z_index','i_index' },geo);
-	catch NCexist;		disp(NCexist);	end	
-		
+	NC.iniNewNC(NC.new,'minOWzi',NC.new.dimNum,NC.new.dimName,geo);
+	NC.iniNewNC(NC.new,'minOW',  NC.new.dimNum,NC.new.dimName,geo);
+	NC.iniNewNC(NC.new,'OWmean' ,[NC.S.Z NC.S.Y NC.S.X],  {'z_index','j_index','i_index' },geo);
+	NC.iniNewNC(NC.new,'owYref' ,[NC.S.T NC.S.Z NC.S.X],  {'t_index','z_index','i_index' },geo);
+	
 	NC.funcs=funcs;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -89,7 +85,7 @@ function initNcFile(fname,toAdd,WinSize,dimName,geo)
 	varstruct.Dimension = 'z_index';
 	nc_addvar(fname,varstruct)
 	nc_varput(fname,'depth',single(geo.depth))
-
+	
 	varstruct.Name = 'lat';
 	varstruct.Nctype = 'single';
 	varstruct.Dimension = {'y_index','x_index'};

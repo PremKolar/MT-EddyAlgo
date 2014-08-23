@@ -35,8 +35,8 @@ function main(NC)
 			mydata= 		log10OW(f.locNC(currFile,codi),nan);
 			%% kill bottom layer
 			mydata(deepestLin)=nan;
-			[owMin,MinZi]=nanmax(mydata(2:end,:,:),[], 1);
-			MinZi=gcat(squeeze(MinZi)-1,2,1); % correct for (2: ...)
+			[owMin,MinZi]=nanmax(mydata(:,:,:),[], 1);
+			MinZi=gcat(squeeze(MinZi),2,1); 
 			owMin=gcat(squeeze(owMin),2,1);
 			owYref=gcat(squeeze(mydata(:,Yref,:)),2,1);
 		end

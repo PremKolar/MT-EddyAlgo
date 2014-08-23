@@ -12,7 +12,7 @@ function f=funcs
 	f.ncPut=@(n,f,data)  nc_varput(n.(f).fileName ,n.(f).varName,data);
 	f.ncPutBig=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Y s.X]);
 	f.ncPutYref=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Z s.X]);
-	f.ncPutXYref=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0],[1 s.Z]);
+	f.ncPutXYref=@(n,f,data,t,s)  nc_varput(n.(f).fileName ,n.(f).varName,data,[t,0,0],[1 s.Z s.X]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function deepestLin=preploop(NC)
@@ -63,8 +63,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function calcXYref(NC,tt)
 	f=funcs;
-	owXY=log10OW(nc_varget(NC.currFile,'OkuboWeiss',[0 NC.yxref-1],[inf 1 1]),nan);
-	f.ncPutXYref(NC.new,'owXYref',owXY,tt-1,NC.S);
+	owXY=log10OW(nc_varget(NC.currFile,'OkuboWeiss',[0 NC.yxref(1)-1 0],[inf 1 inf]),nan);
+	f.ncPutXYref(NC.new,'owXYref',squeeze(owXY),tt-1,NC.S);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(NC)

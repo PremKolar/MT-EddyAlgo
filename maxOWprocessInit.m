@@ -71,7 +71,10 @@ function f=funcs
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize,dimName,geo)
-	nc_create_empty(fname,'clobber');
+
+	ydg
+
+nc_create_empty(fname,'clobber');
 	varstruct.Name = toAdd;
 	varstruct.Nctype = 'double';
 	for ww=1:numel(WinSize)

@@ -1,5 +1,6 @@
 initialise
 init_threads(12)
-maxOWprocessInit
-maxOWprocMeanOW
+dbstop if error
+% maxOWprocessInit
+% maxOWprocMeanOW
 maxOWprocCalc

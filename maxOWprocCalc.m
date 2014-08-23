@@ -34,7 +34,6 @@ function main(NC)
 		owMin=owMin{1};
 		Yref=Yref{1};
 		%% put to big files
-		owYref
 		f.ncPutBig(NC.new,'minOWzi',MinZi,tt-1,NC.S);
 		f.ncPutBig(NC.new,'minOW',owMin,tt-1,NC.S);
 		f.ncPutYref(NC.new,'owYref',Yref,tt-1,NC.S);

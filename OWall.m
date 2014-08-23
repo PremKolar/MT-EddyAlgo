@@ -1,3 +1,5 @@
+initialise
+init_threads(12)
 maxOWprocessInit
 maxOWprocMeanOW
 maxOWprocCalc

@@ -9,6 +9,11 @@ function CM=doublemap(abc,cm1,cm2,centercol,alpha)
     if nargin<4
         alpha=1;
     end
+    if nargin==1
+        cm1=autumn;
+        cm2=spring;
+        centercol=[1 1 1];
+    end
     %% resample to fit ticks
     dt=diff(abc([1 3]));
     da=diff(abc([1 2]));

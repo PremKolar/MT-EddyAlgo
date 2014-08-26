@@ -9,10 +9,11 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-    %       DD.debugmode=true;
+%           DD.debugmode=true;
+          DD.overwrite=true;
     %% time
     DD.time.from.str='19940102';
-    DD.time.till.str='19970101';
+    DD.time.till.str='20140101';
     %% window on globe
     DD.map.in.west=-80;
     DD.map.in.east= 0;
@@ -32,7 +33,7 @@ function DD=INPUT
     DD.thresh.corners=10; % min number of data points for the perimeter of an eddy
     DD.thresh.life=20; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.VolumeOverArea=[.2 2.5];
+    DD.thresh.VolumeOverArea=[1/2.5 2.5];
     %% switches
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;
@@ -41,8 +42,8 @@ function DD=INPUT
     DD.switchs.AmpAreaCheck=false;
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
-    DD.switchs.VolumeOverArea=false;
-    DD.switchs.maxRadiusOverRossbyL=false;
+    DD.switchs.VolumeOverArea=true;
+    DD.switchs.maxRadiusOverRossbyL=true;
     DD.switchs.spaciallyFilterSSH=false;
     DD.switchs.filterSSHinTime=true;
 end

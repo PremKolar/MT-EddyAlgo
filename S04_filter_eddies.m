@@ -48,7 +48,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE.filename.cont=JJ.files;
     EE.filename.cut=[DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self=[DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
-    %          if exist(EE.filename.self,'file'), skip=true; return; end
+    if exist(EE.filename.self,'file') && ~DD.overwrite, skip=true; return; end
     %% get ssh data
     try
         cut=load(EE.filename.cut);
@@ -57,7 +57,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     catch %#ok<CTCH>
         % TODO update dt!!!
         skip=true;
-        %         return
+        return
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
@@ -71,57 +71,70 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function EE=find_eddies(EE,ee_clean,rossby,cut,DD)
     %% anti cyclones
-    EE.anticyclones=anti_cyclones(ee_clean,rossby,cut,DD);
+    [EE.anticyclones,EE.pass.ac]=anticyclones(ee_clean,rossby,cut,DD);
+    
     %% cyclones
-    EE.cyclones=cyclones(ee_clean,rossby,cut,DD);
+    [EE.cyclones,EE.pass.c]=cyclones(ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ACyc=anti_cyclones(ee,rossby,cut,DD)
-    PASS=false(numel(ee),1);	pp=0;
+function  pass=initPass(len)
+    pass(len).rim=0;
+    pass(len).CR_ClosedRing=0;
+    pass(len).CR_2dEDDy=0;
+    pass(len).CR_Nan=0;
+    pass(len).CR_sense=0;
+    pass(len).Area=0;
+    pass(len).CR_Shape=0;
+    pass(len).CR_AmpPeak=0;
+    pass(len).CR_radius=0;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [ACyc, pass]=anticyclones(ee,rossby,cut,DD)
+    pp=0;  pass=initPass(numel(ee))    ;
     %% loop over eddies, starting at deepest eddies, upwards
-    
     for kk=1:numel(ee)
-        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,-1);
-        
-        if PASS(kk), pp=pp+1;
+        fprintf('%02%%',round(kk/numel(ee)*100))
+        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,-1);
+        if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy
             ACyc(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;
         end
     end
-    if ~any(PASS)
+    if ~any(struct2array(pass(:)))
         error('no anticyclones made it through the filter...')
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Cyc=cyclones(ee,rossby,cut,DD)
-    PASS=false(numel(ee),1);	pp=0;
+function [Cyc, pass]=cyclones(ee,rossby,cut,DD)
+    pp=0;      pass=initPass(numel(ee))   ;
     %% loop over eddies, starting at highest eddies, downwards
     for kk=numel(ee):-1:1
-        [PASS(kk),ee_out]=run_eddy_checks(ee(kk),rossby,cut,DD,1);
-        if PASS(kk),	pp=pp+1;
+        fprintf('%02%%',round(kk/numel(ee)*100))
+        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,1);
+        if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy
             Cyc(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;
         end
     end
-    if ~any(PASS)
+    if ~any(struct2array(pass(:)))
         error('no cyclones made it through the filter...')
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
+function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% pre-nan-check
-    pass=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
-    if ~pass, return, end;
+    pass.rim=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
+    if ~pass.rim, return, end;
     %% closed ring check
-    [pass]=CR_ClosedRing(ee);
-    if ~pass, return, end;
+    [pass.CR_ClosedRing]=CR_ClosedRing(ee);
+    if ~pass.CR_ClosedRing, return, end;
     %% pre filter 'thin 1dimensional' eddies
-    pass=CR_2dEDDy(ee.coordinates.int);
-    if ~pass, return, end;
+    pass.CR_2dEDDy=CR_2dEDDy(ee.coordinates.int);
+    if ~pass.CR_2dEDDy, return, end;
     %% get coordinates for zoom cut
     [zoom]=get_window_limits(ee.coordinates,cut.dim,4);
     %% cut out rectangle encompassing eddy range only
@@ -129,35 +142,35 @@ function [pass,ee]=run_eddy_checks(ee,rossby,cut,DD,direction)
     %% generate logical masks defining eddy interiour and outline
     zoom.mask=EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
-    [pass]=CR_Nan(zoom);
-    if ~pass, return, end;
-    if ~any(zoom.mask.inside),pass=false; return; end
+    [pass.CR_Nan]=CR_Nan(zoom);
+    if ~pass.CR_Nan, return, end;
+    if ~any(zoom.mask.inside),pass.CR_Nan=false; return; end
     %% check for correct sense
-    [pass,ee.sense]=CR_sense(zoom,direction,ee.level);
-    if ~pass, return, end;
+    [pass.CR_sense,ee.sense]=CR_sense(zoom,direction,ee.level);
+    if ~pass.CR_sense, return, end;
     %% calculate area with respect to contour
     RoL=getLocalRossyRadius(rossby.L,ee.coordinates.int);
-    [ee.area,pass]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
-    if ~pass && DD.switchs.maxRadiusOverRossbyL, return, end;
+    [ee.area,pass.Area]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
+    if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si]=EDDyCircumference(zoom);
     %% filter eddies not circle-like enough
-    [pass,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
-    if ~pass, return, end;
+    [pass.CR_Shape,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
+    if ~pass.CR_Shape, return, end;
     %% get peak position and amplitude w.r.t contour
-    [pass,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
-    if ~pass, return, end;
+    [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
+    if ~pass.CR_AmpPeak, return, end;
     %% get profiles
     [ee.profiles]=EDDyProfiles(ee,zoom.fields);
     %% get radius according to max UV ie min vort
     ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles,zoom.fields);
     %% test
-    pass=CR_radius(ee.radius.mean,DD.thresh.radius);
-    if ~pass, return, end;
+    pass.CR_radius=CR_radius(ee.radius.mean,DD.thresh.radius);
+    if ~pass.CR_radius, return, end;
     %% get ideal ellipse contour
     zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
-    [pass,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
+    [~,ee.peak.amp.to_ellipse]=EDDyAmp2Ellipse(ee.peak.lin,zoom,DD.thresh.amp);
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
     %% get center of 'volume'
@@ -253,7 +266,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
     pass=false;
-    %%
     peak.mean_ssh=mean(z.fields.ssh(z.mask.filled));
     %% make current level zero level and zero out everything else
     base=poslin(-ee.sense.num*(z.fields.ssh-ee.level));
@@ -433,7 +445,8 @@ function [area,pass]=Area(z,rossbyL,scaleThresh)
     area.total=sum(area.pixels(:));
     area.meanPerSquare=mean(z.fields.DX(z.mask.filled).*z.fields.DY(z.mask.filled));
     area.intrp=area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
-    if sqrt(area.total/pi)/rossbyL > scaleThresh
+    area.RadiusOverRossbyL=sqrt(area.total/pi)/rossbyL;
+    if area.RadiusOverRossbyL > scaleThresh
         pass=false;
     else
         pass=true;

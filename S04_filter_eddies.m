@@ -22,7 +22,6 @@ function main(DD,rossby)
     else
         spmd(DD.threads.num)
             spmd_body(DD,rossby)
-            disp_progress('conclude');
         end
     end
 end
@@ -56,7 +55,7 @@ function [EE,skip]=work_day(DD,JJ,rossby)
         cont=load(EE.filename.cont);
     catch contUnloadable
         fprintf('cannot read %s! \n',EE.filename.cont)
-        error(contUnloadable)       
+        error(contUnloadable)
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
@@ -68,52 +67,49 @@ function [EE,skip]=work_day(DD,JJ,rossby)
     EE=find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function EE=find_eddies(EE,ee_clean,rossby,cut,DD)
+function EE=find_eddies(EE,ee,rossby,cut,DD)
     %% anti cyclones
-    [EE.anticyclones,EE.pass.ac]=anticyclones(ee_clean,rossby,cut,DD);
+    [EE.anticyclones,EE.pass.ac]=walkThroughContsVertically(ee,rossby,cut,DD,-1);
     %% cyclones
-    [EE.cyclones,EE.pass.c]=cyclones(ee_clean,rossby,cut,DD);
+    [EE.cyclones,EE.pass.c]=walkThroughContsVertically(ee,rossby,cut,DD,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ACyc, pass]=anticyclones(ee,rossby,cut,DD)
+function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
     pp=0;  pass=initPass(numel(ee))    ;
-    %% loop over eddies, starting at deepest eddies, upwards
-    for kk=1:numel(ee)
-        fprintf('%02%%',round(kk/numel(ee)*100))
-        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,-1);
+    %% init
+    [eddyType,Zloop]=determineSense(DD.FieldKeys.senses,sense,numel(ee));
+    %% loop
+    Tv=disp_progress('init','running through conts vertically');
+    for kk=Zloop % dir dep. on sense
+        Tv= disp_progress('disp',Tv,numel(Zloop),5,1);
+        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
         if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy
-            ACyc(pp)=ee_out;
+            eddies(pp)=ee_out;
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;
         end
     end
+    %% catch
     if ~any(struct2array(pass(:)))
-        error('no anticyclones made it through the filter...')
+        error('no %s made it through the filter...',eddyType)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [Cyc, pass]=cyclones(ee,rossby,cut,DD)
-    pp=0;      pass=initPass(numel(ee))   ;
-    %% loop over eddies, starting at highest eddies, downwards
-    for kk=numel(ee):-1:1
-        fprintf('%02%%',round(kk/numel(ee)*100))
-        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,1);
-        if all(struct2array(pass(kk))), pp=pp+1;
-            %% append healthy found eddy
-            Cyc(pp)=ee_out;
-            %% nan out ssh where eddy was found
-            cut.grids.ssh(ee_out.mask)=nan;
-        end
-    end
-    if ~any(struct2array(pass(:)))
-        error('no cyclones made it through the filter...')
+function [eddyType,Zloop]=determineSense(senseKeys,sense,NumEds)
+    switch sense
+        case -1
+            eddyType=senseKeys(1); % anti cycs
+            Zloop=1:NumEds;
+        case 1
+            eddyType=senseKeys(2); %  cycs
+            Zloop=NumEds:-1:1;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% pre-nan-check
-    pass.rim=CR_RimNan(ee.coordinates.int, cut.dim.Y	, cut.grids.ssh);
+    pass.rim=CR_RimNan(ee.coordinates.int, cut.dim.Y, cut.grids.ssh);
     if ~pass.rim, return, end;
     %% closed ring check
     [pass.CR_ClosedRing]=CR_ClosedRing(ee);
@@ -286,13 +282,13 @@ function [pass,chelt]=chelton_shape(z)
     x.min=min(z.coor.int.x);
     y.min=min(z.coor.int.y);
     x.max=max(z.coor.int.x);
-    y.max=max(z.coor.int.y);   
+    y.max=max(z.coor.int.y);
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
     mlat=abs(nanmean(z.fields.lat(:))) ;
     if mlat> 25
         chelt  = 1 - maxDist/4e5;
     else
-       chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);  
+        chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);
     end
     if chelt >= 0, pass=true; else pass=false; end
 end
@@ -563,13 +559,23 @@ function [circum]=EDDyCircumference(z)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_mask(zoom)
-    [Y,X]=size(zoom.fields.ssh);
-    mask.rim_only=false(Y,X);
-    mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
-    mask.filled=logical(imfill(mask.rim_only,'holes'));
+    ndgFromLim = @(lim) ndgrid(lim.y(1):lim.y(2),lim.x(1):lim.x(2)) ;
+    msk=@(XX,YY,coor) inpolygon(int32(XX),int32(YY),coor.x,coor.y);
+    minmax=@(c) [min(c) max(c)];
+    %%
+    tightLims.x=minmax(zoom.coor.int.x);
+    tightLims.y=minmax(zoom.coor.int.y);
+    dummymask=false(size(zoom.fields.ssh));
+    [YY,XX]=ndgFromLim(tightLims);
+    YXlin=sub2ind(size(dummymask),YY,XX);
+    [mfilled, mrim_only] = msk(XX,YY,zoom.coor.int);
+    mask.filled  =buildmask(dummymask,YXlin(mfilled));
+    mask.rim_only=buildmask(dummymask,YXlin(mrim_only));
     mask.inside= mask.filled & ~mask.rim_only;
-    mask.size.Y=Y;
-    mask.size.X=X;
+    [mask.size.Y, mask.size.X]=size(dummymask);
+    function dummy=buildmask(dummy,xlin)
+        dummy(xlin)=true;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fields_out=EDDyCut_init(fields_in,zoom)
@@ -577,7 +583,7 @@ function fields_out=EDDyCut_init(fields_in,zoom)
     yb=zoom.limits.y(2);
     xa=zoom.limits.x(1);
     xb=zoom.limits.x(2);
-    
+    %% cut all fields
     for ff=fieldnames(fields_in)'
         field=ff{1};
         fields_out.(field)=fields_in.(field)(ya:yb,xa:xb);
@@ -612,7 +618,7 @@ function [EE]=eddies2struct(CC,thresh)
     ii=1;cc=0;
     while ii<size(CC,1);
         len=  CC(ii,2);% contourc saves the length of each contour before appending the next
-        if len>=thresh
+        if len>=thresh.min && len<=thresh.max
             cc=cc+1;
             EE(cc).level=CC(ii,1);
             EE(cc).circum.length= len;

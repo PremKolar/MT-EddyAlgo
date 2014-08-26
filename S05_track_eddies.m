@@ -41,12 +41,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% one thread do cycs, other acycs
-    switch labindex
-        case 2
-            sen='cyclones';
-        case 1
-            sen='anticyclones';
-    end
+    sen=DD.FieldKeys.senses{labindex};
+    %     switch labindex
+    %         case 2
+    %             sen='cyclones';
+    %         case 1
+    %             sen='anticyclones';
+    %     end
     %% set up tracking procedure
     [tracks,OLD,phantoms]=set_up_init(DD,sen);
     numDays=DD.checks.passedTotal;
@@ -129,7 +130,7 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [tracks]=archive_dead(TDB, tracks, old,DD,sen,passLog)
+function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
     %% collect all ID's in archive
     ArchIDs=cat(2,tracks.ID);
     %% all indeces in old set of dead eddies
@@ -321,7 +322,7 @@ function [MD,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
         [pass.ellipseDist]=nanOutOfBounds(NEW.eddies.(sen),OLD.eddies.(sen));
     end
     %%
-    [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
+    [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass);
     
     %% calc distances between all from new to all from old
     lonDIFF=abs(LOM.new - LOM.old);

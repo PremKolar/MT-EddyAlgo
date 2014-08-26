@@ -5,6 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [T]=disp_progress(type,Tin,L,num_prints)
+    if nargin==3
+        num_prints=L;
+    end
     if strcmp(type,'conclude')
         conclude; T=[]; return
     end
@@ -23,7 +26,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function conclude
     %% wait for all workers
-%     sleep(1)
     labBarrier
     %% let master handle I/O
     if labindex == 1
@@ -34,7 +36,6 @@ function conclude
     end
     %% wait for all workers
     labBarrier
-%     sleep(1)
     %----------------------------------------------------------------------
     function c=initc
         c.files=dir('./.comm*');
@@ -64,6 +65,7 @@ function T=init(Tin)
     T.time=0;
     T.name=Tin;
     T.tic=tic;
+    clc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=later(T,L,num_prints)

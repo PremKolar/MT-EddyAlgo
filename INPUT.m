@@ -13,7 +13,7 @@ function DD=INPUT
           DD.overwrite=true;
     %% time
     DD.time.from.str='19940102';
-    DD.time.till.str='20140101';
+    DD.time.till.str='19990102';
     %% window on globe
     DD.map.in.west=-80;
     DD.map.in.east= 0;
@@ -24,9 +24,8 @@ function DD=INPUT
     DD.map.out.Y=70*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
-    %     DD.thresh.ssh_filter_size=1;
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=10; % [SI]
+    DD.thresh.maxRadiusOverRossbyL=10; % [SI]   %% GOOD???
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.2; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)

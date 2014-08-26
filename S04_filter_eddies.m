@@ -54,14 +54,13 @@ function [EE,skip]=work_day(DD,JJ,rossby)
         cut=load(EE.filename.cut);
         %% get contours
         cont=load(EE.filename.cont);
-    catch %#ok<CTCH>
-        % TODO update dt!!!
-        skip=true;
-        return
+    catch contUnloadable
+        fprintf('cannot read %s! \n',EE.filename.cont)
+        error(contUnloadable)       
     end
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee=eddies2struct(cont.all,DD.thresh.corners);
-    %% remeber date
+    %% remember date
     [ee(:).daynum]=deal(JJ.daynums);
     %% avoid out of bounds integer coordinates close to boundaries
     [ee_clean,cut]=CleanEDDies(ee,cut,DD.contour.step);
@@ -72,21 +71,8 @@ end
 function EE=find_eddies(EE,ee_clean,rossby,cut,DD)
     %% anti cyclones
     [EE.anticyclones,EE.pass.ac]=anticyclones(ee_clean,rossby,cut,DD);
-    
     %% cyclones
     [EE.cyclones,EE.pass.c]=cyclones(ee_clean,rossby,cut,DD);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  pass=initPass(len)
-    pass(len).rim=0;
-    pass(len).CR_ClosedRing=0;
-    pass(len).CR_2dEDDy=0;
-    pass(len).CR_Nan=0;
-    pass(len).CR_sense=0;
-    pass(len).Area=0;
-    pass(len).CR_Shape=0;
-    pass(len).CR_AmpPeak=0;
-    pass(len).CR_radius=0;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACyc, pass]=anticyclones(ee,rossby,cut,DD)
@@ -137,7 +123,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.CR_2dEDDy, return, end;
     %% get coordinates for zoom cut
     [zoom]=get_window_limits(ee.coordinates,cut.dim,4);
-    %% cut out rectangle encompassing eddy range only
+    %% cut out rectangle encompassing eddy range only for further calcs
     zoom.fields=EDDyCut_init(cut.grids,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask=EDDyCut_mask(zoom);
@@ -174,7 +160,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% append mask to ee in cut coordinates
     [ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
     %% get center of 'volume'
-    [ee.volume]=CenterOfVolume(zoom,ee.area.intrp,cut.dim.Y);
+    [ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
     %% get area centroid (chelton style)
     [ee.centroid]=AreaCentroid(zoom,cut.dim.Y);
     %% get coordinates
@@ -300,13 +286,13 @@ function [pass,chelt]=chelton_shape(z)
     x.min=min(z.coor.int.x);
     y.min=min(z.coor.int.y);
     x.max=max(z.coor.int.x);
-    y.max=max(z.coor.int.y);
+    y.max=max(z.coor.int.y);   
     maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
     mlat=abs(nanmean(z.fields.lat(:))) ;
     if mlat> 25
         chelt  = 1 - maxDist/4e5;
     else
-        chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);
+       chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);  
     end
     if chelt >= 0, pass=true; else pass=false; end
 end
@@ -544,6 +530,7 @@ function [geo]=geocoor(zoom,volume)
     yz=volume.center.yz;
     geo.lat=interp2(zoom.fields.lat,xz,yz);
     geo.lon=interp2(zoom.fields.lon,xz,yz);
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [volume]=CenterOfVolume(zoom,area,Y)
@@ -567,25 +554,22 @@ function [volume]=CenterOfVolume(zoom,area,Y)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [circum]=EDDyCircumference(z)
-    %% hypot exact coor diffs times dxdy at those coors
-    x=z.coor.exact.x;
-    y=z.coor.exact.y;
-    xi=z.coor.int.x;
-    yi=z.coor.int.y;
-    circum=sum(hypot(diff(y).*z.fields.DY(yi(2:end)),diff(x).*z.fields.DX(xi(2:end))));
+    %% get perimeter coor and check where x or y change
+    x=z.coor.int.x	;
+    y=z.coor.int.y;
+    dx=[0 ;abs(double(logical(diff(x))))];
+    dy=[0 ;abs(double(logical(diff(y))))];
+    circum=sum(hypot(z.fields.DX(x).*dx,z.fields.DY(y).*dy)); %positive bias at bad resolution!
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_mask(zoom)
     [Y,X]=size(zoom.fields.ssh);
     mask.rim_only=false(Y,X);
     mask.rim_only(sub2ind([Y,X], zoom.coor.int.y, zoom.coor.int.x))=true;
-    mask.filled=poly2mask(zoom.coor.exact.x,zoom.coor.exact.y,Y,X);
     mask.filled=logical(imfill(mask.rim_only,'holes'));
     mask.inside= mask.filled & ~mask.rim_only;
     mask.size.Y=Y;
     mask.size.X=X;
-    
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fields_out=EDDyCut_init(fields_in,zoom)
@@ -648,7 +632,6 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
         y=ee(jj).coordinates.int.y;
         %% the following also takes care of the overlap from S00 in the global case
         % x(x>cut.window.size.X)= x(x>cut.window.size.X)-cut.window.size.X ;
-        
         x(x>cut.dim.X)=cut.dim.X;
         y(y>cut.dim.Y)=cut.dim.Y;
         x(x<1)=1;
@@ -674,3 +657,15 @@ function plots4debug(zoom,ee) %#ok<*DEFNU>
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+function  pass=initPass(len)
+    pass(len).rim=0;
+    pass(len).CR_ClosedRing=0;
+    pass(len).CR_2dEDDy=0;
+    pass(len).CR_Nan=0;
+    pass(len).CR_sense=0;
+    pass(len).Area=0;
+    pass(len).CR_Shape=0;
+    pass(len).CR_AmpPeak=0;
+    pass(len).CR_radius=0;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -4,8 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S10_makeAnimations
-    system('RM /tmp/*')
+function S10_makeAnimations    
     DD=initialise([],mfilename);
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=297/25.4*ticks.rez*1;
@@ -27,7 +26,6 @@ function S10_makeAnimations
     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     DD.frms=1000;
     animas(DD)
-
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function animas(DD)
@@ -44,20 +42,20 @@ function animas(DD)
     mkdirp(d.p);
     frms=DD.frms;
     range=round(linspace(1,numel(DD.path.eddies.files),frms));
-   parfor cc=1:numel(range)
+    for cc=1:numel(range)
         ee=range(cc);
-%         disp(num2str(100*ee/numel(DD.path.eddies.files)));
         savepng4mov(d,ee,DD)
     end
     fps=max([1 round(frms/60)]);
     pn=pwd;
     cd(d.p)
-    system(['mencoder "mf://flat*.png" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=ljpeg'])
-    system(['mplayer  flat.avi'])
+    system(['mencoder "mf://flat*.jpeg" -mf fps=' num2str(fps) ' -o flat.avi -ovc lavc -lavcopts vcodec=ljpeg'])
+    %     system(['mencoder "mf://surf*.png" -mf fps=' num2str(fps) ' -o surf.avi -ovc lavc -lavcopts vcodec=ljpeg'])
     cd(pn)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savepng4mov(d,ee,DD)
+
     d.file=[DD.path.eddies.name DD.path.eddies.files(ee).name];
     if exist([ d.p sprintf('flat%06d.png',ee)],'file')
         return
@@ -65,39 +63,43 @@ function savepng4mov(d,ee,DD)
     [~,fn,~] = fileparts(d.file);
     d.dtnm=datenum(fn(7:14),'yyyymmdd');
     ed=load(d.file);
-    coor.c=[ed.cyclones.coordinates];
-    coor.ac=[ed.anticyclones.coordinates];
-    z.c=[ed.cyclones.level];
-    z.ac=[ed.anticyclones.level];
     try
-        grid=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
+        grd=load(cell2mat(extractdeepfield(load(d.file),'filename.cut')));
     catch
         return
     end
-    ssh=grid.grids.ssh;
-    
+    ssh=grd.grids.ssh;
+    [Y,X]=size(ssh);    %#ok<NASGU>
+  figure(1)  
   
-    
-    pcolor(d.lon,d.lat,ssh);
-      colorbar
+    %%
+     clf  %  pcolor(d.lon,d.lat,ssh);
+    %     pcolor(ssh);
+    surf(ssh,'FaceColor','interp','FaceLighting','phong');
+    view(2)
+    camlight left
+    set(gcf,'Renderer','zbuffer')
+
     shading flat
-    axis equal tight
+    axis tight
     caxis([d.climssh.min d.climssh.max]);
     hold on
-    sen={'ac';'c'};
-    col=[1 0 0; 1 1 1];
+    sen={'cyclones','anticyclones'};
+    col=[1 1 1; .2 .2 .2];
     for ss=1:2
         s=sen{ss};
-        for cc=1:numel(coor.(s))
-            linx=drop_2d_to_1d(coor.(s)(cc).int.y,coor.(s)(cc).int.x,size(d.LAT,1));
-            lo=d.LON(linx);
-            la=d.LAT(linx);
-            plot(lo,la,'color',col(ss,:),'linewidth',1.5);
+        for cc=1:numel(ed.(s))
+%             id=ed.(s)(cc).ID; %#ok<NASGU>
+%             peak=ed.(s)(cc).trackref;
+            lo=ed.(s)(cc).coordinates.exact.x;
+            la=ed.(s)(cc).coordinates.exact.y;
+            za=smooth(ssh(drop_2d_to_1d(round(la),round(lo),Y)));
+            plot3(lo,la,za+10,'color',col(ss,:),'linewidth',2.5);
+            %             plot3(peak.x,peak.y,5,'*');
         end
     end
     title([num2mstr(ee)])
     xlabel(datestr(d.dtnm))
-    
-     savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
+    savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

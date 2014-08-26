@@ -9,15 +9,11 @@ function ampOra
     D=spmdloop(D);
     printouts(D)
 end
-
 function printouts(D)
-    
     system(sprintf('pdfjam -o tmp.pdf crpd*pdf'))
     outtit=[cat(2,D.out(:).name),'.pdf'];
     system(['pdfcrop  --margins "1 3 1 1" tmp.pdf ' outtit])
-    
 end
-
 function D=inIt
     addpath(genpath('./'))
     flsh= @(x) deal(x{:});
@@ -40,17 +36,13 @@ function D=inIt
             cd(D.here) ;
         end
     end
-    
 end
-
 function D=spmdloop(D)
-    
-%     spmd(numel(D.out))
+     spmd(numel(D.out))
         fig=gop(@vertcat,{AOplots(D.out(labindex),D.thresh.ampArea)},1);
-%     end
+     end
     D=savestuff(D,fig{1});
 end
-
 function D=savestuff(D,figs)
     for ff=1:numel(figs)
         fig=hgload(figs{ff});
@@ -138,7 +130,7 @@ function fig=AOplots(outfile,thresh)
     THR=log(repmat(thresh,length(xAX),1));
     xAXdouble=repmat(xAX',1,2);
     hold on
-    
+
     IQ=log(iq)-mean(log(iq));
     difabs= @(a) fliplr(log([1 a(2:end)./a(1:end-1)]))';
     A= [difabs(vol.^(2/3)), difabs(ar),difabs(amp)];
@@ -168,7 +160,6 @@ function fig=AOplots(outfile,thresh)
     plot(xAXdouble,THR,'color','red')
     fig=sprintf('fig%02d.fig',labindex);
     saveas(gcf,fig)
-    
 end
 function [OUT]=extractdeepfield(IN,fieldnameToAccess)
     field = textscan(fieldnameToAccess,'%s','Delimiter','.');

@@ -15,7 +15,7 @@ function [DD]=get_input
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=evalUserInput
-   readfiles;
+    readfiles;
     setOutWindowIfNotUserSet;
     %----------------------------------------------------------------------
     function setOutWindowIfNotUserSet
@@ -33,7 +33,7 @@ function DD=evalUserInput
         B=INPUT;
         A=eval(['INPUT' B.template]);
         DD=mergeStruct2(A,B);
-    end     
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pattern,FieldKeys]=DDpatternsAndKeys
@@ -123,12 +123,12 @@ function path=findfiles(DD)
     %%
     mkDirs(path)
     %%
-    [~,~,ext.raw]=fileparts(DD.map.in.fname); 
+    [~,~,ext.raw]=fileparts(DD.map.in.fname);
     patt=strsplit(DD.map.in.fname,'yyyymmdd');
     path.raw.files=dir([path.raw.name,patt{1},'*',ext.raw]);
     path.protoMaps.file=[path.root, 'protoMaps.mat'];
     path.meanU.file=[path.root, 'meanU.mat'];
-    path.UV.files=dir([path.UV.name,'*.nc']);   
+    path.UV.files=dir([path.UV.name,'*.nc']);
     path.cuts.files=dir([path.cuts.name,'*.mat']);
     path.conts.files=dir([path.conts.name,'*.mat']);
     path.eddies.files=dir([path.eddies.name,'*.mat']);
@@ -139,6 +139,18 @@ function path=findfiles(DD)
     path.Rossby.files=[dir([path.Rossby.name,'*.nc']); dir([path.Rossby.name,'*.mat'])];
     %%
     path.TempSalt.files=tempsalt(DD);
+    
+    if isfield(DD.path,'rootAlt')
+        path.conts.name=[DD.path.rootAlt,'CONTS/']
+        path.cuts.name=[DD.path.rootAlt,'CUTS/']
+        path.Rossby.name=[DD.path.rootAlt,'Rossby/']
+        path.conts.files=[path.conts.files dir([DD.path.rootAlt,'CONTS/*.mat'])] ;
+        path.cuts.files=[path.cuts.files dir([DD.path.rootAlt,'CUTS/*.mat'])] ;
+        path.Rossby.files=[path.Rossby.files reshape(dir([DD.path.rootAlt,'Rossby/*.mat']),[],1)] ;
+    end
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function files=tempsalt(DD)

@@ -5,73 +5,68 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=initialise(toCheck,parentFunc)
-	preInits
-	%% get user input
-	DD = get_input;
-	%% check whether info file exists already
-	DDcheck=[DD.path.root, 'DD.mat'];
-	
-	%% if DD.mat exists, rehash or keep initial mapDims
-	
-	if exist(DDcheck,'file')
-		if DD.switches.rehashMapDims
-			DD=catstruct(load(DDcheck),DD);
-		else
-			DD=catstruct(load(DDcheck),rmfield(DD,'map'));
-		end
-	end
-	%%
-	if ~isempty(toCheck)
-		DD=ini(DD,toCheck);
-	end
-	
-	%% in case DD was deleted after S00 was executed rehash window info from cut file
-	if ~isempty(DD.path.cuts.files)
-		[DD.map.window]=GetWin(DD);
-	end
-	%% load workers
-	DD.threads.num=init_threads(DD.threads.num);
-	if DD.threads.num>DD.time.span/DD.time.delta_t
-		error(toomanythreads,'too many threads for not enough timesteps!!!')
-	end
-	%% monitoring stuff
-	monitorStuff
-	%% db stuff
-	dbStuff
-	%----------------------------------------------------------------------
-	%----------------------------------------------------------------------
-	function preInits		
-		addpath(genpath('./'));  %#ok<*MCAP>
-		%         warning on backtrace;
-		warning('off','SNCTOOLS:nc_getall:dangerous');
-		rehash; clc; close all;
-		format shortg;
-		dbstop if error;
-	end
-	%----------------------------------------------------------------------
-	function monitorStuff
-		DD.monitor.tic=tic;
-		if nargin>=2
-			DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
-		end
-		%     dispmem;
-	end
-	%----------------------------------------------------------------------
-	function dbStuff       
-		echo off all; diary off;
-		if DD.debugmode
-			%echo on all
-% 			diary on;
-			dbstop if error;
-		else
-			
-			for tt=1:DD.threads.num
-				commFile=sprintf('./.comm%03d.mat',tt);
-				comm=matfile(commFile,'writable',true);
-				comm.printstack(1,1)={['thread '  num2str(tt) ]};
-			end
-		end
-	end
+    preInits
+    if nargin==0, return;end
+    %% get user input
+    DD = get_input;
+    %% check whether info file exists already
+    DDcheck=[DD.path.root, 'DD.mat'];
+    %% if DD.mat exists, rehash or keep initial mapDims
+    if exist(DDcheck,'file')
+        if DD.switches.rehashMapDims
+            DD=catstruct(load(DDcheck),DD);
+        else
+            DD=catstruct(load(DDcheck),rmfield(DD,'map'));
+        end
+    end
+    %% scan data2bchckd
+    if ~isempty(toCheck)
+        DD=ini(DD,toCheck);
+    end
+    %% in case DD was deleted after S00 was executed rehash window info from cut file
+    if ~isempty(DD.path.cuts.files)
+        [DD.map.window]=GetWin(DD);
+    end
+    %% load workers
+    DD.threads.num=init_threads(DD.threads.num);
+    if DD.threads.num>DD.time.span/DD.time.delta_t
+        error(toomanythreads,'too many threads for not enough timesteps!!!')
+    end
+    %% debugging stuff
+    DD=dbStuff(DD) ;
+    %% monitor stuff
+    DD.monitor.tic=tic;
+    if nargin>=2
+        DD.monitor.rootFunc=functions(eval(['@' parentFunc]));
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function DD=dbStuff(DD)
+    echo off all; diary off;
+    if DD.debugmode
+        %echo on all
+        % 			diary on;
+        dbstop if error;
+        recycle on
+    else
+        recycle off
+        for tt=1:DD.threads.num
+            commFile=sprintf('./.comm%03d.mat',tt);
+            comm=matfile(commFile,'writable',true);
+            comm.printstack(1,1)={['thread '  num2str(tt) ]};
+        end
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function preInits
+    addpath(genpath('./'));  %#ok<*MCAP>
+    %         warning on backtrace;
+    warning('off','SNCTOOLS:nc_getall:dangerous');
+    rehash; clc; close all;
+    format shortg;
+    dbstop if error;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)

@@ -3,5 +3,6 @@ function out=read_fields(dd,ff,fld,field)
 	if nargin < 4
 	out=load(file);
 	else
-		out=load(file,field);
-	end
+		out=getfield(load(file),field);
+    end
+end

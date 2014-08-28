@@ -6,8 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % inter-allocate different time steps to determine tracks of eddies
 function S05_track_eddies
-    %% init
-    DD=initialise('eddies',mfilename);
+    %% init   
+    DD=initialise('eddies',mfilename);   
     %% rm old files
     rmoldtracks(DD)
     %% parallel!
@@ -41,13 +41,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% one thread do cycs, other acycs
-    sen=DD.FieldKeys.senses{labindex};
-    %     switch labindex
-    %         case 2
-    %             sen='cyclones';
-    %         case 1
-    %             sen='anticyclones';
-    %     end
+        switch labindex
+            case 2
+                sen='cyclones';
+            case 1
+                sen='anticyclones';
+        end
     %% set up tracking procedure
     [tracks,OLD,phantoms]=set_up_init(DD,sen);
     numDays=DD.checks.passedTotal;
@@ -267,8 +266,8 @@ function pass=checkAmpAreaBounds(OLD,NEW,sen,ampArea)
     area.old=extractdeepfield(OLD.eddies.(sen),'area.intrp');
     area.new=extractdeepfield(NEW.eddies.(sen),'area.intrp');
     %% get factors between all new and all old
-    [AMP.old,AMP.new]=meshgrid(amp.old,amp.new);
-    [AREA.old,AREA.new]=meshgrid(area.old,area.new);
+    [AMP.old,AMP.new]=ndgrid(amp.old,amp.new);
+    [AREA.old,AREA.new]=ndgrid(area.old,area.new);
     AMPfac=AMP.old./AMP.new;
     AREAfac=AREA.old./AREA.new;
     %% check for thresholds
@@ -283,11 +282,18 @@ function pass=checkAmpAreaBounds(OLD,NEW,sen,ampArea)
     % legend(sprintf('amp (%2.0f %% passed)',prcnt.amp),sprintf('area (%2.0f %% passed)',prcnt.area),'thresholds');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [VoA,pass]=checkVoA(OLD,NEW,sen,thresh)
-    edf=@(IN,sen) extractdeepfield(IN.eddies.(sen),'VoA');
-    [VoA.new,VoA.old]=meshgrid(edf(NEW,sen),edf(OLD,sen));
-    VoA.new2old=VoA.new./VoA.old;
-    pass=VoA.new2old >= thresh(1) & VoA.new2old <= thresh(2);
+function [quo,pass]=checkDynamicIdentity(OLD,NEW,sen,thresh)
+    old.peak2cont=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
+    old.dynRad=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
+    new.peak2cont=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
+    new.dynRad=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
+    [P2C.new,P2C.old]=meshgrid(new.peak2cont,old.peak2cont);
+    [dR.new,dR.old]=meshgrid(new.dynRad,old.dynRad);
+    quo.peak2cont=P2C.new./P2C.old;
+    quo.dynRad=dR.new./dR.old;
+    quo.combo=(abs(log(quo.peak2cont)) + abs(log(quo.dynRad)))/2;
+    
+    pass= quo.combo >= thresh(1) & quo.combo <= thresh(2);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -310,8 +316,8 @@ function [MD,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
     [LOM.new,LOM.old]=meshgrid(NEW.lon.(sen),OLD.lon.(sen));
     [LAM.new,LAM.old]=meshgrid(NEW.lat.(sen),OLD.lat.(sen));
     %%
-    if  DD.switchs.VolumeOverArea
-        [~,pass.VoA]=checkVoA(OLD,NEW,sen,DD.thresh.VolumeOverArea);
+    if  DD.switchs.IdentityCheck
+        [~,pass.idc]=checkDynamicIdentity(OLD,NEW,sen,DD.thresh.IdentityCheck);
     end
     %%
     if DD.switchs.AmpAreaCheck
@@ -322,8 +328,9 @@ function [MD,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
         [pass.ellipseDist]=nanOutOfBounds(NEW.eddies.(sen),OLD.eddies.(sen));
     end
     %%
-    [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass);
-    
+    if exist('pass','var')
+        [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass);
+    end
     %% calc distances between all from new to all from old
     lonDIFF=abs(LOM.new - LOM.old);
     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;

@@ -75,7 +75,7 @@ function savepng4mov(d,ee,DD)
     %%
      clf  %  pcolor(d.lon,d.lat,ssh);
     %     pcolor(ssh);
-    surf(ssh,'FaceColor','interp','FaceLighting','phong');
+    surf(ssh(100:600,100:500),'FaceColor','interp','FaceLighting','phong');
     view(2)
     camlight left
     set(gcf,'Renderer','zbuffer')
@@ -94,12 +94,18 @@ function savepng4mov(d,ee,DD)
             lo=ed.(s)(cc).coordinates.exact.x;
             la=ed.(s)(cc).coordinates.exact.y;
             za=smooth(ssh(drop_2d_to_1d(round(la),round(lo),Y)));
-            plot3(lo,la,za+10,'color',col(ss,:),'linewidth',2.5);
+            plot3(lo-100,la-100,za+10,'--','color',col(ss,:),'linewidth',1.5);
             %             plot3(peak.x,peak.y,5,'*');
         end
     end
-    title([num2mstr(ee)])
+    set(gca,'xticklabel',[],'yticklabel',[])
+%     title([num2mstr(ee)])
     xlabel(datestr(d.dtnm))
-    savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
+    tit=DD.path.eddies.files(ee).name(1:end-4)   ; 
+    savefig('./',300,2000,2400,'tmp',0,'dpng')
+       system(['pdfcrop --margins ''-60 -45 -40 -45'' tmp.pdf ' tit '.pdf'])
+%     savefig2png4mov(d.p,100,800,600,sprintf('flat%06d',ee))
+%  shrinkpdf EDDIE_19940102_+00s+70n-80w+00e.pdf && mv EDDIE_19940102_+00s+70n-80w+00e_shrunk.pdf ../PLOTS/EDDIE_19940102_+00s+70n-80w+00e_raw.pdf
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

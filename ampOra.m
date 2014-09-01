@@ -7,7 +7,8 @@
 function ampOra
     %      dirs= {'iq2'; 'iq4'; 'iq6'; 'iq8'; 'ch400amparea';
     %      'ch400';'iq5-1d';'iq5'}; dirs= {'All'};
-    dirs= {'iq2fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
+%     dirs= {'iq2fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
+     dirs= {'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
     
     D=inIt(dirs);
     D=spmdloop(D);
@@ -32,21 +33,46 @@ function D=inIt(dirs)
     D.out(numel(dirs))=struct;
     [D.out(:).name]=flsh(dirs);
     [D.out(:).file]=  flsh(cellfun(@(c) [D.basedir 'tracks_' c '.mat'],dirs,'uniformoutput',false));
-    spmd(numel(D.out))
-        if ~exist( D.out(labindex).file,'file')
-            cd([D.basedir 'data' D.out(labindex).name '/TRACKS/']) ;
-            [~,file]=system(['ls -hlSr | tail -n 1 | tail -n 1 | grep -oE ''[^ ]+$''']);
-            system(['cp ' file(1:end-1) ' ' D.out(labindex).file ]);
-            cd(D.here) ;
+%     spmd(numel(D.out))
+        if exist( D.out(labindex).file,'file')            
+            sec=1;
+            while sec>0
+               
+                disp([ D.out(labindex).file ' exists ']);
+                fprintf('%d secs remaining. going to overwrite\n\n',sec);
+                 sec=sec-1;
+                sleep(1)
+            end
         end
+%         dir(./)
+        
+
+fs=dir([D.basedir 'data' D.out(labindex).name '/TRACKS/*.mat'])
+
+days=0;
+for ff=1:numel(fs)
+    dateA=datenum(fs(ff).name(6:6+7),'yyyymmdd');
+    dateB=datenum(fs(ff).name(6+9:6+7+9),'yyyymmdd');
+    if dateB-dateA+1 > days
+    days=dateB-dateA+1;
+    longest=fs(ff);
     end
+end
+
+        
+        
+        [~,file]=system(['ls -hlSr | tail -n 1 | tail -n 1 | grep -oE ''[^ ]+$''']);
+        system(['cp ' file(1:end-1) ' ' D.out(labindex).file ]);
+        cd(D.here) ;
+        
+%     end
 end
 function D=spmdloop(D)
     cm=jet;
     %     spmd(numel(D.out))
     %         fig=gop(@vertcat,{AOplots(cm,D.out(labindex),D.thresh.ampArea,labindex)},1);
     %     end
-%      D=savestuff(D,fig{1});
+    %      D=savestuff(D,fig{1});
     ii=0;
     for dout=D.out
         ii=ii+1;

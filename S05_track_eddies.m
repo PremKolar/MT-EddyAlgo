@@ -284,9 +284,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,sen,thresh)
     old.peak2cont=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
-    old.dynRad=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
+    old.dynRad=extractdeepfield(OLD.eddies.(sen),'radius.mean');
     new.peak2cont=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
-    new.dynRad=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
+    new.dynRad=extractdeepfield(NEW.eddies.(sen),'radius.mean');
     [P2C.new,P2C.old]=meshgrid(new.peak2cont,old.peak2cont);
     [dR.new,dR.old]=meshgrid(new.dynRad,old.dynRad);
     quo.peak2cont=P2C.new./P2C.old;

@@ -35,12 +35,12 @@ function DD=INPUT
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;
     DD.switchs.RossbyStuff=true;
-    DD.switchs.distlimit=true;
+    DD.switchs.distlimit=false;
     DD.switchs.AmpAreaCheck=false;
     DD.switchs.netUstuff=false;
     DD.switchs.meanUviaOW=false;
-    DD.switchs.IdentityCheck=true;
-    DD.switchs.maxRadiusOverRossbyL=true;
+    DD.switchs.IdentityCheck=false;
+    DD.switchs.maxRadiusOverRossbyL=false;
     DD.switchs.spaciallyFilterSSH=false;
     DD.switchs.filterSSHinTime=true;
 end

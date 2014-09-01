@@ -155,7 +155,7 @@ function archive(trck,path,id)
     %% write out file (one per eddy)
     EoD=[sprintf('%07i',id)];
     filename=[ path.tracks.name 'TRACK' datestr(trck(1).daynum,'yyyymmdd')...
-        '-' datestr(trck(end).daynum,'yyyymmdd') '_id' EoD '.mat'];
+        '-' datestr(trck(end).daynum,'yyyymmdd') '_id' EoD '-d' num2str(numel(trck)) '.mat'];
     trck(end).filename=filename;
     save(trck(end).filename,'trck');
 end

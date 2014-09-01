@@ -67,9 +67,8 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
         [NEW]=kill_phantoms(NEW,sen);
     end
     %% find minium distances between old and new time step eddies
-    [MinDists,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);
-    [tracks(:).passLog]=deal(passLog);
-    %% determine which ones are tracked/died/new
+    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);
+     %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists,sen);
     %% append tracked to respective cell of temporary archive 'tracks'
     [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
@@ -310,7 +309,7 @@ function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
     LAM.new(~pass.combo)=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [MD,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
+function [MD]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
     
     %% build geo loc matrices
     [LOM.new,LOM.old]=meshgrid(NEW.lon.(sen),OLD.lon.(sen));
@@ -329,7 +328,7 @@ function [MD,passLog]=EligibleMinDistsMtrx(OLD,NEW,sen,DD)
     end
     %%
     if exist('pass','var')
-        [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass);
+        [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
     end
     %% calc distances between all from new to all from old
     lonDIFF=abs(LOM.new - LOM.old);

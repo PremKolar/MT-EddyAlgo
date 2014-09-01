@@ -5,12 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function compPlots
-   
-%     dirs= {'iq5fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
-    
-     dirs= {'iq5fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
-   
-    
+    dirs={'iq2';'iq6';'iq6dl';'iq6dlMr';'iq6dlMrIc';'iq8';'iq4';'ch'};    
     D=inIt(dirs);
    
     

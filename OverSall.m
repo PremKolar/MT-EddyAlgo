@@ -18,11 +18,11 @@ function OverSall
     for ii=1:numel(Fnows)
         fnow=Fnows{ii};
         dnow=Dnows{ii};
-        if ii==1
-            todoPre(fnow) ;
-        end
-        try todo(fnow,DR,dnow,Rdata);end       %#ok<*TRYNC>
-        try todoPost(fnow,DR,dnow,Rdata);end
+        %         if ii==1
+        %             todoPre(fnow) ;
+        %         end
+        todo(fnow,DR,dnow,Rdata)
+        try todoPost(fnow,DR,dnow,Rdata);end %#ok<*TRYNC>
     end
 end
 
@@ -43,6 +43,9 @@ function todo(fnow,DR,dnow,Rdata)
     
     S04_filter_eddies
     S05_track_eddies
+    
+    system(['rm -rf ' DR dnow '/' 'EDDIES'])
+    system(['rm -rf ' DR dnow '/' 'TRACKS'])
     
     system(['mv ' Rdata 'EDDIES ' DR dnow '/'])
     system(['mv ' Rdata 'TRACKS ' DR dnow '/'])

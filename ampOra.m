@@ -7,18 +7,21 @@
 function ampOra
     %      dirs= {'iq2'; 'iq4'; 'iq6'; 'iq8'; 'ch400amparea';
     %      'ch400';'iq5-1d';'iq5'}; dirs= {'All'};
-%     dirs= {'iq2fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
-     dirs= {'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
+    %     dirs= {'iq2fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
+    dirs= {'iq5fortnight';'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
     
     D=inIt(dirs);
     D=spmdloop(D);
-    printouts(D)
+    printouts(D);
+    close all
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function printouts(D)
     system(sprintf('pdfjam -o tmp.pdf crpd*pdf'))
     outtit=[cat(2,D.out(:).name),'.pdf'];
     system(['pdfcrop  --margins "1 3 1 1" tmp.pdf ' outtit])
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function D=inIt(dirs)
     addpath(genpath('./'))
     flsh= @(x) deal(x{:});
@@ -27,46 +30,45 @@ function D=inIt(dirs)
     D=INPUT;
     D.threads.num=init_threads(12);
     D.here=pwd;
-    
     D.basedir=['/scratch/uni/ifmto/u300065/FINAL/aorStuff/'];
-    
     D.out(numel(dirs))=struct;
     [D.out(:).name]=flsh(dirs);
     [D.out(:).file]=  flsh(cellfun(@(c) [D.basedir 'tracks_' c '.mat'],dirs,'uniformoutput',false));
-%     spmd(numel(D.out))
-        if exist( D.out(labindex).file,'file')            
-            sec=1;
-            while sec>0
-               
-                disp([ D.out(labindex).file ' exists ']);
-                fprintf('%d secs remaining. going to overwrite\n\n',sec);
-                 sec=sec-1;
-                sleep(1)
+    
+%     copyaction(D)
+      
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function copyaction(D)
+    %     for labindex=1:numel(D.out)
+    spmd(numel(D.out))
+        %         if exist( D.out(labindex).file,'file')
+        %             sec=1;
+        %             while sec>0
+        %                 disp([ D.out(labindex).file ' exists ']);
+        %                 fprintf('%d secs remaining. going to overwrite\n\n',sec);
+        %                 sec=sec-1;
+        %                 sleep(1)
+        %             end
+        %         end
+        
+        %%
+        fs=dir([D.basedir 'data' D.out(labindex).name '/TRACKS/*.mat']);
+        
+        days=0;
+        for ff=1:numel(fs)
+            dateA=datenum(fs(ff).name(6:6+7),'yyyymmdd');
+            dateB=datenum(fs(ff).name(6+9:6+7+9),'yyyymmdd');
+            if dateB-dateA+1 > days
+                days=dateB-dateA+1;
+                longest=fs(ff);
             end
         end
-%         dir(./)
-        
-
-fs=dir([D.basedir 'data' D.out(labindex).name '/TRACKS/*.mat'])
-
-days=0;
-for ff=1:numel(fs)
-    dateA=datenum(fs(ff).name(6:6+7),'yyyymmdd');
-    dateB=datenum(fs(ff).name(6+9:6+7+9),'yyyymmdd');
-    if dateB-dateA+1 > days
-    days=dateB-dateA+1;
-    longest=fs(ff);
+        file=[D.basedir 'data' D.out(labindex).name '/TRACKS/' longest.name];
+        system(['cp ' file ' ' D.out(labindex).file ]);
     end
 end
-
-        
-        
-        [~,file]=system(['ls -hlSr | tail -n 1 | tail -n 1 | grep -oE ''[^ ]+$''']);
-        system(['cp ' file(1:end-1) ' ' D.out(labindex).file ]);
-        cd(D.here) ;
-        
-%     end
-end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function D=spmdloop(D)
     cm=jet;
     %     spmd(numel(D.out))
@@ -80,6 +82,7 @@ function D=spmdloop(D)
     end
     D=savestuff(D,fig);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function D=savestuff(D,figs)
     for ff=1:numel(figs)
         fig=hgload(figs{ff});
@@ -91,13 +94,14 @@ function D=savestuff(D,figs)
         system(sprintf('pdfcrop --margins "1 3 1 1" %s %s',D.out(ff).tmp,D.out(ff).crpd))
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fig=AOplots(cm,outfile,thresh,id)
     nrm=@(x) (x-min(x))/max(x-min(x));
     trck=getfield(load(outfile.file),'trck');
     try
-    trck=trck(end-25:end);
+        trck=trck(end-25:end);
     end
-        
+    
     AR=cell2mat(extractfield(trck,'area'));
     ar=extractfield(AR,'intrp');
     RaoRo=extractfield(AR,'RadiusOverRossbyL');
@@ -123,10 +127,10 @@ function fig=AOplots(cm,outfile,thresh,id)
     
     
     [R]=cm(:,1);
-     [G]=cm(:,2) ;
-      [B]= cm(:,3);
+    [G]=cm(:,2) ;
+    [B]= cm(:,3);
     
-      col=[R,.8*G,B*.6];
+    col=[R,.8*G,B*.6];
     %     cm1=cm;
     %     cm2=cm(:,[2 1 3]);
     %     col=doublemap([-1,0,1],cm1,cm2,[.3 .3 1],4);
@@ -134,7 +138,7 @@ function fig=AOplots(cm,outfile,thresh,id)
     %   col(end-2:end,:)=repmat([.6 1 .5],3,1);
     %   colormap(col);
     colormap(col);
-  
+    
     
     
     %%
@@ -160,8 +164,9 @@ function fig=AOplots(cm,outfile,thresh,id)
     mqs=floor(10*mq)/10;
     ct=-mqs:2*mqs/4:mqs;
     set(cb,'xtick',ct)
-    cbtckl=cellfun(@(cc) sprintf('% .1f', cc) ,num2cell((exp(ct))),'uniformoutput',false);
-    cbtckl{3}=1;
+    
+    cbtckl=cellfun(@(cc) sprintf('% d%%', cc) ,num2cell(round((exp(ct)-1)*100)),'uniformoutput',false);
+    cbtckl{3}='0%';
     set(cb,'xticklabel',cbtckl)
     cblv=linspace(-mq, mq, size(col,1));
     [QUO,CBLV]=meshgrid(quo,cblv);
@@ -244,6 +249,7 @@ function fig=AOplots(cm,outfile,thresh,id)
     fig=sprintf('fig%02d.fig',id);
     saveas(gcf,fig)
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=extractdeepfield(IN,fieldnameToAccess)
     field = textscan(fieldnameToAccess,'%s','Delimiter','.');
     fieldSize=size(field{1},1);
@@ -258,4 +264,5 @@ function [OUT]=extractdeepfield(IN,fieldnameToAccess)
             OUT=extractfield(cell2mat(extractfield(cell2mat(extractfield( cell2mat(extractfield(IN,field{1}{1})),field{1}{2} )),field{1}{3})),field{1}{4});
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

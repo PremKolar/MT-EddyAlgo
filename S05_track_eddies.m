@@ -67,7 +67,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
         [NEW]=kill_phantoms(NEW,sen);
     end
     %% find minium distances between old and new time step eddies
-    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);
+    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);   
     %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists,sen);
     %% append tracked to respective cell of temporary archive 'tracks'

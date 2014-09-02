@@ -21,8 +21,8 @@ function OverSall
         if ii==1
             todoPre;
         end
-        todoCore(DR,dnow,Rdata)
-        try todoPost(DR,dnow,Rdata);end %#ok<*TRYNC>
+        todoCore(DR,dnow,Rdata);
+                todoPost(DR,dnow,Rdata);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,10 +40,10 @@ function todoPre
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function todoCore(DR,dnow,Rdata)
-    S04_filter_eddies
-    S05_track_eddies
     system(['rm -rf ' DR dnow '/' 'EDDIES'])
     system(['rm -rf ' DR dnow '/' 'TRACKS'])
+    S04_filter_eddies
+    S05_track_eddies
     system(['mv ' Rdata 'EDDIES ' DR dnow '/'])
     system(['mv ' Rdata 'TRACKS ' DR dnow '/'])
     cutdir=[Rdata 'CUTS/'];
@@ -53,7 +53,7 @@ function todoCore(DR,dnow,Rdata)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function todoPost(DR,dnow,Rdata)
-    S04b_analyzeEddyThresh
+%     S04b_analyzeEddyThresh
     S06_init_output_maps
     S08_analyze_tracks
     S09_drawPlots

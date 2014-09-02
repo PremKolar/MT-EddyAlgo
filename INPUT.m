@@ -13,7 +13,7 @@ function DD=INPUT
 %     DD.time.till.str='19990102';
 %      threshlife=20*7
     
-    DD.time.till.str='19940702';    
+    DD.time.till.str='19950702';    
     threshlife=5*7;
  
 %     %% window on globe

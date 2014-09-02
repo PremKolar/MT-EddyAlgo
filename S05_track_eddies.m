@@ -67,8 +67,8 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
         [NEW]=kill_phantoms(NEW,sen);
     end
     %% find minium distances between old and new time step eddies
-    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);
-     %% determine which ones are tracked/died/new
+    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,sen,DD);   
+    %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists,sen);
     %% append tracked to respective cell of temporary archive 'tracks'
     [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW,sen);
@@ -154,7 +154,7 @@ function archive(trck,path,id)
     %% write out file (one per eddy)
     EoD=[sprintf('%07i',id)];
     filename=[ path.tracks.name 'TRACK' datestr(trck(1).daynum,'yyyymmdd')...
-        '-' datestr(trck(end).daynum,'yyyymmdd') '_id' EoD '.mat'];
+        '-' datestr(trck(end).daynum,'yyyymmdd') '_id' EoD '-d' num2str(numel(trck)) '.mat'];
     trck(end).filename=filename;
     save(trck(end).filename,'trck');
 end

@@ -179,13 +179,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL=getLocalRossyRadius(rossbyL,coor)
     [Y,X]=size(rossbyL);
-    x=round(mean(coor.x));
-    y=round(mean(coor.y));
+    x=round(coor.x);
+    y=round(coor.y);
     x(x<1)=1;
     x(x>X)=X;
     y(y<1)=1;
-    y(y>Y)=Y;
-    RoL=rossbyL(y,x);
+    y(y>Y)=Y;    
+    RoL=nanmedian(rossbyL(drop_2d_to_1d(y,x,Y)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ee=correctXoverlap(ee,DD)

@@ -1,32 +1,63 @@
-initialise
-dataroot='/scratch/uni/ifmto/u300065/FINAL/aorStuff/dataAll/';
-% dnows={'iq2';'iq4';'iq6';'iq8';'iq5';'iq5nonVoA';'ch400amparea'};
-
-% dnows={'ch400amparea';'iq5nonVoA'};
-% dnows={'iq5nonVoA'};
-dnows={'iq5fortnight'};
-% 
-% for ii=1:numel(dnows)
-%     dnow=dnows{ii};
-%    system(['cp INPUT.m INPUT' dnow '.m'])
-% end
-
-
-for ii=1:numel(dnows)
-    dnow=dnows{ii};
-    sleep(5);
-    todo=sprintf('cp INPUT%s.m INPUT.m',dnow);
-    disp(todo);
-    sleep(5);
-    system(todo);
-    sleep(5);
-    Sall
-    sleep(5);
-    todo=sprintf('mkdir -p  %s%s',dataroot,dnow);
-    disp(todo);
-    system(todo);
-    sleep(5);
-    todo=sprintf('mv %sEDDIES %sTRACKS %sANALYZED %scode  %s%s/',dataroot,dataroot,dataroot,dataroot,dataroot,dnow);
-    disp(todo);
-    system(todo);
+function OverSall
+    initialise
+    DR='/scratch/uni/ifmto/u300065/FINAL/smAor/';
+    Fnows={'iq2';'iq6';'iq6dl';'iq6dlMr';'iq6dlMrIc';'iq8';'iq4';'ch'};
+    Dnows=cellfun(@(c) ['data' c],Fnows,'uniformoutput',false);
+    
+    dbstop if error
+    Rdata=[DR 'dataC/'];
+    %%
+    for ii=1:numel(Fnows)
+        dnow=Dnows{ii};
+        mkdirp([DR  dnow])
+        fnow=Fnows{ii};
+        mkdirp([DR  fnow])
+    end
+    %%
+    for ii=1:numel(Fnows)
+        fnow=Fnows{ii};
+        dnow=Dnows{ii};
+        catINPUT(fnow)
+        if ii==1
+            todoPre;
+        end
+        todoCore(DR,dnow,Rdata);
+        %         todoPost(DR,dnow,Rdata);
+    end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function catINPUT(fnow)
+    try system(['mv INPUT.m INPUTold.m']), end
+    system(['more INPUTupper.m > INPUT.m'])
+    system(['more INPUT' fnow '.m >> INPUT.m'])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function todoPre
+    S00b_prep_data
+    S01_BruntVaisRossby
+    S02_infer_fields
+    S03_contours
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function todoCore(DR,dnow,Rdata)
+    system(['rm -rf ' DR dnow '/' 'EDDIES'])
+    system(['rm -rf ' DR dnow '/' 'TRACKS'])
+    S04_filter_eddies
+    S05_track_eddies
+    system(['mv ' Rdata 'EDDIES ' DR dnow '/'])
+    system(['mv ' Rdata 'TRACKS ' DR dnow '/'])
+    cutdir=[Rdata 'CUTS/'];
+    cut=dir([cutdir 'CUT_*.mat']);
+    mkdirp([DR dnow '/CUTS'])
+    system(['cp ' cutdir cut(1).name ' ' DR dnow '/CUTS/'])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function todoPost(DR,dnow,Rdata)
+    S04b_analyzeEddyThresh
+    S06_init_output_maps
+    S08_analyze_tracks
+    S09_drawPlots
+    system(['mv ' Rdata 'ANALYZED ' DR dnow '/'])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

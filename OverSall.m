@@ -3,7 +3,7 @@ function OverSall
     DR='/scratch/uni/ifmto/u300065/FINAL/smAor/';
     Fnows={'iq2';'iq6';'iq6dl';'iq6dlMr';'iq6dlMrIc';'iq8';'iq4';'ch'};
     Dnows=cellfun(@(c) ['data' c],Fnows,'uniformoutput',false);
-   
+    
     dbstop if error
     Rdata=[DR 'dataC/'];
     %%

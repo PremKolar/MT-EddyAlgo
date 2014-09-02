@@ -5,8 +5,8 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,debug,frmt,saveFig)
-set(gcf,'renderer','painter')     
-set(gcf,'Visible','off')  
+% set(gcf,'renderer','painter')     
+% set(gcf,'Visible','off')  
 if nargin<6,debug=false;end
     if debug,disp('yo');	return;	end
     if nargin < 7,	frmt='dpdf';	end
@@ -17,38 +17,44 @@ if nargin<6,debug=false;end
         quickhack(fname)
     else
         %% set up figure
-        setupfigure(resOut,xdim,ydim)
+        [resHere]=setupfigure(resOut,xdim,ydim)
         %% print
-        printStuff(frmt,fname,resOut,xdim,ydim)
+        printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     end
     if saveFig
         save(gcf,[fname,'.mat'])
     end
-    close(gcf);
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function printStuff(frmt,fname,resOut,xdim,ydim)
+function printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
         eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc ;'])
         system(['epstopdf ' fname '.eps']);
         system(['rm ' fname '.eps']);
     else
-        fnfull=[fname,'.',frmt(2:end)];
-        disp(['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';'])
-        eval(['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';'])
-        system(['convert -density ' num2str(resOut) 'x' num2str(resOut) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' quality 100 ' fnfull ' ' fname '.pdf' ]);
-        system(['pdfcrop ' fname '.pdf ' fname '.pdf']);
+        if strcmp(fname(end-length(frmt)+1),frmt )
+            fnfull=fname;
+        else
+            fnfull=[fname,'.',frmt(2:end)];
+        end
+        todo=['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';']
+        disp(todo)
+        eval(todo)
+        
+%           system(['convert -trim ' fnfull ' ' fnfull]);
+        system(['convert -density ' num2str(resHere) 'x' num2str(resHere) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' -quality 100 ' fnfull ' ' fname '.pdf' ]);
+       
+      
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function setupfigure(resOut,xdim,ydim)
-
-    resHere=get(0,'ScreenPixelsPerInch');   
-%    ratioRes=resOut/resHere;
-   ratioRes=1;
-    set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);    
+function resHere=setupfigure(resOut,xdim,ydim)
+    resHere=get(0,'ScreenPixelsPerInch');
+    %    ratioRes=resOut/resHere;
+    ratioRes=1;
+    set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
-   
     set(gca,'FontSize',12)
     set(findall(gcf,'type','text'),'FontSize',12)
 end

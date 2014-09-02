@@ -22,7 +22,7 @@ function OverSall
             todoPre;
         end
         todoCore(DR,dnow,Rdata);
-        %         todoPost(DR,dnow,Rdata);
+                todoPost(DR,dnow,Rdata);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,7 +53,7 @@ function todoCore(DR,dnow,Rdata)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function todoPost(DR,dnow,Rdata)
-    S04b_analyzeEddyThresh
+%     S04b_analyzeEddyThresh
     S06_init_output_maps
     S08_analyze_tracks
     S09_drawPlots

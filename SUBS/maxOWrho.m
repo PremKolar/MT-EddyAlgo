@@ -25,22 +25,21 @@ function [s] = initbuildRho(DD);  dF
     s.geoOut=DD.path.TSow.geo;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function buildRho(s,raw,Dim,threads,f)
-    dF
+function buildRho(s,raw,Dim,threads,f);    dF
     [depth,lat,T]=spmdInit(threads,raw,Dim,f);
     %%
     for tt = s.timesteps
-        if ~exist(s.Fout{tt},'file')
-            [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat);
+       T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
+%         if ~exist(s.Fout{tt},'file')
+            [RHO]=spmdBlock(threads,tt,s,f,depth,lat);
             initNcFile([s.Fout{tt} 'temp'],'density',Dim.ws);
             f.ncvp([s.Fout{tt} 'temp'],'density',f.mDit(RHO{1},Dim.ws),[0 0 0], [Dim.ws]);
             system(['mv ' s.Fout{tt} 'temp '  s.Fout{tt}]);
-        end
+%         end
     end
 end
-function [RHO,T]=spmdBlock(threads,tt,s,f,T,depth,lat)
-    spmd(threads)
-        T=disp_progress('show',T,numel(s.timesteps),numel(s.timesteps))  ;
+function [RHO]=spmdBlock(threads,tt,s,f,depth,lat)  
+  spmd(threads)       
         RHO=makeRho(s.Fin(tt),depth,lat,s.keys,f)	;
     end
 end
@@ -48,9 +47,9 @@ end
 function [depth,lat,T]=spmdInit(threads,raw,Dim,f)
     spmd(threads)
         depth = f.locCo(repmat(double(raw.depth),Dim.ws(2)*Dim.ws(3),1));
-        lat = f.locCo(f.yx2zyx(raw.lat,Dim.ws(1)));
-        T=disp_progress('init','building density netcdfs')  ;
+        lat = f.locCo(f.yx2zyx(raw.lat,Dim.ws(1)));       
     end
+     T=disp_progress('init','building density netcdfs')  ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RHO=makeRho(file,depth,lat,keys,f)
@@ -71,7 +70,7 @@ function [T,S]=TSget(FileIn,keys,locCo)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function initNcFile(fname,toAdd,WinSize)
-    nc_create_empty(fname,'clobber');
+    nc_create_empty(fname,'noclobber');
     nc_adddim(fname,'k_index',WinSize(1));
     nc_adddim(fname,'i_index',WinSize(3));
     nc_adddim(fname,'j_index',WinSize(2));

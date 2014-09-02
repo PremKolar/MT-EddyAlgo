@@ -32,7 +32,7 @@ function loop(f,tA,currFile,OWFile);dF
 	OW=extrOW(f,currFile);
 	initOWNcFile(OWFile,tA,size(OW));
 	f.ncVP(OWFile,OW,tA{1});
-	OW(isinf(OW) | OW>=0 | isnan(OW) )=1;	
+	OW(isinf(OW) | OW>=0 | isnan(OW) )=nan;	
 	f.ncVP(OWFile,log10(-OW),tA{2});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

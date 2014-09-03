@@ -31,16 +31,16 @@ function main(DD,RS)
             end
         end
         MeanSsh=saveMean(DD);
-    else     
-       load([DD.path.root, 'meanSSH.mat']);
+    else
+        load([DD.path.root, 'meanSSH.mat']);
     end
     %% calc fields
     if DD.debugmode
-          [JJ]=SetThreadVar(DD); 
+        [JJ]=SetThreadVar(DD);
         spmd_fields(DD,RS,JJ,MeanSsh);
     else
         spmd(DD.threads.num)
-              [JJ]=SetThreadVar(DD); 
+            [JJ]=SetThreadVar(DD);
             spmd_fields(DD,RS,JJ,MeanSsh);
         end
     end
@@ -56,7 +56,7 @@ function MeanSsh=saveMean(DD)
         Meancount=Meancount + cur.Mean.count;
         system(sprintf('rm meanTmp%03d.mat',ll));
     end
-    MeanSsh=reshape(MeanSsh,[DD.map.window.sizePlus.Y, DD.map.window.sizePlus.X])/Meancount; 
+    MeanSsh=reshape(MeanSsh,[DD.map.window.sizePlus.Y, DD.map.window.sizePlus.X])/Meancount;
     save([DD.path.root, 'meanSSH.mat'],'MeanSsh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,8 +64,14 @@ function RS=getRossbyStuff(DD,gr)
     if DD.switchs.RossbyStuff
         RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
         RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
-        RS.Lr(RS.Lr<0 | RS.Lr > 100*nanmedian(abs(RS.Lr(:))))=nan;
+        RS.Lr(RS.Lr<0 | RS.Lr > 100*nanmedian(abs(RS.Lr(:))))=nan;  % TODO!!!
         RS.c(RS.c<0 | RS.c > 100*nanmedian(abs(RS.c(:))))=nan;
+        if strcmp(DD.map.window.type,'globe')
+            wndw=getfield(load(DD.path.windowFile),'window');
+            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
+            RS.Lr=RS.Lr(ovrlpIyx);
+            RS.c=RS.c(ovrlpIyx);
+        end
         RS.LrInc.y=smooth2a(RS.Lr./gr.DY,10);
         RS.LrInc.x=smooth2a(RS.Lr./gr.DX,10);
         RS.LrInc.x=double(NeighbourValue(isnan(RS.LrInc.x),RS.LrInc.x));
@@ -83,7 +89,7 @@ function spmd_meanSsh(DD,JJ)
         %% load
         ssh=extractdeepfield(load(JJ(jj).files),'grids.ssh')';
         %% mean ssh
-        Mean.SshSum=nansum([Mean.SshSum, ssh],2);       
+        Mean.SshSum=nansum([Mean.SshSum, ssh],2);
     end
     Mean.count=numel(JJ);
     save(sprintf('meanTmp%03d.mat',labindex),'Mean');
@@ -97,7 +103,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-       
+        
         if isfield(cut.grids,'OW'), dispM('skipping');continue; end
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
@@ -106,13 +112,13 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         if DD.switchs.filterSSHinTime
             grids.sshRaw=grids.ssh;
             grids.ssh=grids.ssh - MeanSsh;
-        end        
+        end
         %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
         %             grids.sshRaw=grids.ssh;
         %             grids.ssh=filterStuff(cut.grids,RS);%         end
         
-        %% write        
-        save(JJ(jj).files,'grids','-append');       
+        %% write
+        save(JJ(jj).files,'grids','-append');
     end
 end
 

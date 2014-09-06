@@ -83,7 +83,7 @@ function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
     %% loop
     Tv=disp_progress('init','running through conts vertically');
     for kk=Zloop % dir dep. on sense
-        Tv= disp_progress('disp',Tv,numel(Zloop),2,1);
+        Tv= disp_progress('disp',Tv,numel(Zloop),1000,1);
         [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
         if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy

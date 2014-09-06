@@ -133,7 +133,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	[pass.CR_sense,ee.sense]=CR_sense(zoom,direction,ee.level);
 	if ~pass.CR_sense, return, end;
 	%% calculate area with respect to contour
-	RoL=getLocalRossyRadius(rossby.L,ee.coordinates.int);
+	RoL=getLocalRossyRadius(rossby.Lr,ee.coordinates.int);
 	[ee.area,pass.Area]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
 	if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
 	%% calc contour circumference in [SI]
@@ -167,7 +167,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	ee.age=0;
 	%% append projected location
 	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
-		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.U,cut,DD)	;
+		[ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.c,cut,DD)	;
 	else
 		ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
 	end
@@ -334,8 +334,8 @@ function RS=getRossbyPhaseSpeedAndRadius(DD)
 		end
 	else
 		warning('No Rossby Radius available. Ignoring upper constraint on eddy scale!') %#ok<*WNTAG>
-		R.U=[];
-		R.L=[];
+		R.c=[];
+		R.Lr=[];
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

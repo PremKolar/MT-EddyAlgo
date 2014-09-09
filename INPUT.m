@@ -2,9 +2,9 @@
 function DD=INPUT
     DD.template='pop';
     %% threads / debug
-    DD.threads.num=1;
+    DD.threads.num=8;
     DD.debugmode=false;
-        DD.debugmode=true;
+%         DD.debugmode=true;
      DD.overwrite=false;
 %     DD.overwrite=true;
    
@@ -34,7 +34,7 @@ function DD=INPUT
     DD.map.out.Y=160*1+1;   %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=5; % [SI]   %% GOOD???
+    DD.thresh.maxRadiusOverRossbyL=5; %down to 4 next time!!!!!!!!!!!!!!!!!!!!!!!% [SI]   %% GOOD???
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.6; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
@@ -42,7 +42,7 @@ function DD=INPUT
     DD.thresh.corners.max=pi*2e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
     DD.thresh.life=threshlife; % min num of living days for saving
      DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.IdentityCheck=[1/2.5 2.5];
+    DD.thresh.IdentityCheck=[2];
     %% switches
     DD.switchs.IQ=true;
     DD.switchs.chelt=false;

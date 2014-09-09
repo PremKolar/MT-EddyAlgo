@@ -40,8 +40,9 @@ function LTscatter(basedir,dout,threshampArea,ii)
    
     scatter(cat(2,all.aol),cat(2,all.lat))
     scatter(cat(2,all.iq),cat(2,all.lat))
-    scatter(cat(2,all.iq),cat(2,all.aol),10,cat(2,all.lat))
-   
+    scatter(cat(2,all.iq),cat(2,all.lat),10,cat(2,all.aol))
+   colorbar
+   caxis([0 6])
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,20 +50,44 @@ end
 function all=collectScatD(basedir,dout)
     fs=dir([basedir 'data' dout.name '/TRACKS/*.mat']);
    
-   ff=1
-    while ff<numel(fs)    
+    ff=1
+    while ff<numel(fs)
         try
-        file=[basedir 'data' dout.name '/TRACKS/' fs(ff).name];
-        MF=matfile(file);
-        trck=MF.trck;
-        all(ff).lat=extractdeepfield(trck,'geo.lat');
-        all(ff).aol=extractdeepfield(trck,'area.RadiusOverRossbyL');
-        all(ff).iq=extractdeepfield(trck,'isoper');
+            file=[basedir 'data' dout.name '/TRACKS/' fs(ff).name];
+            MF=matfile(file);
+            trck=MF.trck;
+            all(ff).lat=extractdeepfield(trck,'geo.lat');
+            all(ff).aol=extractdeepfield(trck,'area.RadiusOverRossbyL');
+            all(ff).iq=extractdeepfield(trck,'isoper');
+            all(ff).peak2contour=extractdeepfield(trck,'peak.to_contour');
+            all(ff).peak2mean=extractdeepfield(trck,'peak.to_mean');
+            all(ff).peak2ellip=extractdeepfield(trck,'peak.to_ellipse');
         catch
             continue
         end
         ff=ff+1
     end
+   
+    
+    
+      ff=1
+    while ff<numel(fs)
+        try
+            file=[basedir 'data' dout.name '/TRACKS/' fs(ff).name];
+            MF=matfile(file);
+            trck=MF.trck;
+            all(ff).peak2contour=extractdeepfield(trck,'peak.to_contour');
+            all(ff).peak2mean=extractdeepfield(trck,'peak.to_mean');
+            all(ff).peak2ellip=extractdeepfield(trck,'peak.to_ellipse');
+        catch
+            continue
+        end
+        ff=ff+1
+    end
+    
+    
+    
+    
     
 end
 function scatplots(LTdata)

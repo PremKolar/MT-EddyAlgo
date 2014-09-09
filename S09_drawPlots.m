@@ -39,8 +39,24 @@ function S09_drawPlots
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function IQoverCH(DD,ticks)
-    CoIQ=getfield(load([DD.path.analyzed.name,'CoIQ.mat']),'oIQ');
-    C=cell2mat(struct2cell(CoIQ));
+%     CoIQ=getfield(load([DD.path.analyzed.name,'CoIQ.mat']),'oIQ');
+   
+  load([DD.path.analyzed.name,'scat.mat']);
+
+
+  IQ=double(cat(1,scat.IQ));
+   la=double(cat(1,scat.lat));
+    RoL=double(cat(1,scat.RoL));
+     amp=double(cat(1,scat.amp2ellip));
+  
+scatter(IQ,la,RoL.^2,amp,'linewidth',0.0001)
+   axis([.6 1.1 0 70])
+
+
+   
+   
+    
+   
     spmd(3)
         switch labindex
             case 1
@@ -83,7 +99,7 @@ end
 function mainDB(DD,IN,ticks)
     disp('entering debug mode')
     ticks.rez=42;
-    IQoverCH(DD,ticks)
+%     IQoverCH(DD,ticks)
     for sense=DD.FieldKeys.senses'; sen=sense{1};
         %             TPa(DD,ticks,IN.tracks,sen);
         TPb(DD,ticks,IN.tracks,sen);
@@ -608,6 +624,7 @@ function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zero
         end
         cm(cm>1)=1;                        % Sometimes iterpolation gives values that are out of [0,1] range...
         cm(cm<0)=0;
+        cm(isnan(cm))=0;
         lo=V.lon;
         la=V.lat;
         if zeroshift

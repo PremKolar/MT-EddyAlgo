@@ -15,7 +15,7 @@ function [DD]=get_input
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=evalUserInput
-   readfiles;
+    readfiles;
     setOutWindowIfNotUserSet;
     %----------------------------------------------------------------------
     function setOutWindowIfNotUserSet
@@ -33,7 +33,7 @@ function DD=evalUserInput
         B=INPUT;
         A=eval(['INPUT' B.template]);
         DD=mergeStruct2(A,B);
-    end     
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pattern,FieldKeys]=DDpatternsAndKeys
@@ -105,40 +105,45 @@ function mkDirs(path)
     system(['cp ./SUBS/*.m ' path.codesubs]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function path=findfiles(DD)
-    path=DD.path;
-    path.root=['../data' path.OutDirBaseName '/'];
-    path.plots=['../PLOTS/' path.OutDirBaseName '/'];
-    path.code=[path.root, 'code/'];
-    path.codesubs=[path.root, 'code/SUBS/'];
-    path.cuts.name=[path.root, 'CUTS/'];
-    path.conts.name=[path.root, 'CONTS/'];
-    path.eddies.name=[path.root,'EDDIES/'];
-    path.tracks.name=[path.root,'TRACKS/'];
-    path.analyzed.name=[path.root,'ANALYZED/'];
-    path.analyzedTracks.AC.name=[path.analyzed.name,'AntiCyclones/'];
-    path.analyzedTracks.C.name=[path.analyzed.name,'Cyclones/'];
-    path.Rossby.name=[path.root,'Rossby/'];
-    path.Rossby.Nfile=[path.Rossby.name,'N.cdf'];
+function PATH=findfiles(DD)
+    PATH=DD.path;
+    PATH.root=['../data' PATH.OutDirBaseName '/'];
+    PATH.plots=['../PLOTS/' PATH.OutDirBaseName '/'];
+    PATH.code=[PATH.root, 'code/'];
+    PATH.codesubs=[PATH.root, 'code/SUBS/'];
+    PATH.cuts.name=[PATH.root, 'CUTS/'];
+    PATH.conts.name=[PATH.root, 'CONTS/'];
+    PATH.eddies.name=[PATH.root,'EDDIES/'];
+    PATH.tracks.name=[PATH.root,'TRACKS/'];
+    PATH.analyzed.name=[PATH.root,'ANALYZED/'];
+    PATH.analyzedTracks.AC.name=[PATH.analyzed.name,'AntiCyclones/'];
+    PATH.analyzedTracks.C.name=[PATH.analyzed.name,'Cyclones/'];
+    PATH.Rossby.name=[PATH.root,'Rossby/'];
+    PATH.Rossby.Nfile=[PATH.Rossby.name,'N.cdf'];
     %%
-    mkDirs(path)
+    mkDirs(PATH)
     %%
-    [~,~,ext.raw]=fileparts(DD.map.in.fname); 
+    [~,~,ext.raw]=fileparts(DD.map.in.fname);
     patt=strsplit(DD.map.in.fname,'yyyymmdd');
-    path.raw.files=dir([path.raw.name,patt{1},'*',ext.raw]);
-    path.protoMaps.file=[path.root, 'protoMaps.mat'];
-    path.meanU.file=[path.root, 'meanU.mat'];
-    path.UV.files=dir([path.UV.name,'*.nc']);   
-    path.cuts.files=dir([path.cuts.name,'*.mat']);
-    path.conts.files=dir([path.conts.name,'*.mat']);
-    path.eddies.files=dir([path.eddies.name,'*.mat']);
-    path.tracks.files=dir([path.tracks.name,'*.mat']);
-    path.analyzed.files=dir([path.analyzed.name,'*.mat']);
-    path.analyzedTracks.AC.files=dir([path.analyzedTracks.AC.name,'*.mat']);
-    path.analyzedTracks.C.files=dir([path.analyzedTracks.C.name,'*.mat']);
-    path.Rossby.files=[dir([path.Rossby.name,'*.nc']); dir([path.Rossby.name,'*.mat'])];
+    PATH.raw.files=dir([PATH.raw.name,patt{1},'*',ext.raw]);
+    PATH.protoMaps.file=[PATH.root, 'protoMaps.mat'];
+    PATH.meanU.file=[PATH.root, 'meanU.mat'];
+    PATH.UV.files=dir([PATH.UV.name,'*.nc']);
+    PATH.cuts.files=dir([PATH.cuts.name,'*.mat']);
+    PATH.conts.files=dir([PATH.conts.name,'*.mat']);
+    PATH.eddies.files=dir([PATH.eddies.name,'*.mat']);
+    PATH.tracks.files=dir([PATH.tracks.name,'*.mat']);
+    PATH.analyzed.files=dir([PATH.analyzed.name,'*.mat']);
+    PATH.analyzedTracks.AC.files=dir([PATH.analyzedTracks.AC.name,'*.mat']);
+    PATH.analyzedTracks.C.files=dir([PATH.analyzedTracks.C.name,'*.mat']);
+    PATH.Rossby.files=[dir([PATH.Rossby.name,'*.nc']); dir([PATH.Rossby.name,'*.mat'])];
     %%
-    path.TempSalt.files=tempsalt(DD);
+    PATH.TempSalt.files=tempsalt(DD);
+    
+    PATH.windowFile=[PATH.root 'window.mat'];
+  
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function files=tempsalt(DD)

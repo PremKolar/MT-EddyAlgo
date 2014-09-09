@@ -51,6 +51,14 @@ function Calculations(DD,chnk)
     [CK.rossby.Ro1]=calcRossbyRadius(CK,cc);
     %% rossby wave phase speed
     [CK.rossby.c1]=calcC_one(CK,cc);
+    
+    %% TEMPSOL
+    CK.N(isinf(CK.N))=nan;
+    CK.rossby.Ro1(isinf(CK.rossby.Ro1))=nan;
+    CK.rossby.c1(isinf(CK.rossby.c1))=nan;
+    %%%%
+    
+    
     %% save
     disp('saving..')
     saveChunk(CK,DD.path.Rossby.name,chnk);
@@ -258,33 +266,33 @@ function [lat,lon]=ChunkLatLon(DD,dim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function depth=ChunkDepth(DD)
-	depth=nc_varget(DD.path.TempSalt.salt{1},'depth_t');
+    depth=nc_varget(DD.path.TempSalt.salt{1},'depth_t');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim)
-	num=numel(DD.path.TempSalt.salt);
-	salt=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{1},'SALT',dim.start2d,dim.len2d));
-	for ss=2:num
-		tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{ss},'SALT',dim.start2d,dim.len2d));
-		salt=salt + tmp;
-	end
-	salt(salt==0)=nan;
-	salt=salt*1000; % to salinity unit. TODO: from input vars
+    num=numel(DD.path.TempSalt.salt);
+    salt=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{1},'SALT',dim.start2d,dim.len2d));
+    for ss=2:num
+        tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{ss},'SALT',dim.start2d,dim.len2d));
+        salt=salt + tmp;
+    end
+    salt(salt==0)=nan;
+    salt=salt*1000; % to salinity unit. TODO: from input vars
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim)
-	num=numel(DD.path.TempSalt.temp);
-	temp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{1},'TEMP',dim.start2d,dim.len2d));
-	for tt=2:num
-		tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{tt},'TEMP',dim.start2d,dim.len2d));
-		temp=temp + tmp;
-	end
-	temp(temp==0)=nan;
+    num=numel(DD.path.TempSalt.temp);
+    temp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{1},'TEMP',dim.start2d,dim.len2d));
+    for tt=2:num
+        tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{tt},'TEMP',dim.start2d,dim.len2d));
+        temp=temp + tmp;
+    end
+    temp(temp==0)=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(DD,chnk)
-	lims=DD.RossbyStuff.lims.data;
-	j_indx_start = DD.TS.window.limits.south-1;
+    lims=DD.RossbyStuff.lims.data;
+    j_indx_start = DD.TS.window.limits.south-1;
     j_len = DD.TS.window.size.Y;
     dim.start2d = [0 0 j_indx_start lims(chnk,1)-1];
     dim.len2d = 	[inf inf j_len diff(lims(chnk,:))+1];

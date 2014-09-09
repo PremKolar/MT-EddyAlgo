@@ -4,9 +4,12 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [T]=disp_progress(type,Tin,L,num_prints)
+function [T]=disp_progress(type,Tin,L,num_prints,inner)
     if nargin==3
         num_prints=L;
+    end
+     if nargin<5
+        inner=0;
     end
     if strcmp(type,'conclude')
         conclude; T=[]; return
@@ -15,7 +18,7 @@ function [T]=disp_progress(type,Tin,L,num_prints)
     if labindex == 1
         switch type
             case 'init'
-                T=init(Tin);return;
+                T=init(Tin,inner);return;
             otherwise
                 T=later(Tin,L,num_prints);return;
         end
@@ -60,12 +63,14 @@ function echoHis(c,cc)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function T=init(Tin)
+function T=init(Tin,inner)
     T.cc=0;
     T.time=0;
     T.name=Tin;
     T.tic=tic;
-    
+    if ~inner
+    clc
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=later(T,L,num_prints)
@@ -85,7 +90,6 @@ function printout(T,L)
     %% build output
     strout=makeStrings;
     %% print
-%     clc;
     sendoutStrings;
     %% waitbar
     spmdwaitbar(T.cc,L,30);

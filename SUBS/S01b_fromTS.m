@@ -9,7 +9,6 @@
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
-% NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
 
 function S01b_fromTS
     %% set up

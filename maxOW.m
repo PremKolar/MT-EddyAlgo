@@ -7,23 +7,25 @@
 function maxOW
     %% init
     DD=initialise([],mfilename);
+    DD=maxOWsetUp(DD);
     main(DD);
     %% post process
-%     maxOWpostProc
+    %     maxOWpostProc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function main(DD)   ;dF 
-%     maxOWPrep(maxOWsetUp(DD))
-%    maxOWrho
-     maxOWrhoMean
-%     maxOWcalc
-%    maxOWprocessInit
-%    maxOWprocMeanOW
-%    maxOWprocCalc
+function main(DD)   ;dF
+    DD=maxOWPrep(DD);
+    save DD
+    %    maxOWrho
+    %     maxOWrhoMean
+    maxOWcalc
+    %     maxOWprocessInit
+    %     maxOWprocMeanOW
+    %     maxOWprocCalc
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function maxOWPrep(DD);dF
+function DD=maxOWPrep(DD);dF
     DD.f=funcs;
     ws = DD.TSow.window.size;
     FileIn = DD.path.TSow.files(1);
@@ -39,7 +41,7 @@ function maxOWPrep(DD);dF
     nc_varput(DD.path.TSow.geo,'depth',raw.depth);
     nc_varput(DD.path.TSow.geo,'lat',raw.lat);
     nc_varput(DD.path.TSow.geo,'lon',raw.lon);
-    save DD
+   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = coriolisStuff(lat);dF

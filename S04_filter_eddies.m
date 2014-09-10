@@ -256,8 +256,8 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	[peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
 	peak.amp.to_mean = z.fields.ssh(peak.lin)-peak.mean_ssh;
 	%% coordinates in full map
-	peak.y=peak.z.y+z.limits.y -1;
-	peak.x=peak.z.x+z.limits.x -1;
+	peak.y=peak.z.y+z.limits.y(1) -1;
+	peak.x=peak.z.x+z.limits.x(1) -1;
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

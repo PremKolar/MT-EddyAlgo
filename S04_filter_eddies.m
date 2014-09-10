@@ -6,10 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % walks through all the contours and decides whether they qualify
 function S04_filter_eddies
-	%% init
-	
-	DD=initialise('conts',mfilename);
-	
+	%% init	
+	DD=initialise('conts',mfilename);	
 	DD.threads.num=init_threads(DD.threads.num);
 	rossby=getRossbyPhaseSpeedAndRadius(DD);
 	%% spmd
@@ -83,7 +81,7 @@ function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
 	%% loop
 	Tv=disp_progress('init','running through conts vertically');
 	for kk=Zloop % dir dep. on sense
-		Tv= disp_progress('disp',Tv,numel(Zloop),1000,1);
+		Tv= disp_progress('disp',Tv,numel(Zloop),10,1);
 		[pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
 		if all(struct2array(pass(kk))), pp=pp+1;
 			%% append healthy found eddy
@@ -124,8 +122,13 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	%% cut out rectangle encompassing eddy range only for further calcs
 	zoom.fields=EDDyCut_init(cut.grids,zoom);
 	%% generate logical masks defining eddy interiour and outline
-	zoom.mask=EDDyCut_mask(zoom);
-	%% check for nans matlab.matwithin eddy
+% 	tic
+%     zoom.mask=EDDyCut_maskOld(zoom);
+% 	toc
+%     tic
+    zoom.mask=EDDyCut_mask(zoom);
+%     toc
+    %% check for nans matlab.matwithin eddy
 	[pass.CR_Nan]=CR_Nan(zoom);
 	if ~pass.CR_Nan, return, end;
 	if ~any(zoom.mask.inside),pass.CR_Nan=false; return; end
@@ -253,8 +256,8 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	[peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
 	peak.amp.to_mean = z.fields.ssh(peak.lin)-peak.mean_ssh;
 	%% coordinates in full map
-	peak.y=peak.z.y+z.limits.y -1;
-	peak.x=peak.z.x+z.limits.x -1;
+	peak.y=peak.z.y+z.limits.y(1) -1;
+	peak.x=peak.z.x+z.limits.x(1) -1;
 	if peak.amp.to_contour>=thresh,	pass=true; 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -587,17 +590,17 @@ function [circum]=EDDyCircumference(z)
 	circum=sum(hypot(diff(y).*z.fields.DY(yi(2:end)),diff(x).*z.fields.DX(xi(2:end))));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mask=EDDyCut_mask(zoom)
+function mask=EDDyCut_maskOld(zoom)
 	ndgFromLim = @(lim) ndgrid(lim.y(1):lim.y(2),lim.x(1):lim.x(2)) ;
-	msk=@(XX,YY,coor) inpolygon(int32(XX),int32(YY),coor.x,coor.y);
+	msk=@(XX,YY,coor) inpolygon(XX,YY,coor.x,coor.y);
 	minmax=@(c) [min(c) max(c)];
 	%%
 	tightLims.x=minmax(zoom.coor.int.x);
 	tightLims.y=minmax(zoom.coor.int.y);
 	dummymask=false(size(zoom.fields.ssh));
 	[YY,XX]=ndgFromLim(tightLims);
-	YXlin=sub2ind(size(dummymask),YY,XX);
-	[mfilled, mrim_only] = msk(XX,YY,zoom.coor.int);
+    YXlin=drop_2d_to_1d(YY,XX,size(dummymask,1));	 
+    [mfilled, mrim_only] = msk(XX,YY,zoom.coor.int);   
 	mask.filled  =buildmask(dummymask,YXlin(mfilled));
 	mask.rim_only=buildmask(dummymask,YXlin(mrim_only));
 	mask.inside= mask.filled & ~mask.rim_only;
@@ -605,6 +608,26 @@ function mask=EDDyCut_mask(zoom)
 	function dummy=buildmask(dummy,xlin)
 		dummy(xlin)=true;
 	end
+end
+function mask=EDDyCut_mask(zoom)
+    %% init
+	dummymask=false(size(zoom.fields.ssh));
+    [queryY,queryX]=find(~dummymask);
+    queryLin = drop_2d_to_1d(queryY,queryX,size(dummymask,1));	
+    rimIntLin= drop_2d_to_1d(zoom.coor.int.y,zoom.coor.int.x,size(dummymask,1));	
+    %% inside
+    querypoints=[queryX,queryY];    
+    node=struct2array(zoom.coor.exact); 
+    insideLin = queryLin(inpoly(querypoints,node));
+    mask.inside = dummymask;
+    mask.inside(insideLin)=true;
+    %% on rim
+    mask.rim_only = dummymask;
+    mask.rim_only(rimIntLin) = true;
+    %% full
+    mask.filled = mask.rim_only | mask.inside;
+    %% dims
+    [mask.size.Y, mask.size.X]=size(dummymask);	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fields_out=EDDyCut_init(fields_in,zoom)

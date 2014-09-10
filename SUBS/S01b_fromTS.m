@@ -44,7 +44,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk)
     %% init
-     [CK,cc]=init(DD,chnk);
+    [CK,cc]=init(DD,chnk);
     %% calculate Brunt-Väisälä f and potential vorticity
     [CK.N]=calcBrvaPvort(CK,cc);
     %% integrate first baroclinic rossby radius
@@ -296,9 +296,9 @@ function dim=ncArrayDims(DD,chnk)
     dim.len2d = 	[inf inf j_len diff(lims(chnk,:))+1];
     dim.start1d = [j_indx_start lims(chnk,1)-1];
     dim.len1d =	[j_len diff(lims(chnk,:))+1];
-    %% new indeces for output nc file   
-     xlens=diff(lims,1,2)+1;   
-    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);    
+    %% new indeces for output nc file
+    xlens=diff(lims,1,2)+1;
+    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
     newxstart=sum(xlens(1:chnk-1));
     dim.new.start =[0 newxstart];
     dim.new.len =  dim.len1d;

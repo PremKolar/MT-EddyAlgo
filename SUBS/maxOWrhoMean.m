@@ -5,7 +5,9 @@
 % Author:NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWrhoMean; dF;load DD
-    DD.MD.sMean = initbuildRhoMean(DD.path.TSow); %#ok<NODEF>
+    TSow.dir='/scratch/uni/ifmto/u300065/datanetU2/Rossby';
+       DD.MD.sMean = initbuildRhoMean(TSow); %#ok<NODEF>
+%    DD.MD.sMean = initbuildRhoMean(DD.path.TSow); %#ok<NODEF>
     buildRhoMean(DD.threads.num,DD.MD.sMean,DD.Dim);
     save DD;
 end

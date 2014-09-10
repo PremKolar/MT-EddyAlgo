@@ -6,8 +6,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function maxOWcalc
 	load DD
-	DD=main(DD,DD.MD,funcs,DD.raw); %#ok<NODEF>
+  
+     DD.MD=initbuildRho(DD);
+       DD.MD.sMean = initbuildRhoMean(DD.path.TSow); %#ok<NODEF>
+	DD=main(DD,DD.MD,funcs,DD.raw);
 	save DD
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [s] = initbuildRhoMean(TSow); dF
+    %% recheck
+    s.files=dir2cell(TSow.dir, 'rho_*.nc');
+    s.Fout=[TSow.dir 'RHOmean.nc'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=main(DD,MD,f,raw);dF
@@ -27,6 +36,16 @@ function DD=main(DD,MD,f,raw);dF
 	end
 end
 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [s] = initbuildRho(DD);  dF
+    s.timesteps= DD.TSow.lims.timesteps;
+    s.keys = DD.TS.keys;
+    s.Fin = DD.path.TSow.files;
+    s.dirOut=DD.path.full3d.name;
+    s.Fout=DD.path.TSow.rho;
+    s.OWFout=DD.path.TSow.OW;
+    s.geoOut=DD.path.TSow.geo;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function loop(f,tA,currFile,OWFile);dF
 	OW=extrOW(f,currFile);

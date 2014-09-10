@@ -5,12 +5,12 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function longesttracks(basedir,dout,threshampArea,ii)
-    minlen=16;
-    if ~exist(dout.LTfile,'file')
+    minlen=70;
+%      if ~exist(dout.LTfile,'file')
         copyaction(basedir,dout,minlen)
-    end
+%      end
     cm=jet;
-    AOplots(cm,dout,threshampArea,minlen);
+    AOplots(cm,dout,threshampArea,20);
     savestuff(dout,ii);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,16 +50,18 @@ function AOplots(cm,outfile,thresh,flen)
     
     ra=sqrt(ar/pi); %#ok<*NASGU>
     amp=extractfield(cell2mat(extractfield(cell2mat(extractfield(trck,'peak')),'amp')),'to_contour');
-    age=cat(2,trck.age);
+     age=cat(2,trck.age);
     iq=cat(2,trck.isoper);
     vol=    extractdeepfield(trck,'volume.total') ;
     %   VoA=(extractdeepfield(trck,'VoA') )
-    peak2cont=(extractdeepfield(trck,'peak.amp.to_ellipse') );
+    amp2ellip=(extractdeepfield(trck,'peak.amp.to_ellipse') );
     dynRad=(extractdeepfield(trck,'radius.mean') );
-    
-    quoA=([1 peak2cont(2:end)./peak2cont(1:end-1)]);
+   
+    RAL=@(M) (abs(log(M)));  
+    quoA=([1 amp2ellip(2:end)./amp2ellip(1:end-1)]);
     quoB=([1 dynRad(2:end)./dynRad(1:end-1)]);
-    quo=(abs(log(quoA)) + abs(log(quoB)))/2;
+    quo=(max([RAL(quoA); RAL(quoB)],[],1));
+    
     %      quo=log(quoA.*quoB)/2;
     
     % for ii=1:21
@@ -165,22 +167,19 @@ function AOplots(cm,outfile,thresh,flen)
     
     
     
+    %% TEMP SOL % TODO
+    Yn=extractdeepfield(trck,'radius.coor.Ynorth')
+    try
+    Yn=cellfun(@(c) double(c),Yn);
+    end
+    Ys=extractdeepfield(trck,'radius.coor.Ysouth')
+    try
+    Ys=cellfun(@(c) double(c),Ys);
+    end
+    %%
+    Yspans=(abs(diff([Yn;Ys],1,1)));
+   
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    Yspans=(abs(diff([extractdeepfield(trck,'radius.coor.Ynorth');extractdeepfield(trck,'radius.coor.Ysouth')],1,1)));
     radMerid=(extractdeepfield(trck,'radius.meridional'));
     dysKm=2*radMerid./double(Yspans)/1000;
     MeandyInKm=mean(2*radMerid./double(Yspans))/1000;
@@ -211,10 +210,10 @@ function AOplots(cm,outfile,thresh,flen)
     
     IQ=log(iq(2:end))-mean(log(iq(2:end)));
     difabs= @(a) (log([a(2:end)./a(1:end-1)]))';
-    A= [difabs(vol.^(2/3)),difabs(ar) , difabs(dynRad),difabs(amp)];
+    A= [difabs(vol.^(2/3)),difabs(ar) , difabs(dynRad),difabs(amp),difabs(amp2ellip) ];
     [AX,H1,H2] = plotyy(XTCK(2:end),A,XTCK(2:end),IQ,'bar','plot');
     %     [AX,H1,H2] = plotyy(xAX,A,xAX,IQ,'bar','plot');
-    legend('volume^{(2/3)}','area','dyn. radius','amp','IQ','location','SouthEast');
+    legend('volume^{(2/3)}','area','dyn. radius','amp','dyn. amp','IQ','location','SouthEast');
     
     alld=A(2:end-1,:);
     if size(A,2)<10

@@ -282,17 +282,20 @@ function pass=checkAmpAreaBounds(OLD,NEW,sen,ampArea)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,sen,thresh)
-    old.peak2cont=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
+   RAL=@(M) permute(abs(log10(M)),[3,1,2]);
+    %%
+    old.peak2ellip=extractdeepfield(OLD.eddies.(sen),'peak.amp.to_ellipse');
     old.dynRad=extractdeepfield(OLD.eddies.(sen),'radius.mean');
-    new.peak2cont=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
+    new.peak2ellip=extractdeepfield(NEW.eddies.(sen),'peak.amp.to_ellipse');
     new.dynRad=extractdeepfield(NEW.eddies.(sen),'radius.mean');
-    [P2C.new,P2C.old]=meshgrid(new.peak2cont,old.peak2cont);
+    [P2E.new,P2E.old]=meshgrid(new.peak2ellip,old.peak2ellip);
     [dR.new,dR.old]=meshgrid(new.dynRad,old.dynRad);
-    quo.peak2cont=P2C.new./P2C.old;
+    quo.peak2ellip=P2E.new./P2E.old;
     quo.dynRad=dR.new./dR.old;
-    quo.combo=(abs(log(quo.peak2cont)) + abs(log(quo.dynRad)))/2;
-    
-    pass= quo.combo >= thresh(1) & quo.combo <= thresh(2);
+    %%
+    quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
+    %%
+    pass= quo.combo <= thresh;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

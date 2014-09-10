@@ -28,7 +28,7 @@ set(gca,'xticklabel','','yticklabel','')
 cl=[-.5 .7]
 caxis(cl) 
 doublemap([cl(1) 0 cl(2)],cma,flipud(cmb),[.1 .6 .1],20)
-%
+%%
 hold on
 for ee=1:numel(anticyclones)
    x=anticyclones(ee).coordinates.exact.x;
@@ -40,6 +40,7 @@ hold on
 for ee=1:numel(cyclones)
    x=cyclones(ee).coordinates.exact.x;
    y=cyclones(ee).coordinates.exact.y;
+<<<<<<< HEAD
    plot(x,y,'-','color','red','linewidth',2)
 end
 
@@ -122,12 +123,21 @@ axis([300 500 300 600])
 
 tit=[sprintf('IQ: %2.1f', DD.thresh.shape.iq) ' - ' ...
       sprintf('r/Lr: %2d', DD.thresh.maxRadiusOverRossbyL) ]
+   plot(x,y,'red','linewidth',2)
+end
+
+%%
+
+axis([120 320 325 475])
+
+tit=[sprintf('IQ: %2.1f', DD.thresh.shape.iq) ' - ' ...
+     sprintf('ID: %2.1f', DD.thresh.IdentityCheck) ' - ' ...
+     sprintf('r/Lr: %2d', DD.thresh.maxRadiusOverRossbyL) ]
 title([tit])
 colorbar('location', 'southOutside')
 colorbar off
 %%
-
-savefig('./',72,400,600, d)
+savefig('./',72,800,600, d)
 
 
 

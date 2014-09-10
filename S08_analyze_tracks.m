@@ -12,20 +12,20 @@ function S08_analyze_tracks
 	%%
 	DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 	%%
- 	[map,vecs,minMax,CoIQ]=main(DD);
+ 	[map,vecs,minMax,scat]=main(DD);
 	%%
-	seq_body(minMax,map,DD,vecs,CoIQ);
+	seq_body(minMax,map,DD,vecs,scat);
 	%%
 	conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [map,vecs,minMax,CoIQ]=main(DD)
+function [map,vecs,minMax,scat]=main(DD)
 	if DD.debugmode
-		[map,vecs,minMax,CoIQ]=spmd_body(DD);
+		[map,vecs,minMax,scat]=spmd_body(DD);
 	else
 		spmd(DD.threads.num)
-			[map,vecs,minMax,CoIQ]=spmd_body(DD);
+			[map,vecs,minMax,scat]=spmd_body(DD);
           
 		end
 	end
@@ -33,13 +33,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % main functions
-function [MAP,V,MinMax,CoIQ]=spmd_body(DD)
+function [MAP,V,MinMax,scatterStuff]=spmd_body(DD)
 	%% get stuff	
 	[MAP,V,JJ,MinMax]=initAll(DD);
 	%%
 	T=disp_progress('init','analyzing tracks');
 	
-    CoIQ=struct;
+    scatterStuff=struct;
  nn=0;
     for jj=JJ;
 		T=disp_progress('calc',T,numel(JJ),100);
@@ -49,12 +49,27 @@ function [MAP,V,MinMax,CoIQ]=spmd_body(DD)
         nn_old=nn;
      nn=nn+numel(TT.eddy.trck);
      newIdx=nn_old+1:nn;
-      la=num2cell(extractfield(cat(1,TT.eddy.trck.geo),'lat'))';
-      area=num2cell(extractfield(cat(1,TT.eddy.trck.area),'total'))';
-      [CoIQ(newIdx,1).IQ]    =deal(TT.eddy.trck.isoper);    
-      [CoIQ(newIdx,1).chelt] =deal(TT.eddy.trck.chelt);      
-      [CoIQ(newIdx,1).lat]   =deal(la{:}); 
-      [CoIQ(newIdx,1).area]  =deal(area{:}); 
+       la=num2cell(extractfield(cat(1,TT.eddy.trck.geo),'lat'))';
+%       area=num2cell(extractfield(cat(1,TT.eddy.trck.area),'total'))';      
+%       [CoIQ(newIdx,1).IQ]    =deal(TT.eddy.trck.isoper);    
+%       [CoIQ(newIdx,1).chelt] =deal(TT.eddy.trck.chelt);      
+%       [CoIQ(newIdx,1).lat]   =deal(la{:}); 
+%       [CoIQ(newIdx,1).area]  =deal(area{:}); 
+      
+      
+       [scatterStuff(newIdx,1).IQ]    =deal(TT.eddy.trck.isoper);      
+      [scatterStuff(newIdx,1).lat]   =deal(la{:}); 
+%       [CoIQ(newIdx,1).areaTotal]  =extractdeepfield(TT,'eddy.trck.area.total')';
+   tmp=num2cell(extractdeepfield(TT,'eddy.trck.area.RadiusOverRossbyL')');
+[scatterStuff(newIdx,1).RoL]  =tmp{:};
+     ptmp =extractdeepfield(TT,'eddy.trck.peak');      
+     tmp=num2cell(extractdeepfield((cat(1,ptmp{:})),'amp.to_ellipse')');    
+      [scatterStuff(newIdx,1).amp2ellip]  =tmp{:};
+    
+      
+      
+      
+      
         %% resort tracks for output
 		[MinMax]=resortTracks(DD,MinMax,TT);
 		%% mapstuff prep
@@ -65,7 +80,7 @@ function [MAP,V,MinMax,CoIQ]=spmd_body(DD)
 				[MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
 		end
     end
-    CoIQ=gop(@vertcat, CoIQ);
+    scatterStuff=gop(@vertcat, scatterStuff);
 	%% get global extrms
 	MinMax=globalExtr(MinMax);
 end
@@ -90,7 +105,7 @@ function [ACs,Cs]=netVels(DD,map)
 	Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function seq_body(minMax,map,DD,vecs,CoIQ)
+function seq_body(minMax,map,DD,vecs,scat)
 	[map,vecs]=mergeThreadData(minMax,map,DD,vecs);  %#ok<NASGU>
 	%% get rossby radius
 	if DD.switchs.RossbyStuff
@@ -106,10 +121,10 @@ function seq_body(minMax,map,DD,vecs,CoIQ)
 	if DD.switchs.netUstuff
 		[map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
     end
-    %% chelt over IQ
-    C.oIQ=CoIQ{1}; %#ok<NASGU>
+    %% scatterstuff
+    scat=scat{1}; 
 	%% save
-    save([DD.path.analyzed.name,'CoIQ.mat'],'-struct','C');
+    save([DD.path.analyzed.name,'scat.mat'],'scat');
 	save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 	save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end

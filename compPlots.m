@@ -212,6 +212,10 @@ function OUT=collectScatD(basedir,dout)
        
     end
     
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function D=inIt(dirs)

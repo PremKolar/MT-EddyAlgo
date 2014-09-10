@@ -3,12 +3,9 @@ function DD=INPUTmad
     DD.time.delta_t=3; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
-    %{...
     DD.path.TempSalt.name='../rawMad/';
-    %...}
-    DD.path.UV.name='../rawZ/';
-    DD.path.raw.name='../rawZ/';
- DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
+    DD.path.UV.name='../rawMad/';
+    DD.path.raw.name='../rawMad/';
     %% map in keys
     DD.map.in.fname='RAWyyyymmdd.nc';
     DD.map.in.keys.ssh='SSHA';
@@ -20,7 +17,6 @@ function DD=INPUTmad
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
-    %{...
     DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';  
     %% temp salt keys
@@ -29,7 +25,6 @@ function DD=INPUTmad
     DD.TS.keys.salt='SALT';
     DD.TS.keys.temp='TEMP';
     DD.TS.keys.depth='depth_t'; 
-    %...}
     %% parameters 
     DD.parameters.Nknown=true; % Brunt-Väisälä f already in data
     DD.parameters.SSHAdepth=-25;

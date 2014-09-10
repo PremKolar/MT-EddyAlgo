@@ -12,20 +12,22 @@ function savefig2png4mov(outdir,rez,xdim,ydim,tit)
     %% set up figure
     setupfigure(rez,xdim,ydim)
     %% print
-    printStuff('djpeg',fname,rez)
+    printStuff('djpeg',fname,rez,xdim,ydim)
     close(gcf);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function printStuff(frmt,fname,rez)
+function printStuff(frmt,fname,rez,xdim,ydim)
     fnfull=[fname,'.',frmt(2:end)];
-    eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt])
+    eval(['print ',fnfull , ' -f -r',num2str(rez),' -',frmt,';']);
+    system(['convert -trim ' fnfull ' ' fnfull]);
+    system(['convert -resize ' sprintf('%dx%d',xdim,ydim) ' ' fnfull ' ' fnfull]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function setupfigure(rez,xdim,ydim)
     
     resolution=get(0,'ScreenPixelsPerInch');
-    xdim=xdim*rez/resolution;
-    ydim=ydim*rez/resolution;
+    xdim=xdim*rez/resolution*2;
+    ydim=ydim*rez/resolution*2;
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/rez,'paperposition',[0 0 [xdim ydim]/rez]);
     xa4=11.692*resolution;
     fsScaled=round(12/xa4*xdim)		;

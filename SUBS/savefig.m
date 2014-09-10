@@ -4,6 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% savefig(outdir,resOut,xdim,ydim,tit,debug,frmt,saveFig)
 function savefig(outdir,resOut,xdim,ydim,tit,debug,frmt,saveFig)
 % set(gcf,'renderer','painter')     
 % set(gcf,'Visible','off')  

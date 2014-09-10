@@ -219,7 +219,7 @@ function [TDB]=tracked_dead_born(MD,sen)
     do=MD.(sen).old2new.dist(n2oi)';
     %% respective min dist values in new set
     dn=MD.(sen).new2old.dist;
-    %% matlab sets dims arbitrarily sometimes for short vecs
+    %% matlab sets dims randomly sometimes for short vecs
     if size(do)~=size(dn), do=do'; end
     if size(io)~=size(in), io=io'; end
     %% agreement among new and old ie definite tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !

@@ -59,13 +59,6 @@ function Calculations(DD,chnk)
     %%%%
     
     
-    
-    
-    
-    
-    
-    
-    
     %% save
     disp('saving..')
     saveChunk(CK,DD.path.Rossby.name,chnk);

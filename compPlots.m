@@ -5,6 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function compPlots
+
     dirs={'iq2';'iq6';'iq6dl';'iq6dlMr';'iq6dlMrIc';'iq8';'iq4';'ch'};
 %         dirs={'iq6dlMrIc'};
     D=inIt(dirs);
@@ -25,11 +26,6 @@ function compPlots
 %          LTscatter(D.basedir,D.out(ii),D.thresh.ampArea,ii)
     end
     printoutsLT(D);
-    
-    
-    
-    
-    %%
     
     
 end

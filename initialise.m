@@ -29,9 +29,9 @@ function DD=initialise(toCheck,parentFunc)
     end
     %% load workers
     DD.threads.num=init_threads(DD.threads.num);
-    if DD.threads.num>DD.time.span/DD.time.delta_t
-        error(toomanythreads,'too many threads for not enough timesteps!!!')
-    end
+%     if DD.threads.num>DD.time.span/DD.time.delta_t
+%         error(toomanythreads,'too many threads for not enough timesteps!!!')
+%     end
     %% debugging stuff
     DD=dbStuff(DD) ;
     %% monitor stuff

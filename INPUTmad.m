@@ -4,10 +4,11 @@ function DD=INPUTmad
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
     %{...
-    DD.path.TempSalt.name='../TempSaltUV/';
+    DD.path.TempSalt.name='../rawMad/';
     %...}
     DD.path.UV.name='../rawZ/';
     DD.path.raw.name='../rawZ/';
+ DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
     DD.map.in.fname='RAWyyyymmdd.nc';
     DD.map.in.keys.ssh='SSHA';

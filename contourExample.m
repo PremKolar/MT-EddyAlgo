@@ -40,7 +40,6 @@ hold on
 for ee=1:numel(cyclones)
    x=cyclones(ee).coordinates.exact.x;
    y=cyclones(ee).coordinates.exact.y;
-<<<<<<< HEAD
    plot(x,y,'-','color','red','linewidth',2)
 end
 
@@ -137,7 +136,8 @@ title([tit])
 colorbar('location', 'southOutside')
 colorbar off
 %%
-savefig('./',72,800,600, d)
+
+savefig('./',72,400,600, d)
 
 
 

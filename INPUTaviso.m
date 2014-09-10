@@ -6,7 +6,8 @@ function DD=INPUTaviso
     DD.path.TempSalt.name='../TempSaltUV/';
     DD.path.UV.name='../TempSaltUV/';
     DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
-    %% map in keys
+ DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
+	 %% map in keys
     DD.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.25deg__yyyymmdd.nc';
     DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';

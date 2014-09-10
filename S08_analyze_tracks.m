@@ -112,8 +112,7 @@ function seq_body(minMax,map,DD,vecs,scat)
 		map.Rossby=loadRossby(DD);        
 		%% build radius/rossbyRadius ratio
 		map.AntiCycs.radius.toRo=map.AntiCycs.radius.mean.mean./map.Rossby.small.radius;
-        map.AntiCycs.radius.to2Ro=map.AntiCycs.radius.mean.mean./(2*map.Rossby.small.radius);
-		map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
+        map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
 	end
 	%% build zonal means
 	map.zonMean=zonmeans(map,DD);

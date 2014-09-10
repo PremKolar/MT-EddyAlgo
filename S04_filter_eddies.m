@@ -618,7 +618,7 @@ function mask=EDDyCut_mask(zoom)
     %% inside
     querypoints=[queryX,queryY];    
     node=struct2array(zoom.coor.exact); 
-    insideLin = queryLin(inpoly(querypoints,node));
+    insideLin = queryLin(inpoly(querypoints,node)); % MAIN BOTTLENECK!!!!!
     mask.inside = dummymask;
     mask.inside(insideLin)=true;
     %% on rim

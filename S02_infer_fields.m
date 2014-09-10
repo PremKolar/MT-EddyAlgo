@@ -11,7 +11,7 @@ function S02_infer_fields
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids.lat);
-    RS=getRossbyStuff(DD,cut1.grids);
+    RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
     %% save info file
@@ -45,7 +45,6 @@ function main(DD,RS)
         end
     end
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MeanSsh=saveMean(DD)
     MeanSsh=nan(DD.map.window.sizePlus.Y*DD.map.window.sizePlus.X,1);
@@ -60,7 +59,7 @@ function MeanSsh=saveMean(DD)
     save([DD.path.root, 'meanSSH.mat'],'MeanSsh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function RS=getRossbyStuff(DD,gr)
+function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
         RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
         RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
@@ -72,17 +71,6 @@ function RS=getRossbyStuff(DD,gr)
             RS.Lr=RS.Lr(ovrlpIyx);
             RS.c=RS.c(ovrlpIyx);
         end
-        
-        
-%         
-%         %%
-%         RS.LrInc.y=smooth2a(RS.Lr./gr.DY,10);
-%         RS.LrInc.x=smooth2a(RS.Lr./gr.DX,10);
-%        %%
-%        
-%        
-%         RS.LrInc.x=double(NeighbourValue(isnan(RS.LrInc.x),RS.LrInc.x));
-%         RS.LrInc.y=double(NeighbourValue(isnan(RS.LrInc.y),RS.LrInc.y));
     else
         RS=[];
     end
@@ -101,8 +89,6 @@ function spmd_meanSsh(DD,JJ)
     Mean.count=numel(JJ);
     save(sprintf('meanTmp%03d.mat',labindex),'Mean');
 end
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_fields(DD,RS,JJ,MeanSsh)
     T=disp_progress('init','infering fields');
@@ -110,94 +96,25 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% load
         cut=load(JJ(jj).files);
-        
-        if isfield(cut.grids,'OW'), dispM('skipping');continue; end
-        coriolis=coriolisStuff(cut.grids.lat);
-        %% calc
-        grids=geostrophy(cut.grids,coriolis,RS);
         %% filter
         if DD.switchs.filterSSHinTime
-            grids.sshRaw=grids.ssh;
-            grids.ssh=grids.ssh - MeanSsh;
+            %% not yet built
+            if ~isfield(cut.grids,'sshRaw')
+                cut.grids.sshRaw=cut.grids.ssh;
+            end
+            %% filter
+            cut.grids.ssh=cut.grids.sshRaw - MeanSsh;
         end
-        %         if ~isfield(grids,'sshRaw') && DD.switchs.spaciallyFilterSSH
-        %             grids.sshRaw=grids.ssh;
-        %             grids.ssh=filterStuff(cut.grids,RS);%         end
-        
+        %% TEMP
+        % if isfield(cut.grids,'OW'), dispM('skipping');continue; end
+        %%
+        coriolis=coriolisStuff(cut.grids.lat);
+        %% calc
+        grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
         save(JJ(jj).files,'grids','-append');
     end
 end
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function sshHighPass=filterStuff(gr,RS) 
-%     %% get center, minor and major axis for ellipse
-%     RossbyEqFlag=abs(gr.lat)<5  ;													%TODO {put before loop...
-%     semi.x=10*ceil(max(nanmedian(RS.LrInc.x(~RossbyEqFlag),2)));			%...
-%     semi.y=10*ceil(max(nanmedian(RS.LrInc.y(~RossbyEqFlag),2)));		%.}
-%     [sshHighPass]=ellipseFltr(semi,gr.ssh);
-%     %
-%     %     JET=repmat(jet,3,1);
-%     %     figure(1)
-%     %     b=gr.ssh - min(gr.ssh(:));
-%     %     %      surf(double(gr.lon),double(gr.lat), b*5)
-%     %     % X= gr.lon(1:2:end,1:2:end);
-%     %     % Y= gr.lat(1:2:end,1:2:end);
-%     %     % Z= b(1:2:end,1:2:end)*5
-%     %     %      surface(double(X),double(Y), Z,'EdgeColor',[.8 .8 .8],'FaceColor','none')
-%     %     % hold on
-%     %     contour3(double(gr.lon),double(gr.lat), b*5,(min(b(:)):0.01:max(b(:)))*5)
-%     %     axis tight equal;    view(3)
-%     %     % cb1=colorbar
-%     %     colormap(JET(round(.25/3*size(JET,1)):end,:))
-%     %     zt=get(gca,'ztick')
-%     %     set(gca,'zticklabel',num2str(zt'/5*100))
-%     %     % set(cb1,'ytick',[])
-%     %     xlabel('lon')
-%     %     ylabel('lat')
-%     %     zlabel('[cm]')
-%     %     tit='Non-filtered SSH'
-%     %     title(tit)
-%     %     savefig('./',200,8*200,6*200, space2underscore(tit))
-%     %     figure(2)
-%     %     a=sshHighPass - min(sshHighPass(:));
-%     %     %  Z= a(1:2:end,1:2:end)*5
-%     %     %      surface(double(X),double(Y), Z,'EdgeColor',[.8 .8 .8],'FaceColor','none')
-%     %     % hold on
-%     %     %     surf(double(gr.lon),double(gr.lat), a*5,'facecolor','black','facealpha',.5)
-%     %     contour3(double(gr.lon),double(gr.lat),a*5,(min(a(:)):0.01:max(a(:)))*5)
-%     %     axis tight equal;    view(3)
-%     %     % cb2=colorbar
-%     %     colormap(jet)
-%     %     zt=get(gca,'ztick')
-%     %     set(gca,'zticklabel',num2str(zt'/5*100))
-%     %     xlabel('lon')
-%     %     ylabel('lat')
-%     %     zlabel('[cm]')
-%     %     % set(cb2,'ytick',[])
-%     %     tit='High-pass filtered SSH'
-%     %     title(tit)
-%     %     savefig('./',200,8*200,6*200, space2underscore(tit))
-%     %     figure(3)
-%     %     c=b-a;
-%     %     %   Z= c(1:2:end,1:2:end)*5
-%     %     %      surface(double(X),double(Y), Z,'EdgeColor',[.8 .8 .8],'FaceColor','none')
-%     %     %     surf(double(gr.lon),double(gr.lat), c*5,'facecolor','black','facealpha',.5)
-%     %     contour3(double(gr.lon),double(gr.lat),c*5,(min(c(:)):0.01:max(c(:)))*5)
-%     %     axis tight equal;    view(3)
-%     %     colormap(JET(round(.25/3*size(JET,1)):end,:))
-%     %     zt=get(gca,'ztick')
-%     %     set(gca,'zticklabel',num2str(zt'/5*100))
-%     %     xlabel('lon')
-%     %     ylabel('lat')
-%     %     zlabel('[cm]')
-%     %     tit='Subtracted Low-Pass component'
-%     %     title(tit)
-%     %     savefig('./',200,8*200,6*200, space2underscore(tit))
-%     %
-%     %
-%     %%
-% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function gr=geostrophy(gr,corio,RS)
     %% ssh gradient
@@ -206,14 +123,16 @@ function gr=geostrophy(gr,corio,RS)
     gr.U=-corio.GOverF.*gr.sshgrad_y;
     gr.V= corio.GOverF.*gr.sshgrad_x;
     gr.absUV=hypot(abs(gr.U),abs(gr.V));
-    %% deformation
+    %% 2d-deformation
     def=deformation(gr);
-    gr.vorticity      = def.dVdx - def.dUdy;
+    gr.vorticity = def.dVdx - def.dUdy;
     gr.divergence= def.dUdx + def.dVdy;
     gr.stretch   = def.dUdx - def.dVdy;
     gr.shear     = def.dVdx + def.dUdy;
     %% okubo weiss
-    gr.OW=.5*(-gr.vorticity.*2+gr.divergence.*2+gr.stretch.*2+gr.shear.*2);
+    %     gr.OW=.5*(-gr.vorticity.*2+gr.divergence.*2+gr.stretch.*2+gr.shear.*2);
+    %% or in 2d
+    gr.OW= 2*(def.dVdx.*def.dUdy + def.dUdx.^2);
     %% assuming Ro=1
     if ~isempty(RS)
         gr.L=gr.absUV./corio.f;
@@ -225,6 +144,23 @@ function gr=geostrophy(gr,corio,RS)
         gr.L_R=abs(RS.c./corio.f);
         gr.Bu=(gr.L_R./gr.L).^2;
     end
+    %     ow=smooth2a(gr.OW,10);
+    %     surf(gr.lon,gr.lat,   gr.ssh*2,double(ow./1e-11),'FaceColor','interp','FaceLighting','phong');
+    %     axis tight equal; shading interp;   grid on;    view(3)
+    %     set(gca,'FontSize',16);   set(findall(gcf,'type','text'),'FontSize',16)
+    %     doublemap([-20 0 20],autumn(50),winter(50),[.9 1 .9],20);
+    %     set(gca,'xtick',mean(gr.lon(:)),'ytick',mean(gr.lat(:)),'ztick',[],...
+    %         'xticklabel',sprintf('%2.0f lon',mean(gr.lon(:))),'yticklabel',sprintf('%2.0f lat',mean(gr.lat(:))))
+    %     box off;grid off
+    %     set(gcf,'Renderer','opengl')
+    %     colorbar
+    %     title('Okubo-Weiss [2e11(V_x U_y + U_x^2)] on SSH')
+    %     set(findobj(gca,'type','surface'),...
+    %         'FaceLighting','phong',...
+    %         'AmbientStrength',.3,'DiffuseStrength',.7,...
+    %         'SpecularStrength',1.1,'SpecularExponent',60,...
+    %         'BackFaceLighting','unlit')
+    %     lightangle(-45,-45+180)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(grids)
@@ -245,10 +181,6 @@ function [dsshdx,dsshdy]=dsshdxi(ssh,DX,DY)
     dsshdy=diff(ssh,1,1);
     dsshdx=dsshdx(:,[1:end, end])./ DX;
     dsshdy=dsshdy([1:end, end],:)./ DY;
-    %
-    %
-    % 	 dsshdx=[diff(ssh,1,2), nan(size(ssh,1),1)] ./ DX;
-    %     dsshdy=[diff(ssh,1,1); nan(1,size(ssh,2))] ./ DY;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=coriolisStuff(lat)
@@ -263,4 +195,4 @@ function out=coriolisStuff(lat)
     %% g/f
     out.GOverF=out.g./out.f;
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

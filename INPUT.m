@@ -1,24 +1,23 @@
-
 function DD=INPUT
     DD.template='pop';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-%     DD.debugmode=true;
+    %         DD.debugmode=true;
     DD.overwrite=false;
     %     DD.overwrite=true;
     %% time
-    DD.time.from.str='19940102';
-    DD.time.till.str='20500101';    
+    DD.time.from.str='19900102';
+    DD.time.till.str='20500101';
     threshlife=8*3;
- %% window on globe
+    %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;
     DD.map.in.south= -80;
     DD.map.in.north= 80;
     %% output map res
-    DD.map.out.X=15*1+1; % TODO
-    DD.map.out.Y=10*1+1;
+    DD.map.out.X=360*1+1; % TODO
+    DD.map.out.Y=160*1+1;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
@@ -32,17 +31,17 @@ function DD=INPUT
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     DD.thresh.IdentityCheck=[2];
     %% switches
-
-    DD.switchs.IQ=0;
-    DD.switchs.chelt=1;
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=1;
-    DD.switchs.AmpAreaCheck=0;
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
+    DD.switchs.spaciallyFilterSSH=0;
+    DD.switchs.filterSSHinTime=1;
+    %%
+    DD.switchs.IQ=1;
     DD.switchs.IdentityCheck=1;
     DD.switchs.maxRadiusOverRossbyL=1;
-    DD.switchs.spaciallyFilterSSH=false;
-    DD.switchs.filterSSHinTime=true;
-
+    %%
+    DD.switchs.chelt=0;
+    DD.switchs.AmpAreaCheck=0;
 end

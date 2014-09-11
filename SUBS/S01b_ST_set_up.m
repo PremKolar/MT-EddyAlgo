@@ -36,7 +36,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outfilename] = initNC(DD)
     outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-    NCoverwriteornot(outfilename);
+    
+ NCoverwriteornot(outfilename,DD.overwrite);
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [file]=tempsalt(DD)

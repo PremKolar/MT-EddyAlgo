@@ -6,7 +6,7 @@ function DD=INPUT
     DD.debugmode=false;
 % DD.debugmode=true;
      DD.overwrite=false;
-%    DD.overwrite=true;      
+   DD.overwrite=true;      
     %% time
         threshlife=8*3;
     DD.time.from.str='19091231';
@@ -27,9 +27,12 @@ function DD=INPUT
     DD.thresh.shape.iq=0.1; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
     DD.thresh.corners.min=12; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=pi*2e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
+     %% DANGEROUS !
+    DD.thresh.corners.max=1e42; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
+    
+   
     DD.thresh.life=threshlife; % min num of living days for saving
-     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
+    DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     DD.thresh.IdentityCheck=[2];
     %% switches
     DD.switchs.IQ=1;
@@ -37,10 +40,10 @@ function DD=INPUT
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=0;
     DD.switchs.AmpAreaCheck=0;
-    DD.switchs.netUstuff=false;
-    DD.switchs.meanUviaOW=false;
+    DD.switchs.netUstuff=0;
+    DD.switchs.meanUviaOW=0;
     DD.switchs.IdentityCheck=0;
     DD.switchs.maxRadiusOverRossbyL=0;
-    DD.switchs.spaciallyFilterSSH=false;
-    DD.switchs.filterSSHinTime=true;
+    DD.switchs.spaciallyFilterSSH=0;
+    DD.switchs.filterSSHinTime=1;
 end

@@ -15,7 +15,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)   ;dF
     DD=maxOWPrep(DD);
-    save DD
+%     save DD
     %    maxOWrho
     %     maxOWrhoMean
     maxOWcalc

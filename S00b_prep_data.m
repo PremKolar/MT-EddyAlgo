@@ -42,34 +42,34 @@ function spmd_body(DD)
     [II]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
-    for cc=1:numel(II);       
-		[T]=disp_progress('calc',T,numel(II),100);
+    for cc=1:numel(II);
+        [T]=disp_progress('calc',T,numel(II),100);
         %% get data
-        [file,exists]=GetCurrentFile(II(cc),DD)  ; 
+        [file,exists]=GetCurrentFile(II(cc),DD)  ;
         %% skip if exists and ~overwrite switch
         if exists.out && ~DD.overwrite;
             disp('exists');return
         end
         %% cut data
-        [CUT]=CutMap(file,DD); 
+        [CUT]=CutMap(file,DD);
         %% save empty corrupt files too
-        if isempty(CUT);
-          [d,f,x] = fileparts(file.out ) ;
-         file.out = fullfile(d,['CORRUPT-' f x]);
-        end      
+        if isfield(CUT,'crpt');
+            [d,f,x] = fileparts(file.out ) ;
+            file.out = fullfile(d,['CORRUPT-' f x]);
+        end
         %% write data
         WriteFileOut(file.out,CUT);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT]=CutMap(file,DD)
-    addpath(genpath('./'));
+    %     addpath(genpath('./'));
     %% get data
     for kk={'lat','lon','ssh'}
         keys.(kk{1})=DD.map.in.keys.(kk{1});
     end
     [raw_fields,unreadable]=GetFields(file.in,keys);
-    if unreadable.is, CUT=[]; return; end
+    if unreadable.is, CUT.crpt=true; return; end
     %% cut
     [CUT]=ZonalAppend(raw_fields,DD.map.window);
     %% nan out land and make SI
@@ -78,7 +78,7 @@ function [CUT]=CutMap(file,DD)
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=ZonalAppend(raw,window)    
+function out=ZonalAppend(raw,window)
     xlin=drop_2d_to_1d(window.iy,window.ix,window.fullsize(1));
     %% cut piece
     fields=fieldnames(raw);
@@ -86,7 +86,7 @@ function out=ZonalAppend(raw,window)
         out.grids.(field) = raw.(field)(xlin);
     end
     %% append params
-    out.window = rmfield(window,{'flag','iy','ix'});    
+    out.window = rmfield(window,{'flag','iy','ix'});
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)
@@ -120,7 +120,7 @@ function file=SampleFile(DD)
     while ~readable
         file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
         try
-            nc_dump(file);           
+            nc_dump(file);
         catch me
             disp(me)
             sample_time=datestr(DD.time.from.num + DD.time.delta_t,'yyyymmdd');

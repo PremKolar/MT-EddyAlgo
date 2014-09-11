@@ -1,12 +1,12 @@
 
 function DD=INPUT
-    DD.template='mad';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-% DD.debugmode=true;
+DD.debugmode=true;
      DD.overwrite=false;
-    DD.overwrite=true;
+%     DD.overwrite=true;
    
      %% time
     DD.time.from.str='19940102';

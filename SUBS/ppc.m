@@ -4,6 +4,9 @@ function fig=ppc(in)
         in=squeeze(in);
     end
     %% draw
-    fig=imagesc(flipud(full(double(squeeze(in)))));
-    colorbar
+   fig=pcolor(flipud(full(double(squeeze(in)))));
+   shading flat
+   colorbar
+%     fig=imagesc(flipud(full(double(squeeze(in)))));
+%     colorbar
 end

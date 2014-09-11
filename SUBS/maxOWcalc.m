@@ -81,8 +81,8 @@ function dumpmatfile(threadFname,MeanFile,raw,f,zsplit)
 	my.depth=f.locCo(f.repinYX(raw.depth,Y,X),my.codisp);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OW=extrOW(f,cF);dF
-	spmd(matlabpool('size'))
+function OW=extrOW(f,cF);dF	
+    spmd(matlabpool('size'))
 		fname=sprintf('thread%02d.mat',labindex);
 		my = matfile(fname,'Writable',true);
 		dispM('filtering high pass rho')
@@ -95,22 +95,24 @@ function OW=extrOW(f,cF);dF
 		my = matfile(fname,'Writable',true);
 		getVels(fname,f);	labBarrier;
 		uvg=UVgrads(fname,f.repinZ);
-		ow = f.vc2mstr(okuweiss(getDefo(uvg)),1);	labBarrier
-	end
-	OW=ow{1};
+% 		ow = f.vc2mstr(okuweiss(uvg),1);	labBarrier
+    end
+    
+    ow = f.vc2mstr(okuweiss(uvg),1);	labBarrier
+    OW=ow{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ow = okuweiss(d);dF
-	ow = (-(d.vorticity).^2+d.divergence.^2+d.stretch.^2+d.shear.^2)/2;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function defo = getDefo(uvg);dF
-	defo.vorticity = uvg.dVdx - uvg.dUdy;
-	defo.shear = uvg.dVdx + uvg.dUdy;
-	defo.divergence = 0;
-	defo.stretch = - 2* multiDnansum(uvg.dVdy,uvg.dUdx)/2;
-	%     defo.divergence = uvg.dUdx + uvg.dVdy;
-	%     defo.stretch = uvg.dUdx - uvg.dVdy;
+function ow = okuweiss(uvg);dF
+%     % technically all the same, assuming 2d
+%     defo.vorticity = uvg.dVdx - uvg.dUdy;
+%     defo.shear = uvg.dVdx + uvg.dUdy;
+%     defo.divergence = 0;
+%     defo.stretch = - 2* multiDnansum(uvg.dVdy,uvg.dUdx)/2;
+%     defo.divergence = uvg.dUdx + uvg.dVdy;
+%     defo.stretch = uvg.dUdx - uvg.dVdy;
+%     ow = (-(d.vorticity).^2+d.divergence.^2+d.stretch.^2+d.shear.^2)/2;%
+%     ow =  2*(uvg.dVdx.*uvg.dUdy + uvg.dUdx.*uvg.dVdy)  ;  
+    ow =  2*(uvg.dVdx.*uvg.dUdy + uvg.dUdx.^2);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function uvg = UVgrads(fname,repinZ);dF

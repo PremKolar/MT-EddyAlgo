@@ -80,7 +80,7 @@ function makejpegs(EE,dayn)
         plot(x,y,'--','color','black','linewidth',ceil(iq*5/100))
     end
     axis tight off;
-    title(datestr(dayn));
+    title(num2str(dayn));
     savefig2png4mov('./',90,1024,768,datestr(dayn,'yymmdd'));
 end
 

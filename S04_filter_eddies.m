@@ -159,7 +159,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	%% get effective amplitude relative to ellipse;
 	ee.peak.amp.to_ellipse=EDDyAmp2Ellipse(ee,zoom);
 	%% append mask to ee in cut coordinates
-	[ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,size(cut.grids.ssh)));
+	[ee.mask]=sparse(EDDyPackMask(zoom.mask.filled,zoom.limits,cut.dim));
 	%% get center of 'volume'
 	[ee.volume]=CenterOfVolume(zoom,ee.area.total,cut.dim.Y);
 	%% get area centroid (chelton style)
@@ -441,7 +441,7 @@ function [area,pass]=Area(z,rossbyL,scaleThresh)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[mask_out]=EDDyPackMask(mask_in,limits,dims)
-	mask_out=false(dims);
+	mask_out=false(dims.Y,dims.X);
 	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2))=mask_in;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -11,6 +11,7 @@ function S02_infer_fields
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids.lat);
+    
     RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
@@ -61,11 +62,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
-        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
-        RS.Lr(RS.Lr<0 | RS.Lr > 100*nanmedian(abs(RS.Lr(:))))=nan;  % TODO!!!
-        RS.c(RS.c<0 | RS.c > 100*nanmedian(abs(RS.c(:))))=nan;
+<<<<<<< HEAD
+        gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
+        RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
+        RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
+=======
+%         gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
+       RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+      RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');      
+%         RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
+%         RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
+>>>>>>> apPOP
         if strcmp(DD.map.window.type,'globe')
+            %% zonal append
             wndw=getfield(load(DD.path.windowFile),'window');
             ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
             RS.Lr=RS.Lr(ovrlpIyx);

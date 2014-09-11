@@ -64,7 +64,7 @@ function preInits
     addpath(genpath('./'));  %#ok<*MCAP>
     %         warning on backtrace;
     warning('off','SNCTOOLS:nc_getall:dangerous');
-    rehash; clc; close all;
+    rehash; clc; 
     format shortg;
     dbstop if error;
 end
@@ -83,7 +83,7 @@ function TT=initChecks(DD,toCheck)
     %% get filenames
     TT = DD.time;
     TT.existant.filesall=extractfield(DD.path.(toCheck).files,'name');
-    %% cat numbers in filenames only for speed
+    %% cat numbers in filenames (for speed)
     dateOnly.s=regexp(cat(2,TT.existant.filesall{:}),'\d{8}','match');
     dateOnly.n=cellfun(@(c) datenum(c,'yyyymmdd'),dateOnly.s);
     TT.existant.fcats=cell2mat(cellfun(@(c) ['-' c],dateOnly.s,'uniformoutput',false));
@@ -134,7 +134,7 @@ function [DD] = check_data(DD,toCheck)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)
-    sleep(1)
+    sleep(0.1)
     disp(['found '])
     for ff=1:numel(checks.passed)
         disp([checks.passed(ff).filenames])
@@ -167,7 +167,11 @@ function del_t=newDt(TT)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window]=GetWin(DD)
-    smplFile=[DD.path.cuts.name DD.path.cuts.files(1).name];
+    for cc=1:4242
+        smplFile=[DD.path.cuts.name DD.path.cuts.files(cc).name];
+        if strfind(smplFile,'CORRUPT'), continue;    end
+        break
+    end
     load(smplFile,'window');
     window.flag=[];
 end

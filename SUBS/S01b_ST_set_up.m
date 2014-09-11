@@ -1,3 +1,4 @@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 15-Jul-2014 13:52:44
 % Computer:  GLNX86
@@ -36,7 +37,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outfilename] = initNC(DD)
     outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-    NCoverwriteornot(outfilename);
+    
+ NCoverwriteornot(outfilename,DD.overwrite);
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [file]=tempsalt(DD)

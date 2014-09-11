@@ -96,22 +96,6 @@ function initNcFile(DD)
     nc_addvar(DD.path.Rossby.NCfile,varstruct)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [idx,out]=reallocCase(DD)
-    %% get lat lon
-    [in,out]=getlatlon(DD);
-    %% distro all indeces from in to threads
-    lims=thread_distro(DD.threads.num,numel(in.lon));
-    %% init index vector
-    idx=zeros(1,numel(in.lon));
-    %% get cross refferencing indeces
-    spmd(DD.threads.num)
-        JJ=lims(labindex,1):lims(labindex,2);
-        idx=getIndicesForOutMaps(in,out,JJ,idx);
-        idxx=gop(@vertcat,idx,1);% merge composite
-    end
-    idx=sum(idxx{1},1);% note idx~=0 only at JJ(labindex). hence vert sum
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [in,out]=getlatlon(DD)
     %% from cuts
     out=load([DD.path.cuts.name DD.path.cuts.files(1).name],'grids');
@@ -126,31 +110,29 @@ function [in,out]=getlatlon(DD)
     in.lon=nc_varget(DD.path.Rossby.NCfile,'lon');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function  downscalePop(data,fn,out,DD,idx)
-    %% move pop sized file to another name
-    system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
-    %% get geo info for output
-    [uni,~,~]=unique(idx(idx~=0 & ~isnan(idx)));
-    %% nanmean all values out(li) for identical li
-    T=disp_progress('init',['remapping ' fn ' from pop data']);
-    for li=uni
-        T=disp_progress('show',T,numel(uni),10);
-        out(li)=nanmean(data(idx==li));
-    end
-    %% save
-    save([DD.path.Rossby.name, fn,'.mat'],'out');
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function nc2matSave(DD,fn,idx,reallocIdx)
+function nc2matSave(DD,fn,in,out,reallocIdx)
     %% get pop data
-    in=nc_varget(DD.path.Rossby.NCfile,fn);
+    in.data=nc_varget(DD.path.Rossby.NCfile,fn);
+<<<<<<< HEAD
     %% save pop version either way
-    out=in; %#ok<NASGU>
-    save([DD.path.Rossby.name, fn,'.mat'],'out');
-    %% remap
+    save([DD.path.Rossby.name, fn,'.mat'],'in');
     if reallocIdx
-        protoout=nan(DD.map.window.size.Y,DD.map.window.size.X);
-        downscalePop(in,fn,protoout,DD,idx)
+        %% move pop sized file to another name
+        system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
+        out.grids.(fn)=griddata(in.lon,in.lat,in.data,out.lon,out.lat);
+        %% save
+        save([DD.path.Rossby.name, fn,'.mat'],'out');
+=======
+    data=in.data; %#ok<NASGU>
+    %% save pop version either way
+    save([DD.path.Rossby.name, fn,'.mat'],'data');clear data;
+    if reallocIdx
+        %% move pop sized file to another name
+        system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
+        data=griddata(in.lon,in.lat,in.data,out.lon,out.lat); %#ok<NASGU>
+        %% save
+        save([DD.path.Rossby.name, fn,'.mat'],'data');
+>>>>>>> apPOP
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,19 +154,17 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function nc2mat(DD)
     %% test for remap
-    fns=ncfieldnames(DD.path.Rossby.NCfile);
-    in=nc_varget(DD.path.Rossby.NCfile,fns{1});
     reallocIdx=false;
-    if numel(in)~=prod(struct2array(DD.map.window.size))
+    fns=ncfieldnames(DD.path.Rossby.NCfile);
+    inTest=numel(nc_varget(DD.path.Rossby.NCfile,fns{1}));
+    if inTest ~= prod(struct2array(DD.map.window.size))
         reallocIdx=true;
-        [idx,~]=reallocCase(DD);
-    else
-        idx=[];
     end
     %% save 2 mats
-    for ff=1:numel(fns)
+    [NCin,MATout]=getlatlon(DD);
+    parfor ff=1:numel(fns)
         fn=fns{ff};
-        nc2matSave(DD,fn,idx,reallocIdx)
+        nc2matSave(DD,fn,NCin,MATout,reallocIdx);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,7 +1,12 @@
+% templates :
+% 'udef' - user defined in INPUTuserDef.m
+% 'pop' - template for POP SSH data
+% 'aviso' - template for AVISO SSH data
+% 'mad' - template for Madeleine's data
 function DD=INPUT
     DD.template='pop';
     %% threads / debug
-    DD.threads.num=8;
+    DD.threads.num=12;
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;

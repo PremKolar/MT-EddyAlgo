@@ -42,13 +42,21 @@ function spmd_body(DD)
     [II]=SetThreadVar(DD);
     %% loop over files
     [T]=disp_progress('init','preparing raw data');
-    for cc=1:numel(II);
-        %% 
-		  [T]=disp_progress('calc',T,numel(II),100);
+    for cc=1:numel(II);       
+		[T]=disp_progress('calc',T,numel(II),100);
         %% get data
-        [file,exists]=GetCurrentFile(II(cc),DD)  ; if exists.out,disp('exists');return;end
+        [file,exists]=GetCurrentFile(II(cc),DD)  ; 
+        %% skip if exists and ~overwrite switch
+        if exists.out && ~DD.overwrite;
+            disp('exists');return
+        end
         %% cut data
-        [CUT]=CutMap(file,DD);   if isempty(CUT); return; end
+        [CUT]=CutMap(file,DD); 
+        %% save empty corrupt files too
+        if isempty(CUT);
+          [d,f,x] = fileparts(file.out ) ;
+         file.out = fullfile(d,['CORRUPT-' f x]);
+        end      
         %% write data
         WriteFileOut(file.out,CUT);
     end
@@ -70,19 +78,15 @@ function [CUT]=CutMap(file,DD)
     [CUT.grids.DY,CUT.grids.DX]=DYDX(CUT.grids.lat,CUT.grids.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT=ZonalAppend(raw,window)
-    OUT=buildGrids;
-    %----------------------------------------------------------------------
-    function out=buildGrids
-        xlin=drop_2d_to_1d(window.iy,window.ix,window.fullsize(1));
-        %% cut piece
-        fields=fieldnames(raw);
-        for ff=1:numel(fields); field=fields{ff};
-            out.grids.(field) = raw.(field)(xlin);
-        end
-        %% append params
-        out.window = rmfield(window,{'flag','iy','ix'});
+function out=ZonalAppend(raw,window)    
+    xlin=drop_2d_to_1d(window.iy,window.ix,window.fullsize(1));
+    %% cut piece
+    fields=fieldnames(raw);
+    for ff=1:numel(fields); field=fields{ff};
+        out.grids.(field) = raw.(field)(xlin);
     end
+    %% append params
+    out.window = rmfield(window,{'flag','iy','ix'});    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)

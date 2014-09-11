@@ -5,14 +5,14 @@ function DD=INPUT
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;
-      %  DD.overwrite=true;
+       DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
     DD.time.till.str='20061231';
     %      threshlife=20*7
     threshlife=7*3;
     %% window on globe
-    DD.map.in.west=-180
+    DD.map.in.west=-180;
     DD.map.in.east= 180;
     DD.map.in.south= -80;
     DD.map.in.north= 80;

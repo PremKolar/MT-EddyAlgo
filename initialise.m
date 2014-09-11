@@ -167,7 +167,11 @@ function del_t=newDt(TT)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window]=GetWin(DD)
-    smplFile=[DD.path.cuts.name DD.path.cuts.files(1).name];
+    for cc=1:4242
+        smplFile=[DD.path.cuts.name DD.path.cuts.files(cc).name];
+        if strfind(smplFile,'CORRUPT'), continue;    end
+        break
+    end
     load(smplFile,'window');
     window.flag=[];
 end

@@ -41,6 +41,7 @@ function spmd_body(DD)
     %% distro days to threads
     [II]=SetThreadVar(DD);
     %% loop over files
+<<<<<<< HEAD
     [T]=disp_progress('init','preparing raw data');
     for cc=1:numel(II);
         [T]=disp_progress('calc',T,numel(II),100);
@@ -110,6 +111,29 @@ end
 %=========================================================================%
 function WriteFileOut(file,CUT) %#ok<INUSD>
     save(file,'-struct','CUT')
+=======
+    S00b_main(DD,II);
+    %%
+    %         [T]=disp_progress('init','preparing raw data');
+    %     for cc=1:numel(II);
+    %         [T]=disp_progress('calc',T,numel(II),100);
+    %         %% get data
+    %         [file,exists]=GetCurrentFile(II(cc),DD)  ;
+    %         %% skip if exists and ~overwrite switch
+    %         if exists.out && ~DD.overwrite;
+    %             disp('exists');return
+    %         end
+    %         %% cut data
+    %         [CUT]=CutMap(file,DD);
+    %         %% save empty corrupt files too
+    %         if isfield(CUT,'crpt');
+    %             [d,f,x] = fileparts(file.out ) ;
+    %             file.out = fullfile(d,['CORRUPT-' f x]);
+    %         end
+    %         %% write data
+    %         WriteFileOut(file.out,CUT);
+    %     end
+>>>>>>> apPOP
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function file=SampleFile(DD)
@@ -130,16 +154,6 @@ function file=SampleFile(DD)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [file,exists]=GetCurrentFile(TT,DD)
-    exists.out=false;
-    file.in=TT.files;
-    timestr=datestr(TT.daynums,'yyyymmdd');
-    %% set up output file
-    path=DD.path.cuts.name;
-    geo=DD.map.out;
-    file.out=NSWE2nums(path,DD.pattern.fname,geo,timestr);
-    if exist(file.out,'file'), dispM([file.out ' exists']); exists.out=true; end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 

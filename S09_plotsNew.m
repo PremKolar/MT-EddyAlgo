@@ -5,7 +5,6 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-<<<<<<< HEAD
     %     DD=initialise([],mfilename);
     %     save DD
     clf
@@ -13,15 +12,6 @@ function S09_plotsNew
     initialise
     dbstop if error
     load DD
-=======
-   DD=initialise([],mfilename);
-   save DD
-%     clf
-%     clear all
-    %     initialise
-%     dbstop if error
-%     load DD
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=800;
     ticks.height=600;
@@ -51,18 +41,13 @@ end
 function main(DD,T)
     II=initStuff(DD);
     %% collect tracks
-<<<<<<< HEAD
     trackstuff(DD,T,II)
-=======
-    trackstuff(DD,T)
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
     %%
     %     velZonmeans(DD,II,T)
     %     scaleZonmeans(DD,II,T)
     %     %%
     %     mapStuff(DD,T,II)
 end
-<<<<<<< HEAD
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function trackstuff(DD,T,II)
     TR=trackinit(DD);
@@ -136,37 +121,18 @@ function TR=trackinit(DD)
     senses=DD.FieldKeys.senses;
     for ss=1:2
         clear single cats
-=======
-
-
-function trackstuff(DD,T)    
-    tsenses=fieldnames(DD.path.analyzedTracks)';
-    senses=DD.FieldKeys.senses;
-    for ss=1:2
-       clear single cats
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
         tsen=tsenses{ss};
         sen = senses{ss};
         root=DD.path.analyzedTracks.(tsen).name;
         eds= DD.path.analyzedTracks.(tsen).files;
-<<<<<<< HEAD
         parfor ff=1:numel(eds)
             single(ff)=load([root eds(ff).name]);
-=======
-      parfor ff=1:numel(eds)          
-          single(ff)=load([root eds(ff).name]);
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
         end
         for fn=fieldnames(single)'; fn=fn{1};
             cats.(fn)=extractdeepfield(single,fn);
         end
         TR.(sen).single=single;
         TR.(sen).cats=cats;
-<<<<<<< HEAD
-        TR.(sen).cats.U = TR.(sen).cats.distInM./(DD.time.delta_t*24*60*60);
-    end
-end
-=======
     end
     %%
     
@@ -184,23 +150,6 @@ end
     
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(DD,II,T)
     %%
@@ -236,10 +185,6 @@ function scaleZonmeans(DD,II,T)
     savefig(DD.path.plots,T.rez,T.width,T.height,['S-scaleZonmean'],'dpdf');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< HEAD
-=======
-
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
 function II=initStuff(DD)
     II.aut=autumn(100);
     II.win=winter(100);
@@ -247,11 +192,6 @@ function II=initStuff(DD)
     II.la=II.maps.Cycs.lat;
     II.lo=II.maps.Cycs.lon;
 end
-<<<<<<< HEAD
-=======
-
-
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapStuff(DD,T,II)
     senses=DD.FieldKeys.senses;
@@ -353,43 +293,10 @@ function zticklabel=ratscase(zticks)
     dc=(num2cell(d));
     zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
 end
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function drawcoast
     load coast;
     hold on; plot(long,lat,'LineWidth',0.5);
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

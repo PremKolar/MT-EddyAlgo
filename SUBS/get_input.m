@@ -78,6 +78,11 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'AntiCycs';
         'Cycs';
         };
+    %% Rossby
+    FieldKeys.Rossby = { ...
+    'RossbyPhaseSpeed'   ;
+    'RossbyRadius' ;
+    };    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=timestuff(T)

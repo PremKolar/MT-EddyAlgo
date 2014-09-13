@@ -8,8 +8,6 @@
 function [DD]=S01b_ST_set_up
     %% init
     DD=initialise([],mfilename);
-    %% check if exists already
-    [DD.path.Rossby.NCfile] = initNC(DD);
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
@@ -33,13 +31,6 @@ function lims=limsdata(splits,window)
     td=lims(:,2)-lims(:,1) < 0; % find chunk
     lims(td,1)=0; % let it start at 0
     lims(find(td)-1,2)=window.fullsize(2)-1; % let the one before finish at end(X)
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [outfilename] = initNC(DD)
-    outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
-    
- NCoverwriteornot(outfilename,DD.overwrite);
-
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [file]=tempsalt(DD)

@@ -66,7 +66,7 @@ end
 function DD=init(DD)
     tmp=load([DD.path.root, 'window.mat']);
     for wf=fieldnames(tmp.window)'
-        DD.map.window.(wf{1})=tmp.window.(wf{1})
+        DD.map.window.(wf{1})=tmp.window.(wf{1});
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

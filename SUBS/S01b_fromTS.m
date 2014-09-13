@@ -9,6 +9,7 @@
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
+
 function S01b_fromTS
     %% set up
     [DD]=S01b_ST_set_up;
@@ -118,9 +119,17 @@ function nc2matSave(DD,fn,in,out,reallocIdx)
     if reallocIdx
         %% move pop sized file to another name
         system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
-        data=griddata(in.lon,in.lat,in.data,out.lon,out.lat); %#ok<NASGU>
+        data=griddata(in.lon,in.lat,in.data,out.lon,out.lat);
         %% save
         save([DD.path.Rossby.name, fn,'.mat'],'data');
+        if strcmp(DD.map.window.type,'globe')
+            %% zonal append
+            wndw=getfield(load(DD.path.windowFile),'window');
+            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
+            data=data(ovrlpIyx); %#ok<NASGU>
+            %% save
+            save([DD.path.Rossby.name, fn,'-ZonApp.mat'],'data');
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

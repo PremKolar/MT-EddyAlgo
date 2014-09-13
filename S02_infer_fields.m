@@ -11,7 +11,6 @@ function S02_infer_fields
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids.lat);
-    
     RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
@@ -62,7 +61,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+    RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
         RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
     else
         RS=[];
@@ -87,8 +86,11 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
     T=disp_progress('init','infering fields');
     for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
-        %% load
+        %% skip
+        alreadyFltrd=load(JJ(jj).files,'filtered');
+        if ~isempty(alreadyFltrd) && ~DD.overwrite, dispM('skipping');continue; end
         cut=load(JJ(jj).files);
+        if isempty(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
         %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built
@@ -98,13 +100,12 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
             %% filter
             cut.grids.ssh=cut.grids.sshRaw - MeanSsh;
         end
-        %% TEMP
-        % if isfield(cut.grids,'OW'), dispM('skipping');continue; end
         %%
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
+        cut.filtered=true;
         save(JJ(jj).files,'grids','-append');
     end
 end

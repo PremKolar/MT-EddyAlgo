@@ -11,13 +11,16 @@
 % -Rossby wave first baroclinic phase speed
 function S01b_fromTS
     %% set up
-    [DD]=S01b_ST_set_up;   
+    %     [DD]=S01b_ST_set_up;
+    %   save
+    initialise
+    load
     %% spmd
-main(DD)
+%     main(DD)
     %% make netcdf
     WriteNCfile(DD);
     %% update DD
-     save_info(DD);
+%     save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -109,7 +112,6 @@ function nc2matSave(DD,fn,in,out,reallocIdx)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function WriteNCfile(DD)
-  iozgbuzgz
     splits=DD.parameters.RossbySplits;
     XXlims=DD.RossbyStuff.lims.data;
     yylims=1:DD.TS.window.size.Y;

@@ -62,24 +62,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-<<<<<<< HEAD
-        gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
-        RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
-        RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
-=======
-%         gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
-       RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-      RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');      
-%         RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
-%         RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
->>>>>>> apPOP
-        if strcmp(DD.map.window.type,'globe')
-            %% zonal append
-            wndw=getfield(load(DD.path.windowFile),'window');
-            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
-            RS.Lr=RS.Lr(ovrlpIyx);
-            RS.c=RS.c(ovrlpIyx);
-        end
+        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
     else
         RS=[];
     end

@@ -10,11 +10,7 @@ function DD=INPUT
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;
-<<<<<<< HEAD
-        DD.overwrite=true;
-=======
-%        DD.overwrite=true;
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
+     % DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
     DD.time.till.str='20061231';
@@ -35,13 +31,8 @@ function DD=INPUT
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
-<<<<<<< HEAD
-    DD.thresh.corners.min=12; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=1*2*pi*1e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~5000km) , just for performance
-=======
     DD.thresh.corners.min=10; % min number of data points for the perimeter of an eddy
     DD.thresh.corners.max=5*2*pi*1e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~5000km) , just for performance
->>>>>>> c6115d54819785c574f8ffcdeaa409ba44d8436c
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     DD.thresh.IdentityCheck=[2.5];

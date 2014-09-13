@@ -11,7 +11,6 @@ function S02_infer_fields
     %% read input file
     cut1=load( DD.checks.passed(1).filenames);
     DD.coriolis=coriolisStuff(cut1.grids.lat);
-    
     RS=getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
@@ -62,24 +61,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-<<<<<<< HEAD
-        gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
-        RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
-        RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
-=======
-%         gf=@(r,f)  getfield(cell2mat(extractdeepfield(load([r f]),'out.grids')),f);
        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
       RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');      
-%         RS.Lr=gf(DD.path.Rossby.name,    'RossbyRadius');
-%         RS.c =gf(DD.path.Rossby.name,'RossbyPhaseSpeed');
->>>>>>> apPOP
-        if strcmp(DD.map.window.type,'globe')
-            %% zonal append
-            wndw=getfield(load(DD.path.windowFile),'window');
-            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
-            RS.Lr=RS.Lr(ovrlpIyx);
-            RS.c=RS.c(ovrlpIyx);
-        end
     else
         RS=[];
     end
@@ -103,8 +86,11 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
     T=disp_progress('init','infering fields');
     for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
-        %% load
+        %% skip
+        alreadyFltrd=load(JJ(jj).files,'filtered');
+        if ~isempty(alreadyFltrd) && ~DD.overwrite, dispM('skipping');continue; end
         cut=load(JJ(jj).files);
+        if isempty(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
         %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built
@@ -114,13 +100,12 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
             %% filter
             cut.grids.ssh=cut.grids.sshRaw - MeanSsh;
         end
-        %% TEMP
-        % if isfield(cut.grids,'OW'), dispM('skipping');continue; end
         %%
         coriolis=coriolisStuff(cut.grids.lat);
         %% calc
         grids=geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
+        cut.filtered=true;
         save(JJ(jj).files,'grids','-append');
     end
 end

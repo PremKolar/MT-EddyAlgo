@@ -111,8 +111,8 @@ function printout(T,L)
         strout.a{4}=['-',T.name,'-'];
         strout.a{5}='####';
         %%
-        strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];
-        strout.b{2}=[ num2str(round(T.prcnt_done)),' percent done.\n'];
+        strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];      
+        strout.b{2}=sprintf('%2d %% done.\n',round(T.prcnt_done));
         strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];
         if isfinite(T.time_to_go)
             strout.b{4}  = ['time to go     :    ', datestr(sec2day(T.time_to_go),'dd-HH:MM:SS'),'\n'];

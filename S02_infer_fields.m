@@ -88,14 +88,14 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         T=disp_progress('disp',T,numel(JJ),100);
         %% skip
         try
-            alreadyFltrd=load(JJ(jj).files,'filtered');
+            alreadyFltrd=isfield(JJ(jj).files,'filtered');
         catch me
             disp(me.message)
-            disp(['removing - run all steps prior with DD.overwrite off again!'])
+            disp(['removing corrupt CUT- run relevant steps prior with DD.overwrite=false again!'])
             system(['rm ' JJ(jj).files])
         end
         
-        if ~isempty(alreadyFltrd) && ~DD.overwrite, dispM('skipping');continue; end
+        if alreadyFltrd && ~DD.overwrite, dispM('skipping');continue; end
         cut=load(JJ(jj).files);
         if isfield(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
         %% filter

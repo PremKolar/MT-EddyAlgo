@@ -7,12 +7,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
     
-    numDays=DD.checks.passedTotal;
+%     numDays=DD.checks.passedTotal;
+    numDays=1;
     sens={'ac','c'};
     
     
-    %     for jj=1:numDays
-    for jj=1
+    for jj=1:numDays
         passIn=read_fields(DD,jj,'eddies','pass');
         filename=read_fields(DD,jj,'eddies','filename');
         for ss=1:2
@@ -53,7 +53,7 @@ function makebarplot
         ['tot. pass: ' flushCell(cellfun(@(c) sprintf(['- %03.0f%% '],c) ,num2cell(Ms{1})','uniformoutput',false)) ];...
         ['rel. pass: ' flushCell(cellfun(@(c) sprintf(['- %03.0f%% '],c) ,num2cell(MsRel{2})','uniformoutput',false))];...
         ['tot. pass: ' flushCell(cellfun(@(c) sprintf(['- %03.0f%% '],c) ,num2cell(Ms{2})','uniformoutput',false)) ];...
-        };
+        }; %#ok<*USENS>
     title(xlab(1:2),'color','blue')
     xlabel(xlab(3:4),'color','red')
     savefig(DD.path.root,100,1200,800,sprintf('pass-%s_day_%04.0f', datestr(now,'mmdd-HHMM'),jj))

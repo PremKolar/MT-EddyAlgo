@@ -61,14 +61,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-        RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
         if strcmp(DD.map.window.type,'globe')
-            %% zonal append
-            wndw=getfield(load(DD.path.windowFile),'window');
-            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
-            RS.Lr=RS.Lr(ovrlpIyx);
-            RS.c=RS.c(ovrlpIyx);
+            RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius-ZonApp.mat']),'data');
+            RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed-ZonApp.mat']),'data');
+        else
+            RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+            RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
         end
     else
         RS=[];
@@ -94,10 +92,17 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
     for jj=1:numel(JJ)
         T=disp_progress('disp',T,numel(JJ),100);
         %% skip
-        alreadyFltrd=load(JJ(jj).files,'filtered');
+        try
+            alreadyFltrd=load(JJ(jj).files,'filtered');
+        catch me
+            disp(me.message)
+            disp(['removing - run all steps prior with DD.overwrite off again!'])
+            system(['rm ' JJ(jj).files])
+        end
+        
         if ~isempty(alreadyFltrd) && ~DD.overwrite, dispM('skipping');continue; end
         cut=load(JJ(jj).files);
-        if isempty(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
+        if isfield(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
         %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built

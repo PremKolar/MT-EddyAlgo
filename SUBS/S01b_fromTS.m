@@ -11,16 +11,13 @@
 % -Rossby wave first baroclinic phase speed
 function S01b_fromTS
     %% set up
-    %     [DD]=S01b_ST_set_up;
-    %   save
-    initialise
-    load
+    [DD]=S01b_ST_set_up;
     %% spmd
-%     main(DD)
+    main(DD)
     %% make netcdf
     WriteMatFile(DD);
     %% update DD
-%     save_info(DD);
+    save_info(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -62,7 +59,6 @@ function Calculations(DD,cc)
     end
     %% save
     saveChunk(CK);
-<<<<<<< HEAD
 end
 function M=inf2nan(M)
     M(isinf(M))=nan;
@@ -73,98 +69,9 @@ function [CK,ccStr]=init(DD,cc,RossbyDir)
     ccStr=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],cc),'/',num2str(size(lims,1))];
     disp('initialising..')
     CK.fileSelf=[RossbyDir,'BVRf_',sprintf('%03d',cc),'.mat'];
-=======
->>>>>>> avRoRepair
-end
-function M=inf2nan(M)
-    M(isinf(M))=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< HEAD
-function nc2matSave(DD,fn,in,out,reallocIdx)
-    %% get pop data
-    in.data=nc_varget(DD.path.Rossby.NCfile,fn);
-    data=in.data; %#ok<NASGU>
-    %% save pop version either way
-    save([DD.path.Rossby.name, fn,'.mat'],'data');clear data;
-    if reallocIdx
-        %% move pop sized file to another name
-        system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
-        data=griddata(in.lon,in.lat,in.data,out.lon,out.lat);
-        %% save
-        save([DD.path.Rossby.name, fn,'.mat'],'data');
-        if strcmp(DD.map.window.type,'globe')
-            %% zonal append
-            wndw=getfield(load(DD.path.windowFile),'window');
-            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
-            data=data(ovrlpIyx); %#ok<NASGU>
-            %% save
-            save([DD.path.Rossby.name, fn,'-ZonApp.mat'],'data');
-        end
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function WriteNCfile(DD)
-    splits=DD.parameters.RossbySplits;
-    XXlims=DD.RossbyStuff.lims.data;
-    yylims=1:DD.TS.window.size.Y;
-    
-    if any(DD.map.window.fullsize~=DD.TS.window.fullsize)
-        reallocIdx=true
-    end
-    
-    %% dummy init
-    data=nan([DD.TS.window.size.Y, DD.TS.window.size.X]);  %#ok<NASGU>
-    %% loop fields
-    for ff=1:numel(DD.FieldKeys.Rossby)
-        %% fieldname / fileout name
-        FN=DD.FieldKeys.Rossby{ff} ;
-        outfileName=[DD.path.Rossby.name FN '.mat'];
-        %% start from scratch
-        save(outfileName,'data');
-        outfile=matfile(outfileName,'Writable',true);
-        %% loop chunks
-        for cc=1:splits
-            xxlims=XXlims(cc,1):XXlims(cc,2);
-            CKfn=getfield(getfield(loadChunk(DD.path.Rossby.name,cc),'rossby'),FN);
-            outfile.data(yylims,xxlims)=CKfn;
-        end
-        
-        if reallocIdx
-            in.lat=nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat);
-            in.lon=nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon);
-            out.lat=extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lat');
-            out.lon=extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lon');
-            
-            in.data=load(outfileName,FN)
-            %% move pop sized file to another name
-            system(['mv ' [outfile] ' ' [DD.path.Rossby.name, FN,'PopSize.mat']]);
-           %% resample
-            data=griddata(in.lon,in.lat,in.data,out.lon,out.lat);
-            %% save
-            save([DD.path.Rossby.name, fn,'.mat'],'data');
-            
-        end
-        
-      
-        
-        if strcmp(DD.map.window.type,'globe')
-            %% zonal append
-            wndw=getfield(load(DD.path.windowFile),'window');
-            ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
-            data=data(ovrlpIyx); %#ok<NASGU>
-            %% save
-            save([DD.path.Rossby.name, fn,'-ZonApp.mat'],'data');
-        end
-=======
-function [CK,ccStr]=init(DD,cc,RossbyDir)
-    lims=DD.RossbyStuff.lims.data;
-    ccStr=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],cc),'/',num2str(size(lims,1))];
-    disp('initialising..')
-    CK.fileSelf=[RossbyDir,'BVRf_',sprintf('%03d',cc),'.mat'];
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [DD,data]=InitWriteMatFile(DD)
+function [DD]=InitWriteMatFile(DD)
     DD.reallocIdx=false;
     DD.splits=DD.parameters.RossbySplits;
     DD.XXlims=DD.RossbyStuff.lims.data;
@@ -172,68 +79,50 @@ function [DD,data]=InitWriteMatFile(DD)
     if any(DD.map.window.fullsize~=DD.TS.window.fullsize)
         DD.reallocIdx=true;
     end
-    %% dummy init
-    data=nan([DD.TS.window.size.Y, DD.TS.window.size.X]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function WriteMatFile(DD)
-    [DD,data]=InitWriteMatFile(DD)  ;
+    [DD]=InitWriteMatFile(DD)  ;
     %% loop fields
     for ff=1:numel(DD.FieldKeys.Rossby)
         %% fieldname / fileout name
         FN=DD.FieldKeys.Rossby{ff} ;
-        outfileName=[DD.path.Rossby.name FN '.mat'];
-        saveField(DD,data,FN,outfileName)
+        MATfileName=[DD.path.Rossby.name FN '.mat'];
+        saveField(DD,FN,MATfileName)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function saveField(DD,data,FN,outfileName)
+function saveField(DD,FN,MATfileName)
     %% start from scratch
-    save(outfileName,'data','-v7.3');
-    outfile=matfile(outfileName,'Writable',true);
+    %% dummy init
+    data=nan([DD.TS.window.size.Y, DD.TS.window.size.X]);   %#ok<NASGU>
+    save(MATfileName,'data','-v7.3');
+    MATfile=matfile(MATfileName,'Writable',true);
     %% loop chunks
     for cc=1:DD.splits
         xxlims=(DD.XXlims(cc,1):DD.XXlims(cc,2)) - DD.XXlims(1,1)+1;
         CKfn=getfield(getfield(loadChunk(DD.path.Rossby.name,cc),'rossby'),FN);
-        outfile.data(DD.yylims,xxlims)=CKfn;
+        MATfile.data(DD.yylims,xxlims)=CKfn;
     end
     %%
     if DD.reallocIdx
         disp('cross-polating data to different geometry')
-        differentGeoCase(DD,outfileName)
-    end
-    %%
-    if strcmp(DD.map.window.type,'globe')
-        globalCase(DD,FN,data)
->>>>>>> avRoRepair
+        differentGeoCase(DD,MATfileName);
+    else
+        %% the global case is automatically taken care of in the differentGeoCase
+        if strcmp(DD.map.window.type,'globe')
+            globalCase(DD,MATfileName);
+        end
     end
 end
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function nc2mat(DD)
-%     %% test for remap
-%     reallocIdx=false;
-%     fns=ncfieldnames(DD.path.Rossby.NCfile);
-%     inTest=numel(nc_varget(DD.path.Rossby.NCfile,fns{1}));
-%     if inTest ~= prod(struct2array(DD.map.window.size))
-%         reallocIdx=true;
-%     end
-%     %% save 2 mats
-%     [NCin,MATout]=getlatlon(DD);
-%     parfor ff=1:numel(fns)
-%         fn=fns{ff};
-%         nc2matSave(DD,fn,NCin,MATout,reallocIdx);
-%     end
-% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<<<<<< HEAD
-=======
-function differentGeoCase(DD,outfileName)
+function differentGeoCase(DD,MATfileName)
     %% in
     lims=  DD.TS.window.limits;
     getflag=@(lims,M) double(M(lims.south:lims.north,lims.west:lims.east));
     in.lat=getflag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat));
     in.lon=getflag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon));
-    in.data=getfield(load(outfileName,'data'),'data');
+    in.data=getfield(load(MATfileName,'data'),'data');
     %% out
     Y= DD.map.window.size.Y;
     out.lat=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lat'),Y,[]);
@@ -241,19 +130,21 @@ function differentGeoCase(DD,outfileName)
     %% resample
     data=griddata(in.lon,in.lat,in.data,out.lon,out.lat); %#ok<NASGU>
     %% save
-    save(outfileName,'data');
+    save(MATfileName,'data');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function globalCase(DD,FN,data)
+function globalCase(DD,MATfileName)
     %% zonal append
+    data=getfield(load(MATfileName,'data'),'data');
     wndw=getfield(load(DD.path.windowFile),'window');
-    ovrlpIyx=drop_2d_to_1d(wndw.iy,wndw.ix,size(wndw.iy,1));
+    YindxMap=wndw.iy-min(wndw.iy(:))+1;
+    XindxMap=wndw.ix;
+    ovrlpIyx=drop_2d_to_1d(YindxMap,XindxMap,size(wndw.iy,1));
     data=data(ovrlpIyx); %#ok<NASGU>
     %% save
-    save([DD.path.Rossby.name, FN,'-ZonApp.mat'],'data');
+     save(MATfileName,'data','-v7.3');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
->>>>>>> avRoRepair
 function saveChunk(CK)
     save(CK.fileSelf,'-struct','CK');
 end

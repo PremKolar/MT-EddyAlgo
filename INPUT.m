@@ -1,11 +1,11 @@
 function DD=INPUT
-    DD.template='aviso';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num=6;
     DD.debugmode=false;
 %             DD.debugmode=true;
     DD.overwrite=false;
-     % DD.overwrite=true;
+%         DD.overwrite=true;
     %% time
     DD.time.from.str='19900102';
     DD.time.till.str='20500101';
@@ -45,4 +45,3 @@ function DD=INPUT
     DD.switchs.chelt=0;
     DD.switchs.AmpAreaCheck=0;
 end
-

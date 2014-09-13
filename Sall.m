@@ -4,7 +4,7 @@
  S02_infer_fields
  S03_contours
  S04_filter_eddies
- s05plotsAnima
+% % s05plotsAnima
  S05_track_eddies
  S06_init_output_maps
  S08_analyze_tracks

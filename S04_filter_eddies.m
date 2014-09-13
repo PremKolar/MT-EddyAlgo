@@ -75,25 +75,25 @@ function EE=find_eddies(EE,ee,rossby,cut,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
-	pp=0;  pass=initPass(numel(ee))    ;
-	%% init
-	[eddyType,Zloop]=determineSense(DD.FieldKeys.senses,sense,numel(ee));
-	%% loop
-	Tv=disp_progress('init','running through conts vertically');
-	for kk=Zloop % dir dep. on sense
-		Tv= disp_progress('disp',Tv,numel(Zloop),3,1);
-		[pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
-		if all(struct2array(pass(kk))), pp=pp+1;
-			%% append healthy found eddy
-			eddies(pp)=ee_out;
-			%% nan out ssh where eddy was found
-			cut.grids.ssh(ee_out.mask)=nan;
-		end
-	end
-	%% catch
-	if ~any(struct2array(pass(:)))
-		error('no %s made it through the filter...',eddyType)
-	end
+    pp=0;  pass=initPass(numel(ee))    ;
+    %% init
+    [eddyType,Zloop]=determineSense(DD.FieldKeys.senses,sense,numel(ee));
+    %% loop
+    Tv=disp_progress('init','running through conts vertically');
+    for kk=Zloop % dir dep. on sense
+        Tv= disp_progress('disp',Tv,numel(Zloop),10,1);
+        [pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
+        if all(struct2array(pass(kk))), pp=pp+1;
+            %% append healthy found eddy
+            eddies(pp)=ee_out;
+            %% nan out ssh where eddy was found
+            cut.grids.ssh(ee_out.mask)=nan;
+        end
+    end
+    %% catch
+    if ~any(struct2array(pass(:)))
+        error('no %s made it through the filter...',eddyType)
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddyType,Zloop]=determineSense(senseKeys,sense,NumEds)

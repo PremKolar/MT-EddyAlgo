@@ -1,15 +1,8 @@
 % S00a_singleCdf2perDT
-<<<<<<< HEAD
 %  S00b_prep_data
  S01_BruntVaisRossby
- S02_infer_fields
-%  S03_contours
-=======
- S00b_prep_data
- S01_BruntVaisRossby
-% S02_infer_fields
+%  S02_infer_fields
 % S03_contours
->>>>>>> avRoRepair
 % S04_filter_eddies
 % s05plotsAnima
 % S05_track_eddies

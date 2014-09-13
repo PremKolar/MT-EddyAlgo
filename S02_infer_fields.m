@@ -61,18 +61,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
-<<<<<<< HEAD
-        if strcmp(DD.map.window.type,'globe')
-            RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius-ZonApp.mat']),'data');
-            RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed-ZonApp.mat']),'data');
-        else
-            RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-            RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
-        end
-=======
-    RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
->>>>>>> avRoRepair
+        RS.Lr=getfield(load([DD.path.Rossby.name DD.FieldKeys.Rossby{1} '.mat']),'data');
+        RS.c=getfield(load([DD.path.Rossby.name DD.FieldKeys.Rossby{2}  '.mat']),'data');
     else
         RS=[];
     end

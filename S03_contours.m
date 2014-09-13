@@ -19,7 +19,6 @@ function main(DD)
         spmd_body(DD);
     else
         spmd(DD.threads.num)
-            
             spmd_body(DD);
         end
     end
@@ -37,21 +36,23 @@ function spmd_body(DD)
     disp_progress('conclude');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function II=get_contours(dd,TT)
+function get_contours(dd,TT)
     %%
-    [II,CONT]=init_get_contours(dd,TT);
+    CONT.filename=[dd.path.conts.name dd.pattern.prefix.conts TT.protos];
     %% check
     if exist(CONT.filename,'file')
         dispM([CONT.filename ' exists'])
         return
     end
-    %% loop over levels   
+    %% init
+    [II]=init_get_contours(dd,TT);
+    %% loop over levels
     CONT.all=contourc(II.grids.ssh,II.levels)';
     %% save data
     save(CONT.filename,'-struct','CONT');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [II,CONT]=init_get_contours(dd,TT)
+function [II]=init_get_contours(dd,TT)
     %% load cut
     II.file=TT.files;
     II.grids=getfield(load(II.file),'grids');
@@ -62,6 +63,4 @@ function [II,CONT]=init_get_contours(dd,TT)
     floorlevel=floor(nanmin(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
     ceillevel=ceil(nanmax(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
     II.levels=floorlevel:dd.contour.step:ceillevel;
-    %% add info
-    CONT.filename=[dd.path.conts.name dd.pattern.prefix.conts TT.protos];
 end

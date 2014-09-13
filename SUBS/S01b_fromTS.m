@@ -113,14 +113,15 @@ end
 function nc2matSave(DD,fn,in,out,reallocIdx)
     %% get pop data
     in.data=nc_varget(DD.path.Rossby.NCfile,fn);
+    data=in.data; %#ok<NASGU>
     %% save pop version either way
-    save([DD.path.Rossby.name, fn,'.mat'],'in');
+    save([DD.path.Rossby.name, fn,'.mat'],'data');clear data;
     if reallocIdx
         %% move pop sized file to another name
         system(['mv ' [DD.path.Rossby.name, fn,'.mat'] ' ' [DD.path.Rossby.name, fn,'PopSize.mat']]);
-        out.grids.(fn)=griddata(in.lon,in.lat,in.data,out.lon,out.lat);
+        data=griddata(in.lon,in.lat,in.data,out.lon,out.lat); %#ok<NASGU>
         %% save
-        save([DD.path.Rossby.name, fn,'.mat'],'out');
+        save([DD.path.Rossby.name, fn,'.mat'],'data');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

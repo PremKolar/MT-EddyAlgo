@@ -61,6 +61,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS=getRossbyStuff(DD)
     if DD.switchs.RossbyStuff
+<<<<<<< HEAD
         if strcmp(DD.map.window.type,'globe')
             RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius-ZonApp.mat']),'data');
             RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed-ZonApp.mat']),'data');
@@ -68,6 +69,10 @@ function RS=getRossbyStuff(DD)
             RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
             RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
         end
+=======
+    RS.Lr=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+        RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
+>>>>>>> avRoRepair
     else
         RS=[];
     end

@@ -1,3 +1,4 @@
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 15-Jul-2014 13:52:44
 % Computer:  GLNX86
@@ -7,8 +8,11 @@
 function [DD]=S01b_ST_set_up
     %% init
     DD=initialise([],mfilename);
+<<<<<<< HEAD
     %% check if exists already
 %     [DD.path.Rossby.NCfile] = initNC(DD);
+=======
+>>>>>>> avRoRepair
     %% threads
     DD.threads.num=init_threads(DD.threads.num);
     %% find temp and salt files
@@ -34,11 +38,14 @@ function lims=limsdata(splits,window)
     lims(find(td)-1,2)=window.fullsize(2)-1; % let the one before finish at end(X)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<<<<<<< HEAD
 function [outfilename] = initNC(DD)
     outfilename=[DD.path.Rossby.name, 'BVRf_all.nc'];
     NCoverwriteornot(outfilename);
 end 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+=======
+>>>>>>> avRoRepair
 function [file]=tempsalt(DD)
     %% find the temp and salt files
 	 tt=0;ss=0;

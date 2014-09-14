@@ -43,10 +43,10 @@ function main(DD,T)
     %% collect tracks
     trackstuff(DD,T,II)
     %%
-    %     velZonmeans(DD,II,T)
-    %     scaleZonmeans(DD,II,T)
+    velZonmeans(DD,II,T)
+    scaleZonmeans(DD,II,T)
     %     %%
-    %     mapStuff(DD,T,II)
+    mapStuff(DD,T,II)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function trackstuff(DD,T,II)
@@ -134,20 +134,6 @@ function TR=trackinit(DD)
         TR.(sen).single=single;
         TR.(sen).cats=cats;
     end
-    %%
-    
-            jjjjjd
-    
-     for ss=1:2
-    
-         tsen=tsenses{ss};
-        sen = senses{ss};
-       Rm=TR.(sen).cats.radiusmean
-       Rm=TR.(sen).cats.median
-    end
-    
-    
-    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -277,22 +263,22 @@ function cb=decorate(clm,ticks,DD,tit,tit2,unit,logbase,decim,coast)
     end
 end
 %------------------
-function [zticklabel,zticks]=logcase(ticks,ratsticks,decim)
-    zticks=logspace(log10(ticks(1)),log10(ticks(2)),ticks(3))';
-    if ratsticks
-        zticklabel=ratscase(exp(zticks));
-    else
-        zticklabel=round(exp(zticks)*decim)/decim;
-        zticklabel=num2str(zticklabel);
-    end
-end
+% function [zticklabel,zticks]=logcase(ticks,ratsticks,decim)
+%     zticks=logspace(log10(ticks(1)),log10(ticks(2)),ticks(3))';
+%     if ratsticks
+%         zticklabel=ratscase(exp(zticks));
+%     else
+%         zticklabel=round(exp(zticks)*decim)/decim;
+%         zticklabel=num2str(zticklabel);
+%     end
+% end
 %----------------
-function zticklabel=ratscase(zticks)
-    [n,d]=rat(zticks);
-    nc=(num2cell(n));
-    dc=(num2cell(d));
-    zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
-end
+% function zticklabel=ratscase(zticks)
+%     [n,d]=rat(zticks);
+%     nc=(num2cell(n));
+%     dc=(num2cell(d));
+%     zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function drawcoast
     load coast;

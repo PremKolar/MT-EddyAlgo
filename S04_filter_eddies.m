@@ -32,14 +32,25 @@ function spmd_body(DD,rossby)
     [JJ]=SetThreadVar(DD);
     Td=disp_progress('init','filtering contours');
     for jj=1:numel(JJ)
-        [EE,skip]=work_day(DD,JJ(jj),rossby);
-        %%
         Td=disp_progress('disp',Td,numel(JJ));
-        if skip,disp(['skipping ' num2str(jj)]);continue;end
-        %% save
-        save_eddies(EE);
+        try
+            toBeTried(DD,rossby,JJ);
+        catch failed
+            disp(failed.message);
+            save(sprintf('S04fail-%s.mat',datestr(now,'mmddHHMM')));
+        end
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function toBeTried(DD,rossby,JJ)
+    [EE,skip]=work_day(DD,JJ(jj),rossby);
+    %%
+    
+    if skip,disp(['skipping ' num2str(jj)]);return;end
+    %% save
+    save_eddies(EE);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE,skip]=work_day(DD,JJ,rossby)
     %% check for exisiting data
@@ -331,8 +342,8 @@ function RS=getRossbyPhaseSpeedAndRadius(DD)
         RS.c=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
     else
         warning('No Rossby Radius available. Ignoring upper constraint on eddy scale!') %#ok<*WNTAG>
-        R.c=[];
-        R.Lr=[];
+        RS.c=[];
+        RS.Lr=[];
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -499,7 +510,7 @@ function radius=EDDyRadiusFromUV(peak,prof,fields)
     %% differentiate velocities to find first local extremata away from peak ie
     %% maximum orbital speed
     %% ie those distances at which the orbital velocity seizes to increase
-    nrm=@(in) (in-min(in))/max(in-min(in));
+   
     cb=@(in) [nan;  reshape(in,[],1) ; nan];
     sm=@(in) smooth(in,5,'lowess');
     di=@(in) diff(in,2);
@@ -534,6 +545,7 @@ function radius=EDDyRadiusFromUV(peak,prof,fields)
     radius.coor=coor;
     
     %     clf
+    %nrm=@(in) (in-min(in))/max(in-min(in));
     %     plot(nrm(prof.y.ssh));
     %     hold on
     %     plot(nrm(sm(prof.y.ssh)),'r')

@@ -83,7 +83,7 @@ function [rx, idx]=nonZonCont(rx)
     rx=reshape(rx(idx),size(idx));  
 end
 
-function [rx, idx]=AppenZonWingToX(rx)
+function [rx, idx]=AppenZonWingToX(rx) %#ok<DEFNU>
     % take $rx(Xhalf+1:end); append it to $rx(-Xhalf:0); shift the
     % values of that piece down by $edgeValue; append $rx(1:Xhalf) to the end of
     % the new $rx(end+1:Xhalf); shift that piece's values up by $edgeValue

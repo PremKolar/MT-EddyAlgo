@@ -9,7 +9,6 @@
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
-% NOTE: DOES NOT YET WORK FOR WINDOW SPANNING ZONAL BORDER OF DATA (140611,'yymmdd')
 
 function S01b_fromTS
     %% set up
@@ -44,20 +43,17 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,chnk)
     %% init
-    [CK,cc]=init(DD,chnk);
+     [CK,cc]=init(DD,chnk);
     %% calculate Brunt-Väisälä f and potential vorticity
     [CK.N]=calcBrvaPvort(CK,cc);
     %% integrate first baroclinic rossby radius
     [CK.rossby.Ro1]=calcRossbyRadius(CK,cc);
     %% rossby wave phase speed
     [CK.rossby.c1]=calcC_one(CK,cc);
-    
-    %% TEMPSOL
+    %% clean infs
     CK.N(isinf(CK.N))=nan;
     CK.rossby.Ro1(isinf(CK.rossby.Ro1))=nan;
     CK.rossby.c1(isinf(CK.rossby.c1))=nan;
-    %%%%
-    
     
     %% save
     disp('saving..')
@@ -214,6 +210,7 @@ function R=	calcRossbyRadius(CK,cc)
     dispM(['integrating Rossby Radius for chunk ',cc],1)
     [~,YY,XX]=size(CK.N);
     M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
+    % R = 1/(pi f) int N dz
     R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -298,10 +295,10 @@ function dim=ncArrayDims(DD,chnk)
     dim.len2d = 	[inf inf j_len diff(lims(chnk,:))+1];
     dim.start1d = [j_indx_start lims(chnk,1)-1];
     dim.len1d =	[j_len diff(lims(chnk,:))+1];
-    %% new indeces for output nc file
-    xlens=diff(squeeze(lims(:,2)));
-    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
-    newxstart=sum(xlens(1:chnk-1))+1 -1;
+    %% new indeces for output nc file   
+     xlens=diff(lims,1,2)+1;   
+    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);    
+    newxstart=sum(xlens(1:chnk-1));
     dim.new.start =[0 newxstart];
     dim.new.len =  dim.len1d;
 end

@@ -3,9 +3,9 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=6;
     DD.debugmode=false;
-%             DD.debugmode=true;
+%     DD.debugmode=true;
     DD.overwrite=false;
-%         DD.overwrite=true;
+    %         DD.overwrite=true;
     %% time
     DD.time.from.str='19900102';
     DD.time.till.str='20500101';

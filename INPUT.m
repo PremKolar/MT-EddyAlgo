@@ -7,10 +7,9 @@ function DD=INPUT
     DD.overwrite=false;
     %         DD.overwrite=true;
     %% time
-    DD.time.from.str='19940105';
-    DD.time.till.str='20061231';
-    %      threshlife=20*7
-    threshlife=7*3;
+    DD.time.from.str='19900102';
+    DD.time.till.str='20500101';
+    threshlife=8*3;
     %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;

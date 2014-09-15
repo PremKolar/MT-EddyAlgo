@@ -10,15 +10,15 @@ function S08_analyze_tracks
     %%
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     %%
-    [map,vecs,minMax]=main(DD);
+    main(DD);
     %%
-    seq_body(minMax,map,DD,vecs);
+    seq_body(DD);
     %%
     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [map,vecs,minMax]=main(DD)
+function main(DD)
     if DD.debugmode
         [map,vecs,minMax]=spmd_body(DD);
     else
@@ -27,6 +27,8 @@ function [map,vecs,minMax]=main(DD)
             
         end
     end
+    [map,vecs]=mergeThreadData(minMax,map,DD,vecs);
+    save mapvecsminMax map vecs minMax
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,8 +42,6 @@ function [MAP,V,MinMax]=spmd_body(DD)
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-        %% resort tracks for output
-        [MinMax]=resortTracks(DD,MinMax,TT);
         %% mapstuff prep
         switch TT.sense
             case -1
@@ -50,9 +50,14 @@ function [MAP,V,MinMax]=spmd_body(DD)
                 [MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
         end
     end
+    %% resort tracks for output
+    [MinMax]=resortTracks(DD,MinMax,TT);
     %% get global extrms
     MinMax=globalExtr(MinMax);
+    
 end
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
     [MAP.strctr, eddy]=TRstructure(MAP,eddy,DD);
@@ -74,8 +79,8 @@ function [ACs,Cs]=netVels(DD,map)
     Cs =	map.Cycs.vel.zonal.mean		 -velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function seq_body(minMax,map,DD,vecs) 
-    [map,vecs]=mergeThreadData(minMax,map,DD,vecs); %#ok<NASGU>
+function seq_body(DD)
+    load mapvecsminMax map vecs  
     %% get rossby radius
     if DD.switchs.RossbyStuff
         map.Rossby=loadRossby(DD);
@@ -298,12 +303,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Ro=loadRossby(DD)
     MAP=initMAP(DD);
-    Ro.file=[DD.path.Rossby.name,DD.path.Rossby.files.name];
-    Ro.large.radius=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'out');
+    Ro.large.radius=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
     Ro.large.radius(Ro.large.radius==0)=nan;
     Ro.small.radius=MAP.proto.nan;
     %%
-    Ro.large.phaseSpeed=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'out');
+    Ro.large.phaseSpeed=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
     Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
     Ro.small.phaseSpeed=MAP.proto.nan;
     %% nanmean to smaller map

@@ -34,7 +34,7 @@ function spmd_body(DD,rossby)
     for jj=1:numel(JJ)
         Td=disp_progress('disp',Td,numel(JJ));
         try
-            toBeTried(DD,rossby,JJ);
+            toBeTried(DD,rossby,JJ,jj);
         catch failed
             disp(failed.message);
             save(sprintf('S04fail-%s.mat',datestr(now,'mmddHHMM')));
@@ -42,10 +42,8 @@ function spmd_body(DD,rossby)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function toBeTried(DD,rossby,JJ)
-    [EE,skip]=work_day(DD,JJ(jj),rossby);
-    %%
-    
+function toBeTried(DD,rossby,JJ,jj)
+    [EE,skip]=work_day(DD,JJ(jj),rossby);    
     if skip,disp(['skipping ' num2str(jj)]);return;end
     %% save
     save_eddies(EE);

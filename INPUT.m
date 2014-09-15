@@ -4,7 +4,7 @@
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
 function DD=INPUT
-    DD.template='pop';
+    DD.template='aviso';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
@@ -14,7 +14,6 @@ function DD=INPUT
     %% time
     DD.time.from.str='19940105';
     DD.time.till.str='20061231';
-% %     DD.time.till.str='20061231';
     %      threshlife=20*7
     threshlife=7*3;
     %% window on globe
@@ -50,3 +49,4 @@ function DD=INPUT
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end
+

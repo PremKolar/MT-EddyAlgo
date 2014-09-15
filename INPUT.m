@@ -1,26 +1,20 @@
-% templates :
-% 'udef' - user defined in INPUTuserDef.m
-% 'pop' - template for POP SSH data
-% 'aviso' - template for AVISO SSH data
-% 'mad' - template for Madeleine's data
 function DD=INPUT
     DD.template='aviso';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=2;
     DD.debugmode=false;
-%     DD.debugmode=true;
+            DD.debugmode=true;
     DD.overwrite=false;
-%        DD.overwrite=true;
+     DD.overwrite=true;
     %% time
-    DD.time.from.str='19940105';
-    DD.time.till.str='20061231';
-    %      threshlife=20*7
-    threshlife=7*3;
+    DD.time.from.str='20010101';
+    DD.time.till.str='20010107';
+    threshlife=2;
     %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;
-    DD.map.in.south= -80;
-    DD.map.in.north= 80;
+    DD.map.in.south=30;
+    DD.map.in.north=45;
     %% output map res
     DD.map.out.X=360*1+1; % TODO
     DD.map.out.Y=160*1+1;
@@ -35,18 +29,20 @@ function DD=INPUT
     DD.thresh.corners.max=5*2*pi*1e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~5000km) , just for performance
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.IdentityCheck=[2.5];
+    DD.thresh.IdentityCheck=[2];
     %% switches
-    DD.switchs.IQ=1;
-    DD.switchs.chelt=0;
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=1;
-    DD.switchs.AmpAreaCheck=0;
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
-    DD.switchs.IdentityCheck=1;
-    DD.switchs.maxRadiusOverRossbyL=1;
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
+    %%
+    DD.switchs.IQ=1;
+    DD.switchs.IdentityCheck=1;
+    DD.switchs.maxRadiusOverRossbyL=1;
+    %%
+    DD.switchs.chelt=0;
+    DD.switchs.AmpAreaCheck=0;
 end
 

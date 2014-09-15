@@ -3,14 +3,13 @@ function DD=INPUTaviso
     DD.time.delta_t=7; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
-    
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
     DD.path.UV.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
     DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
     DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
-    %      DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
+    DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
     DD.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.25deg__yyyymmdd.nc';
     DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';

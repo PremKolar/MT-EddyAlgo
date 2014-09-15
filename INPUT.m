@@ -1,20 +1,20 @@
 function DD=INPUT
     DD.template='aviso';
     %% threads / debug
-    DD.threads.num=2;
+    DD.threads.num=6;
     DD.debugmode=false;
-            DD.debugmode=true;
+%     DD.debugmode=true;
     DD.overwrite=false;
-     DD.overwrite=true;
+    %         DD.overwrite=true;
     %% time
-    DD.time.from.str='20010101';
-    DD.time.till.str='20010107';
-    threshlife=2;
+    DD.time.from.str='19900102';
+    DD.time.till.str='20500101';
+    threshlife=8*3;
     %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;
-    DD.map.in.south=30;
-    DD.map.in.north=45;
+    DD.map.in.south= -80;
+    DD.map.in.north= 80;
     %% output map res
     DD.map.out.X=360*1+1; % TODO
     DD.map.out.Y=160*1+1;
@@ -25,11 +25,12 @@ function DD=INPUT
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
-    DD.thresh.corners.min=10; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=5*2*pi*1e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~5000km) , just for performance
+    DD.thresh.corners.min=12; % min number of data points for the perimeter of an eddy
+     %% DANGEROUS !
+    DD.thresh.corners.max=1e42; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.IdentityCheck=[2];
+    DD.thresh.IdentityCheck=[2.5];
     %% switches
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=1;

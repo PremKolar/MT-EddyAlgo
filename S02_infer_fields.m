@@ -145,23 +145,30 @@ function gr=geostrophy(gr,corio,RS)
         gr.L_R=abs(RS.c./corio.f);
         gr.Bu=(gr.L_R./gr.L).^2;
     end
-    %     ow=smooth2a(gr.OW,10);
-    %     surf(gr.lon,gr.lat,   gr.ssh*2,double(ow./1e-11),'FaceColor','interp','FaceLighting','phong');
-    %     axis tight equal; shading interp;   grid on;    view(3)
-    %     set(gca,'FontSize',16);   set(findall(gcf,'type','text'),'FontSize',16)
-    %     doublemap([-20 0 20],autumn(50),winter(50),[.9 1 .9],20);
-    %     set(gca,'xtick',mean(gr.lon(:)),'ytick',mean(gr.lat(:)),'ztick',[],...
-    %         'xticklabel',sprintf('%2.0f lon',mean(gr.lon(:))),'yticklabel',sprintf('%2.0f lat',mean(gr.lat(:))))
-    %     box off;grid off
-    %     set(gcf,'Renderer','opengl')
-    %     colorbar
-    %     title('Okubo-Weiss [2e11(V_x U_y + U_x^2)] on SSH')
-    %     set(findobj(gca,'type','surface'),...
-    %         'FaceLighting','phong',...
-    %         'AmbientStrength',.3,'DiffuseStrength',.7,...
-    %         'SpecularStrength',1.1,'SpecularExponent',60,...
-    %         'BackFaceLighting','unlit')
-    %     lightangle(-45,-45+180)
+    
+    load CUT_19940330_+35s+45n-70w-55e
+%     
+%     
+%     gr=grids;
+%         ow=smooth2a(gr.OW,10);
+%         surf(gr.lon,gr.lat,   gr.ssh*2,double(ow./1e-11),'FaceColor','interp','FaceLighting','phong');
+%         axis tight equal; shading interp;   grid on;    view(3)
+%         set(gca,'FontSize',16);   set(findall(gcf,'type','text'),'FontSize',16)
+%         doublemap([-20 0 20],autumn(100),winter(100),[.9 1 .9],50);
+%         set(gca,'xtick',mean(gr.lon(:)),'ytick',mean(gr.lat(:)),'ztick',[],...
+%             'xticklabel',sprintf('%2.0f lon',mean(gr.lon(:))),'yticklabel',sprintf('%2.0f lat',mean(gr.lat(:))))
+%         box off;grid off
+%         set(gcf,'Renderer','opengl')
+%         colorbar
+%         [az,el]=view
+% %         view([-37.5-90-90, 30])
+%         title('2e11(V_x U_y + U_x^2) smoothed; on SSH')
+%         set(findobj(gca,'type','surface'),...
+%             'FaceLighting','phong',...
+%             'AmbientStrength',.3,'DiffuseStrength',.7,...
+%             'SpecularStrength',1.1,'SpecularExponent',60,...
+%             'BackFaceLighting','unlit')
+%         lightangle(-45,-45+180)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(grids)

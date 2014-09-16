@@ -8,9 +8,9 @@ function S08_analyze_tracks
     %% init
     DD=initialise([],mfilename);
     %%
-    DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     %%
-    main(DD);
+%     main(DD);
     %%
     seq_body(DD);
     %%
@@ -80,7 +80,7 @@ function [ACs,Cs]=netVels(DD,map)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
-    load mapvecsminMax map vecs  
+    load mapvecsminMax map vecs   %#ok<NASGU>
     %% get rossby radius
     if DD.switchs.RossbyStuff
         map.Rossby=loadRossby(DD);

@@ -43,7 +43,7 @@ function spmd_body(DD,rossby)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function toBeTried(DD,rossby,JJ,jj)
-    [EE,skip]=work_day(DD,JJ(jj),rossby);    
+    [EE,skip]=work_day(DD,JJ(jj),rossby);
     if skip,disp(['skipping ' num2str(jj)]);return;end
     %% save
     save_eddies(EE);
@@ -130,16 +130,12 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy=CR_2dEDDy(ee.coordinates.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coordinates for zoom cut
-    [zoom]=get_window_limits(ee.coordinates,cut.dim,4);
+    [zoom,pass.winlim]=get_window_limits(ee.coordinates,cut.dim,4,DD.map.window.type);
+    if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
     zoom.fields=EDDyCut_init(cut.grids,zoom);
     %% generate logical masks defining eddy interiour and outline
-    % 	tic
-    %     zoom.mask=EDDyCut_maskOld(zoom);
-    % 	toc
-    %     tic
     zoom.mask=EDDyCut_mask(zoom);
-    %     toc
     %% check for nans matlab.matwithin eddy
     [pass.CR_Nan]=CR_Nan(zoom);
     if ~pass.CR_Nan, return, end;
@@ -180,15 +176,11 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [ee.geo]=geocoor(zoom,ee.volume);
     %% append 'age'
     ee.age=0;
+    %% get trackref
+    ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
     %% append projected location
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
-        [ee.projLocsMask,ee.trackref]=ProjectedLocations(ee,rossby.c,cut,DD)	;
-    else
-        ee.trackref=getTrackRef(ee,DD.parameters.trackingRef);
-    end
-    %% correct x indices in case of global window
-    if strcmp(DD.map.window.type,'globe')
-        ee=correctXoverlap(ee,DD);
+        [ee.projLocsMask]=ProjectedLocations(rossby.c,cut,DD,ee.trackref);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,29 +195,29 @@ function RoL=getLocalRossyRadius(rossbyL,coor)
     RoL=nanmedian(rossbyL(drop_2d_to_1d(y,x,Y)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ee=correctXoverlap(ee,DD)
-    X=DD.map.window.fullsize(2);
-    Y=DD.map.window.size.Y;
-    [ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
-    [ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
-    [ee.centroid.x]=wrapXidx(ee.centroid.x,X);
-    [ee.trackref.x]=wrapXidx(ee.trackref.x,X);
-    [ee.volume.center.x]=wrapXidx(ee.volume.center.x,X);
-    %%
-    ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
-    ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
-    ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
-    %%
-    function [data]=wrapXidx(data,X)
-        data(data<0.5)=X;
-        data(data<1)=1;
-        needcorr=(data>X);
-        data(needcorr)=data(needcorr)-X;
-        data(data<0.5)=X;
-        data(data<1)=1;
-        data(data>X)=X;
-    end
-end
+% function ee=correctXoverlap(ee,DD)
+%     X=DD.map.window.fullsize(2);
+%     Y=DD.map.window.size.Y;
+%     [ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
+%     [ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
+%     [ee.centroid.x]=wrapXidx(ee.centroid.x,X);
+%     [ee.trackref.x]=wrapXidx(ee.trackref.x,X);
+%     [ee.volume.center.x]=wrapXidx(ee.volume.center.x,X);
+%     %%
+%     ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
+%     ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
+%     ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
+%     %%
+%     function [data]=wrapXidx(data,X)
+%         data(data<0.5)=X;
+%         data(data<1)=1;
+%         needcorr=(data>X);
+%         data(needcorr)=data(needcorr)-X;
+%         data(data<0.5)=X;
+%         data(data<1)=1;
+%         data(data>X)=X;
+%     end
+% end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -367,9 +359,7 @@ function [centroid]=AreaCentroid(zoom,Y)
     centroid.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
-    %% get tracking reference point
-    trackref=getTrackRef(ee,DD.parameters.trackingRef);
+function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
     rU=rossbyU(trackref.lin);
     rU(abs(rU)>1)=sign(rU)*1;  % put upper limit on rossby wave speed
@@ -401,7 +391,7 @@ function [mask,trackref]=ProjectedLocations(ee,rossbyU,cut,DD)
     ellip.x=round(ax.majinc * cos(fullcirc)) + xi.center;
     ellip.y=round(ax.mininc * sin(fullcirc)) + yi.center;
     ellip.lin=unique(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y));
-    %% take care of out of bounds values
+    %% take care of out of bounds values (only applicable to zonally non continous case. this shouldnt happen in global case)
     ellip.x(ellip.x<1)=1;
     ellip.x(ellip.x>cut.dim.X)=cut.dim.X;
     ellip.y(ellip.y<1)=1;
@@ -511,7 +501,7 @@ function radius=EDDyRadiusFromUV(peak,prof,fields)
     %% differentiate velocities to find first local extremata away from peak ie
     %% maximum orbital speed
     %% ie those distances at which the orbital velocity seizes to increase
-   
+    
     cb=@(in) [nan;  reshape(in,[],1) ; nan];
     sm=@(in) smooth(in,5,'lowess');
     di=@(in) diff(in,2);
@@ -649,7 +639,8 @@ function fields_out=EDDyCut_init(fields_in,zoom)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [z]=get_window_limits(coor,dim,enlargeFac)
+function [z,pass]=get_window_limits(coor,dim,enlargeFac,maptype)
+    pass=true;
     z.coor=coor;
     %% output
     z.limits.x(1)=min(coor.int.x);
@@ -661,6 +652,10 @@ function [z]=get_window_limits(coor,dim,enlargeFac)
     z.coor.int.y=z.coor.int.y-z.limits.y(1) +1;
     z.coor.exact.x=z.coor.exact.x -double(z.limits.x(1))  +1;
     z.coor.exact.y=z.coor.exact.y -double(z.limits.y(1))  +1;
+    %% in global case dismiss eddies touching zonal boundaries (another copy of these eddies exists that is not touching boundaries, due to the zonal appendage in S00b)
+    if strcmp(maptype,'globe') &&  z.limits.x(1)==1 || z.limits.x(2)==dim.X
+        pass=false;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function inout=enlarge_window(inout,factor,dim)
@@ -725,6 +720,7 @@ function  pass=initPass(len)
     pass(len).rim=0;
     pass(len).CR_ClosedRing=0;
     pass(len).CR_2dEDDy=0;
+    pass(len).winlim=0;
     pass(len).CR_Nan=0;
     pass(len).CR_sense=0;
     pass(len).Area=0;

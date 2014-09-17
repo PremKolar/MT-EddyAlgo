@@ -10,6 +10,7 @@ function S04_filter_eddies
     DD=initialise('conts',mfilename);
     DD.threads.num=init_threads(DD.threads.num);
     rossby=getRossbyPhaseSpeedAndRadius(DD);
+dbstop if error
     %% spmd
     main(DD,rossby);
     %% update infofile
@@ -361,6 +362,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
+dbstop if error
     rU=rossbyU(trackref.lin);
     rU(abs(rU)>1)=sign(rU)*1;  % put upper limit on rossby wave speed
     %% get projected distance (1.75 * dt*rU  as in chelton 2011)
@@ -405,6 +407,7 @@ function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
     mask.logical=sparse(imfill(mask.logical,double([yi.center xi.center]),4));
     mask.lin=find(mask.logical);
+error('sgfdhsgdfh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTrackRef(ee,tr)

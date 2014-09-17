@@ -8,9 +8,9 @@ function S08_analyze_tracks
     %% init
     DD=initialise([],mfilename);
     %%
-     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+    DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     %%
-%     main(DD);
+    main(DD);
     %%
     seq_body(DD);
     %%
@@ -49,12 +49,11 @@ function [MAP,V,MinMax]=spmd_body(DD)
             case 1
                 [MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
         end
+        %% resort tracks for output
+        [MinMax]=resortTracks(DD,MinMax,TT);
     end
-    %% resort tracks for output
-    [MinMax]=resortTracks(DD,MinMax,TT);
     %% get global extrms
     MinMax=globalExtr(MinMax);
-    
 end
 
 
@@ -100,7 +99,6 @@ function seq_body(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinMax=resortTracks(DD,MinMax,TT)
-    
     subfields=DD.FieldKeys.trackPlots;
     track= TT.eddy.trck;
     TT.lat=extractdeepfield(track,'geo.lat');
@@ -114,6 +112,7 @@ function MinMax=resortTracks(DD,MinMax,TT)
     end
     %% distance
     TT.distInM=extractdeepfield(diststuff(field2mat(TT.eddy.trck,'geo')'),'zonal.m');
+    %     fprintf('%7.2f\n',max(abs(TT.distInM))/1000)
     %%
     switch TT.sense
         case -1
@@ -367,28 +366,32 @@ function [dist,count]=setupDist(MAP)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [d,drct]=diststuff(geo)
+    %      d2k=@(laloA,laloB)  deg2km(distance(laloA,laloB));
+    d2mR=@(degs,direc)  deg2km(degs).*direc*1000;
     geo=[geo(1,:); geo];
+    LA=geo(:,1);
+    LO=geo(:,2);
+    latmean=nanmean(LA);
+    lonmean=nanmean(LO);
     %%
     [d.traj.deg, drct.traj]=distance(geo(1:end-1,:),geo(2:end,:));
-    d.traj.m=deg2rad(d.traj.deg)*earthRadius;
+    d.traj.m=deg2km(d.traj.deg)*1000;
     d.traj.fromBirth = cumsum(d.traj.m);
-    d.traj.tillDeath = flipud(cumsum(flipud(d.traj.m)));
+    d.traj.tillDeath =  d.traj.fromBirth(end) - d.traj.fromBirth ;
     %%
-    latmean=mean(geo(:,1));
-    [d.zonal.deg, drct.zonal]=distance(latmean,geo(1:end-1,2),latmean,geo(2:end,2));
+    [d.zonal.deg, drct.zonal]=distance(latmean,LO(1:end-1),latmean,LO(2:end));
     drct.zonal(drct.zonal<=180 & drct.zonal >= 0) = 1;
     drct.zonal(drct.zonal> 180 & drct.zonal <= 360) = -1;
-    d.zonal.m=deg2rad(d.zonal.deg).*drct.zonal * earthRadius;
+    d.zonal.m=d2mR(d.zonal.deg,drct.zonal);
     d.zonal.fromBirth = cumsum(d.zonal.m);
-    d.zonal.tillDeath = flipud(cumsum(flipud(d.zonal.m)));
+    d.zonal.tillDeath =  d.zonal.fromBirth(end) - d.zonal.fromBirth ;
     %%
-    lonmean=mean(geo(:,2));
-    [d.merid.deg, drct.merid]=distance(geo(1:end-1,1),lonmean,geo(2:end,1),lonmean);
+    [d.merid.deg, drct.merid]=distance(LA(1:end-1),lonmean,LA(2:end),lonmean);
     drct.merid(drct.merid<=90 & drct.merid >= 270) = 1;
     drct.merid (drct.merid > 90 & drct.merid < 270) = -1;
-    d.merid.m=deg2rad(d.merid.deg).*drct.merid * earthRadius;
+    d.merid.m=d2mR(d.merid.deg,drct.merid);
     d.merid.fromBirth = cumsum(d.merid.m);
-    d.merid.tillDeath = flipud(cumsum(flipud(d.merid.m)));
+    d.merid.tillDeath =  d.merid.fromBirth(end) - d.merid.fromBirth ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [param,count]=protoInit(proto,type)

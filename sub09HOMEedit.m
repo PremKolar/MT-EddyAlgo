@@ -88,7 +88,8 @@ function trackinit(DD)
 	tsen=tsenses{1};
 	rootB=DD.path.analyzedTracks.(tsen).name;
 	
-	eds=[dir([root '*.mat']) dir([rootB '*.mat'])]
+	eds=dir([root '*.mat']) 
+    
 	
 	
 	
@@ -97,25 +98,45 @@ function trackinit(DD)
 	%%
 	figure(10)
 	for ss= 3:1:numel(eds)
-		SI(ss)=load([root eds(ss).name]);
-		S=SI(ss);
-		x=S.age*24*60*60;
-		y=cumsum(S.distInM);	
-		STD(ss)=std(S.distInM);
-		lat(ss)=mean(S.lat);
-		p=polyfit(x,y,1);
-		u(ss)=p(1);
-		[~,R(ss)]=(polyfit(x,y,1));
-		[Y,delta] = polyval(p,x,R(ss));
-delt(ss)=mean(delta);
-		
-		% 		hold on
-% plot(x,y,'r',x,Y)
-		len(ss)=numel(x);
-% 		ra(ss)=(nanmean(S.peakampto_ellipse))	;
-		ra(ss)=(nanmean(S.radiusmean	))	;
-	end
-		
+% 		SI(ss)=load([root eds(ss).name]);
+% 		S=SI(ss);
+% 		x=S.age*24*60*60;
+% 		y=cumsum(S.distInM);	
+% 		STD(ss)=std(S.distInM);
+% 		lat(ss)=mean(S.lat);
+%        ym(ss)=max(S.distInM);
+% 		p=polyfit(x,y,1);
+% 		u(ss)=p(1);
+% 		[~,R(ss)]=(polyfit(x,y,1));
+% 		[Y,delta] = polyval(p,x,R(ss));
+% delt(ss)=mean(delta);
+% 		
+% 		% 		hold on
+% % plot(x,y,'r',x,Y)
+% 		len(ss)=numel(x);
+% % 		ra(ss)=(nanmean(S.peakampto_ellipse))	;
+% 		ra(ss)=(nanmean(S.radiusmean	))	;
+        
+        
+        if max(abs(SI(ss).distInM))>1e6
+           ss 
+        end
+        
+        
+        
+    end
+	
+   
+    sibug
+    
+    for si=1:7
+       y=extractdeepfield(sibug(si).eddy.trck,'geo.lat') 
+       x=extractdeepfield(sibug(si).eddy.trck,'geo.lon') 
+       hold on
+       plot(x,y,'*','color',rand(1,3))
+    end
+    
+    
 	%%
 	ra=ra-min(ra);
 	ra=ra/max(ra)

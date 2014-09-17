@@ -6,8 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06_init_output_maps
 	%% init
-	DD=initialise([],mfilename);
-	%%
+ 	DD=initialise([],mfilename);
+    %%
 	[MAP]=MakeMaps(DD);
 	%%
 	DD.threads.num=init_threads(DD.threads.num);
@@ -16,7 +16,7 @@ function S06_init_output_maps
 	%% save MAP
 	save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
 	%% update infofile
-	conclude(DD)
+% 	conclude(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=main(DD,MAP)
@@ -28,11 +28,11 @@ function idx=main(DD,MAP)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=mainSpmd(DD,MAP)
-	spmd(DD.threads.num)
+ 	spmd(DD.threads.num)
 		idx=spmd_body(DD,MAP);
 		%% merge composite
-		idxx=gop(@vertcat,idx,1);
-	end
+        idxx=gop(@vertcat,idx,1);
+ 	end
 	numel(idx);
 	idx=sum(idxx{1});
 end
@@ -41,21 +41,17 @@ function idx=spmd_body(DD,out)
 	%% get input example lon/lat
 	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
 	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
-	%% correct if fullglobe
-	if strcmp(DD.map.window.type,'globe')
-		xreal=DD.map.window.fullsize(2);
-		in.lon=reshape(in.lon,DD.map.window.size.Y,[]);
-		in.lat=reshape(in.lat,DD.map.window.size.Y,[]);
-		in.lon=in.lon(:,1:xreal);
-		in.lat=in.lat(:,1:xreal);
-		in.lon=in.lon(:);
-		in.lat=in.lat(:);
-	end
-	%% get codisp'ed indeces
+    %% correct if fullglobe
+    %% edit: no need! phantom eddies were taken care of in S05
+%     in.toBeUsed=false(size(on.lon));
+%     lolaComplex=in.lon+1i*in.lat;
+%     [~,uniqii]=unique(lolaComplex);
+%     in.toBeUsed(uniqii)=true;    
+    %%
+    idx=zeros(1,DD.map.window.sizePlus.X*DD.map.window.sizePlus.Y);
+    %% get codisp'ed indeces
 	lims=thread_distro(DD.threads.num,numel(in.lon));
-	JJ=lims(labindex,1):lims(labindex,2);
-	%%
-	idx=zeros(1,DD.map.window.size.X*DD.map.window.size.Y);
+	JJ=lims(labindex,1):lims(labindex,2);	
 	%% get Indices For Out Maps
 	idx=getIndicesForOutMaps(in,out,JJ,idx);
 end

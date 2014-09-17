@@ -53,7 +53,7 @@ function spmd_body(DD)
     %% start tracking
     T=disp_progress('init',['tracking ' sen]);
     for jj=2:numDays
-        T=disp_progress('disp',T,numDays-1,499);
+        T=disp_progress('disp',T,numDays-1,numDays);
         %% set up current day
         [NEW]=set_up_today(DD,jj,sen);
         %% do calculations and archivings

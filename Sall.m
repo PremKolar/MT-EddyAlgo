@@ -22,10 +22,10 @@
 % S08_analyze_tracks
 
 S04_filter_eddies
-S05_track_eddies
-S06_init_output_maps
-S08_analyze_tracks
-% 
+% S05_track_eddies
+% S06_init_output_maps
+% S08_analyze_tracks
+% % 
 % try
 %     S04_filter_eddies
 % end

@@ -4,18 +4,19 @@
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
 function DD=INPUT
-    DD.template='aviso';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;
-%        DD.overwrite=true;
+    DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
-    DD.time.till.str='20061231';
+   DD.time.till.str='19981231';
+%     DD.time.till.str='20061231';
     %      threshlife=20*7
-    threshlife=7*3;
+    threshlife=7*5;
     %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;

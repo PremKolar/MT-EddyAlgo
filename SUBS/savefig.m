@@ -6,18 +6,18 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %savegcf(gcf,outdir,resOut,xdim,ydim,tit,frmt,closeAfter)
 function savefig(outdir,resOut,xdim,ydim,tit,frmt)
-    % set(gcf,'renderer','painter')
-    % set(gcf,'Visible','off')
+    set(gcf,'renderer','painter')
+    set(gcf,'Visible','off')
     if nargin < 6,	frmt='dpdf';	end
     fname=[outdir,tit];
     mkdirp(outdir);
     %% set up gcfure
-    [resHere]=setupfigure(resOut,xdim,ydim);
+    [resHere,posOld]=setupfigure(resOut,xdim,ydim);
     %% print
     set(gcf,'Visible','off');
     printStuff(frmt,fname,resOut,xdim,ydim,resHere);
     set(gcf,'Visible','on');
-    
+    set(gcf,'position',posOld);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function printStuff(frmt,fname,resOut,xdim,ydim,resHere)
@@ -38,15 +38,16 @@ function printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function resHere=setupfigure(resOut,xdim,ydim)
+function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
     resHere=get(0,'ScreenPixelsPerInch');
     %    ratioRes=resOut/resHere;
     ratioRes=1;
     try
-    set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);
-    catch 
-       disp('not setting up position for docked fig') 
-    end        
+        posNow=get(gcf,'position');
+        set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);
+    catch
+        disp('not setting up position for docked fig')
+    end
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
     set(gca,'FontSize',12)
     set(findall(gcf,'type','text'),'FontSize',12)

@@ -1,3 +1,9 @@
+% templates :
+% 'udef' - user defined in INPUTuserDef.m
+% 'pop' - template for POP SSH data
+% 'aviso' - template for AVISO SSH data
+% 'mad' - template for Madeleine's data
+
 	function DD=INPUT
 	    DD.template='pop';
 	    %% threads / debug
@@ -49,5 +55,4 @@
 	    DD.switchs.chelt=0;
 	    DD.switchs.AmpAreaCheck=0;
 	end
-	
 	

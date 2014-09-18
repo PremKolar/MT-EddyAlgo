@@ -251,7 +251,7 @@ function [inout]=kill_phantoms(inout)
     [~,ui,~]=unique(lola);
     %% loop over
     if numel(lola)~=numel(ui)
-        sdgbsdfgqergwr %shouldnt happen no mo
+        sdgbsdfgqergwr %shouldnt happen no mo  % TODO
     end
     %% old version
     %     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );

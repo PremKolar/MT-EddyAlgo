@@ -8,12 +8,12 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-     DD.debugmode=true;
+%      DD.debugmode=true;
     DD.overwrite=false;
-       DD.overwrite=true;
+%        DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
-   DD.time.till.str='19961231';
+   DD.time.till.str='19991231';
 %     DD.time.till.str='20061231';
     %      threshlife=20*7
     threshlife=7*5;

@@ -2,7 +2,7 @@
 %imagesc: fig=ppc(in,2)
 function fig=ppc(in,type,noshrink)
     if nargin==1,type=1; end
-    if nargin<1,noshrink=0; end
+    if nargin<3,noshrink=0; end
     in=shapeUp(in,noshrink);
     fig=drawIt(in,type);
 end

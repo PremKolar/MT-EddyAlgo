@@ -6,8 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S08_analyze_tracks
     DD=initialise([],mfilename);
-    %     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-    DD.threads.tracks=thread_distro(DD.threads.num,120);
+    DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
     conclude(DD);

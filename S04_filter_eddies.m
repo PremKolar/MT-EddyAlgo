@@ -10,7 +10,6 @@ function S04_filter_eddies
     DD=initialise('conts',mfilename);
     DD.threads.num=init_threads(DD.threads.num);
     rossby=getRossbyPhaseSpeedAndRadius(DD);
-    dbstop if error
     %% spmd
     main(DD,rossby);
     %% update infofile
@@ -34,9 +33,7 @@ function spmd_body(DD,rossby)
     Td=disp_progress('init','filtering contours');
     for jj=1:numel(JJ)
         Td=disp_progress('disp',Td,numel(JJ));
-        
         toBeTried(DD,rossby,JJ,jj);
-        
         %         try
         %             toBeTried(DD,rossby,JJ,jj);
         %         catch failed
@@ -88,11 +85,8 @@ function EE=find_eddies(EE,ee,rossby,cut,DD)
     senN=[-1 1];
     for ii=1:2
         sen=DD.FieldKeys.senses{ii};
-       [EE.(sen),EE.pass.(sen)]=walkThroughContsVertically(ee,rossby,cut,DD,senN(ii));
-    end     
-%     [EE.anticyclones,EE.pass.ac]=walkThroughContsVertically(ee,rossby,cut,DD,-1);
-%     %% cyclones
-%     [EE.cyclones,EE.pass.c]=walkThroughContsVertically(ee,rossby,cut,DD,1);
+        [EE.(sen),EE.pass.(sen)]=walkThroughContsVertically(ee,rossby,cut,DD,senN(ii));
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
@@ -203,32 +197,6 @@ function RoL=getLocalRossyRadius(rossbyL,coor)
     y(y>Y)=Y;
     RoL=nanmedian(rossbyL(drop_2d_to_1d(y,x,Y)));
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function ee=correctXoverlap(ee,DD)
-%     X=DD.map.window.fullsize(2);
-%     Y=DD.map.window.size.Y;
-%     [ee.coordinates.exact.x]=wrapXidx(ee.coordinates.exact.x,X);
-%     [ee.coordinates.int.x]=wrapXidx(ee.coordinates.int.x,X);
-%     [ee.centroid.x]=wrapXidx(ee.centroid.x,X);
-%     [ee.trackref.x]=wrapXidx(ee.trackref.x,X);
-%     [ee.volume.center.x]=wrapXidx(ee.volume.center.x,X);
-%     %%
-%     ee.centroid.lin=drop_2d_to_1d(ee.centroid.y,ee.centroid.x,Y);
-%     ee.trackref.lin=drop_2d_to_1d(ee.trackref.y,ee.trackref.x,Y);
-%     ee.volume.center.lin=drop_2d_to_1d(ee.volume.center.y,ee.volume.center.x,Y);
-%     %%
-%     function [data]=wrapXidx(data,X)
-%         data(data<0.5)=X;
-%         data(data<1)=1;
-%         needcorr=(data>X);
-%         data(needcorr)=data(needcorr)-X;
-%         data(data<0.5)=X;
-%         data(data<1)=1;
-%         data(data>X)=X;
-%     end
-% end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% checks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,sense]=CR_sense(zoom,direc,level)
     pass=false;
@@ -414,7 +382,7 @@ function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
     mask.logical=sparse(imfill(mask.logical,double([yi.center xi.center]),4));
-    mask.lin=find(mask.logical);    
+    mask.lin=find(mask.logical);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTrackRef(ee,tr)

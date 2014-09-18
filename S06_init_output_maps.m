@@ -12,8 +12,7 @@ function S06_init_output_maps
     %%
     DD.threads.num=init_threads(DD.threads.num);
     %% find respective index for all grid points of input map
-    MAP.idx=main(DD,MAP);
-   
+    MAP.idx=main(DD,MAP);   
     %% save MAP
     save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
     %% update infofile

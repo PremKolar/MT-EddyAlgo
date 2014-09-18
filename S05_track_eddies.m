@@ -6,13 +6,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % inter-allocate different time steps to determine tracks of eddies
 function S05_track_eddies
-    %% init   
-%     DD=initialise('eddies',mfilename);   
-%    save DD
-    load DD
-    
+    %% init
+    DD=initialise('eddies',mfilename);
     %% rm old files
-%     rmoldtracks(DD)
+    rmoldtracks(DD)
     %% parallel!
     init_threads(2);
     main(DD)
@@ -44,12 +41,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% one thread do cycs, other acycs
-        switch labindex
-            case 2
-                sen='cyclones';
-            case 1
-                sen='anticyclones';
-        end
+    switch labindex
+        case 2
+            sen='cyclones';
+        case 1
+            sen='anticyclones';
+    end
     %% set up tracking procedure
     [tracks,OLD,phantoms]=set_up_init(DD,sen);
     numDays=DD.checks.passedTotal;
@@ -70,7 +67,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
         [NEW]=kill_phantoms(NEW);
     end
     %% find minium distances between old and new time step eddies
-    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,DD);   
+    [MinDists]=EligibleMinDistsMtrx(OLD,NEW,DD);
     %% determine which ones are tracked/died/new
     TDB=tracked_dead_born(MinDists);
     %% append tracked to respective cell of temporary archive 'tracks'
@@ -113,7 +110,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-      NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
+    NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -130,8 +127,8 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies);
     %% kill doubles from overlap
     if phantoms
-        [OLD]=kill_phantoms(OLD); 
-    end    
+        [OLD]=kill_phantoms(OLD);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
@@ -182,21 +179,19 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
             tracks(tt).track{1}(1)	=NEW.eddies(idx.born.inNew(nn));
             tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
         end
-        
         %% set all ages 0
         [tracks(newendIdxs).age]=deal(0);
         %% deal new ids to tracks
         [tracks(newendIdxs).ID]=deal(newIds{:});
         %% init length
         [tracks(newendIdxs).length]=deal(1);
-        
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
     %% init day one
     new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-  %% set initial ID's etc
+    %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
     [new_eddies(1,ee).ID]=deal(eec{:});
@@ -206,11 +201,6 @@ function [tracks,new_eddies]=init_day_one(eddies,sen)
     [tracks(ee).ID]=deal(eec{:});
     [tracks(ee).age]=deal(0);
     [tracks(ee).length]=deal(1);
-    
-%     %% prealloc for speed
-%     for tt=1:length(tracks)
-%         tracks(tt).track{1}(30)	=tracks(tt).track{1}(1);
-%     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TDB]=tracked_dead_born(MD)
@@ -240,27 +230,24 @@ function [TDB]=tracked_dead_born(MD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [inout]=kill_phantoms(inout)
-    
     %% search for identical eddies
-    lo1ila = inout.lon + 1i*inout.lat;
-    [~,ui]=unique(lo1ila);
-    %% kill
-    inout.eddies    = inout.eddies      (ui);
-    inout.lon       =  inout.lon      (ui);
-    inout.lat       =  inout.lat      (ui);
-    
-    
-  %% old version
-%     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );
-%     [LAM.a,LAM.b]=meshgrid(inout.lat      ,inout.lat      );
-%     lonDIFF=abs(LOM.a - LOM.b);
-%     DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(lonDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
-%     DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
-%     [Y,~] = find(DIST==0);
-%  
-%     inout.eddies      (Y)=[];
-%     inout.lon      (Y)=[];
-%     inout.lat      (Y)=[];
+    lola = 1000*inout.lon + inout.lat;
+    [~,ui,~]=unique(lola);
+    %% loop over
+    if numel(lola)~=numel(ui)
+        sdgbsdfgqergwr %shouldnt happen no mo
+    end
+    %% old version
+    %     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );
+    %     [LAM.a,LAM.b]=meshgrid(inout.lat      ,inout.lat      );
+    %     lonDIFF=abs(LOM.a - LOM.b);
+    %     DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(lonDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
+    %     DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
+    %     [Y,~] = find(DIST==0);
+    %
+    %     inout.eddies      (Y)=[];
+    %     inout.lon      (Y)=[];
+    %     inout.lat      (Y)=[];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function closeEnough=nanOutOfBounds(NEW,OLD)
@@ -299,7 +286,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
-   RAL=@(M) permute(abs(log10(M)),[3,1,2]);
+    RAL=@(M) permute(abs(log10(M)),[3,1,2]);
     %%
     old.peak2ellip=extractdeepfield(OLD.eddies      ,'peak.amp.to_ellipse');
     old.dynRad=extractdeepfield(OLD.eddies      ,'radius.mean');

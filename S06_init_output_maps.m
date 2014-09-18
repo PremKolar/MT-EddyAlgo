@@ -5,68 +5,53 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06_init_output_maps
-	%% init
- 	DD=initialise([],mfilename);
+    %% init
+    DD=initialise([],mfilename);
     %%
-	[MAP]=MakeMaps(DD);
-	%%
-	DD.threads.num=init_threads(DD.threads.num);
-	%% find respective index for all grid points of input map
-	MAP.idx=main(DD,MAP);
-	%% save MAP
-	save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
-	%% update infofile
-% 	conclude(DD)
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function idx=main(DD,MAP)
-	if DD.debugmode
-		idx=spmd_body(DD,MAP);
-	else
-		idx=mainSpmd(DD,MAP);
-	end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function idx=mainSpmd(DD,MAP)
- 	spmd(DD.threads.num)
-		idx=spmd_body(DD,MAP);
-		%% merge composite
-        idxx=gop(@vertcat,idx,1);
- 	end
-	numel(idx);
-	idx=sum(idxx{1});
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function idx=spmd_body(DD,out)
-	%% get input example lon/lat
-	in.lon=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
-	in.lat=(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
-    %% correct if fullglobe
-    %% edit: no need! phantom eddies were taken care of in S05
-%     in.toBeUsed=false(size(on.lon));
-%     lolaComplex=in.lon+1i*in.lat;
-%     [~,uniqii]=unique(lolaComplex);
-%     in.toBeUsed(uniqii)=true;    
+    [MAP]=MakeMaps(DD);
     %%
-    idx=zeros(1,DD.map.window.sizePlus.X*DD.map.window.sizePlus.Y);
-    %% get codisp'ed indeces
-	lims=thread_distro(DD.threads.num,numel(in.lon));
-	JJ=lims(labindex,1):lims(labindex,2);	
-	%% get Indices For Out Maps
-	idx=getIndicesForOutMaps(in,out,JJ,idx);
+    DD.threads.num=init_threads(DD.threads.num);
+    %% find respective index for all grid points of input map
+    MAP.idx=main(DD,MAP);
+   
+    %% save MAP
+    save([DD.path.root,'protoMaps.mat'],'-struct','MAP'	)
+    %% update infofile
+    % 	conclude(DD)
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function idx=main(DD,out)
+    %% get input example lon/lat
+    azi=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
+    elev=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
+    [x,y,z] = sph2cart(azi,elev,1);
+    qazi= deg2rad(out.lon(:));
+    qelev= deg2rad(out.lat(:));
+    [qx,qy,qz] = sph2cart(qazi,qelev,1);
+    inxyz=[x',y',z'];
+    outxyz=[qx,qy,qz];
+    JJ=thread_distro(DD.threads.num,numel(azi));
+    tic
+    spmd
+        labindex
+        idx = dsearchn(outxyz,inxyz(JJ(labindex,1):JJ(labindex,2),:));
+        idx = gcat(idx,1,1);
+    end
+    toc
+    idx=idx{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MAP]=MakeMaps(DD)
-	%% init output map dim
-	xvec=linspace(DD.map.out.west,DD.map.out.east,DD.map.out.X);
-	yvec=linspace(DD.map.out.south,DD.map.out.north,DD.map.out.Y);
-	[MAP.lon,MAP.lat]=meshgrid(xvec,yvec);
-	MAP.proto.nan=nan(size(MAP.lon));
-	MAP.proto.zeros=zeros(size(MAP.lon));
-	MAP.dim.y=numel(yvec);
-	MAP.dim.x=numel(xvec);
-	MAP.dim.numel= MAP.dim.y * MAP.dim.x;
-	MAP.inc.x=(DD.map.out.east-DD.map.out.west)/(DD.map.out.X-1);
-	MAP.inc.y=(DD.map.out.north-DD.map.out.south)/(DD.map.out.Y-1);
+    %% init output map dim
+    xvec=linspace(DD.map.out.west,DD.map.out.east,DD.map.out.X);
+    yvec=linspace(DD.map.out.south,DD.map.out.north,DD.map.out.Y);
+    [MAP.lon,MAP.lat]=meshgrid(xvec,yvec);
+    MAP.proto.nan=nan(size(MAP.lon));
+    MAP.proto.zeros=zeros(size(MAP.lon));
+    MAP.dim.y=numel(yvec);
+    MAP.dim.x=numel(xvec);
+    MAP.dim.numel= MAP.dim.y * MAP.dim.x;
+    MAP.inc.x=(DD.map.out.east-DD.map.out.west)/(DD.map.out.X-1);
+    MAP.inc.y=(DD.map.out.north-DD.map.out.south)/(DD.map.out.Y-1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

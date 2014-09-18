@@ -5,70 +5,61 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S08_analyze_tracks
-    %% init
     DD=initialise([],mfilename);
-    %%
-     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-    %%
-     main(DD);
-    %%
+    %     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+    DD.threads.tracks=thread_distro(DD.threads.num,120);
+    main(DD);
     seq_body(DD);
-    %%
     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-    if DD.debugmode
-        [map,vecs,minMax]=spmd_body(DD);
-    else
-        spmd(DD.threads.num)
-            [map,vecs,minMax]=spmd_body(DD);
-            
-        end
+    %% get stuff
+    [map,MM]=initAll(DD);
+    %%
+    spmd
+        [MM,map]=spmd_block(DD,map,MM);
     end
-    [map,vecs]=mergeThreadData(minMax,map,DD,vecs);
-    save mapvecsminMax map vecs minMax
+    %% collect
+    MinMax=globalExtr(MM{1}); %#ok<*NASGU>
+    save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
+    tmpsave(comboAllMaps(map{1},DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function tmpsave(map) %#ok<INUSD>
+    save spmdMap
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% main functions
-function [MAP,V,MinMax]=spmd_body(DD)
-    %% get stuff
-    [MAP,V,JJ,MinMax]=initAll(DD);
-    %%
+function [MinMax,map]=spmd_block(DD,map,MinMax)
     T=disp_progress('init','analyzing tracks');
+    JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
         %% mapstuff prep
-        switch TT.sense
-            case -1
-                [MAP.AntiCycs,V.AntiCycs]=MeanStdStuff( TT.eddy,MAP.AntiCycs,V.AntiCycs,DD);
-            case 1
-                [MAP.Cycs,V.Cycs]=MeanStdStuff( TT.eddy,MAP.Cycs,V.Cycs,DD);
-        end
+        senii=(TT.sense+3)/2;
+        sen=DD.FieldKeys.senses{senii};
+        [map.(sen),TT.velPP]=MeanStdStuff( TT.eddy,map.(sen),DD);
         %% resort tracks for output
-        [MinMax]=resortTracks(DD,MinMax,TT);
+        [MinMax]=resortTracks(DD,MinMax,TT,senii);
     end
-    %% get global extrms
-    MinMax=globalExtr(MinMax);
+    %% gather
+    MinMax=gcat(MinMax,1,1);
+    map=gcat(map,1,1);
 end
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [MAP,V]=MeanStdStuff(eddy,MAP,V,DD)
-    [MAP.strctr, eddy]=TRstructure(MAP,eddy,DD);
-    if isempty(eddy.trck),return;end % out of bounds
-    [NEW.age]=TRage(MAP,eddy);
-    [NEW.dist,eddy]=TRdist(MAP,eddy);
-    NEW.vel=TRvel(MAP,eddy);
-    NEW.radius=TRradius(MAP,eddy);
-    NEW.amp=TRamp(MAP,eddy);
-    [NEW.visits.all,NEW.visits.single]=TRvisits(MAP);
-    MAP=comboMS(MAP,NEW,DD);
-    [V]=getVecs(eddy,V);
+function [map,velpp]=MeanStdStuff(eddy,map,DD)
+    [map.strctr, eddy]=TRstructure(map,eddy);
+    if isempty(eddy.track),return;end % out of bounds
+    [NEW.age]=TRage(map,eddy);
+    [NEW.dist,eddy]=TRdist(map,eddy);
+    [NEW.vel,velpp]=TRvel(map,eddy);
+    NEW.radius=TRradius(map,eddy);
+    NEW.amp=TRamp(map,eddy);
+    [NEW.visits.all,NEW.visits.single]=TRvisits(map);
+    map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACs,Cs]=netVels(DD,map)
@@ -79,7 +70,7 @@ function [ACs,Cs]=netVels(DD,map)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
-    load mapvecsminMax map vecs   %#ok<NASGU>
+    load spmdMap
     %% get rossby radius
     if DD.switchs.RossbyStuff
         map.Rossby=loadRossby(DD);
@@ -95,12 +86,11 @@ function seq_body(DD)
     end
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
-    save([DD.path.analyzed.name,'vecs.mat'],'-struct','vecs');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function MinMax=resortTracks(DD,MinMax,TT)
+function MinMax=resortTracks(DD,MinMax,TT,senii)
     subfields=DD.FieldKeys.trackPlots;
-    track= TT.eddy.trck;
+    track= TT.eddy.track;
     TT.lat=extractdeepfield(track,'geo.lat');
     TT.lon=extractdeepfield(track,'geo.lon');
     for subfield=subfields'; sub=subfield{1};
@@ -110,29 +100,11 @@ function MinMax=resortTracks(DD,MinMax,TT)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-    %% distance
-    TT.distInM=extractdeepfield(diststuff(field2mat(TT.eddy.trck,'geo')'),'zonal.m');
-    %     fprintf('%7.2f\n',max(abs(TT.distInM))/1000)
-    %%
-    switch TT.sense
-        case -1
-            outfile=[DD.path.analyzedTracks.AC.name,TT.fname];
-        case 1
-            outfile=[DD.path.analyzedTracks.C.name,TT.fname];
-    end
+    %% save
+    sendir={'AC','C'};  % TODO
+    outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
     %% save
     save(outfile,'-struct','TT');
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [V]=getVecs(eddy,V)
-    V.lat=[V.lat extractdeepfield(eddy,'trck.geo.lat')];
-    V.age=[V.age eddy.trck(end).age];
-    death=eddy.trck(end).geo;
-    V.death.lat=[V.death.lat  cat(1,death.lat)];
-    V.death.lon=[ V.death.lon cat(1,death.lon)];
-    birth=eddy.trck(1).geo;
-    V.birth.lat=[ V.birth.lat cat(1,birth.lat)];
-    V.birth.lon=[ V.birth.lon cat(1,birth.lon)];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [TT]=getTrack(DD,jj)
@@ -145,131 +117,108 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
-    TT.sense=TT.eddy.trck(1).sense.num;
+    TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TRs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[strctr, eddy]=TRstructure(MAP,eddy,DD)
-    switch DD.parameters.trackingRef
-        case 'CenterOfVolume'
-            CoV=extractdeepfield(eddy,'trck.volume.center.lin');
-        case 'centroid'
-            CoV=extractdeepfield(eddy,'trck.centroid.lin');
-    end
-    strctr.idx=MAP.idx(CoV)	;
+function	[strctr, eddy]=TRstructure(map,eddy)
+    CoV=extractdeepfield(eddy,'track.trackref.lin');
+    strctr.idx=map.idx(CoV)	;
     strctr.idxLargeMap=CoV	;
     %% delete out of bounds values
     outofbounds=isnan(strctr.idx);
     strctr.idx(outofbounds) = [];
     strctr.idxLargeMap(outofbounds) = [];
-    eddy.trck(outofbounds) = [];
-    tracklen=numel(eddy.trck);
+    eddy.track(outofbounds) = [];
+    tracklen=numel(eddy.track);
     strctr.length=(1:tracklen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [age]=TRage(MAP,eddy)
-    [age,count]=protoInit(MAP.proto);
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-        age_now=eddy.trck(tt).age;
-        age.mean(idx)=meanOnFly(age.mean(idx), age_now, count(idx));
-        age.std(idx)=stdOnFly(age.std(idx), age_now, count(idx));
-    end
+function [age]=TRage(map,eddy)
+    [age]=protoInit(map.proto);
+    idx=map.strctr.idx;
+    ageNow=cat(1,eddy.track.age);
+    [age]=uniqMeanStd(idx,ageNow,age);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	amp=TRamp(MAP,eddy)
-    [amp.to_mean,count]=protoInit(MAP.proto);
-    [amp.to_contour,~]=protoInit(MAP.proto);
-    [amp.to_ellipse,~]=protoInit(MAP.proto);
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-        amp.to_mean.mean(idx)=meanOnFly(	amp.to_mean.mean(idx), eddy.trck(tt).peak.amp.to_mean,	count(idx));
-        amp.to_contour.mean(idx)=meanOnFly(	amp.to_contour.mean(idx), eddy.trck(tt).peak.amp.to_contour,count(idx));
-        amp.to_ellipse.mean(idx)=meanOnFly(	amp.to_ellipse.mean(idx), eddy.trck(tt).peak.amp.to_ellipse,count(idx));
+function	amp=TRamp(map,eddy)
+    A={'to_mean';'to_contour';'to_ellipse'};
+    idx=map.strctr.idx;
+    for jj=1:3;
+        a=A{jj};
+        amp.(a)=protoInit(map.proto);
+        ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
+        amp.(a)=uniqMeanStd(idx,ampN,amp.(a));
     end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	radius=TRradius(MAP,eddy)
+function	radius=TRradius(map,eddy)
     A={'mean';'meridional';'zonal'};
-    for a=A'
-        [radius.(a{1}),count]=protoInit(MAP.proto);
-    end
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-        for a=A'
-            radius_now=eddy.trck(tt).radius.(a{1});
-            radius.(a{1}).mean(idx)=meanOnFly(radius.(a{1}).mean(idx), radius_now, count(idx));
-            radius.(a{1}).std(idx)=stdOnFly(radius.(a{1}).std(idx), radius_now, count(idx));
-        end
+    idx=map.strctr.idx;
+    for jj=1:3;
+        a=A{jj};
+        radius.(a)=protoInit(map.proto);
+        radiusN=extractdeepfield(eddy.track,['radius.' a]);
+        radius.(a)=uniqMeanStd(idx,radiusN, radius.(a));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	vel=TRvel(MAP,eddy)
+function	[vel,pp]=TRvel(map,eddy)
+    noBndr=@(v) v(2:end-1);
+    idx=noBndr(map.strctr.idx);
     A={'traj';'merid';'zonal'};
-    for a=A'
-        [vel.(a{1}),count]=protoInit(MAP.proto);
-    end
-    for tt=MAP.strctr.length(1:end-1)
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-        for a=A'
-            dist_now=eddy.dist.num.(a{1}).m(tt);
-            delT= (eddy.trck(tt+1).age - eddy.trck(tt).age) * 86400;
-            vel_now = dist_now/delT;
-            vel.(a{1}).mean(idx)=meanOnFly(vel.(a{1}).mean(idx), vel_now, count(idx));
-            vel.(a{1}).std(idx)=stdOnFly(vel.(a{1}).std(idx), vel_now, count(idx));
-        end
+    for jj=1:3;
+        a=A{jj};
+        %% init
+        [vel.(a)]=protoInit(map.proto);
+        %% calc
+        position=cumsum(eddy.dist.num.(a).m);
+        pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
+        pp.x=spline(pp.timeaxis,position);
+        pp.x_t=fnder(pp.x,1); % vel pp
+        velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
+        vel.(a)=uniqMeanStd(idx,velN,vel.(a));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[dist,eddy]=TRdist(MAP,eddy)
+function	[dist,eddy]=TRdist(map,eddy)
     %% set up
-    [dist,count]=setupDist(MAP);
+    [dist]=setupDist(map);
     %% calc distances
-    [eddy.dist.num,eddy.dist.drct]=diststuff(field2mat(eddy.trck,'geo')');
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-        %% traj from birth
-        newValue=eddy.dist.num.traj.fromBirth(tt);
-        dist.traj.fromBirth.mean(idx)=meanOnFly(dist.traj.fromBirth.mean(idx),newValue , count(idx));
-        dist.traj.fromBirth.std(idx)=stdOnFly(dist.traj.fromBirth.std(idx),newValue , count(idx));
-        %% traj till death
-        newValue=eddy.dist.num.traj.tillDeath(tt);
-        dist.traj.tillDeath.mean(idx)=meanOnFly(dist.traj.tillDeath.mean(idx),newValue , count(idx));
-        dist.traj.tillDeath.std(idx)=stdOnFly(dist.traj.tillDeath.std(idx),newValue , count(idx));
-        %% zonal from birth
-        newValue=eddy.dist.num.zonal.fromBirth(tt);
-        dist.zonal.fromBirth.mean(idx)=meanOnFly(dist.zonal.fromBirth.mean(idx),newValue , count(idx));
-        dist.zonal.fromBirth.std(idx)=stdOnFly(dist.zonal.fromBirth.std(idx),newValue , count(idx));
-        %% zonal till death
-        newValue=eddy.dist.num.zonal.tillDeath(tt);
-        dist.zonal.tillDeath.mean(idx)=meanOnFly(dist.zonal.tillDeath.mean(idx),newValue , count(idx));
-        dist.zonal.tillDeath.std(idx)=stdOnFly(dist.zonal.tillDeath.std(idx),newValue , count(idx));
-        %% meridional from birth
-        newValue=eddy.dist.num.merid.fromBirth(tt);
-        dist.merid.fromBirth.mean(idx)=meanOnFly(dist.merid.fromBirth.mean(idx),newValue , count(idx));
-        dist.merid.fromBirth.std(idx)=stdOnFly(dist.merid.fromBirth.std(idx),newValue , count(idx));
-        %% meridional till death
-        newValue=eddy.dist.num.merid.tillDeath(tt);
-        dist.merid.tillDeath.mean(idx)=meanOnFly(dist.merid.tillDeath.mean(idx),newValue , count(idx));
-        dist.merid.tillDeath.std(idx)=stdOnFly(dist.merid.tillDeath.std(idx),newValue , count(idx));
-    end
+    [eddy.dist.num,eddy.dist.drct]=diststuff(field2mat(eddy.track,'geo')');
+    idx=map.strctr.idx;
+    %%
+    %% traj from birth
+    newValue=eddy.dist.num.traj.fromBirth;
+    [dist.traj.fromBirth]=uniqMeanStd(idx,newValue,dist.traj.fromBirth);
+    %% traj till death
+    newValue=eddy.dist.num.traj.tillDeath;
+    [dist.traj.tillDeath]=uniqMeanStd(idx,newValue,dist.traj.tillDeath);
+    %% zonal from birth
+    newValue=eddy.dist.num.zonal.fromBirth;
+    [dist.zonal.fromBirth]=uniqMeanStd(idx,newValue,dist.zonal.fromBirth);
+    %% zonal till death
+    newValue=eddy.dist.num.zonal.tillDeath;
+    [dist.zonal.tillDeath]=uniqMeanStd(idx,newValue,dist.zonal.tillDeath);
+    %% meridional from birth
+    newValue=eddy.dist.num.merid.fromBirth;
+    [dist.merid.fromBirth]=uniqMeanStd(idx,newValue,dist.merid.fromBirth);
+    %% meridional till death
+    newValue=eddy.dist.num.merid.tillDeath;
+    [dist.merid.tillDeath]=uniqMeanStd(idx,newValue,dist.merid.tillDeath);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [count,singlecount]=TRvisits(MAP)
-    count=MAP.proto.zeros;
-    singlecount=MAP.proto.zeros;
-    for tt=MAP.strctr.length
-        idx=MAP.strctr.idx(tt);
-        count(idx)=count(idx) + 1;
-    end
-    sidx=unique(MAP.strctr.idx);
-    singlecount(sidx)=singlecount(sidx) + 1;
+function [count,singlecount]=TRvisits(map)
+    count=sparse(map.proto.zeros);
+    singlecount=sparse(map.proto.zeros);
+    idx=map.strctr.idx;
+    [sidx]=unique(idx);
+    %% the eddy counts +1 at every timestep at current position
+    count(sidx) =  histc(idx,sidx);
+    %% the eddy can tag each position only once
+    singlecount(sidx)=1;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % others
@@ -284,15 +233,9 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
     if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [MAP,V,JJ,MinMax]=initAll(DD)
-    JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
-    MAP.AntiCycs=initMAP(DD);
-    MAP.Cycs=initMAP(DD);
-    V.AntiCycs.age=[];V.Cycs.age=[];V.AntiCycs.lat=[];V.Cycs.lat=[];
-    V.AntiCycs.birth.lat=[];V.AntiCycs.birth.lon=[];
-    V.Cycs.birth.lat=[];V.Cycs.birth.lon=[];
-    V.AntiCycs.death.lat=[];V.AntiCycs.death.lon=[];
-    V.Cycs.death.lat=[];V.Cycs.death.lon=[];
+function [map,MinMax]=initAll(DD)
+    map.AntiCycs=initmap(DD);
+    map.Cycs=initmap(DD);
     for subfield=DD.FieldKeys.trackPlots'; sub=subfield{1};
         collapsedField=strrep(sub,'.','');
         MinMax.max.(collapsedField)=-inf;
@@ -301,30 +244,35 @@ function [MAP,V,JJ,MinMax]=initAll(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Ro=loadRossby(DD)
-    MAP=initMAP(DD);
+    map=initmap(DD);
     Ro.large.radius=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
     Ro.large.radius(Ro.large.radius==0)=nan;
-    Ro.small.radius=MAP.proto.nan;
+    Ro.small.radius=map.proto.nan;
     %%
     Ro.large.phaseSpeed=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
     Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
-    Ro.small.phaseSpeed=MAP.proto.nan;
+    Ro.small.phaseSpeed=map.proto.nan;
     %% nanmean to smaller map
-    lin=MAP.idx;
+    lin=map.idx;
     T=disp_progress('init','reallocating rossby stuff indices to output map');
-    uni=unique(lin(lin~=0 & ~isnan(lin)));
-    for li=uni
-        T=disp_progress('show',T,numel(uni),10);
-        Ro.small.radius(li)=nanmean(Ro.large.radius(lin==li));
-        Ro.small.phaseSpeed(li)=nanmean(Ro.large.phaseSpeed(lin==li));
+    [slin,linOrdr]=sort(lin);
+    slind=find([1;diff(slin);1]);
+    %%
+    nm=@(source,sidx)  nanmean(source(sidx));
+    for ii=2:numel(slind)
+        T=disp_progress('show',T,numel(slind)-1,10);
+        a=slind(ii-1);  b=slind(ii)-1;  tidx=slin(a);
+        Ro.small.radius(tidx)       = nm(Ro.large.radius,    linOrdr(a:b));
+        Ro.small.phaseSpeed(tidx)   = nm(Ro.large.phaseSpeed,linOrdr(a:b));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function MinMax=globalExtr(MinMax)
+function Global=globalExtr(MinMax)
     %% collect high-scores for all tracks from threads
-    for cf=fieldnames(MinMax.max)'; cf=cf{1};
-        MinMax.max.(cf)=gop(@max, MinMax.max.(cf)) ;
-        MinMax.min.(cf)=gop(@min, MinMax.min.(cf)) ;
+    for cf=fieldnames(MinMax(1).max)'; cf=cf{1};
+        dataAll=extractdeepfield(MinMax,['max.' cf]);
+        Global.max.(cf) = max(dataAll);
+        Global.min.(cf) = min(dataAll);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -355,12 +303,12 @@ function OUT=weightedZonMean(MS,weight)
     OUT.std=nansum(MS.std.*weight,2)./nansum(weight,2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dist,count]=setupDist(MAP)
+function [dist]=setupDist(map)
     A={'traj';'merid';'zonal'};
     B={'fromBirth';'tillDeath'};
     for a=A'
         for b=B'
-            [dist.(a{1}).(b{1}),count]=protoInit(MAP.proto);
+            [dist.(a{1}).(b{1})]=protoInit(map.proto);
         end
     end
 end
@@ -394,43 +342,27 @@ function [d,drct]=diststuff(geo)
     d.merid.tillDeath =  d.merid.fromBirth(end) - d.merid.fromBirth ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [param,count]=protoInit(proto,type)
+function [param]=protoInit(proto,type)
     if nargin < 2, type='nan'; end
-    param.mean=proto.(type);
-    param.std=proto.(type);
-    count=proto.zeros;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ALL=mergeMapData(MAP,DD)
-    if DD.threads.num>1 && ~DD.debugmode
-        ALL=spmdCase(MAP,DD);
-    else
-        ALL=MAP{1};
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	vecs=mergeVecData(vecs)
-    vecs=vecs{1};
+    param.mean=sparse(proto.(type));
+    param.std=sparse(proto.(type));
+    %     count=proto.zeros;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function old=comboMS(old,new,DD)
-    subfieldstrings=DD.FieldKeys.MeanStdFields;
-    for ff=1:numel(subfieldstrings)
+    subFields=DD.FieldKeys.MeanStdFields;
+    xtrctMS=@(S,F) cell2mat(extractdeepfield(S,[F]));
+    for ff=1:numel(subFields)
         %%	 extract current field to mean/std level
-        value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
-        value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
-        %% nan2zero
-        value.new.mean(isnan(value.new.mean))=0;
-        value.old.mean(isnan(value.old.mean))=0;
-        value.new.std(isnan(value.new.std))=0;
-        value.old.std(isnan(value.old.std))=0;
+        value.new=xtrctMS(new,subFields{ff});
+        value.old=xtrctMS(old,subFields{ff});
         %% combo update
         combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
         combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
         %% set to updated values
-        fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-        meanfields={[fields{1};'mean']};
-        stdfields={[fields{1};'std']};
+        subsubFields = textscan(subFields{ff},'%s','Delimiter','.');
+        meanfields={[subsubFields{1};'mean']};
+        stdfields={[subsubFields{1};'std']};
         old=setfield(old,meanfields{1}{:},combo.mean);
         old=setfield(old,stdfields{1}{:},combo.std);
     end
@@ -438,15 +370,15 @@ function old=comboMS(old,new,DD)
     old.visits.single=old.visits.single + new.visits.single;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ALL=spmdCase(MAP,DD)
+function ALL=comboAllMaps(map,DD)
     subfieldstrings=DD.FieldKeys.MeanStdFields;
-    map=MAP{1};
-    for sense=[{'AntiCycs'},{'Cycs'}];	sen=sense{1};
-        ALL.(sen)=map.(sen);
+    for sense=[{'AntiCycs'},{'Cycs'}];
+        sen=sense{1};
+        ALL.(sen)=map(1).(sen);
         T=disp_progress('init',['combining results from all threads - ',sen,' ']);
-        for tt=1:DD.threads.num
+        for tt=1:numel(map) %threads
             T=disp_progress('calc',T,DD.threads.num,DD.threads.num);
-            new = cell2mat(extractfield(MAP{tt},sen));
+            new =  map(tt).(sen);
             if tt>1
                 for ff=1:numel(subfieldstrings)
                     %%	 extract current field to mean/std level
@@ -475,30 +407,25 @@ function ALL=spmdCase(MAP,DD)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [map,vecs]=mergeThreadData(minMax,map,DD,vecs)
-    try
-        minMax=minMax{1};
-    catch %#ok<CTCH>
-        error('exit debug mode!')
-    end
-    map=mergeMapData(map,DD);
-    vecs=mergeVecData(vecs);
-    map.minMax=minMax;
-    vecs.minMax=minMax;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function MAP=initMAP(DD)
-    MAP=load([DD.path.root,'protoMaps.mat']);
+function map=initmap(DD)
+    map=load([DD.path.root,'protoMaps.mat']);
     subfieldstrings=DD.FieldKeys.MeanStdFields;
-    [MSproto,~]=protoInit(MAP.proto);
+    [MSproto]=protoInit(map.proto);
     for ff=1:numel(subfieldstrings)
         fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
         meanfields={[fields{1};'mean']};
         stdfields={[fields{1};'std']};
-        MAP=setfield(MAP,meanfields{1}{:},MSproto.mean);
-        MAP=setfield(MAP,stdfields{1}{:},MSproto.std);
+        map=setfield(map,meanfields{1}{:},MSproto.mean);
+        map=setfield(map,stdfields{1}{:},MSproto.std);
     end
-    MAP.visits.single=MAP.proto.zeros;
-    MAP.visits.all=MAP.proto.zeros;
+    map.visits.single=map.proto.zeros;
+    map.visits.all=map.proto.zeros;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [targ]=uniqMeanStd(idx,source,targ)
+    [uni,~,b]= unique(idx);
+    for uu=1:numel(uni)
+        targ.mean(uni(uu))=nanmean(source(b==uu));
+        targ.std(uni(uu))=nanstd(source(b==uu));
+    end
+end

@@ -25,8 +25,6 @@ function sub09_mapStuff
      decorate(clm,T,DD,sen,'Radius/Lr','km',0,1,1);
      axis([-180 180 -70 70])
      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoL-' sen],'dpdf');
-     
-     
      %%
      clf
      VVs=II.maps.(sen).radius.mean.std;

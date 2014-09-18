@@ -7,7 +7,7 @@
 function S09_plotsNew
     DD=initialise([],mfilename);
     %    save DD
-%     load DD
+    %     load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=800;
     ticks.height=600;
@@ -29,7 +29,7 @@ function S09_plotsNew
     ticks.vel=[-30;20;6];
     ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
     ticks.lat=[ticks.axis(3:4),5];
-    ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
+    %     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %%
     main(DD,ticks)
 end
@@ -37,11 +37,9 @@ end
 function main(DD,T)
     II=initStuff(DD);
     save S09main II DD T
-%      velZonmeans(DD,II,T)
-%      scaleZonmeans(DD,II,T)
-%     %% collect tracks
-%      trackstuff 
-sub09_mapStuff
+    sub09_scaleStuff
+    sub09_trackstuff
+    sub09_mapStuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function II=initStuff(DD)

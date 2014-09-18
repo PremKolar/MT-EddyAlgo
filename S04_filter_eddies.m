@@ -85,9 +85,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function EE=find_eddies(EE,ee,rossby,cut,DD)
     %% anti cyclones
-    [EE.anticyclones,EE.pass.ac]=walkThroughContsVertically(ee,rossby,cut,DD,-1);
-    %% cyclones
-    [EE.cyclones,EE.pass.c]=walkThroughContsVertically(ee,rossby,cut,DD,1);
+    senN=[-1 1];
+    for ii=1:2
+        sen=DD.FieldKeys.senses{ii};
+       [EE.(sen),EE.pass.(sen)]=walkThroughContsVertically(ee,rossby,cut,DD,senN(ii));
+    end     
+%     [EE.anticyclones,EE.pass.ac]=walkThroughContsVertically(ee,rossby,cut,DD,-1);
+%     %% cyclones
+%     [EE.cyclones,EE.pass.c]=walkThroughContsVertically(ee,rossby,cut,DD,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)

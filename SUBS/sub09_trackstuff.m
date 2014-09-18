@@ -8,19 +8,27 @@ function sub09_trackstuff
     end
     %%
     senses=DD.FieldKeys.senses;
-    catsen=@(f) [TR.(senses{1}).cats.(f) TR.(senses{2}).cats.(f) ];
+%     catsen=@(f) [TR.(senses{1}).cats.(f) TR.(senses{2}).cats.(f) ];
+    catsen=@(f) [TR.(senses{1}).cats.(f) ];
+   
     t2l=@(t) linspace(t(1),t(2),t(3));
     
     %%
     rad=catsen('radiusmean')/1000;
-    U  =catsen('U')*100;
+    velPP  =cell2mat(catsen('velPP'));
     age=catsen('age');
     lat=abs(catsen('lat'));
+    U=[];
+    for ii=1:numel(velPP)
+    U=[U; nan; (ppval(velPP(ii).x_t, velPP(ii).timeaxis)); nan];
+    end
+    U=U*100
     %%
     rightyscalenum=5;
     age(end+1:end+rightyscalenum)=max(age)-0;
     lat(end+1:end+rightyscalenum)=t2l([min(lat) max(lat) rightyscalenum]);
     rad(end+1:end+rightyscalenum)=t2l([min(rad) max(rad) rightyscalenum]);
+   
     U(end+1:end+rightyscalenum)=10;
     %%
     [~,sml2lrg] = (sort(rad))  ;
@@ -36,7 +44,8 @@ function sub09_trackstuff
     U(zerage)=[];
     %%
     clf
-    hs=scatter(age,lat,rad,U);
+    hs=scatter(age,lat,rad,U);  
+    axis([0 70 0 100])
     axis tight
     set(gca,'XAxisLocation','bottom')
     set(gca,...
@@ -89,6 +98,7 @@ function trackinit(DD)
         spmd
             T=disp_progress('init','blubb');
             for ff= lims2array(JJ)
+%              for ff= 1:100%lims2array(JJ)
                 T=disp_progress('calc',T,diff(JJ(labindex,:))+1);
                 single(ff)=load([root eds(ff).name]);
             end

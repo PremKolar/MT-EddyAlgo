@@ -41,12 +41,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% one thread do cycs, other acycs
-    switch labindex
-        case 2
-            sen='cyclones';
-        case 1
-            sen='anticyclones';
-    end
+    sen=DD.FieldKeys.senses{labindex};
     %% set up tracking procedure
     [tracks,OLD,phantoms]=set_up_init(DD,sen);
     numDays=DD.checks.passedTotal;
@@ -92,7 +87,10 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
     %% find position in archive
     [~,idx.arch] = ismember(ID.old,ID.arch);
     %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
+    if any(isnan(NEW.time.delT))
+        segsdfg
+    end
+    %    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set
@@ -110,7 +108,16 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
+    try
+        NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
+    catch
+        %% TEMP SOLUTION
+        if strcmp(sen,'AntiCycs')
+            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'anticyclones');
+        else
+            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'cyclones');
+        end
+    end
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -190,7 +197,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
     %% init day one
-    new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
+    try
+        new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
+    catch
+        %% TEMP SOLUTION
+        if strcmp(sen,'AntiCycs')
+            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'anticyclones');
+        else
+            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'cyclones');
+        end
+    end
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
@@ -231,11 +247,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [inout]=kill_phantoms(inout)
     %% search for identical eddies
-    lola = 1000*inout.lon + inout.lat;
+    lola = inout.lon + 1i*inout.lat;
     [~,ui,~]=unique(lola);
     %% loop over
     if numel(lola)~=numel(ui)
-        sdgbsdfgqergwr %shouldnt happen no mo
+        sdgbsdfgqergwr %shouldnt happen no mo  % TODO
     end
     %% old version
     %     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );

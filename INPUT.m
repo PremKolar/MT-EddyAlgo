@@ -6,14 +6,15 @@
 function DD=INPUT
     DD.template='aviso';
     %% threads / debug
-    DD.threads.num=1;
+    DD.threads.num=12;
     DD.debugmode=false;
-     DD.debugmode=true;
+%      DD.debugmode=true;
     DD.overwrite=false;
-       DD.overwrite=true;
+%        DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
-    DD.time.till.str='20061231';
+   DD.time.till.str='19961231';
+%     DD.time.till.str='20061231';
     %      threshlife=20*7
     threshlife=7*5;
     %% window on globe
@@ -31,8 +32,8 @@ function DD=INPUT
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient
     DD.thresh.shape.chelt=0.2; % (diameter of circle with equal area)/(maximum distance between nodes) (if ~switch.IQ)
-    DD.thresh.corners.min=10; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=5*2*pi*1e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~5000km) , just for performance
+    DD.thresh.corners.min=8; % min number of data points for the perimeter of an eddy
+    DD.thresh.corners.max=1e42; % dangerous..
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
     DD.thresh.IdentityCheck=[2.5];

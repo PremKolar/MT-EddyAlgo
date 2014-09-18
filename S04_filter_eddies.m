@@ -10,7 +10,7 @@ function S04_filter_eddies
     DD=initialise('conts',mfilename);
     DD.threads.num=init_threads(DD.threads.num);
     rossby=getRossbyPhaseSpeedAndRadius(DD);
-dbstop if error
+    dbstop if error
     %% spmd
     main(DD,rossby);
     %% update infofile
@@ -34,12 +34,15 @@ function spmd_body(DD,rossby)
     Td=disp_progress('init','filtering contours');
     for jj=1:numel(JJ)
         Td=disp_progress('disp',Td,numel(JJ));
-        try
-            toBeTried(DD,rossby,JJ,jj);
-        catch failed
-            disp(failed.message);
-            save(sprintf('S04fail-%s.mat',datestr(now,'mmddHHMM')));
-        end
+        
+        toBeTried(DD,rossby,JJ,jj);
+        
+        %         try
+        %             toBeTried(DD,rossby,JJ,jj);
+        %         catch failed
+        %             disp(failed.message);
+        %             save(sprintf('S04fail-%s.mat',datestr(now,'mmddHHMM')));
+        %         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,7 +134,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy=CR_2dEDDy(ee.coordinates.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coordinates for zoom cut
-    [zoom,pass.winlim]=get_window_limits(ee.coordinates,cut.dim,4,DD.map.window.type);
+    [zoom,pass.winlim]=get_window_limits(ee.coordinates,4,DD.map.window);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
     zoom.fields=EDDyCut_init(cut.grids,zoom);
@@ -362,7 +365,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
-dbstop if error
+    
     rU=rossbyU(trackref.lin);
     rU(abs(rU)>1)=sign(rU)*1;  % put upper limit on rossby wave speed
     %% get projected distance (1.75 * dt*rU  as in chelton 2011)
@@ -406,8 +409,7 @@ dbstop if error
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
     mask.logical=sparse(imfill(mask.logical,double([yi.center xi.center]),4));
-    mask.lin=find(mask.logical);
-error('sgfdhsgdfh')
+    mask.lin=find(mask.logical);    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTrackRef(ee,tr)
@@ -642,23 +644,28 @@ function fields_out=EDDyCut_init(fields_in,zoom)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [z,pass]=get_window_limits(coor,dim,enlargeFac,maptype)
-    pass=true;
+function [z,passout]=get_window_limits(coor,enlargeFac,map)
+    pass=true(3,1);
     z.coor=coor;
     %% output
     z.limits.x(1)=min(coor.int.x);
     z.limits.y(1)=min(coor.int.y);
     z.limits.x(2)=max(coor.int.x);
     z.limits.y(2)=max(coor.int.y);
-    z.limits=enlarge_window(z.limits,enlargeFac,dim) ;
+    z.limits=enlarge_window(z.limits,enlargeFac,map.sizePlus) ;
     z.coor.int.x=z.coor.int.x-z.limits.x(1) +1;
     z.coor.int.y=z.coor.int.y-z.limits.y(1) +1;
     z.coor.exact.x=z.coor.exact.x -double(z.limits.x(1))  +1;
     z.coor.exact.y=z.coor.exact.y -double(z.limits.y(1))  +1;
-    %% in global case dismiss eddies touching zonal boundaries (another copy of these eddies exists that is not touching boundaries, due to the zonal appendage in S00b)
-    if strcmp(maptype,'globe') &&  z.limits.x(1)==1 || z.limits.x(2)==dim.X
-        pass=false;
+    %%
+    if strcmp(map.type,'globe')
+        %% in global case dismiss eddies touching zonal boundaries (another copy of these eddies exists that is not touching boundaries, due to the zonal appendage in S00b
+        pass(1) =  z.limits.x(1)~=1;
+        pass(2) =  z.limits.x(2)~=map.sizePlus.X;
+        %% also dismiss eddies the zoom window of which is entirely inside the appended stripe ie beyond X_real(2). another legitimate copy of these exists in the western part of the actual map.)
+        pass(3) =  ~all(coor.int.x > map.size.X);
     end
+    passout=all(pass);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function inout=enlarge_window(inout,factor,dim)

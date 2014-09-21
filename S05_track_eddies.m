@@ -88,9 +88,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
     [~,idx.arch] = ismember(ID.old,ID.arch);
     %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(isnan(NEW.time.delT))
-        segsdfg
-    end
-    %    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
+save(sprintf('%02d-%s.mat',labindex,datestr(now,'yymmdd-HHMM')));
+    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
+end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set

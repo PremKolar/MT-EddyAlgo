@@ -7,18 +7,17 @@
 	function DD=INPUT
 	    DD.template='pop';
 	    %% threads / debug
-	    DD.threads.num=2;
+	    DD.threads.num=12;
 	    DD.debugmode=false;
-	    DD.debugmode=true;
-	
+% 	    DD.debugmode=true;	
 	    DD.overwrite=false;
-	     DD.overwrite=true;
+% 	     DD.overwrite=true;
 	    %% time
 	
-	    DD.time.from.str='19940102';
+	    DD.time.from.str='19940202';
 	    %DD.time.till.str=datestr(datenum(DD.time.from.str,'yyyymmdd')+10*3,'yyyymmdd');
-	  DD.time.till.str='19940105';
-	    threshlife=3*3;
+	  DD.time.till.str='19940505';
+	    threshlife=3*7;
 	    %% window on globe
 	    DD.map.in.west=-60;
 	    DD.map.in.east= -50;

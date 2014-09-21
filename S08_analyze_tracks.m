@@ -9,6 +9,11 @@ function S08_analyze_tracks
     DD=initialise([],mfilename);
     %%
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
+   
+    spmd
+    [MAP,V,JJ,MinMax]=initAll(DD)
+    end
+    
     %%
     main(DD);
     %%

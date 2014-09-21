@@ -8,7 +8,7 @@ function [T]=disp_progress(type,Tin,L,num_prints,inner)
     if nargin==3
         num_prints=L;
     end
-     if nargin<5
+    if nargin<5
         inner=0;
     end
     if strcmp(type,'conclude')
@@ -69,7 +69,7 @@ function T=init(Tin,inner)
     T.name=Tin;
     T.tic=tic;
     if ~inner
-    clc
+        clc
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,50 +82,45 @@ function T=later(T,L,num_prints)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function printout(T,L)
-    %% init
-    incol.a=[1 0 0];
-    incol.b=[0 0 1];
-    fracCol=T.frac*incol.a + (1-T.frac)*incol.b;
+function sendoutStrings(strout)
+    for a=1:numel( strout.a)
+        disp(strout.a{a})
+    end
+    for b=1:numel( strout.b)      
+        fprintf(strout.b{b})       
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function strout=makeStrings(T,L)
+    strout.a{1}='';
+    strout.a{2}=['master thread says:'];
+    strout.a{3}='####';
+    strout.a{4}=['-',T.name,'-'];
+    strout.a{5}='####';
+    %%
+    strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];
+    strout.b{2}=sprintf('%2d %% done.\n',round(T.prcnt_done));
+    strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];
+    if isfinite(T.time_to_go)
+        strout.b{4}  = ['time to go     :    ', datestr(sec2day(T.time_to_go),'dd-HH:MM:SS'),'\n'];
+    else
+        strout.b{4}  = ['time to go     :    ', 'calculating...\n'];
+    end
+end
+function printout(T,L)   
     %% build output
-    strout=makeStrings;
+    toprint=makeStrings(T,L);
     %% print
-    sendoutStrings;
+    sendoutStrings(toprint);
     %% waitbar
     spmdwaitbar(T.cc,L,30);
-    %% SUBS
-    %----------------------------------------------------------------------
-    function sendoutStrings
-        for a=1:numel( strout.a)
-            disp(strout.a{a})
-        end
-        for b=1:numel( strout.b)
-            cprintf(fracCol,strout.b{b})
-        end
-    end
-    %----------------------------------------------------------------------
-    function strout=makeStrings
-        strout.a{1}='';
-        strout.a{2}=['master thread says:'];
-        strout.a{3}='####';
-        strout.a{4}=['-',T.name,'-'];
-        strout.a{5}='####';
-        %%
-        strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];      
-        strout.b{2}=sprintf('%2d %% done.\n',round(T.prcnt_done));
-        strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];
-        if isfinite(T.time_to_go)
-            strout.b{4}  = ['time to go     :    ', datestr(sec2day(T.time_to_go),'dd-HH:MM:SS'),'\n'];
-        else
-            strout.b{4}  = ['time to go     :    ', 'calculating...\n'];
-        end
-    end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=spmdwaitbar(l,L,len)
     frac=l/L;
     out=['[',repmat('-',1,floor(frac*len)),'>',repmat(' ',1,ceil((1-frac)*len)),']\n'];
-    cprintf(rainbow(1,1,1,l,L), out);
+    fprintf(out);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=calcu(T,L)

@@ -101,6 +101,15 @@ function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
         if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy
             eddies(pp)=ee_out;
+            %% flag respective overlap too
+            if strcmp(cut.window.type,'globe')
+                [yi,xi]=find(ee_out.mask);
+                doubleFlag.east=xi>cut.window.size.X;
+                doubleFlag.west=xi<=cut.window.sizePlus.X - cut.window.size.X  +1;
+                xi = [ xi xi(doubleFlag.east)-cut.window.size.X xi(doubleFlag.west)+cut.window.size.X ];
+                yi = [ yi yi(doubleFlag.east)                   yi(doubleFlag.west)                   ];
+                ee_out.mask(drop_2d_to_1d(yi,xi,cut.window.size.Y))=true;
+            end
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;
         end
@@ -378,6 +387,13 @@ function [mask,trackref]=ProjectedLocations(rossbyU,cut,DD,trackref)
     xi.center(xi.center>cut.dim.X)=cut.dim.X;
     yi.center(yi.center<1)=1;
     yi.center(yi.center>cut.dim.Y)=cut.dim.Y;
+    %% flag respective overlap too
+    if strcmp(cut.window.type,'globe')
+    doubleFlag.east=ellip.x>cut.window.size.X; 
+    doubleFlag.west=ellip.x<=cut.window.sizePlus.X - cut.window.size.X  +1; 
+   ellip.x =[ ellip.x ellip.x(doubleFlag.east)-cut.window.size.X ellip.x(doubleFlag.west)+cut.window.size.X ];
+   ellip.y =[ ellip.y ellip.y(doubleFlag.east)                   ellip.y(doubleFlag.west)                   ];
+    end
     %% build boundary mask
     mask.logical=false(struct2array(cut.dim));
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.Y))=true;
@@ -636,7 +652,7 @@ function [z,passout]=get_window_limits(coor,enlargeFac,map)
         pass(1) =  z.limits.x(1)~=1;
         pass(2) =  z.limits.x(2)~=map.sizePlus.X;
         %% also dismiss eddies the zoom window of which is entirely inside the appended stripe ie beyond X_real(2). another legitimate copy of these exists in the western part of the actual map.)
-        pass(3) =  ~all(coor.int.x > map.size.X);
+%         pass(3) =  ~all(coor.int.x > map.size.X);
     end
     passout=all(pass);
 end

@@ -266,8 +266,7 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,chelt]=chelton_shape(z)
-    % (diameter of circle with equal area)/(maximum distance between nodes)
-    %% get max dist in x | y
+     %% get max dist in x | y
     x.min=min(z.coor.int.x);
     y.min=min(z.coor.int.y);
     x.max=max(z.coor.int.x);

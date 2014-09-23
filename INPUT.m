@@ -4,7 +4,7 @@
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
 function DD=INPUT
-    DD.template='pop';
+    DD.template='aviso';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;

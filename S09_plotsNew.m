@@ -5,15 +5,15 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-    DD=initialise([],mfilename);
-    %    save DD
-    %     load DD
+     DD=initialise([],mfilename);
+         save DD
+%          load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=800;
     ticks.height=600;
     ticks.y= [-30 0 30];
     ticks.x= 0;
-    ticks.age=[1,2*365,10];
+    ticks.age=[1,5*365,10];
     %     ticks.isoper=[DD.thresh.shape.iq,1,10];
     ticks.isoper=[.6,1,10];
     ticks.radius=[50,250,11];
@@ -37,7 +37,6 @@ end
 function main(DD,T)
     II=initStuff(DD);
     save S09main II DD T
-    sub09_scaleStuff
     sub09_trackstuff
     sub09_mapStuff
 end

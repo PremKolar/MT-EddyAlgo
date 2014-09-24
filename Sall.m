@@ -1,14 +1,4 @@
 S09_plotsNew
-cd ..
-cd pop
-S09_plotsNew
-cd ..
-cd avi
-S09_plotsNew
-cd ..
-cd aviN
-S09_plotsNew
-
 
 %S04_filter_eddies
 %S05_track_eddies

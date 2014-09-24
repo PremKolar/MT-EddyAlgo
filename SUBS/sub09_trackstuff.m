@@ -5,16 +5,15 @@ function sub09_trackstuff
         TR=getTR(DD);
     catch me
         disp(me.message)
-        sub09_trackinit(DD);
+        sub09_trackinit;
         TR=getTR(DD) ;
     end
     %%
     senses=DD.FieldKeys.senses;
-    catsen=@(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
-    S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
-    
+    catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
+     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));    
     %%
-    rad=catsen('rad')/1000;
+    rad=round(catsen('rad')/1000);
     vel=catsen('vel')*100;
     age=catsen('age');
     lat=catsen('lat');
@@ -34,7 +33,8 @@ function sub09_trackstuff
     %%
     zerage = S.age<=0  ;
     velHigh= S.vel>20 | S.vel <-30;
-    killTag= zerage  | velHigh;
+	 radnill = isnan(S.rad) | S.rad==0;
+    killTag= zerage | velHigh | radnill ;
     S.age(killTag)=[];
     S.lat(killTag)=[];
     S.rad(killTag)=[];
@@ -42,12 +42,15 @@ function sub09_trackstuff
     %%
     scattStuff(S,T,DD,II)
     %%    
-    velZonmeans(S,DD,II,T)
+     velZonmeans(S,DD,II,T)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(S,DD,II,T) %#ok<INUSD>
+   close all   
     LA     = round(S.lat);
     LAuniq = unique(LA)';
+	 vvM=nan(size(LAuniq));
+	 vvS=nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
         vvM(cc)=mean(S.vel(LA==LAuniq(cc)));
         vvS(cc)=std(S.vel(LA==LAuniq(cc)));
@@ -70,10 +73,10 @@ function h=ownPlot(DD,II,LAuniq,vvM,vvS)
     clf
     lw=2;
     pp(1)=plot(II.la(:,1),-II.maps.zonMean.Rossby.small.phaseSpeed*100); 	hold on
-    pp(2)=plot(LAuniq,-vvM,'r'); 
+    pp(2)=plot(LAuniq,-vvM,'r');
     pp(4)=plot(LAuniq,-vvM+vvS,'y');
     pp(5)=plot(LAuniq,-vvM-vvS,'y');
-       pp(3)=plot([DD.map.out.south DD.map.out.north], [0 0],'b--');
+    pp(3)=plot([DD.map.out.south DD.map.out.north], [0 0],'b--');
     axis([-70 70 -5 20])
     set(pp(1:3),'linewidth',lw)
     leg=legend('Rossby-wave phase-speed',2,'all eddies',2,'std');
@@ -91,18 +94,18 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     ch=reshape(flipud(reshape(chelt,Y,[])),[Y,X,Z]);
     ch=permute(reshape(fliplr(reshape(permute(ch,[3,1,2]),1,[])),[Z,Y,X]),[2,3,1]);
     ch=permute(reshape(flipud(reshape(permute(ch,[2,1,3]),[X,Y*Z])),[X,Y,Z]),[2,1,3]);
-    %%   
-    vvm=vvM+15;    
-    lau=LAuniq;  
+    %%
+    vvm=vvM+15;
+    lau=LAuniq;
     kill=isnan(lau) | isnan(vvM) | abs(lau)<10 | abs(lau)>50;
     lau(kill)=nan;
     vvm(kill)=nan;
-
+    
     %%
     clf
     imagesc(linspace(-50,50,X),linspace(-5,20,Y),ch)
     hold on
-    mid=floor(numel(lau)/2);   
+    mid=floor(numel(lau)/2);
     x.a=lau(1:mid);
     x.b=lau(mid+2:end);
     y.a=vvm(1:mid);
@@ -128,31 +131,18 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TR=getTR(DD)
-    xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
-    F={'rad','age','lat','lon'};
-    g=@(c) cat(1,c{:});
-    for ss=1:2
-        for fi=1:numel(F);f=F{fi};
-            sen=DD.FieldKeys.senses{ss};
-            TR.(sen).(f)=(xlt(sen,f))';
-        end
-        f='vel';
-        TR.(sen).(f)=g(g(xlt(sen,f)));
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 function scattStuff(S,T,DD,II)
     age=S.age;
     lat=S.lat;
     vel=S.vel;
-    rad=S.rad;
-	 inc=100;
+    rad=round(S.rad);
+	 inc=1000;
     %%
 	 oie=@(inc,x) x(1:inc:end);
 	 incscatter=@(inc,a,b,c,d) scatter(oie(inc,a),oie(inc,b),oie(inc,c),oie(inc,d));
-    hs=incscatter(inc,age,lat,rad,vel);
+   incscatter(inc,age,lat,rad*1000,vel);
+	incscatter(inc,age,lat,rad,vel);
+	 scatter(age(1:inc:end),lat(1:inc:end),rad(1:inc:end),vel(1:inc:end))
     %      clf
     %     hs=scatter(log10(abs(vel)),lat,rad,age);
     %     colorbar
@@ -192,4 +182,18 @@ function scattStuff(S,T,DD,II)
     
     %%
     savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpdf');
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function TR=getTR(DD)
+    xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
+    F={'rad','age','lat','lon'};
+    g=@(c) cat(1,c{:});
+    for ss=1:2
+        for fi=1:numel(F);f=F{fi};
+            sen=DD.FieldKeys.senses{ss};
+            TR.(sen).(f)=((xlt(sen,f))');
+        end
+        f='vel';
+        TR.(sen).(f)=g(g(xlt(sen,f)));
+    end
 end

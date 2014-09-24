@@ -26,7 +26,7 @@ function sub09_trackstuff
     rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
     vel(end+1:end+S.rightyscalenum)=10;
     %%
-    [~,sml2lrg] = (sort(rad))  ;
+    [~,sml2lrg] = sort(rad)  ;
     S.age=age(fliplr(sml2lrg));
     S.lat=lat(fliplr(sml2lrg));
     S.rad=rad(fliplr(sml2lrg));
@@ -40,9 +40,8 @@ function sub09_trackstuff
     S.rad(killTag)=[];
     S.vel(killTag)=[];
     %%
-    %     scattStuff(S,T,DD,II)
-    %%
-    
+    scattStuff(S,T,DD,II)
+    %%    
     velZonmeans(S,DD,II,T)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,13 +143,16 @@ function TR=getTR(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function scattStuff(S,T,DD,II) %#ok<DEFNU>
+function scattStuff(S,T,DD,II)
     age=S.age;
     lat=S.lat;
     vel=S.vel;
     rad=S.rad;
+	 inc=100;
     %%
-    hs=scatter(age,lat,rad,vel);
+	 oie=@(inc,x) x(1:inc:end);
+	 incscatter=@(inc,a,b,c,d) scatter(oie(inc,a),oie(inc,b),oie(inc,c),oie(inc,d));
+    hs=incscatter(inc,age,lat,rad,vel);
     %      clf
     %     hs=scatter(log10(abs(vel)),lat,rad,age);
     %     colorbar

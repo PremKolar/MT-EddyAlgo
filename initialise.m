@@ -33,7 +33,7 @@ function DD=initialise(toCheck,parentFunc)
 %         error(toomanythreads,'too many threads for not enough timesteps!!!')
 %     end
     %% debugging stuff
-    DD=dbStuff(DD) ;
+%     DD=dbStuff(DD) ;
     %% monitor stuff
     DD.monitor.tic=tic;
     if nargin>=2
@@ -119,7 +119,7 @@ function [DD] = check_data(DD,toCheck)
     DD.time=initChecks(DD,toCheck);
     %% check for each needed file
     DD.time.passed=checkForFiles(DD.time);
-    checks.del_t =newDt(DD.time);% 'backwards' del_t's
+    checks.del_t_full =newDt(DD.time);% 'backwards' del_t's
     %% append info
     checks.passedTotal = sum(DD.time.passed);
     checks.passed(checks.passedTotal)=struct;
@@ -131,6 +131,7 @@ function [DD] = check_data(DD,toCheck)
     filedisps(checks);
     %% append
     DD.checks=checks;
+	 DD.checks.del_t=[nan; checks.del_t_full(~isnan(checks.del_t_full))];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)
@@ -162,8 +163,7 @@ function del_t=newDt(TT)
             del_t(tt)=tempdelt;
             tempdelt=TT.delta_t;
         end
-    end
-    
+	 end    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window]=GetWin(DD)

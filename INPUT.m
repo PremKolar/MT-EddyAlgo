@@ -15,7 +15,7 @@ function DD=INPUT
     DD.time.from.str='19940105';
    DD.time.till.str='20061231';
     %      threshlife=20*7
-    threshlife=7*8;
+    threshlife=7*4;
     %% window on globe
     DD.map.in.west=-180;
     DD.map.in.east= 180;
@@ -34,7 +34,7 @@ function DD=INPUT
     DD.thresh.corners.max=1e42; % dangerous..
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.IdentityCheck=[2.5];
+    DD.thresh.IdentityCheck=[2.5]; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     %% switches
     DD.switchs.IQ=0;
     DD.switchs.chelt=1;

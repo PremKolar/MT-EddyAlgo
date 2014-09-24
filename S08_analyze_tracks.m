@@ -177,6 +177,7 @@ function	[vel,pp]=TRvel(map,eddy)
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
         pp.x=spline(pp.timeaxis,position);
         pp.x_t=fnder(pp.x,1); % vel pp
+        pp.v=ppval(pp.x_t, pp.timeaxis);
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMeanStd(idx,velN,vel.(a));
     end

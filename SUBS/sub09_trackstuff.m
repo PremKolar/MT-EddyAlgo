@@ -5,14 +5,13 @@ function sub09_trackstuff
         TR=getTR(DD);
     catch me
         disp(me.message)
-        sub09_trackinit(DD);
+        sub09_trackinit;
         TR=getTR(DD) ;
     end
     %%
     senses=DD.FieldKeys.senses;
-    catsen=@(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
-    S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
-    
+    catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
+     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));    
     %%
     rad=catsen('rad')/1000;
     vel=catsen('vel')*100;
@@ -40,13 +39,13 @@ function sub09_trackstuff
     S.rad(killTag)=[];
     S.vel(killTag)=[];
     %%
-    %     scattStuff(S,T,DD,II)
-    %%
-    
+    scattStuff(S,T,DD,II)
+    %%    
     velZonmeans(S,DD,II,T)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(S,DD,II,T) %#ok<INUSD>
+   close all   
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     for cc=1:(numel(LAuniq))
@@ -71,10 +70,10 @@ function h=ownPlot(DD,II,LAuniq,vvM,vvS)
     clf
     lw=2;
     pp(1)=plot(II.la(:,1),-II.maps.zonMean.Rossby.small.phaseSpeed*100); 	hold on
-    pp(2)=plot(LAuniq,-vvM,'r'); 
+    pp(2)=plot(LAuniq,-vvM,'r');
     pp(4)=plot(LAuniq,-vvM+vvS,'y');
     pp(5)=plot(LAuniq,-vvM-vvS,'y');
-       pp(3)=plot([DD.map.out.south DD.map.out.north], [0 0],'b--');
+    pp(3)=plot([DD.map.out.south DD.map.out.north], [0 0],'b--');
     axis([-70 70 -5 20])
     set(pp(1:3),'linewidth',lw)
     leg=legend('Rossby-wave phase-speed',2,'all eddies',2,'std');
@@ -92,18 +91,18 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     ch=reshape(flipud(reshape(chelt,Y,[])),[Y,X,Z]);
     ch=permute(reshape(fliplr(reshape(permute(ch,[3,1,2]),1,[])),[Z,Y,X]),[2,3,1]);
     ch=permute(reshape(flipud(reshape(permute(ch,[2,1,3]),[X,Y*Z])),[X,Y,Z]),[2,1,3]);
-    %%   
-    vvm=vvM+15;    
-    lau=LAuniq;  
+    %%
+    vvm=vvM+15;
+    lau=LAuniq;
     kill=isnan(lau) | isnan(vvM) | abs(lau)<10 | abs(lau)>50;
     lau(kill)=nan;
     vvm(kill)=nan;
-
+    
     %%
     clf
     imagesc(linspace(-50,50,X),linspace(-5,20,Y),ch)
     hold on
-    mid=floor(numel(lau)/2);   
+    mid=floor(numel(lau)/2);
     x.a=lau(1:mid);
     x.b=lau(mid+2:end);
     y.a=vvm(1:mid);
@@ -129,28 +128,15 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TR=getTR(DD)
-    xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
-    F={'rad','age','lat','lon'};
-    g=@(c) cat(1,c{:});
-    for ss=1:2
-        for fi=1:numel(F);f=F{fi};
-            sen=DD.FieldKeys.senses{ss};
-            TR.(sen).(f)=(xlt(sen,f))';
-        end
-        f='vel';
-        TR.(sen).(f)=g(g(xlt(sen,f)));
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function scattStuff(S,T,DD,II) %#ok<DEFNU>
-    age=S.age;
-    lat=S.lat;
-    vel=S.vel;
-    rad=S.rad;
+function scattStuff(S,T,DD,II) 
+    age=double(S.age);
+    lat=double(S.lat);
+    vel=double(S.vel);
+    rad=double(S.rad);
     %%
-    hs=scatter(age,lat,rad,vel);
+   close all
+    hs=scatter(age(1:100),lat(1:100),vel(1:100));
+  hs=scatter(age(1:100),lat(1:100),rad(1:100));
     %      clf
     %     hs=scatter(log10(abs(vel)),lat,rad,age);
     %     colorbar
@@ -190,4 +176,18 @@ function scattStuff(S,T,DD,II) %#ok<DEFNU>
     
     %%
     savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpdf');
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function TR=getTR(DD)
+    xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
+    F={'rad','age','lat','lon'};
+    g=@(c) cat(1,c{:});
+    for ss=1:2
+        for fi=1:numel(F);f=F{fi};
+            sen=DD.FieldKeys.senses{ss};
+            TR.(sen).(f)=((xlt(sen,f))');
+        end
+        f='vel';
+        TR.(sen).(f)=g(g(xlt(sen,f)));
+    end
 end

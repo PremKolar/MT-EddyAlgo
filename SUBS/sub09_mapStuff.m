@@ -3,6 +3,13 @@ function sub09_mapStuff
  senses=DD.FieldKeys.senses;
  lo=II.lo;
  la=II.la;
+ dx=extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.DX');
+ w=load([DD.path.root 'window.mat']);
+ X=1:w.window.sizePlus.X;
+ Y=1:w.window.sizePlus.Y;
+ [XX,YY]=meshgrid(X,Y);
+ [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
+ dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));
  for sense=senses;sen=sense{1};
      
      %% clf
@@ -10,7 +17,7 @@ function sub09_mapStuff
      VVr=II.maps.(sen).radius.toRo/2;
      VVr(VVr<1e-3)=nan;VVr(VVr>1e3)=nan;
      VV=logFive(VVr);
-     pcolor(lo,la,VV);shading flat;colormap([hsv(4); flipud(jet(4))])
+     pcolor(lo,la,VV);shading flat;colormap([(hsv(8))])
      %         clm=T.radiusToRo;
      clm=[logFive([.125 8]) 9]; % base 5
      decorate(clm,T,DD,sen,'Radius/(2Lr)','km',5,1,1);
@@ -21,7 +28,7 @@ function sub09_mapStuff
      VV=II.maps.(sen).radius.toRo;
      VV(VV<1e-3)=nan;VV(VV>1e3)=nan;
      pcolor(lo,la,VV);shading flat;colormap(hsv(12))
-     clm=[0 6 7]
+     clm=[0 6 7];
      decorate(clm,T,DD,sen,'Radius/Lr','km',0,1,1);
      axis([-180 180 -70 70])
      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoL-' sen],'dpdf');
@@ -29,10 +36,9 @@ function sub09_mapStuff
      clf
      VVs=II.maps.(sen).radius.mean.std;
      VVm=II.maps.(sen).radius.mean.mean;
-     VV=((VVs./VVm-1)*100);
+     VV=((VVs./VVm)*100);
      VV(VV<0)=nan;
-     VV=log10(VV);
-     
+     VV=log10(VV);     
      pcolor(lo,la,VV);shading flat;colormap(hsv(5))
      clm=[log10([1 100 ]) 6];
      decorate(clm,T,DD,sen,' scale: std/mean ','%',10,0,1);
@@ -40,22 +46,35 @@ function sub09_mapStuff
      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRadStdOMean-' sen],'dpdf');
      %%
      VV=II.maps.(sen).radius.mean.mean/1000;
-     pcolor(lo,la,VV);shading flat;colormap(hsv(14))
-     
-     clm=[20 160 8];
-     
+     pcolor(lo,la,VV);shading flat;colormap(hsv(14));     
+     clm=[20 160 8];     
      decorate(clm,T,DD,sen,'radius','km',0,1,1);
-     axis([-180 180 -70 70])
-     
+     axis([-180 180 -70 70]);     
      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+     %%
+     clf
+     VV=(II.maps.(sen).radius.mean.mean./dxq); 
+     a=full(floor(nanmin(VV(:))));
+     b=full(ceil(nanmax(VV(:))));
+     clm=[a b b-a+1];
+    pcolor(lo,la,VV);shading flat;
+    colormap(hsv(clm(3)-1));     
+%      clm=[20 160 8];     
+     decorate(clm,T,DD,sen,'radius/dx',' ',0,1,1);
+     axis([-180 180 -70 70]);     
+     savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
      %%
      clf
      VV=II.maps.(sen).vel.zonal.mean*100;
      pcolor(lo,la,VV);shading flat
-     doublemap([T.vel(1),0,T.vel(2)]	,II.aut,II.win,[.9 1 .9],20);
-     decorate(T.vel,T,DD,sen,'Zonal velocity','cm/s',0,1,1);
-     axis([-180 180 -70 70])
+     cw=jet(20);
+     cm=[0 0 0];
+      ce=(winter(4));
+          colormap([cw;cm;ce(:,[1 3 2])])
+     decorate([-20 5 6],T,DD,sen,'Zonal velocity','cm/s',0,1,1);
+     axis([-180 180 -70 70])   
      savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
+   
      %%
      VV=log(II.maps.(sen).age.mean);
      pcolor(lo,la,VV);shading flat;colormap(jet)

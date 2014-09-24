@@ -25,7 +25,7 @@ function sub09_trackstuff
     rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
     vel(end+1:end+S.rightyscalenum)=10;
     %%
-    [~,sml2lrg] = (sort(rad))  ;
+    [~,sml2lrg] = sort(rad)  ;
     S.age=age(fliplr(sml2lrg));
     S.lat=lat(fliplr(sml2lrg));
     S.rad=rad(fliplr(sml2lrg));
@@ -128,15 +128,16 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function scattStuff(S,T,DD,II) 
-    age=double(S.age);
-    lat=double(S.lat);
-    vel=double(S.vel);
-    rad=double(S.rad);
+function scattStuff(S,T,DD,II)
+    age=S.age;
+    lat=S.lat;
+    vel=S.vel;
+    rad=S.rad;
+	 inc=100;
     %%
-   close all
-    hs=scatter(age(1:100),lat(1:100),vel(1:100));
-  hs=scatter(age(1:100),lat(1:100),rad(1:100));
+	 oie=@(inc,x) x(1:inc:end);
+	 incscatter=@(inc,a,b,c,d) scatter(oie(inc,a),oie(inc,b),oie(inc,c),oie(inc,d));
+    hs=incscatter(inc,age,lat,rad,vel);
     %      clf
     %     hs=scatter(log10(abs(vel)),lat,rad,age);
     %     colorbar

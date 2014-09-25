@@ -4,23 +4,34 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%savegcf(gcf,outdir,resOut,xdim,ydim,tit,frmt,closeAfter)
-function savefig(outdir,resOut,xdim,ydim,tit,frmt)
+function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     set(gcf,'renderer','painter')
     set(gcf,'Visible','off')
     if nargin < 6,	frmt='dpdf';	end
+    if nargin < 7,	info=[]    ;	end
     fname=[outdir,tit];
     mkdirp(outdir);
     %% set up gcfure
     [resHere,posOld]=setupfigure(resOut,xdim,ydim);
     %% print
     set(gcf,'Visible','off');
-    printStuff(frmt,fname,resOut,xdim,ydim,resHere);
+    fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere);
+    if nargin == 7,
+        appendPdfMetaInfo(info,fnamepdf);
+    end
     set(gcf,'Visible','on');
     set(gcf,'position',posOld);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function printStuff(frmt,fname,resOut,xdim,ydim,resHere)
+function appendPdfMetaInfo(info,fnamepdf) %#ok<INUSL>
+    structfn=sprintf('%03d_pdfinfo.mat',labindex);
+    save(structfn,'info')    
+    system(sprintf('pdftk %s attach_files %s output %s.tmp.pdf',fnamepdf,structfn,fnamepdf));
+    system(sprintf('mv %s.tmp.pdf %s',fnamepdf,fnamepdf));    
+    system(['rm ' structfn]);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
         eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc ;'])
         system(['epstopdf ' fname '.eps']);
@@ -35,7 +46,8 @@ function printStuff(frmt,fname,resOut,xdim,ydim,resHere)
         disp(todo)
         eval(todo)
         system(['convert -density ' num2str(resHere) 'x' num2str(resHere) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' -quality 100 ' fnfull ' ' fname '.pdf' ]);
-    end
+    end   
+    fnamepdf=[fname '.pdf'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [resHere,posNow]=setupfigure(resOut,xdim,ydim)

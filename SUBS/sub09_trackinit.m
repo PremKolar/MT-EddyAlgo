@@ -4,7 +4,8 @@
 % Matlab:  8.1
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sub09_trackinit(DD)
+function sub09_trackinit
+    load DD
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
@@ -33,12 +34,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function single=sPmDstoof(DD,eds,root,toLoad)
     JJ=thread_distro(DD.threads.num,numel(eds));
-    spmd
+     spmd
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
-        for ff=FF 
+        for ff=1:numel(FF) 
             T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
-            single(ff)=load([root eds(ff).name],toLoad(:).name);
+            single(ff)=load([root eds(FF(ff)).name],toLoad(:).name);
         end
         single=gcat(single,2,1);
     end
@@ -52,8 +53,13 @@ function cats=buildOutStruct(single)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function vel=makeVel(cats)
+    cc=0;
     for ff=1:numel(cats.velPP)
         pp=cats.velPP{ff};
+        if isempty(pp)
+            continue
+        end
+        cc=cc+1;
         vel{ff}=ppval(pp.x_t,pp.timeaxis);
     end
 end

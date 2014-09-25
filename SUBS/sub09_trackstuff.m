@@ -40,12 +40,39 @@ function sub09_trackstuff
 	S.rad(killTag)=[];
 	S.vel(killTag)=[];
 	%%
-	scattStuff(S,T,DD,II)
+% 	scaleZonmeans(S,DD,II,T);
 	%%
-	velZonmeans(S,DD,II,T)
+% 	velZonmeans(S,DD,II,T);
+	%%
+	scattStuff(S,T,DD,II)	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function velZonmeans(S,DD,II,T) %#ok<INUSD>
+function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
+	close all
+	LA     = round(S.lat);
+	LAuniq = unique(LA)';
+	vvM=nan(size(LAuniq));
+	vvS=nan(size(LAuniq));
+	for cc=1:(numel(LAuniq))
+		vvM(cc)=mean(S.rad(LA==LAuniq(cc)));
+		vvS(cc)=std(S.rad(LA==LAuniq(cc)));
+	end
+	vvM(abs(LAuniq)<5)=nan;
+	vvS(abs(LAuniq)<5)=nan;
+	%%
+	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+	[~,pw]=fileparts(pwd);
+	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
+	savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf');
+	%%
+% 	chelt = imread('/scratch/uni/ifmto/u300065/presMT/FIGS/chelt11Ucomp.jpg');
+	chelt = imread('./cheltScaleZonMean.jpg','jpeg');
+	chelt= chelt(135:3595,415:3790,:);
+	h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
+	savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf');
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
 	close all
 	LA     = round(S.lat);
 	LAuniq = unique(LA)';
@@ -58,25 +85,46 @@ function velZonmeans(S,DD,II,T) %#ok<INUSD>
 	vvM(abs(LAuniq)<5)=nan;
 	vvS(abs(LAuniq)<5)=nan;
 	%%
-	h.own=ownPlot(DD,II,LAuniq,vvM,vvS);
+	[h.own,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+	[~,pw]=fileparts(pwd);
+	save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
 	savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf');
 	%%
 	chelt = imread('/scratch/uni/ifmto/u300065/presMT/FIGS/chelt11Ucomp.jpg');
 	chelt= chelt(135:3595,415:3790,:);
 	h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
 	savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf');
-	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function h=ownPlot(DD,II,LAuniq,vvM,vvS)
+function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
 	%%
 	clf
 	lw=2;
-	pp(1)=plot(II.la(:,1),-II.maps.zonMean.Rossby.small.phaseSpeed*100); 	hold on
-	pp(2)=plot(LAuniq,-vvM,'r');
-	pp(4)=plot(LAuniq,-vvM+vvS,'y');
-	pp(5)=plot(LAuniq,-vvM-vvS,'y');
-	pp(3)=plot([DD.map.out.south DD.map.out.north], [0 0],'b--');
+	%%
+	dd(1).y=-II.maps.zonMean.Rossby.small.phaseSpeed*100;
+	dd(2).y=-vvM;
+	dd(4).y=-vvM+vvS;
+	dd(5).y=-vvM-vvS;
+	dd(3).y= [0 0];
+	%%
+	dd(1).name='rossbyPhaseSpeed';
+	dd(2).name='zonal mean eddy phase speeds';
+	dd(4).name='std upper bound';
+	dd(5).name='std lower bound';
+	dd(3).name='nill line';
+	%%
+	dd(1).x=II.la(:,1);
+	dd(2).x=LAuniq;
+	dd(4).x=LAuniq;
+	dd(5).x=LAuniq;
+	dd(3).x=[DD.map.out.south DD.map.out.north];
+	%%
+	pp(1)=plot(dd(1).x,dd(1).y); 	hold on
+	pp(2)=plot(dd(2).x,dd(2).y,'r');
+	pp(4)=plot(dd(4).x,dd(4).y,'g');
+	pp(5)=plot(dd(5).x,dd(5).y,'g');
+	pp(3)=plot(dd(3).x,dd(3).y,'b--');
+	%%
 	axis([-70 70 -5 20])
 	set(pp(1:3),'linewidth',lw)
 	leg=legend('Rossby-wave phase-speed',2,'all eddies',2,'std');
@@ -84,6 +132,46 @@ function h=ownPlot(DD,II,LAuniq,vvM,vvS)
 	ylabel('[cm/s]')
 	xlabel('[latitude]')
 	title(['westward propagation [cm/s]'])
+	set(get(gcf,'children'),'linewidth',lw)
+	grid minor
+	h=gcf;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [h,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS)
+	lw=2;
+	%%
+	dd(1).y=II.maps.zonMean.Rossby.small.radius/1000*2;
+	dd(2).y=vvM;
+	dd(4).y=vvM+vvS;
+	dd(5).y=vvM-vvS;
+	dd(3).y= [0 0];
+	%%
+	dd(1).name='2x 1st barocl. Rossby radius';
+	dd(2).name='zonal mean eddy radius (\sigma)';
+	dd(4).name='std upper bound';
+	dd(5).name='std lower bound';
+	dd(3).name='nill line';
+	%%
+	dd(1).x=II.la(:,1);
+	dd(2).x=LAuniq;
+	dd(4).x=LAuniq;
+	dd(5).x=LAuniq;
+	dd(3).x=[DD.map.out.south DD.map.out.north];
+	%%
+		clf
+	pp(1)=plot(dd(1).x,dd(1).y); 	hold on
+	pp(2)=plot(dd(2).x,dd(2).y,'r');
+	pp(4)=plot(dd(4).x,dd(4).y,'g');
+	pp(5)=plot(dd(5).x,dd(5).y,'g');
+	pp(3)=plot(dd(3).x,dd(3).y,'b--');
+	%%
+
+	axis([-70 70 0 max(dd(4).y)])
+	set(pp(1:3),'linewidth',lw)
+	leg=legend(dd(1).name,2,dd(2).name,2,'std');
+	set( get(leg,'children'),'linewidth',lw)
+	ylabel('[km]')
+	xlabel('[latitude]')
 	set(get(gcf,'children'),'linewidth',lw)
 	grid minor
 	h=gcf;

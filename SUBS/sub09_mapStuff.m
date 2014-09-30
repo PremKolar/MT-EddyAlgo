@@ -10,7 +10,7 @@ function sub09_mapStuff
  [XX,YY]=meshgrid(X,Y);
  [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
  dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));
- aviCH=load('../aviN/CC.mat')
+% aviCH=load('../aviN/CC.mat')
  for sense=senses';sen=sense{1};
      
 %      %% clf

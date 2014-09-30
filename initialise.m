@@ -66,7 +66,8 @@ function preInits
     warning('off','SNCTOOLS:nc_getall:dangerous');
     rehash; clc; 
     format shortg;
-    dbstop if error;
+    dbstop if error;    
+set(0,'DefaultTextInterpreter', 'LaTeX');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)

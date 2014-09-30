@@ -2,7 +2,7 @@ load CUT_19091231_+10s+47n+00w+28e
 %%
 ssh=grids.ssh(20:90,70:130)*30
 %%
-zz=-3;
+zz=7;
 slice=ones(size(ssh))*zz;
 %%
 %  set(gcf,'Renderer','painter')
@@ -47,7 +47,7 @@ end
 %%
 set(gca,'zticklabel','','xticklabel','','yticklabel','')
 set(gca,'ztick',zz)
-set(gca,'zticklabel','level z')
+set(gca,'zticklabel',sprintf('z= %+2.1f',zz))
 % 
 % 
 % 

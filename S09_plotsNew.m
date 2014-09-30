@@ -7,7 +7,7 @@
 function S09_plotsNew
      DD=initialise([],mfilename);
          save DD
-%          load DD
+%         load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=800;
     ticks.height=600;

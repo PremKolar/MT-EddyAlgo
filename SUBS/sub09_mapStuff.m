@@ -3,14 +3,15 @@ function sub09_mapStuff
  senses=DD.FieldKeys.senses;
  lo=II.lo;
  la=II.la;
- dx=extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.DX');
+ dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.DX'));
  w=load([DD.path.root 'window.mat']);
  X=1:w.window.sizePlus.X;
  Y=1:w.window.sizePlus.Y;
  [XX,YY]=meshgrid(X,Y);
  [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
  dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));
- for sense=senses;sen=sense{1};
+ 
+ for sense=senses';sen=sense{1};
      
      %% clf
      logFive=@(x) log(x)/log(5);
@@ -60,9 +61,18 @@ function sub09_mapStuff
     pcolor(lo,la,VV);shading flat;
     colormap(hsv(clm(3)-1));     
 %      clm=[20 160 8];     
-     decorate(clm,T,DD,sen,'radius/dx',' ',0,1,1);
-     axis([-180 180 -70 70]);     
-     savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
+     cb=decorate(clm,T,DD,sen,'radius/dx',' ',0,1,1);
+     axis([-180 180 -70 70]);   
+     xl=(get(cb,'yticklabel'))
+     xlc=cell(size(xl,1),1)
+     for n=1:size(xl,1)
+          xlc{n}=xl(n,:)
+         if mod(n,10)~=0
+             xlc{n}=' ';
+         end
+     end             
+     set(cb,'yticklabel',xlc)
+   savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
      %%
      clf
      VV=II.maps.(sen).vel.zonal.mean*100;

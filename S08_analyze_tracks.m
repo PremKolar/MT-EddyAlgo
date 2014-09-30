@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    spmd
+%     spmd
         [MM,map]=spmd_block(DD,map,MM);
-    end
+%     end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -179,7 +179,7 @@ function	[vel,pp]=TRvel(map,eddy)
         pp.x_t=fnder(pp.x,1); % vel pp
         pp.v=ppval(pp.x_t, pp.timeaxis);
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
-        vel.(a)=uniqMeanStd(idx,velN,vel.(a));
+        vel.(a)=uniqMeanStd(idx,velN,vel.(a));     
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

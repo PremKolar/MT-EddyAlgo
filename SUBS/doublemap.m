@@ -9,10 +9,11 @@ function CM=doublemap(abc,cm1,cm2,centercol,alpha)
     if nargin<4
         alpha=1;
     end %% resample to fit ticks
+    hs=size(cm1,1);
     dat=diff(abc([1 2]));
     dbt=diff(abc([2 3]));
-    da=round(200*dat/dbt);
-    db=200;
+    da=round(hs*dat/dbt);
+    db=hs;
     cm1=resample(cm1,da,size(cm1,1));
     cm2=resample(cm2,db,size(cm2,1));
     CM=[cm1;flipud(cm2)];

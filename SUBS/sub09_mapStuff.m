@@ -10,11 +10,7 @@ function sub09_mapStuff
  [XX,YY]=meshgrid(X,Y);
  [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
  dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));
-<<<<<<< HEAD
-% aviCH=load('../aviN/CC.mat')
-=======
- aviNiko=load('../avi/CC.mat')
->>>>>>> aviN
+ aviCH=load('../aviN/CC.mat')
  for sense=senses';sen=sense{1};
      
 %      %% clf
@@ -49,21 +45,15 @@ function sub09_mapStuff
 %      decorate(clm,T,DD,sen,' scale: std/mean ','%',10,0,1);
 %      axis([-180 180 -70 70])
 %      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRadStdOMean-' sen],'dpdf');
-<<<<<<< HEAD
-%%
-%      VV=II.maps.(sen).radius.mean.mean/1000;   
-=======
  
 %%
-      VV=II.maps.(sen).radius.mean.mean/1000;   
->>>>>>> aviN
+%      VV=II.maps.(sen).radius.mean.mean/1000;   
 %      colormap(hsv(14));
 %      pcolor(lo,la,VV);shading flat;colormap(hsv(14));     
 %      clm=[20 160 8];     
 %      decorate(clm,T,DD,sen,'radius','km',0,1,1);
 %      axis([-180 180 -70 70]);     
 %      savefig(DD.path.plots,T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
-<<<<<<< HEAD
 %       CC.(sen).L=VV;
 
 VV=II.maps.(sen).radius.mean.mean/1000;
@@ -86,10 +76,6 @@ set(cb,'ytick',ct,'yticklabel',ctl)
 savefig(DD.path.plots,T.rez,T.width,T.height,['POPoAVI_chL-' sen],'dpdf');
        %%
 % 
-=======
-       CC.(sen).L=VV;
-
->>>>>>> aviN
 %  VV=II.maps.(sen).radius.mean.mean/1000;   
 %   VVniko=aviNiko.CC.(sen).L;   
 %     VVdiff=(full(VV-VVniko)./VV)*100 ;
@@ -132,21 +118,9 @@ savefig(DD.path.plots,T.rez,T.width,T.height,['POPoAVI_chL-' sen],'dpdf');
 %      end             
 %      set(cb,'yticklabel',xlc)
 %    savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
-<<<<<<< HEAD
-<<<<<<< HEAD
-     %%
-     clf
-     VV=II.maps.(sen).vel.zonal.mean*100;
-=======
 %      %%
 %      clf
 %      VV=II.maps.(sen).vel.zonal.mean*100;
->>>>>>> pop
-=======
-%      %%
-%      clf
-      VV=II.maps.(sen).vel.zonal.mean*100;
->>>>>>> aviN
 %      pcolor(lo,la,VV);shading flat
 %      cw=jet(20);
 %      cm=[0 0 0];
@@ -155,24 +129,12 @@ savefig(DD.path.plots,T.rez,T.width,T.height,['POPoAVI_chL-' sen],'dpdf');
 %      decorate([-20 5 6],T,DD,sen,'Zonal velocity','cm/s',0,1,1);
 %      axis([-180 180 -70 70])   
 %      savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
-<<<<<<< HEAD
-<<<<<<< HEAD
-    CC.(sen).v=VV;
-=======
 %  CC.(sen).v=VV;
 %  %% 
 %  VV=full(II.maps.(sen).vel.zonal.mean*100);
 %   VVniko=full(aviCH.CC.(sen).v);   
 %     VVrat=VV-VVniko ;
 %   LL=VVrat;
-=======
-  CC.(sen).v=VV;
- %% 
-%  VV=full(II.maps.(sen).vel.zonal.mean*100);
-%   VVniko=full(aviNiko.CC.(sen).v);   
-%     VVdiff=VV-VVniko ;
-%   LL=VVdiff;
->>>>>>> aviN
 %   wmax=median(min(LL));
 %   emax=median(max(LL));
 %   LL(LL>1 & LL<5)=1.1;
@@ -201,7 +163,6 @@ savefig(DD.path.plots,T.rez,T.width,T.height,['POPoAVI_chL-' sen],'dpdf');
 % %     CM=doublemap([va 0 vb],cma(:,[2 1 3]),cmb,[0 0 1],10)
 %        colormap(CM)
 %      set(cb,'ytick',ct,'yticklabel',ctl)
-<<<<<<< HEAD
 %        axis([-180 180 -70 70]);   
 %        
 %        
@@ -248,11 +209,6 @@ savefig(DD.path.plots,T.rez,T.width,T.height,['POPmAVI_chU-' sen],'dpdf');
        
        %%
 savefig(DD.path.plots,T.rez,T.width,T.height,['CHmN_aviU-' sen],'dpdf');
-=======
-%        axis([-180 180 -70 70]);     
-%        %%
-% savefig(DD.path.plots,T.rez,T.width,T.height,['CHmN_aviU-' sen],'dpdf');
->>>>>>> aviN
      
 %      %%
 %      VV=log(II.maps.(sen).age.mean);

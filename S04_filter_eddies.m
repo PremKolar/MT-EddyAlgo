@@ -157,9 +157,9 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	[pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
 	if ~pass.CR_AmpPeak, return, end;
 	%% get profiles
-	[ee.profiles]=EDDyProfiles(ee,zoom);
+	[ee.profiles,~]=EDDyProfiles(ee,zoom);
 	%% get radius according to max UV ie min vort
-	ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles,zoom.fields);
+	ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles);
 	%% test
 	pass.CR_radius=CR_radius(ee.radius.mean,DD.thresh.radius);
 	if ~pass.CR_radius, return, end;
@@ -183,7 +183,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
 		[ee.projLocsMask]=ProjectedLocations(rossby.c,cut,DD,ee.trackref);
 	end
-	plots4debug(zoom,ee)
+	% 	plots4debug(zoom,ee)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL=getLocalRossyRadius(rossbyL,coor)
@@ -470,152 +470,146 @@ function [ellipse]=EDDyEllipse(ee,mask)
 	ellipse(xlin)=true;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function s=EDDyProfiles(ee,z)
-	options = fitoptions('Method','Smooth','SmoothingParam',0.99);
+function [s,f]=EDDyProfiles(ee,z)
+	
+	% 	options = fitoptions('Method','Smooth','SmoothingParam',0.99);
 	%% detect meridional and zonal profiles shifted to baselevel of current level
 	offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
 	%%	zonal cut
-	prof.x.ssh =z.fields.ssh(ee.peak.z.y,:) + offset_term;
+	prof.x.ssh =-ee.sense.num * (z.fields.ssh(ee.peak.z.y,:) + offset_term);
 	prof.x.ddis=z.fields.DX(ee.peak.z.y,:) ;
 	prof.x.dist=z.fields.km_x(ee.peak.z.y,:)*1e3 ;
 	%% meridional cut
-	prof.y.ssh =z.fields.ssh(:,ee.peak.z.x) + offset_term;
+	prof.y.ssh =-ee.sense.num * (z.fields.ssh(:,ee.peak.z.x) + offset_term);
 	prof.y.ddis=z.fields.DY(:,ee.peak.z.x) ;
 	prof.y.dist=z.fields.km_y(:,ee.peak.z.x)*1e3 ;
-	
+	%
 	%%	cranck up res
 	
-	for xy={'x','y'};xy=xy{1};
-		s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),1e3);
-		f.(xy)  = spline(prof.(xy).dist',prof.(xy).ssh');
-		s.(xy).ssh  = 	ppval(f.(xy), s.(xy).dist);
-		s.
+	
+	for xyc={'x','y'};xy=xyc{1};
+		s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),1e3)';
+		s.(xy).idx  = linspace(1, numel(prof.(xy).dist),1e3)';
+		f.(xy)		= spline(prof.(xy).dist',prof.(xy).ssh');
+		s.(xy).ssh  = ppval(f.(xy), s.(xy).dist);
 	end
 	
 	%% intrp versions
-	fs=@(diflevel,p,f,yx) diffCentered(diflevel,s.(yx).dist,s.(yx).ssh);
+	fs=@(diflevel,arg,val) diffCentered(diflevel,arg,val)';
 	
-	f.x.ssh = fit(s.x.dist',s.x.ssh','fourier8');
-	f.y.ssh = fit(s.y.dist', s.y.ssh', 'fourier8');
-	
-	s.x.sshf=fs(0,s,f,'x');
-	s.y.sshf=fs(0,s,f,'y');
-	
-	s.x.V=fs(1,s,f,'x');
-	s.y.U=fs(1,s,f,'y');
-	
-	s.x.Vx=fs(2,s,f,'x');
-	s.y.Uy=fs(2,s,f,'y');
-	
-	figure(100)
-	hold on
-	co=[rand rand rand];
-	plot(s.x.dist,s.x.sshf	,'color',co)
-	plot(s.x.dist,s.x.ssh,'color',co,'linestyle','--')
-	
-	co=[rand rand rand];
-	plot(s.y.dist,s.y.sshf,'color',co,'linestyle','-')
-	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
-	axis tight
-	figure(200)
-	hold on
-	co=[rand rand rand];
-	plot(s.x.dist,s.x.V	,'color',co)
-	plot(s.x.dist,s.x.Vx,'color',co,'linestyle','--')
+	f.FEight.x.ssh = fit(s.x.dist,s.x.ssh,'fourier8');
+	f.FEight.y.ssh = fit(s.y.dist, s.y.ssh, 'fourier8');
+	f.FTwo.x.ssh = fit(s.x.dist,s.x.ssh,'fourier2');
+	f.FTwo.y.ssh = fit(s.y.dist, s.y.ssh, 'fourier2');
 	
 	
-	co=[rand rand rand];
-	plot(s.y.dist,s.y.U	,'color',co)
-	plot(s.y.dist,s.y.Uy,'color',co,'linestyle','--')
+	for xyc={'x','y'};		xy=xyc{1};
+		for foc={'FTwo','FEight'};		fo=foc{1};
+			s.(fo).(xy).sshf = feval(f.(fo).(xy).ssh, s.(xy).dist);
+			s.(fo).(xy).UV   = fs(1,s.(xy).dist,s.(fo).(xy).sshf);
+			s.(fo).(xy).UVd  = fs(2,s.(xy).dist,s.(fo).(xy).sshf);
+		end
+	end
 	
-	co=[rand rand rand];
-	plot(s.y.dist,f.y.ssh(s.y.dist),'color',co,'linestyle','-')
-	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
 	
-	axis tight
-	% 	prof.y.U=z.fields.U(:,ee.peak.z.x) ;
-	% 	prof.y.V=z.fields.V(:,ee.peak.z.x) ;
-	% prof.x.U =z.fields.U(ee.peak.z.y,:) ;
-	%	prof.x.V =z.fields.V(ee.peak.z.y,:) ;
+	%%
+	% 	figure(100)
+	% 	hold on
+	% 	co=[rand rand rand];
+	% 	plot(s.x.dist,s.x.sshf	,'color',co)
+	% 	plot(s.x.dist,s.x.ssh,'color',co,'linestyle','--')
+	% %
+	% 	co=[rand rand rand];
+	% 	plot(s.y.dist,s.y.sshf,'color',co,'linestyle','-')
+	% 	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
+	% 	axis tight
+	% 	figure(200)
+	% 	hold on
+	% 	co=[rand rand rand];
+	% 	plot(s.x.dist,s.x.V	,'color',co)
+	% 	plot(s.x.dist,s.x.Vx,'color',co,'linestyle','--')
+	%
+	%
+	% 	co=[rand rand rand];
+	% 	plot(s.y.dist,s.y.U	,'color',co)
+	% 	plot(s.y.dist,s.y.Uy,'color',co,'linestyle','--')
+	%
+	% 	co=[rand rand rand];
+	% 	plot(s.y.dist,f.y.ssh(s.y.dist),'color',co,'linestyle','-')
+	% 	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
+	%
+	
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function radius=EDDyRadiusFromUV(peak,prof,fields)
-	%% differentiate velocities to find first local extremata away from peak ie
-	%% maximum orbital speed
-	%% ie those distances at which the orbital velocity seizes to increase
-	cb=@(in) [nan;  reshape(in,[],1) ; nan];
-	sm=@(in) smooth(in,5,'lowess');
-	di=@(in) diff(in,2);
-	prel=@(d,pxi) d - d(pxi);
-	%% sign of angular frequency; flowing north, east of peak and south, west of peak
-	x.dS.dxx=prof.x.Vx;
-	y.dS.dyy=prof.y.Uy;
-	x.dS.dx =prof.x.V ;
-	y.dS.dy =prof.y.U ;
-	x.d = prel( prof.x.dist, peak.x)	;
-	y.d = prel( prof.y.dist, peak.y)   ;
+function radius=EDDyRadiusFromUV(peak,prof)
+	% note that all profiles are 'high pressure' regardless of sense or
+	% hemisphere here
+	apl=@(X) X([1:end end]);
+	apf=@(X) X([1 1:end  ]);
+	%% x dir
+	dVdx = prof.FTwo.x.UVd ;
+	V    = prof.FTwo.x.UV  ;
+	ssh  = prof.FTwo.x.sshf;
+	x.dis  = prof.x.dist   ;
+	x.idx  = prof.x.idx    ;
+	[~,tmp] = min(abs(x.idx - double(peak.x))); % index of peak in high res coors
+	[~,tmp2] = max((ssh(tmp-100:tmp+100)));
+	x.peak	  = tmp2 +tmp -(100+1);          % new exact peak index
+	% either left bndry or idx left of peak where dVdx crosses x-axis and slope of SSH is uphill
+	F.a = x.idx < peak.x;
+	F.b = apl(diff(sign(dVdx)))~=0;
+	F.c =  V > 0;
+	x.sigma(1) = max([ 1  find(F.a & F.b & F.c, 1, 'last') ]) +.5;
+	% respectively for downhill side
+	F.a = x.idx > peak.x;
+	F.b = apf(diff(sign(dVdx)))~=0; % right side of idx!
+	F.c =  V < 0;
+	x.sigma(2) = min([ numel(x.idx) find(F.a & F.b & F.c, 1, 'first')]) -.5;
+	%% y dir
+	dUdy = prof.FTwo.y.UVd ;
+	U    = prof.FTwo.y.UV  ;
+	ssh  = prof.FTwo.y.sshf;
+	y.dis  = prof.y.dist   ;
+	y.idx  = prof.y.idx    ;
+	[~,tmp] = min(abs(y.idx - double(peak.y)));
+	[~,tmp2] = max((ssh(tmp-100:tmp+100)));
+	y.peak	  = tmp2 +tmp -(100+1);
+		F.a = y.idx < peak.y;
+	F.b = apl(diff(sign(dUdy)))~=0;
+	F.c =  U > 0;
+	y.sigma(1) = max([ 1  find(F.a & F.b & F.c, 1, 'last') ]) +.5;
+		F.a = y.idx > peak.y;
+	F.b = apl(diff(sign(dUdy)))~=0;
+	F.c =  U < 0;
+	y.sigma(2) = min([ numel(y.idx) find(F.a & F.b & F.c, 1, 'first')]) -.5;
 	
 	%%
-	
-	
-	
-	sense=sign(prof.x.Vx(peak.x)) ;
-	x.sigma(1)=find(diff(sign(x.dS.dxx))~=0 & x.d(1:end-1)<0,1,'last')   ;
-	x.sigma(2)=find(diff(sign(x.dS.dxx))~=0 & x.d(1:end-1)>0,1,'first')+1;
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	%% split into both directions
-	coor.Xwest=find(x.Vdiff(1:peak.x)*-sense>=0,1,'last');
-	if isempty(coor.Xwest), coor.Xwest=1; end
-	coor.Xeast=find(x.Vdiff(peak.x:end)*-sense>=0,1,'first') ;
-	if isempty(coor.Xeast)
-		coor.Xeast=length(x.Vdiff);
-	else
-		coor.Xeast=coor.Xeast+peak.x-1;
-	end
+	radius.zonal      = diff(x.dis([x.sigma-.5]))/2;
+	radius.meridional = diff(y.dis([y.sigma-.5]))/2;
+	radius.mean       = mean(struct2array(radius));
+	%% coors on ori grid
+	halfidx=@(idx,sig) round(mean(idx([sig-.5 sig+.5])));
+	radius.coor.Xwest  = halfidx(x.idx,x.sigma(1));
+	radius.coor.Xeast  = halfidx(x.idx,x.sigma(2));
+	radius.coor.Ysouth = halfidx(y.idx,y.sigma(1));
+	radius.coor.Ynorth = halfidx(y.idx,y.sigma(2));
 	%%
-	coor.Ysouth=find(y.Udiff(1:peak.y)*(-sense)>=0,1,'last');
+	figure(1000)
+	% TODO  scan for weird ones see whats up
+	xy='y';
+	nrmc= @(x) (x-min(x))/max(x-min(x));	
+	spl=@(x,abl) spline(1:abl,x,linspace(1,abl,100));
+	pl  = @(x,ab) plot(nrmc(spl(x(ab(1):ab(2)),diff(ab)+1)));
+	subplot(131)
+	pl(prof.FTwo.(xy).sshf,y.sigma);hold on;	grid minor;axis off tight
+	subplot(132)
+	pl(prof.FTwo.(xy).UV,y.sigma	);hold on;	grid minor;axis off tight
+	subplot(133)
+	pl(prof.FTwo.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
 	
-	if isempty(coor.Ysouth), coor.Ysouth=1; end
-	coor.Ynorth=find(y.Udiff(peak.y:end)*(-sense) >=0,1,'first');
-	if isempty(coor.Ynorth)
-		coor.Ynorth=length(y.Udiff);
-	else
-		coor.Ynorth=coor.Ynorth+peak.y-1;
-	end
-	%% radius
-	radius.zonal=sum(fields.DX(coor.Xwest+1:coor.Xeast))/2;
-	radius.meridional=sum(fields.DY(coor.Ysouth+1:coor.Ynorth))/2;
-	radius.mean=mean(struct2array(radius));
-	%%
-	radius.coor=coor;
 	
-	%     clf
-	%nrm=@(in) (in-min(in))/max(in-min(in));
-	%     plot(nrm(prof.y.ssh));
-	%     hold on
-	%     plot(nrm(sm(prof.y.ssh)),'r')
-	%     plot(nrm( y.Udiff),'black')
-	%     plot(.5*ones(size( y.Udiff)),'y')
-	%     grid on
-	%     axis tight
-	%     legend('raw ssh','lowess filtered','2nd diff')
-	%     plot([double(coor.Ysouth)+.5 double(coor.Ynorth)-.5],[.5 .5],'r*')
-	%     set(gca,'ytick',.1:.1:.9,'xticklabel',[],'yticklabel',[])
-	%      set(gca,'xtick',1:1:49)
-	%     savefig('./',100,1200,600,'prof')
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [geo]=geocoor(zoom,volume)
@@ -659,15 +653,16 @@ function [circum,f]=EDDyCircumference(z)
 	f.y = fit(f.ii,y,'smoothingspline',options);
 	circum=sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
 	
-	%%
-	figure(1)
-	subplot(121)
-	plot(x,y,'r')
-	hold on
-	plot(f.x(f.II),f.y(f.II))
-	subplot(122)
-	hold on
-	plot(f.II(2:end),diff(f.x(f.II))','b',f.II(2:end),diff(f.y(f.II)),'r')
+	% 	%%
+	% 	clf
+	% 	figure(1)
+	% 	subplot(121)
+	% 	plot(x,y,'r')
+	% 	hold on
+	% 	plot(f.x(f.II),f.y(f.II))
+	% 	subplot(122)
+	% 	hold on
+	% 	plot(f.II(2:end),diff(f.x(f.II))','b',f.II(2:end),diff(f.y(f.II)),'r')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_maskOld(zoom)
@@ -795,7 +790,7 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
 		y(y>cut.dim.Y)=cut.dim.Y;
 		x(x<1)=1;
 		y(y<1)=1;
-		%% 		TEMP
+		%% 		TEMP TODO
 		% 		ee(jj).coordinates.int.x=x;
 		% 		ee(jj).coordinates.int.y=y;
 	end

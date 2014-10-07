@@ -8,5 +8,5 @@ function [coor]=drop_2d_to_1d(y,x,Y)
 	if y>Y
 		error('y>Y doesnt make sense sorry')
 	end
-	coor=int32(round(x-1)*Y+round(y));
+	coor=int32(round(x-1)*double(Y)+round(y));
 end

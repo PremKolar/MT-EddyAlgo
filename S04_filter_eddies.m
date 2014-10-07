@@ -88,8 +88,8 @@ function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
 		Tv= disp_progress('disp',Tv,numel(Zloop),10,1);
 		[pass(kk),ee_out]=run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
 		if all(struct2array(pass(kk))), pp=pp+1;
-			%% append healthy found eddy
-			eddies(pp)=ee_out;
+			%% append healthy found eddy TODO
+			eddies(pp)=ee_out; %#ok<*AGROW>
 			%% flag respective overlap too
 			if strcmp(cut.window.type,'globe')
 				[yi,xi]=find(ee_out.mask);
@@ -149,7 +149,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	[ee.area,pass.Area]=Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
 	if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
 	%% calc contour circumference in [SI]
-	[ee.circum.si]=EDDyCircumference(zoom);
+	[ee.circum.si,ee.fourierCont]=EDDyCircumference(zoom);
 	%% filter eddies not circle-like enough
 	[pass.CR_Shape,ee.isoper, ee.chelt]=CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
 	if ~pass.CR_Shape, return, end;
@@ -157,7 +157,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	[pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos]=CR_AmpPeak(ee,zoom,DD.thresh.amp);
 	if ~pass.CR_AmpPeak, return, end;
 	%% get profiles
-	[ee.profiles]=EDDyProfiles(ee,zoom.fields);
+	[ee.profiles]=EDDyProfiles(ee,zoom);
 	%% get radius according to max UV ie min vort
 	ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles,zoom.fields);
 	%% test
@@ -183,6 +183,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
 		[ee.projLocsMask]=ProjectedLocations(rossby.c,cut,DD,ee.trackref);
 	end
+	plots4debug(zoom,ee)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL=getLocalRossyRadius(rossbyL,coor)
@@ -232,7 +233,7 @@ function [pass,peak,base]=CR_AmpPeak(ee,z,thresh)
 	base(~z.mask.filled)=0;
 	%% amplitude
 	[peak.amp.to_contour,peak.lin]=max(base(:));
-	[peak.z.y,peak.z.x]=raise_1d_to_2d(diff(z.limits.y)+1, peak.lin);
+	[peak.z.y,peak.z.x]=raise_1d_to_2d(z.size.Y, peak.lin);
 	peak.amp.to_mean = z.fields.ssh(peak.lin)-peak.mean_ssh;
 	%% coordinates in full map
 	peak.y=peak.z.y+z.limits.y(1) -1;
@@ -242,7 +243,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 	[passes.iq,IQ]=IsopQuo(ee,thresh.iq);
-	[passes.chelt,chelt]=chelton_shape(z);
+	[passes.chelt,chelt]=chelton_shape(z,ee);
 	if switches.IQ && ~switches.chelt
 		pass=passes.iq;
 	elseif switches.chelt && ~switches.IQ
@@ -254,28 +255,31 @@ function [pass,IQ,chelt]=CR_Shape(z,ee,thresh,switches)
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,chelt]=chelton_shape(z)
-	%% get max dist in x | y
-	x.min=min(z.coor.int.x);
-	y.min=min(z.coor.int.y);
-	x.max=max(z.coor.int.x);
-	y.max=max(z.coor.int.y);
-	maxDist=max([sum(z.fields.DX(x.min:x.max)) sum(z.fields.DY(y.min:y.max))]);
-	mlat=abs(nanmean(z.fields.lat(:))) ;
-	if mlat> 25
+function [pass,chelt]=chelton_shape(z,ee)
+	%% get max dist(all2all)
+	f=ee.fourierCont;
+	x=f.x(f.ii);
+	y=f.y(f.ii);
+	xiy=x+1i*y;
+	[A,B]=meshgrid(xiy,xiy);
+	maxDist=max(max(abs(A-B)))*1e3;
+	%%
+	medlat=abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
+	%%
+	if medlat> 25
 		chelt  = 1 - maxDist/4e5;
 	else
-		chelt  =  1 - maxDist/(8e5*(25 - mlat)/25 + 4e5);
+		chelt  =  1 - maxDist/(8e5*(25 - medlat)/25 + 4e5);
 	end
 	if chelt >= 0, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,isoper]=IsopQuo(ee,thresh)
+function [pass,iq]=IsopQuo(ee,thresh)
 	%% isoperimetric quotient
-	% The isoperimetric quotient of a closed curve is defined as the ratio of the curve area to the area of a circle with same perimeter
-	% ie isoper=4pi area/circum^2.  isoper(circle)==1;
-	isoper=4*pi*ee.area.total/ee.circum.si^2;
-	if isoper >= thresh, pass=true; else pass=false; end
+	getIQ  = @(area,circum) 4*pi*area/circum^2;
+	iq = getIQ(ee.area.intrp,ee.circum.si);
+	%%
+	if iq >= thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass]=CR_2dEDDy(coor)
@@ -410,7 +414,7 @@ function [area,pass]=Area(z,rossbyL,scaleThresh)
 	area.total=sum(area.pixels(:));
 	area.meanPerSquare=mean(z.fields.DX(z.mask.filled).*z.fields.DY(z.mask.filled));
 	area.intrp=area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
-	area.RadiusOverRossbyL=sqrt(area.total/pi)/rossbyL;
+	area.RadiusOverRossbyL=sqrt(area.intrp/pi)/rossbyL;
 	if area.RadiusOverRossbyL > scaleThresh
 		pass=false;
 	else
@@ -466,31 +470,112 @@ function [ellipse]=EDDyEllipse(ee,mask)
 	ellipse(xlin)=true;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function prof=EDDyProfiles(ee,fields)
+function s=EDDyProfiles(ee,z)
+	options = fitoptions('Method','Smooth','SmoothingParam',0.99);
 	%% detect meridional and zonal profiles shifted to baselevel of current level
 	offset_term=ee.peak.amp.to_contour*ee.sense.num-ee.level;
 	%%	zonal cut
-	prof.x.ssh=fields.ssh(ee.peak.z.y,:) + offset_term;
-	prof.x.U=fields.U(ee.peak.z.y,:) ;
-	prof.x.V=fields.V(ee.peak.z.y,:) ;
+	prof.x.ssh =z.fields.ssh(ee.peak.z.y,:) + offset_term;
+	prof.x.ddis=z.fields.DX(ee.peak.z.y,:) ;
+	prof.x.dist=z.fields.km_x(ee.peak.z.y,:)*1e3 ;
 	%% meridional cut
-	prof.y.ssh=fields.ssh(:,ee.peak.z.x) + offset_term;
-	prof.y.U=fields.U(:,ee.peak.z.x) ;
-	prof.y.V=fields.V(:,ee.peak.z.x) ;
+	prof.y.ssh =z.fields.ssh(:,ee.peak.z.x) + offset_term;
+	prof.y.ddis=z.fields.DY(:,ee.peak.z.x) ;
+	prof.y.dist=z.fields.km_y(:,ee.peak.z.x)*1e3 ;
+	
+	%%	cranck up res
+	
+	for xy={'x','y'};xy=xy{1};
+		s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),1e3);
+		f.(xy)  = spline(prof.(xy).dist',prof.(xy).ssh');
+		s.(xy).ssh  = 	ppval(f.(xy), s.(xy).dist);
+		s.
+	end
+	
+	%% intrp versions
+	fs=@(diflevel,p,f,yx) diffCentered(diflevel,s.(yx).dist,s.(yx).ssh);
+	
+	f.x.ssh = fit(s.x.dist',s.x.ssh','fourier8');
+	f.y.ssh = fit(s.y.dist', s.y.ssh', 'fourier8');
+	
+	s.x.sshf=fs(0,s,f,'x');
+	s.y.sshf=fs(0,s,f,'y');
+	
+	s.x.V=fs(1,s,f,'x');
+	s.y.U=fs(1,s,f,'y');
+	
+	s.x.Vx=fs(2,s,f,'x');
+	s.y.Uy=fs(2,s,f,'y');
+	
+	figure(100)
+	hold on
+	co=[rand rand rand];
+	plot(s.x.dist,s.x.sshf	,'color',co)
+	plot(s.x.dist,s.x.ssh,'color',co,'linestyle','--')
+	
+	co=[rand rand rand];
+	plot(s.y.dist,s.y.sshf,'color',co,'linestyle','-')
+	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
+	axis tight
+	figure(200)
+	hold on
+	co=[rand rand rand];
+	plot(s.x.dist,s.x.V	,'color',co)
+	plot(s.x.dist,s.x.Vx,'color',co,'linestyle','--')
+	
+	
+	co=[rand rand rand];
+	plot(s.y.dist,s.y.U	,'color',co)
+	plot(s.y.dist,s.y.Uy,'color',co,'linestyle','--')
+	
+	co=[rand rand rand];
+	plot(s.y.dist,f.y.ssh(s.y.dist),'color',co,'linestyle','-')
+	plot(s.y.dist,s.y.ssh,'color',co,'linestyle','--')
+	
+	axis tight
+	% 	prof.y.U=z.fields.U(:,ee.peak.z.x) ;
+	% 	prof.y.V=z.fields.V(:,ee.peak.z.x) ;
+	% prof.x.U =z.fields.U(ee.peak.z.y,:) ;
+	%	prof.x.V =z.fields.V(ee.peak.z.y,:) ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function radius=EDDyRadiusFromUV(peak,prof,fields)
 	%% differentiate velocities to find first local extremata away from peak ie
 	%% maximum orbital speed
 	%% ie those distances at which the orbital velocity seizes to increase
-	
 	cb=@(in) [nan;  reshape(in,[],1) ; nan];
 	sm=@(in) smooth(in,5,'lowess');
 	di=@(in) diff(in,2);
-	x.Vdiff=cb(di(sm(prof.x.ssh)));
-	y.Udiff=cb(di(sm(prof.y.ssh)));
+	prel=@(d,pxi) d - d(pxi);
 	%% sign of angular frequency; flowing north, east of peak and south, west of peak
-	sense=sign(x.Vdiff(peak.x)) ;
+	x.dS.dxx=prof.x.Vx;
+	y.dS.dyy=prof.y.Uy;
+	x.dS.dx =prof.x.V ;
+	y.dS.dy =prof.y.U ;
+	x.d = prel( prof.x.dist, peak.x)	;
+	y.d = prel( prof.y.dist, peak.y)   ;
+	
+	%%
+	
+	
+	
+	sense=sign(prof.x.Vx(peak.x)) ;
+	x.sigma(1)=find(diff(sign(x.dS.dxx))~=0 & x.d(1:end-1)<0,1,'last')   ;
+	x.sigma(2)=find(diff(sign(x.dS.dxx))~=0 & x.d(1:end-1)>0,1,'first')+1;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	%% split into both directions
 	coor.Xwest=find(x.Vdiff(1:peak.x)*-sense>=0,1,'last');
 	if isempty(coor.Xwest), coor.Xwest=1; end
@@ -560,13 +645,29 @@ function [volume]=CenterOfVolume(zoom,area,Y)
 	volume.center.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [circum]=EDDyCircumference(z)
-	%% hypot exact coor diffs times dxdy at those coors
-	x=z.coor.exact.x;
-	y=z.coor.exact.y;
-	xi=z.coor.int.x;
-	yi=z.coor.int.y;
-	circum=sum(hypot(diff(y).*z.fields.DY(yi(2:end)),diff(x).*z.fields.DX(xi(2:end))));
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [circum,f]=EDDyCircumference(z)
+	%%
+	ilin =z.coor.int.lin;
+	x = z.fields.km_x(ilin);
+	y = z.fields.km_y(ilin);
+	f.ii=linspace(0,2*pi,numel(x))';
+	f.II=linspace(0,2*pi,360)';
+	options = fitoptions('Method','Smooth','SmoothingParam',0.99);
+	f.x = fit(f.ii,x,'smoothingspline',options);
+	f.y = fit(f.ii,y,'smoothingspline',options);
+	circum=sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
+	
+	%%
+	figure(1)
+	subplot(121)
+	plot(x,y,'r')
+	hold on
+	plot(f.x(f.II),f.y(f.II))
+	subplot(122)
+	hold on
+	plot(f.II(2:end),diff(f.x(f.II))','b',f.II(2:end),diff(f.y(f.II)),'r')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_maskOld(zoom)
@@ -609,16 +710,19 @@ function mask=EDDyCut_mask(zoom)
 	[mask.size.Y, mask.size.X]=size(dummymask);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function fields_out=EDDyCut_init(fields_in,zoom)
-	ya=zoom.limits.y(1);
-	yb=zoom.limits.y(2);
-	xa=zoom.limits.x(1);
-	xb=zoom.limits.x(2);
+function fields_out=EDDyCut_init(fields_in,z)
+	ya=z.limits.y(1);
+	yb=z.limits.y(2);
+	xa=z.limits.x(1);
+	xb=z.limits.x(2);
 	%% cut all fields
 	for ff=fieldnames(fields_in)'
 		field=ff{1};
 		fields_out.(field)=fields_in.(field)(ya:yb,xa:xb);
 	end
+	%%
+	fields_out.km_x=deg2km(fields_out.lon);
+	fields_out.km_y=deg2km(fields_out.lat);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [z,passout]=get_window_limits(coor,enlargeFac,map)
@@ -629,9 +733,14 @@ function [z,passout]=get_window_limits(coor,enlargeFac,map)
 	z.limits.y(1)=min(coor.int.y);
 	z.limits.x(2)=max(coor.int.x);
 	z.limits.y(2)=max(coor.int.y);
-	z.limits=enlarge_window(z.limits,enlargeFac,map.sizePlus) ;
+	[z.limits,z.M]=enlarge_window(z.limits,enlargeFac,map.sizePlus) ;
+	
+	%%
+	z.size.X=diff(z.limits.x)+1;
+	z.size.Y=diff(z.limits.y)+1;
 	z.coor.int.x=z.coor.int.x-z.limits.x(1) +1;
 	z.coor.int.y=z.coor.int.y-z.limits.y(1) +1;
+	z.coor.int.lin=drop_2d_to_1d(z.coor.int.y,z.coor.int.x,z.size.Y)	;
 	z.coor.exact.x=z.coor.exact.x -double(z.limits.x(1))  +1;
 	z.coor.exact.y=z.coor.exact.y -double(z.limits.y(1))  +1;
 	%%
@@ -645,13 +754,16 @@ function [z,passout]=get_window_limits(coor,enlargeFac,map)
 	passout=all(pass);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function inout=enlarge_window(inout,factor,dim)
+function [inout,M]=enlarge_window(inout,factor,dim)
+	
 	half_width =round((diff(inout.x)+1)*(factor-1)/2);
 	half_height=round((diff(inout.y)+1)*(factor-1)/2);
 	inout.x(1)=max([1 inout.x(1)-half_width]);
 	inout.x(2)=min([dim.X inout.x(2)+half_width]);
 	inout.y(1)=max([1 inout.y(1)-half_height]);
 	inout.y(2)=min([dim.Y inout.y(2)+half_height]);
+	[M.x,M.y]=meshgrid(inout.x(1):inout.x(end),inout.y(1):inout.y(end));
+	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE]=eddies2struct(CC,thresh)
@@ -665,8 +777,8 @@ function [EE]=eddies2struct(CC,thresh)
 			EE(cc).circum.length= len;
 			EE(cc).coordinates.exact.x=CC(1+ii:ii+EE(cc).circum.length,1);
 			EE(cc).coordinates.exact.y=CC(1+ii:ii+EE(cc).circum.length,2);
-			EE(cc).coordinates.int.x=int32(round(EE(cc).coordinates.exact.x));
-			EE(cc).coordinates.int.y=int32(round(EE(cc).coordinates.exact.y));
+			EE(cc).coordinates.int.x=int32(EE(cc).coordinates.exact.x);
+			EE(cc).coordinates.int.y=int32(EE(cc).coordinates.exact.y);
 		end
 		ii=ii+len+1; % jump to next eddy for next iteration
 	end
@@ -683,8 +795,9 @@ function [ee,cut]=CleanEDDies(ee,cut,contstep) %#ok<INUSD>
 		y(y>cut.dim.Y)=cut.dim.Y;
 		x(x<1)=1;
 		y(y<1)=1;
-		ee(jj).coordinates.int.x=x;
-		ee(jj).coordinates.int.y=y;
+		%% 		TEMP
+		% 		ee(jj).coordinates.int.x=x;
+		% 		ee(jj).coordinates.int.y=y;
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

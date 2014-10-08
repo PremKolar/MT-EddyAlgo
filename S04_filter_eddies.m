@@ -159,9 +159,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	%% get profiles
 	[ee.profiles,~]=EDDyProfiles(ee,zoom);
 	%% get radius according to max UV ie min vort
-	ee.radius=EDDyRadiusFromUV(ee.peak.z, ee.profiles);
-	%% test
-	pass.CR_radius=CR_radius(ee.radius.mean,DD.thresh.radius);
+	[ee.radius,pass.CR_radius]=EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
 	if ~pass.CR_radius, return, end;
 	%% get ideal ellipse contour
 	zoom.mask.ellipse=EDDyEllipse(ee,zoom.mask);
@@ -182,8 +180,7 @@ function [pass,ee]=run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 	%% append projected location
 	if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
 		[ee.projLocsMask]=ProjectedLocations(rossby.c,cut,DD,ee.trackref);
-	end
-	% 	plots4debug(zoom,ee)
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL=getLocalRossyRadius(rossbyL,coor)
@@ -214,10 +211,6 @@ function [pass,sense]=CR_sense(zoom,direc,level)
 			sense.num=1;
 		end
 	end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function pass=CR_radius(radius,thresh)
-	if radius>=thresh, pass=true; else pass=false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function pass=CR_RimNan(coor, Y, ssh)
@@ -401,7 +394,11 @@ function TR=getTrackRef(ee,tr)
 			TR=ee.volume.center;
 		case 'peak'
 			TR=ee.peak;
-	end
+    end
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
@@ -542,7 +539,7 @@ function [s,f]=EDDyProfiles(ee,z)
 	
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function radius=EDDyRadiusFromUV(peak,prof)
+function [radius,pass]=EDDyRadiusFromUV(peak,prof,thresh)
 	% note that all profiles are 'high pressure' regardless of sense or
 	% hemisphere here
 	apl=@(X) X([1:end end]);
@@ -608,8 +605,9 @@ function radius=EDDyRadiusFromUV(peak,prof)
 	subplot(133)
 	pl(prof.FTwo.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
 	
-	
-	
+    %%
+    if radius.mean >= thresh, pass=true; else pass=false; end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [geo]=geocoor(zoom,volume)
@@ -638,8 +636,6 @@ function [volume]=CenterOfVolume(zoom,area,Y)
 	volume.center.lin=drop_2d_to_1d(y,x,Y);
 	volume.center.linz=drop_2d_to_1d(yz,xz,size(ssh,1));
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [circum,f]=EDDyCircumference(z)
 	%%
@@ -684,6 +680,7 @@ function mask=EDDyCut_maskOld(zoom)
 		dummy(xlin)=true;
 	end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask=EDDyCut_mask(zoom)
 	%% init
 	dummymask=false(size(zoom.fields.ssh));

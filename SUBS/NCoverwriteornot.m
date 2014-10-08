@@ -21,7 +21,8 @@ function existsCase(me,nc_file_name,overwrite)
     if overwrite
         owCase(nc_file_name);
     else
-        error(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
+        warning(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
+%         error(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -51,12 +51,12 @@ function Calculations(DD)
     save(file_out,'-struct','CK');
     %%
     file_out=[DD.path.Rossby.name 'RossbyPhaseSpeed.mat'];
-    out=CK.rossby.c1;
-    save(file_out,'out');
+    data=CK.rossby.c1;
+    save(file_out,'data');
     %%
     file_out=[DD.path.Rossby.name 'RossbyRadius.mat'];
-    out=CK.rossby.Ro1; %#ok<*NASGU>
-    save(file_out,'out');
+    data=CK.rossby.Ro1; %#ok<*NASGU>
+    save(file_out,'data');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK)

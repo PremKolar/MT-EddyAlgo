@@ -1,16 +1,16 @@
-
 function DD=INPUT
     DD.template='mad';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-%  DD.debugmode=true;
+ DD.debugmode=true;
      DD.overwrite=false;
-   DD.overwrite=true;      
+%    DD.overwrite=true;      
     %% time
     threshlife=3*3;
     DD.time.from.str='19091231';
-    DD.time.till.str='19160724';
+    DD.time.till.str='19101231';
+%     DD.time.till.str='19160724';
    %% window on globe
     DD.map.in.west=0;
     DD.map.in.east= 28;
@@ -36,12 +36,12 @@ function DD=INPUT
     DD.switchs.IQ=1;
     DD.switchs.chelt=0;
     DD.switchs.RossbyStuff=1;
-    DD.switchs.distlimit=0;
+    DD.switchs.distlimit=1;
     DD.switchs.AmpAreaCheck=0;
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
-    DD.switchs.IdentityCheck=0;
-    DD.switchs.maxRadiusOverRossbyL=0;
+    DD.switchs.IdentityCheck=1;
+    DD.switchs.maxRadiusOverRossbyL=1;
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end

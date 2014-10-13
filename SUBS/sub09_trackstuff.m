@@ -79,7 +79,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
     %%
-    chelt = imread('/scratch/uni/ifmto/u300065/presMT/FIGS/chSc.png');
+    chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
 end

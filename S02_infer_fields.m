@@ -144,8 +144,7 @@ function gr=geostrophy(gr,corio,RS)
         gr.Lrhines=sqrt(gr.absUV./corio.beta);
         gr.L_R=abs(RS.c./corio.f);
         gr.Bu=(gr.L_R./gr.L).^2;
-    end
-    
+    end    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def=deformation(grids)

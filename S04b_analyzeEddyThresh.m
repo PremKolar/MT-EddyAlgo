@@ -9,8 +9,8 @@ function main(DD)
     
 %     numDays=DD.checks.passedTotal;
     numDays=1;
-    sens={'ac','c'};
-    
+   
+    sens=DD.FieldKeys.senses';
     
     for jj=1:numDays
         passIn=read_fields(DD,jj,'eddies','pass');

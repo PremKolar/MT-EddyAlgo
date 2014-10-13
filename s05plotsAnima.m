@@ -58,10 +58,10 @@ function makejpegs(EE,dayn)
     figure(labindex);clf;
     %     CM=flipud(hot(100));
     contour(grids.ssh,-.6:.03:.6,'linewidth',2)
-    for kk=1:numel(anticyclones)
-        x=anticyclones(kk).coordinates.exact.x;
-        y=anticyclones(kk).coordinates.exact.y;
-        iq=anticyclones(kk).isoper-.55;
+    for kk=1:numel(AntiCycs)
+        x=AntiCycs(kk).coordinates.exact.x;
+        y=AntiCycs(kk).coordinates.exact.y;
+        iq=AntiCycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;
         iq=round(iq);
@@ -69,10 +69,10 @@ function makejpegs(EE,dayn)
         plot(x,y,'color','black','linewidth',ceil(iq*5/100))
     end
     
-    for kk=1:numel(cyclones)
-        x=cyclones(kk).coordinates.exact.x;
-        y=cyclones(kk).coordinates.exact.y;
-        iq=cyclones(kk).isoper-.55;
+    for kk=1:numel(Cycs)
+        x=Cycs(kk).coordinates.exact.x;
+        y=Cycs(kk).coordinates.exact.y;
+        iq=Cycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;
         iq=round(iq);

@@ -6,8 +6,8 @@ function [DD]=get_input
     DD.time=catstruct(DD.time, timestuff(DD.time));
     %%
     sprintf(['\n setting internal parameters...']);
-    [DD.pattern, DD.FieldKeys]=DDpatternsAndKeys; 
-     %%
+    [DD.pattern, DD.FieldKeys]=DDpatternsAndKeys;
+    %%
     sprintf(['\n scanning data...']);
     DD.path=catstruct(DD.path,findfiles(DD));
     %%
@@ -72,16 +72,16 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'peak.amp.to_contour';
         'peak.amp.to_mean';
         'peak.amp.to_ellipse';
-        };    
+        };
     FieldKeys.senses= { ...
         'AntiCycs';
         'Cycs';
         };
     %% Rossby
     FieldKeys.Rossby = { ...
-    'RossbyPhaseSpeed'   ;
-    'RossbyRadius' ;
-    };    
+        'RossbyPhaseSpeed'   ;
+        'RossbyRadius' ;
+        };
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function T=timestuff(T)
@@ -100,7 +100,7 @@ function mkDirs(path,senses)
     mkdirp(path.conts.name);
     mkdirp(path.eddies.name);
     mkdirp(path.tracks.name);
-    mkdirp(path.analyzed.name);    
+    mkdirp(path.analyzed.name);
     mkdirp(path.analyzedTracks.(senses{1}).name);
     mkdirp(path.analyzedTracks.(senses{2}).name);
     mkdirp(path.Rossby.name);
@@ -140,12 +140,12 @@ function PATH=findfiles(DD)
     PATH.conts.files=dir([PATH.conts.name,'*.mat']);
     PATH.eddies.files=dir([PATH.eddies.name,'*.mat']);
     PATH.tracks.files=dir([PATH.tracks.name,'*.mat']);
-    PATH.analyzed.files=dir([PATH.analyzed.name,'*.mat']);   
+    PATH.analyzed.files=dir([PATH.analyzed.name,'*.mat']);
     PATH.analyzedTracks.(senses{1}).files=dir([PATH.analyzedTracks.(senses{1}).name,'*.mat']);
-    PATH.analyzedTracks.(senses{2}).files=dir([PATH.analyzedTracks.(senses{2}).name,'*.mat']);    
+    PATH.analyzedTracks.(senses{2}).files=dir([PATH.analyzedTracks.(senses{2}).name,'*.mat']);
     PATH.Rossby.files=[dir([PATH.Rossby.name,'*.nc']); dir([PATH.Rossby.name,'*.mat'])];
     %%
-    PATH.TempSalt.files=tempsalt(DD);    
+    PATH.TempSalt.files=tempsalt(DD);
     PATH.windowFile=[PATH.root 'window.mat'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,14 +158,11 @@ function files=tempsalt(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dispFileStatus(p)
-    disp(['found ' num2str(numel(p.raw.files)) ' files in ' p.raw.name])
-    disp(['found ' num2str(numel(p.cuts.files)) ' files in ' p.cuts.name])
-    disp(['found ' num2str(numel(p.conts.files)) ' files in ' p.conts.name])
-    disp(['found ' num2str(numel(p.eddies.files)) ' files in ' p.eddies.name])
-    disp(['found ' num2str(numel(p.tracks.files)) ' files in ' p.tracks.name])
-    disp(['found ' num2str(numel(p.Rossby.files)) ' files in ' p.Rossby.name])
-    disp(['found ' num2str(numel(p.analyzedTracks.AC.files)) ' files in ' p.analyzedTracks.AC.name])
-    disp(['found ' num2str(numel(p.analyzedTracks.C.files)) ' files in ' p.analyzedTracks.C.name])
-    disp(['found ' num2str(numel(p.analyzed.files)) ' files in ' p.analyzed.name])
+    FN=fieldnames(p)';
+    for ii=1:numel(FN);fn=FN{ii};
+        if isfield(p.(fn),'files') && isfield(p.(fn),'name')
+            disp(['found ' num2str(numel(p.(fn).files)) ' files in ' p.(fn).name]);
+        end
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

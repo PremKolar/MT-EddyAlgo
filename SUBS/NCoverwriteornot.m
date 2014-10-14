@@ -10,7 +10,7 @@ function NCoverwriteornot(nc_file_name,overwrite)
     end
     %%
     try
-        nc_create_empty(nc_file_name,'noclobber');
+        nc_create_empty(nc_file_name,'clobber');
     catch me
         existsCase(me,nc_file_name,overwrite);
     end
@@ -22,7 +22,7 @@ function existsCase(me,nc_file_name,overwrite)
         owCase(nc_file_name);
     else
         warning(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
-%         error(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
+        %         error(['delete ' nc_file_name ' or set DD.overwrite to true!' ])
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,3 +1,8 @@
+% templates :
+% 'udef' - user defined in INPUTuserDef.m
+% 'pop' - template for POP SSH data
+% 'aviso' - template for AVISO SSH data
+% 'mad' - template for Madeleine's data
 function DD=INPUT
     DD.template='mad';
     %% threads / debug
@@ -31,7 +36,7 @@ function DD=INPUT
     DD.thresh.corners.max=1e42; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)
-    DD.thresh.IdentityCheck=[2];
+    DD.thresh.IdentityCheck=[2.5];
     %% switches
     DD.switchs.IQ=1;
     DD.switchs.chelt=0;
@@ -45,3 +50,4 @@ function DD=INPUT
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end
+

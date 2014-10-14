@@ -169,7 +169,7 @@ function comp2chelt(II,aviCH)
     LL=log(abs(VVdiff)).*sign(VVdiff);
     pcolor(lo,la,LL);shading flat;
     
-    decorate([-log(100) 0 log(100)],T,DD,sen,'\sigma [CH/N ratio]','%',0,1,1);
+    decorate([-log(100) 0 log(100)],T,DD,sen,'$\sigma$ [$CH/N$ ratio]','%',0,1,1);
     cb=colorbar;
     caxis([-log(100) log(100)])
     ct=linspace(-log(100),log(100),9);
@@ -190,7 +190,7 @@ function comp2chelt(II,aviCH)
     LL=log(VVrat);
     clf
     pcolor(lo,la,LL);shading flat;
-    decorate([-1 0 1],T,DD,sen,'\sigma [pop/aviso ratio]',' ',0,1,1);
+    decorate([-1 0 1],T,DD,sen,'$\sigma$ [pop/aviso ratio]',' ',0,1,1);
     
     axis(T.axis)   % axis([-180 180 -70 70]); ;
     colormap(jet(5));

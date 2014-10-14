@@ -542,7 +542,6 @@ function [s,f]=EDDyProfiles(ee,z)
     %
     %     close all
     %%
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [radius,pass]=EDDyRadiusFromUV(peak,prof,thresh)
@@ -579,7 +578,7 @@ function [radius,pass]=EDDyRadiusFromUV(peak,prof,thresh)
     %%
     
     %
-    %     figure(1000)    
+    %     figure(1000)
     %     xy='y';
     %     nrmc= @(x) (x-min(x))/max(x-min(x));
     %     spl=@(x,abl) spline(1:abl,x,linspace(1,abl,100));

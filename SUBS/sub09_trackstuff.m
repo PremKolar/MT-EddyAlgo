@@ -9,6 +9,7 @@ function sub09_trackstuff
         TR=getTR(DD) ;
     end
     %%
+  
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
@@ -44,19 +45,16 @@ function sub09_trackstuff
 end
 
 function spmdblock(S,DD,II,T)
-    scaleZonmeans(S,DD,II,T);
-%     velZonmeans(S,DD,II,T);
-%     scattStuff(S,T,DD,II);
-%         spmd
-%             switch labindex
-%                 case 1
-%                     scaleZonmeans(S,DD,II,T);
-%                 case 2
-%                     velZonmeans(S,DD,II,T);
-%                 case 3
-%                     scattStuff(S,T,DD,II)
-%             end
-%         end
+    spmd
+        switch labindex
+            case 1
+                scaleZonmeans(S,DD,II,T);
+            case 2
+                velZonmeans(S,DD,II,T);
+            case 3
+                scattStuff(S,T,DD,II);
+        end
+    end
 end
 
 
@@ -102,7 +100,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
     savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
     %%
-    chelt = imread('/scratch/uni/ifmto/u300065/presMT/FIGS/chelt11Ucomp.jpg');
+    chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
     h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf',DD2info(DD));
@@ -300,7 +298,7 @@ function scattStuff(S,T,DD,II)
         'ytick',[-50 -30 -10 0 10 30 50],...
         'xtick',S.t2l(T.age))
     ylabel(h2,'radius [km]')
-    ylabel(h1,'lat  [{\circ}]')
+    ylabel(h1,'lat  [$^{\circ}$]')
     xlabel(h1,'age [d]')
     xlabel(h2,'zon. vel.  [cm/s] - eddies beyond scale dismissed!')
     set(get(gcf,'children'),'clipping','off')

@@ -74,8 +74,7 @@ function [raw]=cdfData(DD)
     raw.(keys.z)=nc_varget(raw.file.in,keys.z);
     [~,raw.SSHzIdx]=min(abs(raw.ZT-DD.parameters.SSHAdepth));
     %% append zonal wings to x distance vector
-    [raw.(keys.x), raw.wingIdx]=nonZonCont(raw.(keys.x)); 
-%     [raw.(keys.x), raw.wingIdx]=AppenZonWingToX(raw.(keys.x));    
+    [raw.(keys.x), raw.wingIdx]=nonZonCont(raw.(keys.x));   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

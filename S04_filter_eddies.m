@@ -579,8 +579,7 @@ function [radius,pass]=EDDyRadiusFromUV(peak,prof,thresh)
     %%
     
     %
-    %     figure(1000)
-    %     % TODO  scan for weird ones see whats up
+    %     figure(1000)    
     %     xy='y';
     %     nrmc= @(x) (x-min(x))/max(x-min(x));
     %     spl=@(x,abl) spline(1:abl,x,linspace(1,abl,100));

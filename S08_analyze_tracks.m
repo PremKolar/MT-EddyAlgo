@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-     spmd
+%      spmd
         [MM,map]=spmd_block(DD,map,MM);
-     end
+%      end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -99,8 +99,9 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
+    
     %% save
-    sendir={'AC','C'};  % TODO
+     sendir=DD.FieldKeys.senses;  
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
     %% save
     save(outfile,'-struct','TT');

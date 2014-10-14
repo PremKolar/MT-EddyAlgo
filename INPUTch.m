@@ -4,7 +4,6 @@
     DD.thresh.maxRadiusOverRossbyL=10; % [SI]   %% GOOD???
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.2; % isoperimetric quotient
-    DD.thresh.shape.chelt=0.2; %TODO
     DD.thresh.corners.min=12; % min number of data points for the perimeter of an eddy
     DD.thresh.corners.max=pi*2e6*1e-4; % at dx ~1e-4 -> skip eddies(radius> ~1000km) , just for performance
     DD.thresh.life=threshlife; % min num of living days for saving

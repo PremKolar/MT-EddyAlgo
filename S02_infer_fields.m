@@ -97,7 +97,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         
         if alreadyFltrd && ~DD.overwrite, dispM('skipping');continue; end
         cut=load(JJ(jj).files);
-        if isfield(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
+%         if isfield(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
         %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built

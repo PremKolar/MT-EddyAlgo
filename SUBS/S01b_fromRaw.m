@@ -36,7 +36,7 @@ function Calculations(DD)
     [CK.rossby.Ro1]=calcRossbyRadius(CK);
     %% rossby wave phase speed
     [CK.rossby.c1]=calcC_one(CK);
-    %% append 10th %TODO
+    %% append 10th 
     if strcmp(DD.map.window.type,'globe')
         xadd=round(DD.map.window.fullsize(2)/10);
         CK.corio.beta=CK.corio.beta(:,[1:end,1:xadd]);

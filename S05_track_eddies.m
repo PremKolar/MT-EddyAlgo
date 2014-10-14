@@ -251,7 +251,7 @@ function [inout]=kill_phantoms(inout)
     [~,ui,~]=unique(lola);
     %% loop over
     if numel(lola)~=numel(ui)
-        sdgbsdfgqergwr %shouldnt happen no mo  % TODO
+        sdgbsdfgqergwr %TODO: if this doesnt happen till 14-11-31; all fine; rm check
     end
     %% old version
     %     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );
@@ -260,7 +260,6 @@ function [inout]=kill_phantoms(inout)
     %     DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(lonDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
     %     DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
     %     [Y,~] = find(DIST==0);
-    %
     %     inout.eddies      (Y)=[];
     %     inout.lon      (Y)=[];
     %     inout.lat      (Y)=[];

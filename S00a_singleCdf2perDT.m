@@ -26,7 +26,9 @@ warning('off','MATLAB:mir_warning_unrecognized_pragma')
     %% save brunt väisälä
     saveN(DD,raw);
     %% save UV
+    try
     saveUV(DD,raw);
+    end
     %% save info
     conclude(DD,0);
 end

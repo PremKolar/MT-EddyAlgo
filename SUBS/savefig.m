@@ -14,12 +14,11 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     %% set up gcfure
     [resHere,posOld]=setupfigure(resOut,xdim,ydim);
     %% print
-    set(gcf,'Visible','off');
     fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere);
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
-    set(gcf,'Visible','on');
+%     set(gcf,'Visible','on');
     set(gcf,'position',posOld);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

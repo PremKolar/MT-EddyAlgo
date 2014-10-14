@@ -36,7 +36,7 @@ function Calculations(DD)
     [CK.rossby.Ro1]=calcRossbyRadius(CK);
     %% rossby wave phase speed
     [CK.rossby.c1]=calcC_one(CK);
-    %% append 10th %TODO
+    %% append 10th 
     if strcmp(DD.map.window.type,'globe')
         xadd=round(DD.map.window.fullsize(2)/10);
         CK.corio.beta=CK.corio.beta(:,[1:end,1:xadd]);
@@ -51,12 +51,12 @@ function Calculations(DD)
     save(file_out,'-struct','CK');
     %%
     file_out=[DD.path.Rossby.name 'RossbyPhaseSpeed.mat'];
-    out=CK.rossby.c1;
-    save(file_out,'out');
+    data=CK.rossby.c1;
+    save(file_out,'data');
     %%
     file_out=[DD.path.Rossby.name 'RossbyRadius.mat'];
-    out=CK.rossby.Ro1; %#ok<*NASGU>
-    save(file_out,'out');
+    data=CK.rossby.Ro1; %#ok<*NASGU>
+    save(file_out,'data');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK)

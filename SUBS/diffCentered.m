@@ -7,11 +7,17 @@
 function [dYdX]=diffCentered(diffLevel,X,Y)
     if diffLevel>2
         error('implement!')
-    end
+	 end
+	 if X==1
+		 X=1:numel(Y);
+	 end
     Y=reshape(Y,1,[]);
     X=reshape(X,1,[]);
     dx=diff(X);
     switch diffLevel
+		 case 0
+			 dYdX=Y;
+			 return
         case 1 % first order forward
             dy=diff(Y);
             dx=dx(1:end);

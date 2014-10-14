@@ -22,6 +22,9 @@ function DD=INPUTpop
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
+           %% remap?
+        DD.map.in.remap= true ;
+        DD.map.in.remapFile='/scratch/uni/ifmto/u300065/avi2pop.mat'  ;
     %% temp salt keys
     DD.TS.keys.lat='U_LAT_2D';
     DD.TS.keys.lon='U_LON_2D';

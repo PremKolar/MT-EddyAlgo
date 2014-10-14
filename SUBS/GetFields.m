@@ -5,7 +5,7 @@ function [F,unreadable]=GetFields(file,keys)
         if isempty(ff),continue;end
         try
             if strcmpi(ff,'lon')
-                F.(ff) = CorrectLongitude(squeeze(nc_varget(file,keys.(ff))));
+                F.(ff) = CorrectLongitude(squeeze(nc_varget(file,keys.(ff))));                
             else
                 F.(ff) = squeeze(nc_varget(file,keys.(ff)));
             end
@@ -28,3 +28,7 @@ function [F,unreadable]=GetFields(file,keys)
 end
 
 
+function [lon]=CorrectLongitude(lon)
+    % longitude(-180:180) concept is to be used!  
+        lon(lon>180)=lon(lon>180)-360;    
+end

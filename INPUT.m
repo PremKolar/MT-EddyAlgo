@@ -50,4 +50,4 @@ function DD=INPUT
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end
-
+	

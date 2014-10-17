@@ -90,14 +90,15 @@ function [eddies, pass]=walkThroughContsVertically(ee,rossby,cut,DD,sense)
         if all(struct2array(pass(kk))), pp=pp+1;
             %% append healthy found eddy TODO
             eddies(pp)=ee_out; %#ok<*AGROW>
-            %% flag respective overlap too
+            %% flag respective overlap too TODO
             if strcmp(cut.window.type,'globe')
                 [yi,xi]=find(ee_out.mask);
-                doubleFlag.east=xi>cut.window.size.X;
-                doubleFlag.west=xi<=cut.window.sizePlus.X - cut.window.size.X  +1;
-                xi = [ xi xi(doubleFlag.east)-cut.window.size.X xi(doubleFlag.west)+cut.window.size.X ];
-                yi = [ yi yi(doubleFlag.east)                   yi(doubleFlag.west)                   ];
-                ee_out.mask(drop_2d_to_1d(yi,xi,cut.window.size.Y))=true;
+                doubleFlag.east=xi > cut.window.size.X;
+                doubleFlag.west=xi <=cut.window.sizePlus.X - cut.window.size.X  +1;
+                hc = @(x) reshape(x,1,[]);
+                xi = [ hc(xi) hc(xi(doubleFlag.east)-cut.window.size.X) hc(xi(doubleFlag.west)+cut.window.size.X) ];
+                yi = [ hc(yi) hc(yi(doubleFlag.east))                   hc(yi(doubleFlag.west))                   ];
+                ee_out.mask(drop_2d_to_1d(yi,xi,cut.window.size.Y)) = true;
             end
             %% nan out ssh where eddy was found
             cut.grids.ssh(ee_out.mask)=nan;

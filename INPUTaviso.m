@@ -39,7 +39,7 @@ function DD=INPUTaviso
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
     DD.parameters.SSHAdepth=-25;
-    %%
+    %% TODO
     DD.switches.rehashMapDims=true;%!!  
     
     

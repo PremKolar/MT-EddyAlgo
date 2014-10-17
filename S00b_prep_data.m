@@ -32,7 +32,7 @@ function [DD]=set_up
     DD = initialise('raw',mfilename);
     %% get sample window
     file=SampleFile(DD);
-    [window]=GetWindow2(file,DD.map.in);
+    [window]=GetWindow3(file,DD.map.in);
     DD.map.window=window;
     save([DD.path.root 'window.mat'],'window');
 end

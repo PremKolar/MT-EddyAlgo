@@ -8,7 +8,5 @@ function [y,x]=raise_1d_to_2d(Y,x1d)
 		y=[];x=[];return
 	end
 	x=(ceil((double(x1d))/double(Y)));
-	y=(x1d - (x-1)*Y);
-    x=int32(x);
-    y=int32(y);
+	y=(x1d - (x-1)*Y);   
 end

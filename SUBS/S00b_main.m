@@ -61,7 +61,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dy,dx]=dydx(lat,lon)
     betweenNodesX = @(lalo) (lalo(:,2:end) + lalo(:,1:end-1))/2;
+    betweenNodesY = @(lalo) (lalo(2:end,:) + lalo(1:end-1,:))/2;
     copyBndryX    = @(X) X(:,[1 1:end end]);
+    copyBndryY    = @(Y) Y([1 1:end end],:);
     %% y
     dy=deg2km(abs(diff(lat,1,1)));
     %% x
@@ -69,8 +71,8 @@ function [dy,dx]=dydx(lat,lon)
     dlon(dlon>180) = abs(dlon(dlon>180) - 360);
     dx=deg2km(dlon) .* cosd(betweenNodesX(lat));
     %% mean back to nodes
-    dx=copyBndryX(betweenNodesX(dx));
-    dy=copyBndryX(betweenNodesX(dy));
+    dx=copyBndryX(betweenNodesX(dx));    
+    dy=copyBndryY(betweenNodesY(dy));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %=========================================================================%
@@ -84,7 +86,7 @@ function [file,exists]=GetCurrentFile(TT,DD)
     timestr=datestr(TT.daynums,'yyyymmdd');
     %% set up output file
     path=DD.path.cuts.name;
-    geo=DD.map.window.geo;
+    geo=DD.map.in;
     file.out=NSWE2nums(path,DD.pattern.fname,geo,timestr);
     if exist(file.out,'file'), dispM([file.out ' exists']); exists.out=true; end
 end

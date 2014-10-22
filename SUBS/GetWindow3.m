@@ -4,7 +4,7 @@ function [win,lonlat]=GetWindow3(file,mapin)
     % only need lon and lat
     patt.lat=mapin.keys.lat;
     patt.lon=mapin.keys.lon;
-    [lonlat,unreadable]=GetFields(file,patt);
+    [lonlat,unreadable]=GetFields(file,patt);    
     if unreadable.is; error(['cant read ' file]); end
     %% find win mask
     [win,triplemap]=FindWindowMask(lonlat,mapin);
@@ -20,11 +20,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [geo]=getGeoLims(w,lonlat)
- rs=@(x) reshape(x,1,[]);
-  geo.south = min(rs(lonlat.lat.*w.flag));
-  geo.north = max(rs(lonlat.lat.*w.flag));
-  geo.west  = min(rs(lonlat.lon.*w.flag));
-  geo.east  = max(rs(lonlat.lon.*w.flag)); 
+    rs=@(x) reshape(x,1,[]);
+    geo.south = min(rs(lonlat.lat(w.flag)));
+    geo.north = max(rs(lonlat.lat(w.flag)));
+    geo.west  = min(rs(lonlat.lon(w.flag)));
+    geo.east  = max(rs(lonlat.lon(w.flag)));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,7 +33,7 @@ function [w]=ZonalProblem(w)
     if strcmp(w.type,'zonCross') || strcmp(w.type,'globe')
         w.seam=true;
         if strcmp(w.type,'globe')
-            xadd = round(w.size(2)/10);
+            xadd = round(w.size.x/10);
             w.ix = w.ix(:,[1:end 1:xadd]);
             w.iy = w.iy(:,[1:end 1:xadd]);
             w.idx = w.idx(:,[1:end 1:xadd]);
@@ -41,7 +41,7 @@ function [w]=ZonalProblem(w)
     else
         w.seam=false;
     end
-    [w.sizePlus.Y, w.sizePlus.X] = size(w.ix);
+    [w.sizePlus.y, w.sizePlus.x] = size(w.ix);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [win,trip]=FindWindowMask(grids,M)
@@ -73,24 +73,24 @@ function [win]=FindRectangle(win,lon,trip)
     cols3=sum(trip.flag,1);
     rows=sum(win.flag,2);
     %% find zonal edges
-    x.X             = length(cols);
+    x.x             = length(cols);
     x.a.Zero        = find(cols   == 0,1,'first');
     x.b.Zero        = find(cols   == 0,1,'last');
     x.a.nonZero     = find(cols   ~= 0,1,'first');
     x.b.nonZero     = find(cols   ~= 0,1,'last');
     T.a.nonZero = find(cols3  ~= 0,1,'first');
     T.b.nonZero = find(cols3  ~= 0,1,'last');
-    if T.b.nonZero - T.a.nonZero + 1 > x.X
-        T.b.nonZero = T.a.nonZero + x.X - 1; % full X
+    if T.b.nonZero - T.a.nonZero + 1 > x.x
+        T.b.nonZero = T.a.nonZero + x.x - 1; % full X
     end
     %% merid
     y.a.nonZero     = find(rows   ~= 0,1,'first');
     y.b.nonZero     = find(rows   ~= 0,1,'last');
     %% size in
-    win.size(2) = T.b.nonZero     - T.a.nonZero     + 1;
-    win.size(1) = y.b.nonZero     - y.a.nonZero     + 1;
+    win.size.x = T.b.nonZero     - T.a.nonZero     + 1;
+    win.size.y = y.b.nonZero     - y.a.nonZero     + 1;
     %% limits
-    win.limits=getLimits(x.X,T,rows);
+    win.limits=getLimits(x.x,T,rows);
     %% idx
     win.idx = trip.idx(y.a.nonZero:y.b.nonZero,T.a.nonZero:T.b.nonZero);
     %% type
@@ -133,10 +133,10 @@ function [type]=fullXCase(mapIsGlobe)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [type]=nonFullXCase(x,cols)
-    regularWindowOnMap          =   (x.a.Zero==1 && x.b.Zero==x.X);
-    boxCrossesZonalBndry        =   (x.a.nonZero==1 && x.b.nonZero==x.X && any(cols==0));
-    boxBeginsAtWesternEdgeOfMap =   (x.a.nonZero==1 && x.b.nonZero~=x.X && x.b.Zero==x.X);
-    boxEndsOnEasternEdge        =   (x.a.nonZero~=1 && x.b.nonZero==x.X && x.a.Zero==1);
+    regularWindowOnMap          =   (x.a.Zero==1 && x.b.Zero==x.x);
+    boxCrossesZonalBndry        =   (x.a.nonZero==1 && x.b.nonZero==x.x && any(cols==0));
+    boxBeginsAtWesternEdgeOfMap =   (x.a.nonZero==1 && x.b.nonZero~=x.x && x.b.Zero==x.x);
+    boxEndsOnEasternEdge        =   (x.a.nonZero~=1 && x.b.nonZero==x.x && x.a.Zero==1);
     %%
     if regularWindowOnMap
         type='normal';

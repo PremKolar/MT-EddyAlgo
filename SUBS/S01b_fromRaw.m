@@ -8,6 +8,8 @@
 % -Brunt Väisälä frequency
 % -Rossby Radius
 % -Rossby wave first baroclinic phase speed
+
+% TODO redo ALL !!!
 function S01b_fromRaw
     %% set up
     [DD]=set_up;

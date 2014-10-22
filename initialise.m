@@ -188,7 +188,7 @@ function passed=getFnames(DD,checks,toCheck)
             passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts)];
             passed(cc).protofilenames=[];
         else % build new filenames
-            geo=DD.map.out;
+            geo=DD.map.in;            
             file.out=strrep(strrep(pattern, 'yyyymmdd',ts),'CUT',DD.pattern.prefix.(toCheck));
             passed(cc).filenames=[ NSWE2nums(path.name,file.out,geo,ts)  ];
             ii=strfind(passed(cc).filenames,'_');

@@ -8,22 +8,20 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-%         DD.debugmode=true;
+        DD.debugmode=true;
     DD.overwrite=false;
-%         DD.overwrite=true;
+        DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
-   DD.time.till.str='20090105';
+   DD.time.till.str='20000105';
+%    DD.time.till.str='19950105';
     %      threshlife=20*7
     threshlife=7*4;
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 0;
     DD.map.in.south= -60;
-    DD.map.in.north= -40; 
-    %% output map res
-    DD.map.out.X=360*1+1; % TODO
-    DD.map.out.Y=20*1 +1;
+    DD.map.in.north= -40;   
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]

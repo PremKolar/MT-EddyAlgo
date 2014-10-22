@@ -27,7 +27,6 @@ function main(DD)
     else
         spmd(DD.threads.num)
             spmd_body(DD);
-            disp_progress('conclude');
         end
     end
 end
@@ -43,10 +42,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Calculations(DD,cc)
     %% pre-init
-    [CK,ccStr]=init(DD,cc,DD.path.Rossby.name);
+    [CK,ccStr]=initPre(DD,cc,DD.path.Rossby.name);
     if exist(CK.fileSelf,'file') && ~DD.overwrite, return;end
     %% init
-    CK=initCK(CK,DD,cc);
+    CK=initChunK(CK,DD,cc);
     %% calculate Brunt-Väisälä f and potential vorticity
     [CK.N]=calcBrvaPvort(CK,ccStr);
     %% integrate first baroclinic rossby radius
@@ -65,8 +64,8 @@ function M=inf2nan(M)
     M(isinf(M))=nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK,ccStr]=init(DD,cc,RossbyDir)
-    lims=DD.RossbyStuff.lims.data;
+function [CK,ccStr]=initPre(DD,cc,RossbyDir)
+    lims = DD.RossbyStuff.lims.dataIn  - 1; % 1: to 0: system
     ccStr=[sprintf(['%0',num2str(length(num2str(size(lims,1)))),'i'],cc),'/',num2str(size(lims,1))];
     disp('initialising..')
     CK.fileSelf=[RossbyDir,'BVRf_',sprintf('%03d',cc),'.mat'];
@@ -75,9 +74,7 @@ end
 function [DD]=InitWriteMatFile(DD)
     DD.reallocIdx=false;
     DD.splits=DD.parameters.RossbySplits;
-    DD.XXlims=DD.RossbyStuff.lims.data;
-    DD.yylims=1:DD.TS.window.size.Y;
-    if any(DD.map.window.fullsize~=DD.TS.window.fullsize)
+    if any(struct2array(DD.map.window.fullsize)~=struct2array(DD.TS.window.fullsize))
         DD.reallocIdx=true;
     end
 end
@@ -91,19 +88,29 @@ function WriteMatFile(DD)
         MATfileName=[DD.path.Rossby.name FN '.mat'];
         saveField(DD,FN,MATfileName)
     end
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveField(DD,FN,MATfileName)
     %% start from scratch
     %% dummy init
-    data=nan([DD.TS.window.size.Y, DD.TS.window.size.X]);   %#ok<NASGU>
+    data=nan([DD.TS.window.sizePlus.y, DD.TS.window.sizePlus.x]);   %#ok<NASGU>
     save(MATfileName,'data','-v7.3');
     MATfile=matfile(MATfileName,'Writable',true);
     %% loop chunks
     for cc=1:DD.splits
-        xxlims=(DD.XXlims(cc,1):DD.XXlims(cc,2)) - DD.XXlims(1,1)+1;
-        CKfn=getfield(getfield(loadChunk(DD.path.Rossby.name,cc),'rossby'),FN);
-        MATfile.data(DD.yylims,xxlims)=CKfn;
+        CKfn=getfield(loadChunk(DD.path.Rossby.name,cc,'rossby'),FN);
+        lat=loadChunk(DD.path.Rossby.name,cc,'lat');
+        lon=loadChunk(DD.path.Rossby.name,cc,'lon');
+        newDim=getfield(loadChunk(DD.path.Rossby.name,cc,'dim'),'new');
+        yylims=newDim.start(1):newDim.start(1) + newDim.len(1) -1;
+        xxlims=newDim.start(2):newDim.start(2) + newDim.len(2) -1;
+        MATfile.data(yylims+1,xxlims+1)=CKfn;
+        MATfile.lon(yylims+1,xxlims+1)= wrapTo360(lon);
+        MATfile.lat(yylims+1,xxlims+1)=lat;
     end
     %%
     if DD.reallocIdx
@@ -120,12 +127,17 @@ end
 function differentGeoCase(DD,MATfileName)
     %% in
     lims=  DD.TS.window.limits;
-    getflag=@(lims,M) double(M(lims.south:lims.north,lims.west:lims.east));
-    in.lat=getflag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat));
-    in.lon=getflag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon));
-    in.data=getfield(load(MATfileName,'data'),'data');
+    getFlag=@(lims,M) double(M(lims.south:lims.north,lims.west:lims.east));
+    %%
+    in.lat=getFlag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat));
+    in.lon=getFlag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon));
+    %%
+    fieldLoad=@(field)  getfield(load(MATfileName,field),field);
+    in.data=fieldLoad('data');
+    in.lon=fieldLoad('lon');
+    in.lat=fieldLoad('lat');
     %% out
-    Y= DD.map.window.size.Y;
+    Y= DD.map.window.size.y;
     out.lat=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lat'),Y,[]);
     out.lon=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lon'),Y,[]);
     %% resample
@@ -143,16 +155,16 @@ function globalCase(DD,MATfileName)
     ovrlpIyx=drop_2d_to_1d(YindxMap,XindxMap,size(wndw.iy,1));
     data=data(ovrlpIyx); %#ok<NASGU>
     %% save
-     save(MATfileName,'data','-v7.3');
+    save(MATfileName,'data','-v7.3');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveChunk(CK)
     save(CK.fileSelf,'-struct','CK');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function CK=loadChunk(RossbyDir,cc)
+function CK=loadChunk(RossbyDir,cc,field)
     file_in=[RossbyDir,'BVRf_',sprintf('%03d',cc),'.mat'];
-    CK=load(file_in,'rossby');
+    CK=getfield(load(file_in,field),field);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function R=	calcRossbyRadius(CK,ccStr)
@@ -184,11 +196,12 @@ function [N]=calcBrvaPvort(CK,ccStr)
     N=sqrt(reshape(brva,[ZZ-1,YY,XX]));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [CK]=initCK(CK,DD,chunk)
+function [CK]=initChunK(CK,DD,chunk)
     CK.c1Fname=DD.FieldKeys.Rossby{1};
     CK.R1Fname=DD.FieldKeys.Rossby{2};
     CK.chunk=chunk;
     CK.dim=ncArrayDims(DD,chunk);
+    %     CK.dim=ncArrayDims(DD,12);
     disp('getting temperature..')
     CK.TEMP=ChunkTemp(DD,CK.dim);
     disp('getting salt..')
@@ -239,16 +252,16 @@ function temp=ChunkTemp(DD,dim)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(DD,cc)
-    lims=DD.RossbyStuff.lims.data;
+    lims=DD.RossbyStuff.lims.dataIn;
     j_indx_start = DD.TS.window.limits.south-1;
-    j_len = DD.TS.window.size.Y;
+    j_len = DD.TS.window.size.y;
     dim.start2d = [0 0 j_indx_start lims(cc,1)-1];
     dim.len2d = 	[inf inf j_len diff(lims(cc,:))+1];
     dim.start1d = [j_indx_start lims(cc,1)-1];
     dim.len1d =	[j_len diff(lims(cc,:))+1];
     %% new indeces for output nc file
     xlens=diff(lims,1,2)+1;
-    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize(2);
+    xlens(xlens<0)= xlens(xlens<0) + DD.TS.window.fullsize.x;
     newxstart=sum(xlens(1:cc-1));
     dim.new.start =[0 newxstart];
     dim.new.len =  dim.len1d;

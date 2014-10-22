@@ -15,30 +15,14 @@ function [DD]=get_input
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=evalUserInput
-    readfiles;
-    setOutWindowIfNotUserSet;
-    %----------------------------------------------------------------------
-    function setOutWindowIfNotUserSet
-        wesn={'west' 'east' 'south' 'north'};
-        outmapchosen=isfield(DD.map.out,wesn);
-        if ~all(outmapchosen)
-            for sd=find(~outmapchosen);
-                skydir=wesn{sd};
-                DD.map.out.(skydir)=DD.map.in.(skydir);
-            end
-        end
-    end
-    %----------------------------------------------------------------------
-    function readfiles
-        B=INPUT;
-        A=eval(['INPUT' B.template]);
-        DD=mergeStruct2(A,B);
-    end
+    B=INPUT;
+    A=eval(['INPUT' B.template]);
+    DD=mergeStruct2(A,B);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pattern,FieldKeys]=DDpatternsAndKeys
     %% dir and file formats
-    pattern.fname='CUT_yyyymmdd_SSSSsNNNNnWWWWwEEEEe.mat';
+    pattern.fname='CUT_yyyymmdd_SSS-NNN_WWW-EEE.mat';    
     pattern.prefix.cuts='CUT';
     pattern.prefix.conts='CONT';
     pattern.prefix.eddies='EDDIE';
@@ -125,7 +109,7 @@ function PATH=findfiles(DD)
     PATH.analyzedTracks.(senses{1}).name=[PATH.analyzed.name,senses{1},'/'];
     PATH.analyzedTracks.(senses{2}).name=[PATH.analyzed.name,senses{2},'/'];
     PATH.analyzedTracks.C.name=[PATH.analyzed.name,'Cyclones/'];
-    PATH.Rossby.name=[PATH.root,'Rossby/'];
+    PATH.Rossby.name=[PATH.root,'ROSSBY/'];
     PATH.Rossby.Nfile=[PATH.Rossby.name,'N.cdf'];
     %%
     mkDirs(PATH,senses)

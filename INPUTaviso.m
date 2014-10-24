@@ -8,6 +8,8 @@ function DD=INPUTaviso
     DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
     DD.path.raw.name='/data/icdc/ocean/aviso_ssh/DATA/weekly/msla/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
+   %% binned out map res
+    DD.map.out.binSize = 1; % eg 1 for 1 degree
     %% map in keys
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
     DD.map.in.fname='SsaltoDuacs__merged_msla__AVISO__ref__0.25deg__yyyymmdd.nc';

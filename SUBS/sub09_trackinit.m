@@ -4,8 +4,8 @@
 % Matlab:  8.1
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sub09_trackinit
-    load DD
+function sub09_trackinit(DD)
+    
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%

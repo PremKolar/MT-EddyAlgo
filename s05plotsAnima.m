@@ -4,7 +4,6 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% walks through all the contours and decides whether they qualify
 function s05plotsAnima
     %% init
     DD=initialise('conts',mfilename);
@@ -34,7 +33,7 @@ end
 function spmd_body(DD)
     [JJ]=SetThreadVar(DD);
     Td=disp_progress('init','making jpegs for movie');
-    for jj=1:numel(JJ)
+    parfor jj=1:numel(JJ)
         work_day(DD,JJ(jj));
         Td=disp_progress('disp',Td,numel(JJ),numel(JJ));
     end
@@ -57,10 +56,12 @@ function makejpegs(EE,dayn)
     load(EE.filename.cut);
     figure(labindex);clf;
     %     CM=flipud(hot(100));
-    contour(grids.ssh,-.6:.03:.6,'linewidth',2)
+    [XC,YC]=meshgrid(1:size(grids.ssh,2),1:size(grids.ssh,1));
+    contour(XC(:,[1:200,end-199:end]),YC(:,[1:200,end-199:end]),grids.ssh(:,[1:200,end-199:end]),-.6:.03:.6,'linewidth',2)
+%   contour(grids.ssh(:,[end-199:end]),-.6:.03:.6,'linewidth',2)
     for kk=1:numel(AntiCycs)
-        x=AntiCycs(kk).coordinates.exact.x;
-        y=AntiCycs(kk).coordinates.exact.y;
+        x=AntiCycs(kk).coords.exact.x;
+        y=AntiCycs(kk).coords.exact.y;
         iq=AntiCycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;
@@ -70,8 +71,8 @@ function makejpegs(EE,dayn)
     end
     
     for kk=1:numel(Cycs)
-        x=Cycs(kk).coordinates.exact.x;
-        y=Cycs(kk).coordinates.exact.y;
+        x=Cycs(kk).coords.exact.x;
+        y=Cycs(kk).coords.exact.y;
         iq=Cycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;
@@ -81,6 +82,12 @@ function makejpegs(EE,dayn)
     end
     axis tight off;
     title(num2str(dayn));
+    
+    
+%     savefig2png4mov('./',90,1024/2,round(1024/2*81/200),datestr(dayn,'yymmdd'));
     savefig2png4mov('./',90,1024,768,datestr(dayn,'yymmdd'));
+    
+    
+    
 end
 

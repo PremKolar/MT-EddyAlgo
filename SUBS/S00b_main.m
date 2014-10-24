@@ -64,12 +64,13 @@ function [dy,dx]=dydx(lat,lon)
     betweenNodesY = @(lalo) (lalo(2:end,:) + lalo(1:end-1,:))/2;
     copyBndryX    = @(X) X(:,[1 1:end end]);
     copyBndryY    = @(Y) Y([1 1:end end],:);
+    deg2m         = @(degs) deg2km(degs) * 1e3; 
     %% y
-    dy=deg2km(abs(diff(lat,1,1)));
+    dy=deg2m(abs(diff(lat,1,1)));
     %% x
     dlon=abs(diff(lon,1,2));
     dlon(dlon>180) = abs(dlon(dlon>180) - 360);
-    dx=deg2km(dlon) .* cosd(betweenNodesX(lat));
+    dx=deg2m(dlon) .* cosd(betweenNodesX(lat));
     %% mean back to nodes
     dx=copyBndryX(betweenNodesX(dx));    
     dy=copyBndryY(betweenNodesY(dy));

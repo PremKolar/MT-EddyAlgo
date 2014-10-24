@@ -8,9 +8,9 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-        DD.debugmode=true;
+%         DD.debugmode=true;
     DD.overwrite=false;
-        DD.overwrite=true;
+%         DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
    DD.time.till.str='20000105';
@@ -28,7 +28,7 @@ function DD=INPUT
     DD.thresh.maxRadiusOverRossbyL=4; %!
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient
-    DD.thresh.corners.min=8; % min number of data points for the perimeter of an eddy
+    DD.thresh.corners.min=16; % min number of data points for the perimeter of an eddy
     DD.thresh.corners.max=1e42; % dangerous..
     DD.thresh.life=threshlife; % min num of living days for saving
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/1 ??? chelton)

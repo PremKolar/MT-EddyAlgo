@@ -15,17 +15,17 @@ function output(DD)
     relevantDir.fullfile=fullfile(DD.path.root,  relevantDir.name);
     relevantDir.what=what( relevantDir.fullfile);
     %%
-    inform
+    inform(DD.monitor.tic)
 end
 % #########################################################################
-function inform
+function inform(Dtic)
     disp([' ']);
     disp([' ']);
     disp([' ']);
     disp([mfilename ' - SUCCESS!!!']);
     disp([' ']);
     disp(['time used: '])  ;
-    daysUsed=toc(DD.monitor.tic)/60/60/24;
+    daysUsed=toc(Dtic)/60/60/24;
     disp(datestr(daysUsed,'dd-HH:MM:SS',0));
     disp([' ']);
 end

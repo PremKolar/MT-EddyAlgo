@@ -3,10 +3,10 @@ function sub09_mapStuff
     senses=DD.FieldKeys.senses;
     lo=II.lo;
     la=II.la;
-    dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.DX'));
+    dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.dx'));
     w=load([DD.path.root 'window.mat']);
-    X=1:w.window.sizePlus.X;
-    Y=1:w.window.sizePlus.Y;
+    X=1:w.window.sizePlus.x;
+    Y=1:w.window.sizePlus.y;
     [XX,YY]=meshgrid(X,Y);
     [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
     dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));

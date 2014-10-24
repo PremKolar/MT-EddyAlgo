@@ -86,8 +86,8 @@ function sendoutStrings(strout)
     for a=1:numel( strout.a)
         disp(strout.a{a})
     end
-    for b=1:numel( strout.b)      
-        fprintf(strout.b{b})       
+    for b=1:numel( strout.b)
+        disp(strout.b{b})
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,16 +98,19 @@ function strout=makeStrings(T,L)
     strout.a{4}=['-',T.name,'-'];
     strout.a{5}='####';
     %%
-    strout.b{1}=['step: ',num2str(T.cc),'/',num2str(L),'\n'];
+    strout.b{1}=sprintf('step: %d/%d\n',T.cc,L);
     strout.b{2}=sprintf('%03d%% done.\n',round(T.prcnt_done));
-    strout.b{3}=['time so far:   ', datestr(sec2day(T.time),'dd-HH:MM:SS'),'\n'];
+    strout.b{3}=sprintf('time so far: %s\n', datestr(sec2day(T.time),'dd-HH:MM:SS'));
+    
     if isfinite(T.time_to_go)
-        strout.b{4}  = ['time to go     :    ', datestr(sec2day(T.time_to_go),'dd-HH:MM:SS'),'\n'];
+        b4 =  datestr(sec2day(T.time_to_go),'dd-HH:MM:SS');
+        
     else
-        strout.b{4}  = ['time to go     :    ', 'calculating...\n'];
+        b4 =  'calculating...';
     end
+    strout.b{4}  = sprintf('time to go     :   %s \n',b4);
 end
-function printout(T,L)   
+function printout(T,L)
     %% build output
     toprint=makeStrings(T,L);
     %% print

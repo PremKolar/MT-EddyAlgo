@@ -5,7 +5,7 @@ function sub09_trackstuff
         TR=getTR(DD);
     catch me
         disp(me.message)
-        sub09_trackinit;
+        sub09_trackinit(DD);
         TR=getTR(DD) ;
     end
     %%
@@ -127,7 +127,8 @@ function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
     dd(2).x=LAuniq;
     dd(4).x=LAuniq;
     dd(5).x=LAuniq;
-    dd(3).x=[DD.map.out.south DD.map.out.north];
+      geo=DD.map.window.geo;
+    dd(3).x=[geo.south geo.north];
     %%
     pp(1)=plot(dd(1).x,dd(1).y); 	hold on
     pp(2)=plot(dd(2).x,dd(2).y,'r');
@@ -167,7 +168,8 @@ function [h,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS)
     dd(2).x=LAuniq;
     dd(4).x=LAuniq;
     dd(5).x=LAuniq;
-    dd(3).x=[DD.map.out.south DD.map.out.north];
+    geo=DD.map.window.geo;
+    dd(3).x=[geo.south geo.north];
     %%
     clf
     pp(1)=plot(dd(1).x,dd(1).y); 	hold on

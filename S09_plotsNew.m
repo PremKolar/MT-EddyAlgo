@@ -10,7 +10,7 @@ function S09_plotsNew
 %         load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=800;
-    ticks.height=600;
+    ticks.height=200;
     ticks.y= [-30 0 30];
     ticks.x= 0;
     ticks.age=[1,5*365,10];
@@ -27,7 +27,7 @@ function S09_plotsNew
     %ticks.dist=[-100;50;16];
     ticks.disttot=[1;3000;5];
     ticks.vel=[-30;20;6];
-    ticks.axis=[DD.map.out.west DD.map.out.east DD.map.out.south DD.map.out.north];
+    ticks.axis=[DD.map.window.geo.west  DD.map.window.geo.east DD.map.window.geo.south DD.map.window.geo.north];
     ticks.lat=[ticks.axis(3:4),5];
     %     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %%

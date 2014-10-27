@@ -11,9 +11,9 @@ function DD=INPUT
 %             DD.debugmode=true;
     DD.overwrite=false;
 %     DD.overwrite=true;
-    %% time
-    DD.time.from.str='19840105';
-    DD.time.till.str='20500105';
+  %% time
+    DD.time.from.str='19540105';
+    DD.time.till.str='20300105';
 %        DD.time.till.str='19950105';
     %      threshlife=20*7
     threshlife=7*4;
@@ -21,29 +21,29 @@ function DD=INPUT
     DD.map.in.west= 0;
     DD.map.in.east= 360;
     DD.map.in.south= 0;
-    DD.map.in.north= 70;
+    DD.map.in.north= 50;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=4; %!
+    DD.thresh.maxRadiusOverRossbyL=4; %[ ]
     DD.thresh.amp=0.01; % [SI]
-    DD.thresh.shape.iq=0.55; % isoperimetric quotient
-    DD.thresh.corners.min=10; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=1e42; % dangerous..
-    DD.thresh.life=threshlife; % min num of living days for saving
+    DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
+    DD.thresh.corners.min=16; % min number of data points for the perimeter of an eddy[ ]
+    DD.thresh.corners.max=1e42; % dangerous.. [ ]
+    DD.thresh.life=threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck=[2]; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
-    DD.thresh.phase = 0.2; % max(abs(rossby phase speed))
+    DD.thresh.phase = 0.2; % max(abs(rossby phase speed)) [SI]
     %% switches
-    DD.switchs.IQ=1;
-    DD.switchs.chelt=0;
+    DD.switchs.IQ=0;
+    DD.switchs.chelt=1;
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=1;
     DD.switchs.AmpAreaCheck=1;
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
-    DD.switchs.IdentityCheck=1;
-    DD.switchs.maxRadiusOverRossbyL=1;
+    DD.switchs.IdentityCheck=0;
+    DD.switchs.maxRadiusOverRossbyL=0;
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end

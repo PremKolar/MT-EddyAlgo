@@ -58,18 +58,18 @@ function sub09_trackstuff
 end
 
 function spmdblock(S,DD,II,T)
-    scaleZonmeans(S,DD,II,T);
-    %
-    %     spmd
-    %         switch labindex
-    %             case 1
-    %                 scaleZonmeans(S,DD,II,T);
-    %             case 2
-    %                 velZonmeans(S,DD,II,T);
-    %             case 3
-    %                 scattStuff(S,T,DD,II);
-    %         end
-    %     end
+%     scaleZonmeans(S,DD,II,T);
+    
+        spmd
+            switch labindex
+                case 1
+                    scaleZonmeans(S,DD,II,T);
+                case 2
+                    velZonmeans(S,DD,II,T);
+                case 3
+                    scattStuff(S,T,DD,II);
+            end
+        end
 end
 
 
@@ -81,11 +81,11 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     vvM=nan(size(LAuniq));
     vvS=nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
-%         vvM(cc)=nanmean(S.rad(LA==LAuniq(cc)));
-%         vvS(cc)=nanstd(S.rad(LA==LAuniq(cc)));
-        sfhdfghsdfgh
-         vvM(cc)=nanmean(S.radLe(LA==LAuniq(cc)));
-        vvS(cc)=nanstd(S.radLe(LA==LAuniq(cc)));
+        vvM(cc)=nanmean(S.rad(LA==LAuniq(cc)));
+        vvS(cc)=nanstd(S.rad(LA==LAuniq(cc)));
+       
+%          vvM(cc)=nanmean(S.radLe(LA==LAuniq(cc)));
+%         vvS(cc)=nanstd(S.radLe(LA==LAuniq(cc)));
         
     end
     vvM(abs(LAuniq)<2)=nan;

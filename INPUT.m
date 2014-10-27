@@ -12,16 +12,16 @@ function DD=INPUT
     DD.overwrite=false;
     DD.overwrite=true;
     %% time
-    DD.time.from.str='19940105';
-    DD.time.till.str='20000105';
+    DD.time.from.str='19540105';
+    DD.time.till.str='20300105';
 %        DD.time.till.str='19950105';
     %      threshlife=20*7
     threshlife=7*4;
     %% window on globe (0:360° system)
-    DD.map.in.west= -50;
-    DD.map.in.east= -20;
+    DD.map.in.west= 0;
+    DD.map.in.east= 360;
     DD.map.in.south= 0;
-    DD.map.in.north= 30;
+    DD.map.in.north= 50;
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
@@ -42,8 +42,8 @@ function DD=INPUT
     DD.switchs.AmpAreaCheck=1;
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
-    DD.switchs.IdentityCheck=1;
-    DD.switchs.maxRadiusOverRossbyL=1;
+    DD.switchs.IdentityCheck=0;
+    DD.switchs.maxRadiusOverRossbyL=0;
     DD.switchs.spaciallyFilterSSH=0;
     DD.switchs.filterSSHinTime=1;
 end

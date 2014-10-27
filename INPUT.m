@@ -10,8 +10,8 @@ function DD=INPUT
     DD.debugmode=false;
 %             DD.debugmode=true;
     DD.overwrite=false;
-%     DD.overwrite=true;
-  %% time
+    DD.overwrite=true;
+    %% time
     DD.time.from.str='19540105';
     DD.time.till.str='20300105';
 %        DD.time.till.str='19950105';

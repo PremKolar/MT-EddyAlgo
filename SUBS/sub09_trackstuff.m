@@ -1,20 +1,19 @@
 function sub09_trackstuff
     load S09main II DD T
+    
+    sub09_trackinit(DD);
+    TR=getTR(DD) ;
+    
     %%
-%     try
-%         TR=getTR(DD);
-%     catch me
-%         disp(me.message)
-        sub09_trackinit(DD);
-        TR=getTR(DD) ;
-%     end
-    %%
-  
+    
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
     %%
     rad=round(catsen('rad')/1000);
+    radLe=round(catsen('radLe')/1000);
+    radLeff=round(catsen('radLeff')/1000);
+    radL=round(catsen('radL')/1000);
     vel=catsen('vel')*100;
     age=catsen('age');
     lat=catsen('lat');
@@ -25,38 +24,52 @@ function sub09_trackstuff
     lat(end+1:end+S.rightyscalenum)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
     rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
     vel(end+1:end+S.rightyscalenum)=10;
+    
+    radL(end+1:end+S.rightyscalenum)=0;
+    radLe(end+1:end+S.rightyscalenum)=0;
+    radLeff(end+1:end+S.rightyscalenum)=0;
+    
     %%
     [~,sml2lrg] = sort(rad)  ;
     S.age=age(fliplr(sml2lrg));
     S.lat=lat(fliplr(sml2lrg));
     S.rad=rad(fliplr(sml2lrg));
     S.vel=vel(fliplr(sml2lrg));
+    
+    S.radLe=radLe(fliplr(sml2lrg));
+    S.radLeff=radLeff(fliplr(sml2lrg));
+    S.radL=radL(fliplr(sml2lrg));
+    
     %%
     zerage = S.age<=0  ;
     velHigh= S.vel>20 | S.vel <-30;
     radnill = isnan(S.rad) | S.rad==0;
     killTag= zerage | velHigh | radnill ;
-    S.age(killTag)=[];
-    S.lat(killTag)=[];
-    S.rad(killTag)=[];
-    S.vel(killTag)=[];
+    
+    FN=fieldnames(S);
+    for ii=1:numel(FN)
+        try
+            S.(FN{ii})(killTag)=[];
+        end
+    end
+    
     %%
     spmdblock(S,DD,II,T);
 end
 
 function spmdblock(S,DD,II,T)
-%     velZonmeans(S,DD,II,T);
+%     scaleZonmeans(S,DD,II,T);
     
-    spmd
-        switch labindex
-            case 1
-                scaleZonmeans(S,DD,II,T);
-            case 2
-                velZonmeans(S,DD,II,T);
-            case 3
-                scattStuff(S,T,DD,II);
+        spmd
+            switch labindex
+                case 1
+                    scaleZonmeans(S,DD,II,T);
+                case 2
+                    velZonmeans(S,DD,II,T);
+                case 3
+                    scattStuff(S,T,DD,II);
+            end
         end
-    end
 end
 
 
@@ -70,6 +83,10 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     for cc=1:(numel(LAuniq))
         vvM(cc)=nanmean(S.rad(LA==LAuniq(cc)));
         vvS(cc)=nanstd(S.rad(LA==LAuniq(cc)));
+       
+%          vvM(cc)=nanmean(S.radLe(LA==LAuniq(cc)));
+%         vvS(cc)=nanstd(S.radLe(LA==LAuniq(cc)));
+        
     end
     vvM(abs(LAuniq)<2)=nan;
     vvS(abs(LAuniq)<2)=nan;
@@ -82,6 +99,10 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
@@ -129,7 +150,7 @@ function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
     dd(2).x=LAuniq;
     dd(4).x=LAuniq;
     dd(5).x=LAuniq;
-      geo=DD.map.window.geo;
+    geo=DD.map.window.geo;
     dd(3).x=[geo.south geo.north];
     %%
     pp(1)=plot(dd(1).x,dd(1).y); 	hold on
@@ -141,7 +162,7 @@ function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
     axis([-70 70 -5 20])
     set(pp(1:3),'linewidth',lw)
     leg=legend('Rossby-wave phase-speed',2,'all eddies',2,'std');
-   legch=get(leg,'children');
+    legch=get(leg,'children');
     set( legch(1:3),'linewidth',lw)
     ylabel('[cm/s]')
     xlabel('[latitude]')
@@ -254,17 +275,17 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     ylabel('[cm/s]')
     xlabel('[latitude]')
     title(['westward propagation [cm/s]'])
-%     fnamepatttext=text(-45,-2,['in: ' DD.map.in.fname]);
-%     set(fnamepatttext,'interpreter','none')
-%     text(-45,-2+1,['R/L: ' num2str(DD.thresh.maxRadiusOverRossbyL)])
-%     text(-45,-1+1,['iq: ' num2str(DD.thresh.shape.iq)])
-%     text(-45,0+1,['life: ' num2str(DD.thresh.life)])
-%     text(-45,1+1,['id: ' sprintf('%02d%%',-100+100*DD.thresh.IdentityCheck)])
-%     text(-45,2+1,['vrtcs: ' sprintf('%2d',DD.thresh.corners.min)])
-%     text(-45,3+1,['days: ' sprintf('%5d',DD.time.span)])
-%     text(-45,4+1,['dt: ' sprintf('%2d',DD.time.delta_t)])
-%     text(-45,5+1,['meanAge: ' sprintf('%5d',round(mean(S.age)))])
-%     text(-45,6+1,['data: ' sprintf('%8d',numel(S.age))])
+    %     fnamepatttext=text(-45,-2,['in: ' DD.map.in.fname]);
+    %     set(fnamepatttext,'interpreter','none')
+    %     text(-45,-2+1,['R/L: ' num2str(DD.thresh.maxRadiusOverRossbyL)])
+    %     text(-45,-1+1,['iq: ' num2str(DD.thresh.shape.iq)])
+    %     text(-45,0+1,['life: ' num2str(DD.thresh.life)])
+    %     text(-45,1+1,['id: ' sprintf('%02d%%',-100+100*DD.thresh.IdentityCheck)])
+    %     text(-45,2+1,['vrtcs: ' sprintf('%2d',DD.thresh.corners.min)])
+    %     text(-45,3+1,['days: ' sprintf('%5d',DD.time.span)])
+    %     text(-45,4+1,['dt: ' sprintf('%2d',DD.time.delta_t)])
+    %     text(-45,5+1,['meanAge: ' sprintf('%5d',round(mean(S.age)))])
+    %     text(-45,6+1,['data: ' sprintf('%8d',numel(S.age))])
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -312,7 +333,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTR(DD)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
-    F={'rad','age','lat','lon'};
+    %     F={'rad','age','lat','lon'};
+    F={'rad','age','lat','lon','radL','radLeff','radLe'};
     g=@(c) cat(1,c{:});
     for ss=1:2
         for fi=1:numel(F);f=F{fi};

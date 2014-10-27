@@ -145,7 +145,7 @@ function [eddyType,Zloop] = determineSense(senseKeys,sense,NumEds)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
-    %% pre - nan - check
+    %% pre-nan-check
     try % TODO
         pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
     catch
@@ -159,7 +159,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
-    [zoom,pass.winlim] = get_window_limits(ee.coor,4,DD.map.window);
+    [zoom,pass.winlim] = get_window_limits(ee.coor,2,DD.map.window);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
     try % TODO
@@ -194,7 +194,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [ee.profiles,~] = EDDyProfiles(ee,zoom);
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
-    if ~pass.CR_radius, return, end;
+    if ~pass.CR_radius, return, end;   
     %% get ideal ellipse contour
     zoom.mask.ellipse = EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
@@ -606,6 +606,9 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     radius.coor.xeast = halfidx(x.idx,x.sigma(2));
     radius.coor.ysouth = halfidx(y.idx,y.sigma(1));
     radius.coor.ynorth = halfidx(y.idx,y.sigma(2));
+    
+    if radius.mean >= thresh, pass = true; else pass = false; end
+    
     %%
     
     %
@@ -646,7 +649,7 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     %     plot(prof.FFour.(xy).UVd	);grid minor;axis  tight
     %     %
     %%
-    if radius.mean >= thresh, pass = true; else pass = false; end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [A] = findSigma(peak,prof,yx)

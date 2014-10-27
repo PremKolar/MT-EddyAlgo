@@ -37,9 +37,9 @@ function [CUT]=CutMap(file,DD)
     %% cut
     [CUT]=cutSlice(raw_fields,DD.map.window);
     %% nan out land and make SI
-    CUT.grids.ssh=nanLand(CUT.grids.ssh,DD.parameters.ssh_unitFactor);
+    CUT.fields.ssh=nanLand(CUT.fields.ssh,DD.parameters.ssh_unitFactor);
     %% get distance fields
-    [CUT.grids.dy,CUT.grids.dx]=dydx(CUT.grids.lat,CUT.grids.lon);
+    [CUT.fields.dy,CUT.fields.dx]=dydx(CUT.fields.lat,CUT.fields.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=cutSlice(raw,win)
@@ -47,7 +47,7 @@ function out=cutSlice(raw,win)
     %% cut piece
     fields=fieldnames(raw);
     for ff=1:numel(fields); field=fields{ff};
-        out.grids.(field) = cutOut(raw.(field),win.idx);
+        out.fields.(field) = cutOut(raw.(field),win.idx);
     end
     %% append params
     out.window = rmfield(win,{'flag','iy','ix','idx'});

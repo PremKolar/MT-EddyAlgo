@@ -33,7 +33,7 @@ function [w]=ZonalProblem(w)
     if strcmp(w.type,'zonCross') || strcmp(w.type,'globe')
         w.seam=true;
         if strcmp(w.type,'globe')
-            xadd = round(w.size.x/10);
+            xadd = round(w.dim.x/10);
             w.ix = w.ix(:,[1:end 1:xadd]);
             w.iy = w.iy(:,[1:end 1:xadd]);
             w.idx = w.idx(:,[1:end 1:xadd]);
@@ -41,15 +41,15 @@ function [w]=ZonalProblem(w)
     else
         w.seam=false;
     end
-    [w.sizePlus.y, w.sizePlus.x] = size(w.ix);
+    [w.dimPlus.y, w.dimPlus.x] = size(w.ix);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [win,trip]=FindWindowMask(grids,M)
+function [win,trip]=FindWindowMask(fields,M)
     %% init
     trip2any = @(lola) any(reshape(lola,size(lola,1),[],3),3);
-    glo      = grids.lon;
+    glo      = fields.lon;
     trip.lon = [glo-360 glo glo+360];
-    trip.lat = repmat(grids.lat,1,3);
+    trip.lat = repmat(fields.lat,1,3);
     trip.idx = repmat(reshape(1:numel(glo),size(glo)),1,3);
     %% meridional
     bool.la = (trip.lat >= M.south) & (trip.lat <= M.north);
@@ -87,8 +87,8 @@ function [win]=FindRectangle(win,lon,trip)
     y.a.nonZero     = find(rows   ~= 0,1,'first');
     y.b.nonZero     = find(rows   ~= 0,1,'last');
     %% size in
-    win.size.x = T.b.nonZero     - T.a.nonZero     + 1;
-    win.size.y = y.b.nonZero     - y.a.nonZero     + 1;
+    win.dim.x = T.b.nonZero     - T.a.nonZero     + 1;
+    win.dim.y = y.b.nonZero     - y.a.nonZero     + 1;
     %% limits
     win.limits=getLimits(x.x,T,rows);
     %% idx

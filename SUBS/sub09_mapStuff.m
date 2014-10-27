@@ -3,7 +3,7 @@ function sub09_mapStuff
     senses=DD.FieldKeys.senses;
     lo=II.lo;
     la=II.la;
-    dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.dx'));
+    dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'fields.dx'));
     w=load([DD.path.root 'window.mat']);
     X=1:w.window.sizePlus.x;
     Y=1:w.window.sizePlus.y;

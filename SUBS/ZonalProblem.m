@@ -29,13 +29,13 @@ end
 function [y,x]=AppendIfFullZonal(w)
     %% append 1/10 of map to include eddies on seam
     % S04_track_eddies is able to avoid counting 1 eddy twice   
-    xadd=round(w.size.X/10);
-    [x,y]=meshgrid([1:w.size.X, 1:xadd],w.limits.south:w.limits.north);
+    xadd=round(w.dim.X/10);
+    [x,y]=meshgrid([1:w.dim.X, 1:xadd],w.limits.south:w.limits.north);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [y,x]=SeamCross(w)
     %% stitch 2 pieces 2g4
-    [x,y]=meshgrid([w.limits.west:w.size.X, 1:w.limits.east],w.limits.south:w.limits.north);
+    [x,y]=meshgrid([w.limits.west:w.dim.X, 1:w.limits.east],w.limits.south:w.limits.north);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [y,x]=AllGood(w)

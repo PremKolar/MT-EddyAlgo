@@ -10,7 +10,7 @@ function S02_infer_fields
     DD = initialise('cuts',mfilename);
     %% read input file
     cut1 = load( DD.checks.passed(1).filenames);
-    DD.coriolis = coriolisStuff(cut1.grids.lat);
+    DD.coriolis = coriolisStuff(cut1.fields.lat);
     RS = getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
@@ -47,7 +47,7 @@ function main(DD,RS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MeanSsh = saveMean(DD)
-    MeanSsh = nan(DD.map.window.sizePlus.y * DD.map.window.sizePlus.x,1);
+    MeanSsh = nan(DD.map.window.dimPlus.y * DD.map.window.dimPlus.x,1);
     Meancount = 0;
     for ll = 1:DD.threads.num
         cur = load(sprintf('meanTmp%03d.mat',ll));
@@ -55,7 +55,7 @@ function MeanSsh = saveMean(DD)
         Meancount = Meancount + cur.Mean.count;
         system(sprintf('rm meanTmp%03d.mat',ll));
     end
-    MeanSsh = reshape(MeanSsh,[DD.map.window.sizePlus.y, DD.map.window.sizePlus.x])/Meancount;
+    MeanSsh = reshape(MeanSsh,[DD.map.window.dimPlus.y, DD.map.window.dimPlus.x])/Meancount;
     save([DD.path.root, 'meanSSH.mat'],'MeanSsh')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -70,11 +70,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_meanSsh(DD,JJ)
     T = disp_progress('init','infering mean ssh');
-    Mean.SshSum = nan(DD.map.window.sizePlus.y*DD.map.window.sizePlus.x,1);
+    Mean.SshSum = nan(DD.map.window.dimPlus.y*DD.map.window.dimPlus.x,1);
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
         %% load
-        ssh = extractdeepfield(load(JJ(jj).files),'grids.ssh')';
+        ssh = extractdeepfield(load(JJ(jj).files),'fields.ssh')';
         %% mean ssh
         Mean.SshSum = nansum([Mean.SshSum, ssh],2);
     end
@@ -100,19 +100,19 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
           %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built
-            if ~isfield(cut.grids,'sshRaw')
-                cut.grids.sshRaw = cut.grids.ssh;
+            if ~isfield(cut.fields,'sshRaw')
+                cut.fields.sshRaw = cut.fields.ssh;
             end
             %% filter
-            cut.grids.ssh = cut.grids.sshRaw - MeanSsh;
+            cut.fields.ssh = cut.fields.sshRaw - MeanSsh;
         end
         %%
-        coriolis = coriolisStuff(cut.grids.lat);
+        coriolis = coriolisStuff(cut.fields.lat);
         %% calc
-        grids = geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
+        fields = geostrophy(cut.fields,coriolis,RS); %#ok<NASGU>
         %% write
         cut.filtered = true;
-        save(JJ(jj).files,'grids','-append');
+        save(JJ(jj).files,'fields','-append');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,16 +146,16 @@ function gr = geostrophy(gr,corio,RS)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function def = deformation(grids)
+function def = deformation(fields)
     %% calc U gradients
-    dUdy = diff(grids.U,1,1);
-    dUdx = diff(grids.U,1,2);
-    dVdy = diff(grids.V,1,1);
-    dVdx = diff(grids.V,1,2);
-    def.dUdy = dUdy([1:end, end], :)  ./ grids.dy;
-    def.dUdx = dUdx(:,[1:end, end] )  ./ grids.dx;
-    def.dVdy = dVdy([1:end, end], :)  ./ grids.dy;
-    def.dVdx = dVdx(:,[1:end, end] )  ./ grids.dx;
+    dUdy = diff(fields.U,1,1);
+    dUdx = diff(fields.U,1,2);
+    dVdy = diff(fields.V,1,1);
+    dVdx = diff(fields.V,1,2);
+    def.dUdy = dUdy([1:end, end], :)  ./ fields.dy;
+    def.dUdx = dUdx(:,[1:end, end] )  ./ fields.dx;
+    def.dVdy = dVdy([1:end, end], :)  ./ fields.dy;
+    def.dVdx = dVdx(:,[1:end, end] )  ./ fields.dx;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [dsshdx,dsshdy] = dsshdxi(ssh,dx,dy)

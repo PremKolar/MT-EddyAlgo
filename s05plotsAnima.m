@@ -60,8 +60,8 @@ function makejpegs(EE,dayn)
     contour(XC(:,[1:200,end-199:end]),YC(:,[1:200,end-199:end]),grids.ssh(:,[1:200,end-199:end]),-.6:.03:.6,'linewidth',2)
 %   contour(grids.ssh(:,[end-199:end]),-.6:.03:.6,'linewidth',2)
     for kk=1:numel(AntiCycs)
-        x=AntiCycs(kk).coords.exact.x;
-        y=AntiCycs(kk).coords.exact.y;
+        x=AntiCycs(kk).coor.exact.x;
+        y=AntiCycs(kk).coor.exact.y;
         iq=AntiCycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;
@@ -71,8 +71,8 @@ function makejpegs(EE,dayn)
     end
     
     for kk=1:numel(Cycs)
-        x=Cycs(kk).coords.exact.x;
-        y=Cycs(kk).coords.exact.y;
+        x=Cycs(kk).coor.exact.x;
+        y=Cycs(kk).coor.exact.y;
         iq=Cycs(kk).isoper-.55;
         iq=iq/0.45*100;
         iq(iq<1)=1;iq(iq>100)=100;

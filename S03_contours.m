@@ -47,7 +47,7 @@ function get_contours(dd,TT)
     %% init
     [II]=init_get_contours(dd,TT);
     %% loop over levels
-    CONT.all=contourc(II.grids.ssh,II.levels)';
+    CONT.all=contourc(II.fields.ssh,II.levels)';
     %% save data
     save(CONT.filename,'-struct','CONT');
 end
@@ -55,11 +55,11 @@ end
 function [II]=init_get_contours(dd,TT)
     %% load cut
     II.file=TT.files;
-    II.grids=getfield(load(II.file),'grids');
+    II.fields=getfield(load(II.file),'fields');
     %% calc contours
     dispM('calculating contours... takes long time!',1)
     %% create level vector at chosen interval    
-    floorlevel=floor(nanmin(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
-    ceillevel=ceil(nanmax(II.grids.ssh(:))/dd.contour.step)*dd.contour.step;
+    floorlevel=floor(nanmin(II.fields.ssh(:))/dd.contour.step)*dd.contour.step;
+    ceillevel=ceil(nanmax(II.fields.ssh(:))/dd.contour.step)*dd.contour.step;
     II.levels=floorlevel:dd.contour.step:ceillevel;
 end

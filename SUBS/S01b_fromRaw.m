@@ -99,9 +99,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dim=ncArrayDims(DD)
     j_start = DD.TS.window.limits.south-1;
-    j_len = DD.TS.window.size.Y;
+    j_len = DD.TS.window.dim.Y;
     i_start = DD.TS.window.limits.west-1;
-    i_len = DD.TS.window.size.X;
+    i_len = DD.TS.window.dim.X;
     k_start = 0;
     k_len = inf;
     dim.start3d = [k_start j_start  i_start];

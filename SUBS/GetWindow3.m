@@ -116,6 +116,7 @@ function type=detectType(lon,win,cols,x)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function yes=checkWhetherMapInSpansGlobe(lon,flag)
+    yes=false;
     maxdel = max(max(diff(lon,1,2) ,[] ,1));
     lonRange.min    = min(lon(flag));
     lonRange.max    = max(lon(flag));

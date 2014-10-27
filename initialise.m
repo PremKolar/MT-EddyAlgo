@@ -29,11 +29,9 @@ function DD=initialise(toCheck,parentFunc)
     end
     %% load workers
     DD.threads.num=init_threads(DD.threads.num);
-%     if DD.threads.num>DD.time.span/DD.time.delta_t
-%         error(toomanythreads,'too many threads for not enough timesteps!!!')
-%     end
+    
     %% debugging stuff
-%     DD=dbStuff(DD) ;
+    DD=dbStuff(DD) ;
     %% monitor stuff
     DD.monitor.tic=tic;
     if nargin>=2
@@ -47,7 +45,7 @@ function DD=dbStuff(DD)
     echo off all; diary off;
     if DD.debugmode
         %echo on all
-        % 			diary on;
+        % diary on;
         dbstop if error;
         recycle on
     else
@@ -64,10 +62,10 @@ function preInits
     addpath(genpath('./'));  %#ok<*MCAP>
     %         warning on backtrace;
     warning('off','SNCTOOLS:nc_getall:dangerous');
-    rehash; clc; 
+    rehash; clc;
     format shortg;
-    dbstop if error;    
-set(0,'DefaultTextInterpreter', 'LaTeX');
+    dbstop if error;
+    set(0,'DefaultTextInterpreter', 'LaTeX');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=ini(DD,toCheck)
@@ -132,7 +130,7 @@ function [DD] = check_data(DD,toCheck)
     filedisps(checks);
     %% append
     DD.checks=checks;
-	 DD.checks.del_t=[nan; checks.del_t_full(~isnan(checks.del_t_full))];
+    DD.checks.del_t=[nan; checks.del_t_full(~isnan(checks.del_t_full))];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function filedisps(checks)
@@ -164,7 +162,7 @@ function del_t=newDt(TT)
             del_t(tt)=tempdelt;
             tempdelt=TT.delta_t;
         end
-	 end    
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [window]=GetWin(DD)
@@ -188,7 +186,7 @@ function passed=getFnames(DD,checks,toCheck)
             passed(cc).filenames=[path.name, strrep(DD.map.in.fname, 'yyyymmdd',ts)];
             passed(cc).protofilenames=[];
         else % build new filenames
-            geo=DD.map.in;            
+            geo=DD.map.in;
             file.out=strrep(strrep(pattern, 'yyyymmdd',ts),'CUT',DD.pattern.prefix.(toCheck));
             passed(cc).filenames=[ NSWE2nums(path.name,file.out,geo,ts)  ];
             ii=strfind(passed(cc).filenames,'_');

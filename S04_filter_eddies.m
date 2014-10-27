@@ -38,6 +38,7 @@ function spmd_body(DD,rossby)
         %% save
         save_eddies(EE);
     end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE,skip] = work_day(DD,JJ,rossby)
@@ -83,20 +84,21 @@ function EE = find_eddies(EE,ee,rossby,cut,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddies, pass] = walkThroughContsVertically(ee,rossby,cut,DD,sense)
-    pp = 0;  pass = initPass(numel(ee))    ;
+    pp = 0;
+    pass = initPass(numel(ee))    ;
     %% init
     [eddyType,Zloop] = determineSense(DD.FieldKeys.senses,sense,numel(ee));
     %% loop
     Tv = disp_progress('init','running through contours vertically');
     for kk = Zloop % dir dep. on sense. note: ee is sorted vertically
-        Tv = disp_progress('disp',Tv,numel(Zloop),5);
+        Tv = disp_progress('disp',Tv,numel(Zloop),3);
         [pass(kk),ee_out] = run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
         if all(struct2array(pass(kk))), pp = pp + 1;
             [eddies(pp),cut]=eddiesFound(ee_out,cut);
         end
     end
     %% catch
-    if ~any(struct2array(pass(:)))
+    if pp == 0
         error('no %s made it through the filter...',eddyType)
     end
 end
@@ -128,10 +130,10 @@ end
 function [eddyType,Zloop] = determineSense(senseKeys,sense,NumEds)
     switch sense
         case - 1
-            eddyType = senseKeys(1); % anti cycs
+            eddyType = senseKeys{1}; % anti cycs
             Zloop = 1:NumEds;
         case 1
-            eddyType = senseKeys(2); %  cycs
+            eddyType = senseKeys{2}; %  cycs
             Zloop = NumEds: - 1:1;
     end
 end
@@ -226,7 +228,7 @@ function [pass,sense] = CR_sense(zoom,direc,level)
             sense.num = - 1;
         end
     elseif direc == 1
-        if all(zoom.fields.ssh(zoom.mask.inside) >= level )
+        if all(zoom.fields.ssh(zoom.mask.inside) <= level )
             pass = true;
             sense.str = 'Cyclonic';
             sense.num = 1;
@@ -327,12 +329,15 @@ end
 function RS = getRossbyPhaseSpeedAndRadius(DD)
     if DD.switchs.RossbyStuff
         RS.Lr = getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-        RS.c = getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
+        RS.c  = getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
+        % TODO docu:
+        RS.c(abs(RS.c) > DD.thresh.phase) = sign(RS.c(abs(RS.c) > DD.thresh.phase)) * abs(DD.thresh.phase);
     else
         warning('No Rossby Radius available. Ignoring upper constraint on eddy scale!') %#ok<*WNTAG>
-        RS.c = [];
+        RS.c  = [];
         RS.Lr = [];
     end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [centroid] = AreaCentroid(zoom,Y)

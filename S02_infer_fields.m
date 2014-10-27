@@ -97,8 +97,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         
         if alreadyFltrd && ~DD.overwrite, dispM('skipping');continue; end
         cut = load(JJ(jj).files);
-        %         if isfield(cut.grids,'OW') && ~DD.overwrite, dispM('skipping');continue; end   % TODO redundant soon
-        %% filter
+          %% filter
         if DD.switchs.filterSSHinTime
             %% not yet built
             if ~isfield(cut.grids,'sshRaw')
@@ -113,7 +112,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
         grids = geostrophy(cut.grids,coriolis,RS); %#ok<NASGU>
         %% write
         cut.filtered = true;
-        save(JJ(jj).files,'grids',' - append');
+        save(JJ(jj).files,'grids','-append');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,7 +136,7 @@ function gr = geostrophy(gr,corio,RS)
     %% assuming Ro = 1
     if ~isempty(RS)
         gr.L = gr.absUV./corio.f;
-        kinVis = 1e - 6;
+        kinVis = 1e-6;
         gr.Re = gr.absUV.*gr.L/kinVis;
         gr.Ro = ones(size(gr.L));
         gr.Rrhines = earthRadius./gr.L;

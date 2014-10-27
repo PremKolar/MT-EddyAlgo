@@ -88,6 +88,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
     [~,idx.arch] = ismember(ID.old,ID.arch);
     %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(isnan(NEW.time.delT))
+        ydfbvsdfgsd
         save(sprintf('%02d-%s.mat',labindex,datestr(now,'yymmdd-HHMM')));
         NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
     end
@@ -108,16 +109,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    try
-        NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-    catch
-        %% TEMP SOLUTION
-        if strcmp(sen,'AntiCycs')
-            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'anticyclones');
-        else
-            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'cyclones');
-        end
-    end
+    
+    NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
+    
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -196,17 +190,9 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-    %% init day one
-    try
-        new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-    catch
-        %% TEMP SOLUTION
-        if strcmp(sen,'AntiCycs')
-            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'anticyclones');
-        else
-            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'cyclones');
-        end
-    end
+    
+    new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
+    
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);

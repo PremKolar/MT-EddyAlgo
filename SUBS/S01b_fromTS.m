@@ -238,7 +238,7 @@ function salt=ChunkSalt(DD,dim)
         salt=salt + tmp;
     end
     salt(salt==0)=nan;
-    salt=salt*1000; % to salinity unit. TODO: from input vars
+    salt=salt* DD.parameters.salinityFactor; 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim)

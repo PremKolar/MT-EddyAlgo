@@ -1,13 +1,13 @@
 function sub09_trackstuff
     load S09main II DD T
     %%
-    try
-        TR=getTR(DD);
-    catch me
-        disp(me.message)
+%     try
+%         TR=getTR(DD);
+%     catch me
+%         disp(me.message)
         sub09_trackinit(DD);
         TR=getTR(DD) ;
-    end
+%     end
     %%
   
     senses=DD.FieldKeys.senses;
@@ -45,6 +45,8 @@ function sub09_trackstuff
 end
 
 function spmdblock(S,DD,II,T)
+%     velZonmeans(S,DD,II,T);
+    
     spmd
         switch labindex
             case 1

@@ -36,6 +36,7 @@ function DD=INPUTmad
     DD.parameters.Gausswidth=1e5;
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
+     DD.parameters.salinityFactor=1000;
     %%
      DD.switches.rehashMapDims=false; %!!
     %% special:    

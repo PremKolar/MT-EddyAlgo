@@ -21,7 +21,12 @@ function [F,unreadable]=GetFields(file,keys)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function Fff = tryCase(ff,file,keys)
-    sqDouNCv=@(F,k,ff) squeeze(double(nc_varget(F,k.(ff))));
+    [~,~,ext]=fileparts(file);
+    if any(strcmpi(ext,{'.nc','.netcdf'}))
+        sqDouNCv=@(F,k,ff) squeeze(double(nc_varget(F,k.(ff))));
+    elseif any(strcmpi(ext,{'.mat'}))
+        sqDouNCv=@(F,k,ff) squeeze(double(getfield(load(F),k.(ff))));
+    end
     Fff = sqDouNCv(file,keys,ff);
     if strcmpi(ff,'lon')
         Fff =  wrapTo360(Fff);

@@ -5,15 +5,38 @@ function avi2pop
     path.in='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     path.out='/scratch/uni/ifmto/u300065/FINAL/POP2AVIssh/';
     files.in=dir([path.in 'SSH_GLB_t.t0.1_42l_CORE.*.nc']);
+    keys.lat='lat';
+    keys.lon='lon';
+    keys.ssh='msla';
+    keys.time='time';
     %%
     [lat,lon]=inits(ncfile);
     %%
     [idx]=CrossRef2Closest(lon,lat);
     %%
-    %     [Ya,Xa]=size(lon.avi);
     ref=makeXref(idx);
     %%
     remapSSH(ref,files,path,lon)
+    %
+    appendLoLaTi(keys,path,lat,lon);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function appendLoLaTi(keys,path,latIn,lonIn)
+    files=dir(path.out);
+    parfor ii=3:numel(files)
+        appendOpp(keys,path,latIn,lonIn,[path.out files(ii).name]);
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function appendOpp(keys,path,latIn,lonIn,file) %#ok<*INUSL>
+    if ~all(isfield(load(file),{keys.ssh,keys.lat}))
+        eval([keys.ssh '=struct2array(load(file));'])
+        eval([keys.lat '=latIn.avi;'])
+        eval([keys.lon '=lonIn.avi;'])
+        ti=datenum(file(end-11:end-4), 'yyyymmdd'); %#ok<NASGU>
+        eval([keys.time '=ti;'])
+        save(file,'-append',keys.ssh,keys.lat,keys.lon,keys.time);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function remapSSH(ref,files,path,lon)
@@ -24,15 +47,15 @@ function remapSSH(ref,files,path,lon)
         ff=FF(labindex,1):FF(labindex,2) ;
         for f=ff
             Tf=disp_progress('c',Tf,numel(ff));
-            try
-                overFiles(files.in(f).name,path,ref,sshAvi);
-            end
+            
+            overFiles(files.in(f).name,path,ref,sshAvi);
+            
         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function overFiles(file,path,ref,sshPOP2AVI)
-    outfile=[path.out file(1:end-3) '.mat']; 
+    outfile=[path.out file(1:end-3) '.mat'];
     
     ssh=nc_varget([path.in file],'SSH');
     Tp=disp_progress('init','averaging');

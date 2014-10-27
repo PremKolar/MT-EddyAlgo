@@ -10,7 +10,7 @@ function DD=INPUT
     DD.debugmode=false;
 %             DD.debugmode=true;
     DD.overwrite=false;
-%     DD.overwrite=true;
+    DD.overwrite=true;
     %% time
     DD.time.from.str='19940105';
     DD.time.till.str='20000105';
@@ -25,18 +25,18 @@ function DD=INPUT
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=4; %!
+    DD.thresh.maxRadiusOverRossbyL=4; %[ ]
     DD.thresh.amp=0.01; % [SI]
-    DD.thresh.shape.iq=0.55; % isoperimetric quotient
-    DD.thresh.corners.min=16; % min number of data points for the perimeter of an eddy
-    DD.thresh.corners.max=1e42; % dangerous..
-    DD.thresh.life=threshlife; % min num of living days for saving
+    DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
+    DD.thresh.corners.min=16; % min number of data points for the perimeter of an eddy[ ]
+    DD.thresh.corners.max=1e42; % dangerous.. [ ]
+    DD.thresh.life=threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea=[.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck=[2]; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
-    DD.thresh.phase = 0.2; % max(abs(rossby phase speed))
+    DD.thresh.phase = 0.2; % max(abs(rossby phase speed)) [SI]
     %% switches
-    DD.switchs.IQ=1;
-    DD.switchs.chelt=0;
+    DD.switchs.IQ=0;
+    DD.switchs.chelt=1;
     DD.switchs.RossbyStuff=1;
     DD.switchs.distlimit=1;
     DD.switchs.AmpAreaCheck=1;

@@ -3,7 +3,7 @@ function avi2pop
     ncfile.avi='../avidim.nc';
     ncfile.pop='../popdim.nc';
     path.in='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
-    path.out='/scratch/uni/ifmto/u300065/POP2AVIssh/';
+    path.out='/scratch/uni/ifmto/u300065/FINAL/POP2AVIssh/';
     files.in=dir([path.in 'SSH_GLB_t.t0.1_42l_CORE.*.nc']);
     %%
     [lat,lon]=inits(ncfile);

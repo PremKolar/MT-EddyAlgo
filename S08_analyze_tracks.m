@@ -24,7 +24,6 @@ function main(DD)
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
     tmpsave(comboAllMaps(map{1},DD));
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function tmpsave(map) %#ok<INUSD>
     save spmdMap
 end
@@ -156,12 +155,18 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
     A={'mean';'meridional';'zonal'};
+    B={'Le';'L';'Leff'};
+    area2L=@(ar) sqrt(ar/pi);
     idx=map.strctr.idx;
     for jj=1:3;
         a=A{jj};
         radius.(a)=protoInit(map.proto);
-        radiusN=extractdeepfield(eddy.track,['radius.' a]);
-        radius.(a)=uniqMeanStd(idx,radiusN, radius.(a));
+        radiusNa=extractdeepfield(eddy.track,['radius.' a]);
+        radius.(a)=uniqMeanStd(idx,radiusNa, radius.(a));        
+        b=B{jj};
+        radius.(b)=protoInit(map.proto);
+        radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
+        radius.(b)=uniqMeanStd(idx,radiusNb, radius.(b));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

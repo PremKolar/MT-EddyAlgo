@@ -606,6 +606,9 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     radius.coor.xeast = halfidx(x.idx,x.sigma(2));
     radius.coor.ysouth = halfidx(y.idx,y.sigma(1));
     radius.coor.ynorth = halfidx(y.idx,y.sigma(2));
+    
+    if radius.mean >= thresh, pass = true; else pass = false; end
+    
     %%
     
     %
@@ -646,7 +649,7 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     %     plot(prof.FFour.(xy).UVd	);grid minor;axis  tight
     %     %
     %%
-    if radius.mean >= thresh, pass = true; else pass = false; end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [A] = findSigma(peak,prof,yx)

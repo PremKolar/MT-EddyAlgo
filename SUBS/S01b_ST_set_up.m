@@ -24,7 +24,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function lims=limsdata(splits,window)
     %% set dimension for splitting (files dont fit in memory)
-    X=window.sizePlus.x;
+    X=window.dimPlus.x;
     %% distro X lims to chunks
     lims=thread_distro(splits,X) + window.limits.west-1;
     %% in case window crosses zonal bndry

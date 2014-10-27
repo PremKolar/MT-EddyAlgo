@@ -97,7 +97,7 @@ end
 function saveField(DD,FN,MATfileName)
     %% start from scratch
     %% dummy init
-    data=nan([DD.TS.window.sizePlus.y, DD.TS.window.sizePlus.x]);   %#ok<NASGU>
+    data=nan([DD.TS.window.dimPlus.y, DD.TS.window.dimPlus.x]);   %#ok<NASGU>
     save(MATfileName,'data','-v7.3');
     MATfile=matfile(MATfileName,'Writable',true);
     %% loop chunks
@@ -137,9 +137,9 @@ function differentGeoCase(DD,MATfileName)
     in.lon=fieldLoad('lon');
     in.lat=fieldLoad('lat');
     %% out
-    Y= DD.map.window.size.y;
-    out.lat=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lat'),Y,[]);
-    out.lon=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'grids.lon'),Y,[]);
+    Y= DD.map.window.dim.y;
+    out.lat=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'fields.lat'),Y,[]);
+    out.lon=reshape(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'fields.lon'),Y,[]);
     %% resample
     data=griddata(in.lon,in.lat,in.data,out.lon,out.lat); %#ok<NASGU>
     %% save
@@ -254,7 +254,7 @@ end
 function dim=ncArrayDims(DD,cc)
     lims=DD.RossbyStuff.lims.dataIn;
     j_indx_start = DD.TS.window.limits.south-1;
-    j_len = DD.TS.window.size.y;
+    j_len = DD.TS.window.dim.y;
     dim.start2d = [0 0 j_indx_start lims(cc,1)-1];
     dim.len2d = 	[inf inf j_len diff(lims(cc,:))+1];
     dim.start1d = [j_indx_start lims(cc,1)-1];

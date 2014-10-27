@@ -21,8 +21,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=main(DD,out)
     %% get input example lon/lat
-    azi=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lon'));
-    elev=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'grids.lat'));
+    azi=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lon'));
+    elev=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lat'));
     [x,y,z] = sph2cart(azi,elev,1);
     qazi= deg2rad(out.lon(:));
     qelev= deg2rad(out.lat(:));

@@ -236,9 +236,9 @@ function [out]=kill_phantoms(in)
     lola = in.lon + 1i*in.lat;
     [~,ui,~]=unique(lola);
     %%
-    if numel(lola)~=numel(ui)
+%     if numel(lola)~=numel(ui)
         out=killDoubles(in,ui,size(lola));
-    end
+%     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     function out=killDoubles(in,ui,oriSize)
         FN=fieldnames(in)';

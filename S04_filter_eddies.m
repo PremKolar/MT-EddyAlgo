@@ -191,7 +191,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% CHELT OP
     ee.chelt = cheltStuff(ee,zoom);
     %% get profiles
-    [ee.profiles,~] = EDDyProfiles(ee,zoom);
+    [ee.profiles,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
     if ~pass.CR_radius, return, end;
@@ -528,7 +528,7 @@ function [outIdx] = avoidLand(ssh,peak)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [s,f] = EDDyProfiles(ee,z)
+function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     %% detect meridional and zonal profiles shifted to baselevel of current level
     offset_term = ee.peak.amp.to_contour*ee.sense.num - ee.level;
     %%	zonal cut
@@ -551,22 +551,18 @@ function [s,f] = EDDyProfiles(ee,z)
         f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
         s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
     end
-    %% intrp versions
+    %% intrp versions    
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
-    f.FFour.x.ssh = fit(s.x.dist, (s.x.ssh),'fourier4');
-    f.FFour.y.ssh = fit(s.y.dist, (s.y.ssh), 'fourier4');
-    f.FOne.x.ssh = fit(s.x.dist, (s.x.ssh),'fourier1'); % can be used for better detrending
-    f.FOne.y.ssh = fit(s.y.dist, (s.y.ssh), 'fourier1');
-    
+    f.fit.type  = sprintf('fourier%d',fourierOrder);
+    f.fit.x.ssh = fit(s.x.dist, (s.x.ssh),f.fit.type);
+    f.fit.y.ssh = fit(s.y.dist, (s.y.ssh),f.fit.type);    
     %%
-    for xyc = {'x','y'};		xy = xyc{1};
-        for foc = {'FFour'};		fo = foc{1};
-            s.(fo).(xy).sshf = feval(f.(fo).(xy).ssh, s.(xy).dist);
-            s.(fo).(xy).UV = fs(1,s.(xy).dist,s.(fo).(xy).sshf);
-            s.(fo).(xy).UVd = fs(2,s.(xy).dist,s.(fo).(xy).sshf);
-        end
+    for xyc = {'x','y'};		xy = xyc{1};      
+            s.fit.(xy).sshf = feval(f.fit.(xy).ssh, s.(xy).dist);
+            s.fit.(xy).UV = fs(1,s.(xy).dist,s.fit.(xy).sshf);
+            s.fit.(xy).UVd = fs(2,s.(xy).dist,s.fit.(xy).sshf);       
     end
-    
+%     s.fit.type=f.fit.type;    
     %%
     %             [~,pex] = min(abs(s.x.idx - double(ee.peak.z.x)));
     %             [~,pey] = min(abs(s.y.idx - double(ee.peak.z.y)));%
@@ -574,15 +570,15 @@ function [s,f] = EDDyProfiles(ee,z)
     %
     %             subplot(211)
     %             hold on
-    %                 plot(s.x.dist,s.x.ssh,s.x.dist,s.FEight.x.sshf,s.x.dist,s.FFour.x.sshf)
-    %             plot(s.x.dist,s.x.ssh,s.x.dist,s.FFour.x.sshf)
+    %                 plot(s.x.dist,s.x.ssh,s.x.dist,s.FEight.x.sshf,s.x.dist,s.fit.x.sshf)
+    %             plot(s.x.dist,s.x.ssh,s.x.dist,s.fit.x.sshf)
     %             axis tight
     %             ax = axis;
     %             plot(s.x.dist([pex pex]),ax([3 4]))
     %             subplot(212)
     %             hold on
-    %             plot(s.y.dist,s.y.ssh,s.y.dist,s.FEight.y.sshf,s.y.dist,s.FFour.y.sshf)
-    %             plot(s.y.dist,s.y.ssh,s.y.dist,s.FFour.y.sshf)
+    %             plot(s.y.dist,s.y.ssh,s.y.dist,s.FEight.y.sshf,s.y.dist,s.fit.y.sshf)
+    %             plot(s.y.dist,s.y.ssh,s.y.dist,s.fit.y.sshf)
     %             axis tight
     %             ax = axis;
     %             plot(s.y.dist([pey pey]),ax([3 4]))
@@ -635,18 +631,18 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     %     spl = @(x,abl) spline(1:abl,x,linspace(1,abl,100));
     %     pl = @(x,ab) plot(nrmc(spl(x(ab(1):ab(2)),diff(ab) + 1)));
     %     subplot(131)
-    %     pl(prof.FFour.(xy).sshf,y.sigma);hold on;	grid minor;axis off tight
+    %     pl(prof.fit.(xy).sshf,y.sigma);hold on;	grid minor;axis off tight
     %     subplot(132)
-    %     pl(prof.FFour.(xy).UV,y.sigma	);hold on;	grid minor;axis off tight
+    %     pl(prof.fit.(xy).UV,y.sigma	);hold on;	grid minor;axis off tight
     %     subplot(133)
-    %     pl(prof.FFour.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
+    %     pl(prof.fit.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
     %     figure(5000)
     %     subplot(131)
-    %     plot(prof.FFour.(xy).sshf);grid minor;axis  tight
+    %     plot(prof.fit.(xy).sshf);grid minor;axis  tight
     %     subplot(132)
-    %     plot(prof.FFour.(xy).UV	);grid minor;axis  tight
+    %     plot(prof.fit.(xy).UV	);grid minor;axis  tight
     %     subplot(133)
-    %     plot(prof.FFour.(xy).UVd	);grid minor;axis  tight
+    %     plot(prof.fit.(xy).UVd	);grid minor;axis  tight
     %     %
     %%
     
@@ -658,9 +654,9 @@ function [A] = findSigma(peak,prof,yx)
     signJump.east = @(X) logical(diff(sign(X([1:end end]))));
     signJump.west = @(X) logical(diff(sign(X([1   1:end]))));
     %% x dir
-    A.dUVdx = prof.FFour.(yx).UVd ;
-    A.UV = prof.FFour.(yx).UV  ;
-    A.ssh = prof.FFour.(yx).sshf;
+    A.dUVdx = prof.fit.(yx).UVd ;
+    A.UV = prof.fit.(yx).UV  ;
+    A.ssh = prof.fit.(yx).sshf;
     A.dis = prof.(yx).dist   ;
     A.idx = prof.(yx).idx    ;
     A.intrpLen = length(A.idx);

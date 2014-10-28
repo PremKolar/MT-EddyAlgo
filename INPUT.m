@@ -10,10 +10,11 @@ function DD=INPUT
     DD.debugmode=false;
 %             DD.debugmode=true;
     DD.overwrite=false;
-    DD.overwrite=true;
+%     DD.overwrite=true;
     %% time
-    DD.time.from.str='19540105';
-    DD.time.till.str='20300105';
+    DD.time.from.str  ='19540105';
+      DD.time.till.str='19590105';
+%     DD.time.till.str='20300105';
 %        DD.time.till.str='19950105';
     %      threshlife=20*7
     threshlife=7*4;
@@ -25,7 +26,7 @@ function DD=INPUT
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=4; %[ ]
+    DD.thresh.maxRadiusOverRossbyL=4; % [ ]
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
     DD.thresh.corners.min=16; % min number of data points for the perimeter of an eddy[ ]

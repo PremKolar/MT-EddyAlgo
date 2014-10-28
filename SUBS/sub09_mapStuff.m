@@ -5,8 +5,8 @@ function sub09_mapStuff
     la=II.la;
     dx=double(extractdeepfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'fields.dx'));
     w=load([DD.path.root 'window.mat']);
-    X=1:w.window.sizePlus.x;
-    Y=1:w.window.sizePlus.y;
+    X=1:w.window.dimPlus.x;
+    Y=1:w.window.dimPlus.y;
     [XX,YY]=meshgrid(X,Y);
     [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
     dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));

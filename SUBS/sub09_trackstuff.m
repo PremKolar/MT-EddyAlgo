@@ -56,53 +56,51 @@ function sub09_trackstuff
     %%
     spmdblock(S,DD,II,T);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-%     scaleZonmeans(S,DD,II,T);
+    scaleZonmeans(S,DD,II,T);
     
-        spmd
-            switch labindex
-                case 1
-                    scaleZonmeans(S,DD,II,T);
-                case 2
-                    velZonmeans(S,DD,II,T);
-                case 3
-                    scattStuff(S,T,DD,II);
-            end
-        end
+    %         spmd
+    %             switch labindex
+    %                 case 1
+    %                     scaleZonmeans(S,DD,II,T);
+    %                 case 2
+    %                     velZonmeans(S,DD,II,T);
+    %                 case 3
+    %                     scattStuff(S,T,DD,II);
+    %             end
+    %         end
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     close all
+    chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     LA     = round(S.lat);
     LAuniq = unique(LA)';
-    vvM=nan(size(LAuniq));
-    vvS=nan(size(LAuniq));
-    for cc=1:(numel(LAuniq))
-        vvM(cc)=nanmean(S.rad(LA==LAuniq(cc)));
-        vvS(cc)=nanstd(S.rad(LA==LAuniq(cc)));
-       
-%          vvM(cc)=nanmean(S.radLe(LA==LAuniq(cc)));
-%         vvS(cc)=nanstd(S.radLe(LA==LAuniq(cc)));
+    FN     = {'rad','radL','radLe','radLeff'};
+    for ff=1:numel(FN)
+        fn=FN{ff};
+        vvM(numel(LAuniq)).(fn)=nan;
+        vvS(numel(LAuniq)).(fn)=nan;
+        for cc=1:(numel(LAuniq))
+            vvM(cc).(fn)=nanmean(S.(fn)(LA==LAuniq(cc)));
+            vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));
+        end
+        vvM(abs(LAuniq)<2).(fn)=nan;
+        vvS(abs(LAuniq)<2).(fn)=nan;
+        %%
+        
         
     end
-    vvM(abs(LAuniq)<2)=nan;
-    vvS(abs(LAuniq)<2)=nan;
+    h.ch=chOverLayScale(chelt,LAuniq,vvM);
+    savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
     %%
     [h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<ASGLU,NASGU>
     [~,pw]=fileparts(pwd);
     save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
-    %%
-    chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
-    h.ch=chOverLayScale(chelt,LAuniq,vvM);
-    savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
-    
-    
-    
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
@@ -214,28 +212,37 @@ function [h,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=chOverLayScale(chelt,LAuniq,vvM)
+    clf
     [Y,X,Z]=size(chelt);
     ch=reshape(flipud(reshape(chelt,Y,[])),[Y,X,Z]);
     ch=permute(reshape(fliplr(reshape(permute(ch,[3,1,2]),1,[])),[Z,Y,X]),[2,3,1]);
     ch=permute(reshape(flipud(reshape(permute(ch,[2,1,3]),[X,Y*Z])),[X,Y,Z]),[2,1,3]);
     %%
-    vvm=-vvM+275;
-    lau=LAuniq;
-    kill=isnan(lau) | isnan(vvM) | abs(lau)>70;
-    lau(kill)=nan;
-    vvm(kill)=nan;
-    %%
-    clf
     imagesc(linspace(-70,70,X),linspace(0,275,Y),ch)
     hold on
-    mid=floor(numel(lau)/2);
-    x.a=lau(1:mid);
-    x.b=lau(mid+2:end);
-    y.a=vvm(1:mid);
-    y.b=vvm(mid+2:end);
-    plot(x.a,spline(x.a,y.a,x.a),'g-','linewidth',1);
-    plot(x.b,spline(x.b,y.b,x.b),'g-','linewidth',1);
-    plot(lau,vvm,'g.','markersize',8);
+    %%
+    FN=fieldnames(vvM)';
+    
+    for ff=1:numel(FN)
+        fn=FN{ff};
+        lau=LAuniq;
+        kill.lau = isnan(lau) | abs(lau)>70;
+        vvm=-cat(2,vvM.(fn))+275;
+        kill.vvm = isnan(vvm);
+        kill.both = kill.lau | kill.vvm;
+        vvm(kill.both)=nan;
+        lau(kill.both)=nan;
+        mid=floor(numel(lau)/2);
+        x.a=lau(1:mid);
+        x.b=lau(mid+2:end);
+        y.a=vvm(1:mid);
+        y.b=vvm(mid+2:end);
+        forleg(ff)=plot(x.a,spline(x.a,y.a,x.a),'color',int2color(ff),'linewidth',1);
+        plot(x.b,spline(x.b,y.b,x.b),'color',int2color(ff),'linewidth',1);
+        plot(lau,vvm,'color',int2color(ff),'linestyle','.','markersize',8);
+    end
+    legend(forleg,FN)
+    %%
     set(gca, 'ytick', 0:25:275);
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
     axis tight

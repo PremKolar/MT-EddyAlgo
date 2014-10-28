@@ -88,8 +88,8 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
             vvM(cc).(fn)=nanmean(S.(fn)(LA==LAuniq(cc)));
             vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));
         end
-        vvM(abs(LAuniq)<2).(fn)=nan;
-        vvS(abs(LAuniq)<2).(fn)=nan;
+%         vvM(abs(LAuniq)<2).(fn)=nan;
+%         vvS(abs(LAuniq)<2).(fn)=nan;
         %%
         
         

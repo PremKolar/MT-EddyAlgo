@@ -61,12 +61,7 @@ function [EE,skip] = work_day(DD,JJ,rossby)
     %% remember date
     [ee(:).daynum] = deal(JJ.daynums);
     %% avoid out of bounds integer coor close to boundaries
-    
-    try % TODO
-        [cut.dim.y,cut.dim.x] = size(cut.fields.ssh);
-    catch
-        [cut.dim.y,cut.dim.x] = size(cut.grids.ssh);
-    end
+    [cut.dim.y,cut.dim.x] = size(cut.fields.ssh);
     [ee_clean] = CleanEddies(ee,cut);
     %% find them
     EE = find_eddies(EE,ee_clean,rossby,cut,DD);
@@ -146,11 +141,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% pre-nan-check
-    try % TODO
-        pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
-    catch
-        pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.grids.ssh);
-    end
+    pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
     if ~pass.rim, return, end;
     %% closed ring check
     [pass.CR_ClosedRing] = CR_ClosedRing(ee);
@@ -159,14 +150,15 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
-    [zoom,pass.winlim] = get_window_limits(ee.coor,2,DD.map.window);
+    if DD.switchs.chelt
+        winincrease=2;  % TODO
+    else
+        winincrease=4;
+    end
+    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
-    try % TODO
-        zoom.fields = EDDyCut_init(cut.fields,zoom);
-    catch
-        zoom.fields = EDDyCut_init(cut.grids,zoom);
-    end
+    zoom.fields = EDDyCut_init(cut.fields,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask = EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
@@ -189,12 +181,14 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
     %% CHELT OP
+    
     ee.chelt = cheltStuff(ee,zoom);
+    
     %% get profiles
     [ee.profiles,~] = EDDyProfiles(ee,zoom);
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
-    if ~pass.CR_radius, return, end;   
+    if ~pass.CR_radius, return, end;
     %% get ideal ellipse contour
     zoom.mask.ellipse = EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
@@ -215,7 +209,6 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask] = ProjectedLocations(rossby.c,cut,DD,ee.trackref);
     end
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [ch]=cheltStuff(ee,zoom)
@@ -251,18 +244,19 @@ function [pass,sense] = CR_sense(zoom,direc,level)
     pass = false;
     sense = struct;
     %% water column up: seeking anti cyclones; down: cyclones
-    if direc == - 1
-        if all(zoom.fields.ssh(zoom.mask.inside) >= level )
-            pass = true;
-            sense.str = 'AntiCyclonic';
-            sense.num = - 1;
-        end
-    elseif direc == 1
-        if all(zoom.fields.ssh(zoom.mask.inside) <= level )
-            pass = true;
-            sense.str = 'Cyclonic';
-            sense.num = 1;
-        end
+    switch direc
+        case -1
+            if all(zoom.fields.ssh(zoom.mask.inside) >= level )
+                pass = true;
+                sense.str = 'AntiCyclonic'; % TODO
+                sense.num = -1;
+            end
+        case 1
+            if all(zoom.fields.ssh(zoom.mask.inside) <= level )
+                pass = true;
+                sense.str = 'Cyclonic';
+                sense.num = 1;
+            end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

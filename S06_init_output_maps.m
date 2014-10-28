@@ -21,11 +21,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function idx=main(DD,out)
     %% get input example lon/lat
+    deg2elev= @(lon) deg2rad(wrapTo180(lon));
     azi=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lon'));
-    elev=deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lat'));
+    elev=deg2elev(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lat'));
     [x,y,z] = sph2cart(azi,elev,1);
     qazi= deg2rad(out.lon(:));
-    qelev= deg2rad(out.lat(:));
+    qelev= deg2elev(out.lat(:));
     [qx,qy,qz] = sph2cart(qazi,qelev,1);
     inxyz=[x',y',z'];
     outxyz=[qx,qy,qz];

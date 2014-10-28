@@ -9,10 +9,12 @@ function S09_plotsNew
 %           save DD
 %         load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
-    ticks.width=800;
-    ticks.height=200;
-    ticks.y= [-30 0 30];
-    ticks.x= 0;
+    ticks.width=2*800;
+    ticks.height=2*200;
+    geo=DD.map.window.geo;
+    ticks.y= round(linspace(geo.south,geo.north,5));
+    ticks.x=  round(linspace(geo.west,geo.east,5));
+    ticks.axis=[geo.west  geo.east geo.south geo.north];
     ticks.age=[1,5*365,10];
     %     ticks.isoper=[DD.thresh.shape.iq,1,10];
     ticks.isoper=[.6,1,10];
@@ -26,8 +28,7 @@ function S09_plotsNew
     ticks.dist=[-1500;500;11];
     %ticks.dist=[-100;50;16];
     ticks.disttot=[1;3000;5];
-    ticks.vel=[-30;20;6];
-    ticks.axis=[DD.map.window.geo.west  DD.map.window.geo.east DD.map.window.geo.south DD.map.window.geo.north];
+    ticks.vel=[-30;20;6];  
     ticks.lat=[ticks.axis(3:4),5];
     %     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %%
@@ -37,14 +38,14 @@ end
 function main(DD,T)
     II=initStuff(DD);
     save S09main II DD T
-    sub09_trackstuff
-%     sub09_mapStuff
+%     sub09_trackstuff
+    sub09_mapStuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function II=initStuff(DD)
     II.aut=autumn(100);
     II.win=winter(100);
-    II.maps=load([DD.path.analyzed.name, 'maps.mat']);
+    II.maps=load([DD.path.analyzed.name, 'maps.mat']);  % see S06
     II.la=II.maps.Cycs.lat;
     II.lo=II.maps.Cycs.lon;
 end

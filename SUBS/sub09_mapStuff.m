@@ -11,121 +11,127 @@ function sub09_mapStuff
     [XXq,YYq]=meshgrid(1:size(lo,2),1:size(lo,1));
     dxq=reshape(griddata(XX(:),YY(:),dx',XXq(:),YYq(:)),size(lo));
     % aviCH=load('../aviN/CC.mat')
-    figure
-    set(gcf,'visible','off')
+    
+%     set(gcf,'visible','off')
     for sense=senses';sen=sense{1};
-        %%        
-      
-        clf
-        logFive=@(x) log(x)/log(5);
-        VVr=II.maps.(sen).radius.toRo/2;
-        VVr(VVr<1e-3)=nan;VVr(VVr>1e3)=nan;
-        VV=logFive(VVr);
-        pcolor(lo,la,VV);shading flat;colormap([(hsv(8))])
-        %         clm=T.radiusToRo;
-        clm=[logFive([.125 8]) 9]; % base 5
-        decorate(clm,T,DD,sen,'Radius/(2Lr)','km',5,1,1);
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoLLog-' sen],'dpdf');
         %%
-        clf
-        VV=II.maps.(sen).radius.toRo;
-        VV(VV<1e-3)=nan;VV(VV>1e3)=nan;
-        pcolor(lo,la,VV);shading flat;colormap(hsv(12))
-        clm=[0 6 7];
-        decorate(clm,T,DD,sen,'Radius/Lr','km',0,1,1);
+      VV=full(II.maps.(sen).amp.to_contour.mean);
+        imagesc(lo(1,:),la(:,1),flipud(VV));shading flat;colormap([jet(31)]) ;
+        clm=[0 .3 11]; % base 5
+        decorate(clm,T,DD,sen,'amp','m',0,2,true);
         axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoL-' sen],'dpdf');
-        %%
-        clf
-        VVs=II.maps.(sen).radius.mean.std;
-        VVm=II.maps.(sen).radius.mean.mean;
-        VV=((VVs./VVm)*100);
-        VV(VV<0)=nan;
-        VV=log10(VV);
-        pcolor(lo,la,VV);shading flat;colormap(hsv(5))
-        clm=[log10([1 100 ]) 6];
-        decorate(clm,T,DD,sen,' scale: std/mean ','%',10,0,1);
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapRadStdOMean-' sen],'dpdf');
-        %%
-        VV=II.maps.(sen).radius.mean.mean/1000;
-        colormap(hsv(14));
-        pcolor(lo,la,VV);shading flat;colormap(hsv(14));
-        clm=[20 160 8];
-        decorate(clm,T,DD,sen,'radius','km',0,1,1);
-        axis(T.axis)   % axis([-180 180 -70 70]); ;
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+        savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
         
-        %%
-        clf
-        VV=(II.maps.(sen).radius.mean.mean./dxq);
-        a=full(floor(nanmin(VV(:))));
-        b=full(ceil(nanmax(VV(:))));
-        clm=[a b b-a+1];
-        pcolor(lo,la,VV);shading flat;
-        colormap(hsv(clm(3)-1));
-        %      clm=[20 160 8];
-        cb=decorate(clm,T,DD,sen,'radius/dx',' ',0,1,1);
-        axis(T.axis)   % axis([-180 180 -70 70]); ;
-        xl=(get(cb,'yticklabel'));
-        xlc=cell(size(xl,1),1);
-        for n=1:size(xl,1);
-            xlc{n}=xl(n,:);
-            if mod(n,10)~=0
-                xlc{n}=' ';
-            end
-        end
-        set(cb,'yticklabel',xlc)
-        savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
-        %%
-        clf
-        VV=II.maps.(sen).vel.zonal.mean*100;
-        pcolor(lo,la,VV);shading flat
-        cw=jet(20);
-        cm=[0 0 0];
-        ce=(winter(4));
-        colormap([cw;cm;ce(:,[1 3 2])])
-        decorate([-20 5 6],T,DD,sen,'Zonal velocity','cm/s',0,1,1);
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
-        %         CC.(sen).v=VV;
-        
-        %%
-        VV=log(II.maps.(sen).age.mean);
-        pcolor(lo,la,VV);shading flat;colormap(jet)
-        decorate([log(T.age([1 2])) T.age(3)],T,DD,sen,'age','d',exp(1),0,1);
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapAge-' sen],'dpdf')
-        %%
-        VV=(II.maps.(sen).visits.single);
-        VV(VV==0)=nan;
-        pcolor(lo,la,VV);shading flat;colormap(jet(11))
-        cb=decorate([0 27.5,11],T,DD,sen,'Visits of unique eddy',' ',0,1,1);
-        %      decorate(T.visitsunique,T,DD,sen,'Visits of unique eddy',' ',0,1,1);
-        set(cb,'ytick',[0 5:5:25])
-        set(cb,'yticklabel',[1 5:5:25])
-        set(cb,'ylim',[0 27.5])
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
-        %%
-        clf
-        VV=(II.maps.(sen).visits.all);
-        VV(VV==0)=nan;
-        pcolor(lo,la,VV);shading flat;colormap(hsv(21))
-        cb=decorate([0 105,11],T,DD,sen,'Total Visits',' ',0,1,1);
-        set(cb,'ytick',[0 10:10:100])
-        set(cb,'yticklabel',[1 10:10:100])
-        set(cb,'ylim',[0 105])
-        
-        axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
-        
-        %% TODO
-        try
-            comp2chelt(II,aviCH)
-        end
-        
+        %         clf
+        %         logFive=@(x) log(x)/log(5);
+        %         VVr=II.maps.(sen).radius.toRo/2;
+        %         VVr(VVr<1e-3)=nan;VVr(VVr>1e3)=nan;
+        %         VV=logFive(VVr);
+        %         pcolor(lo,la,VV);shading flat;colormap([(hsv(8))])
+        %         %         clm=T.radiusToRo;
+        %         clm=[logFive([.125 8]) 9]; % base 5
+        %         decorate(clm,T,DD,sen,'Radius/(2Lr)','km',5,1,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoLLog-' sen],'dpdf');
+        %         %%
+        %         clf
+        %         VV=II.maps.(sen).radius.toRo;
+        %         VV(VV<1e-3)=nan;VV(VV>1e3)=nan;
+        %         pcolor(lo,la,VV);shading flat;colormap(hsv(12))
+        %         clm=[0 6 7];
+        %         decorate(clm,T,DD,sen,'Radius/Lr','km',0,1,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapRoL-' sen],'dpdf');
+        %         %%
+        %         clf
+        %         VVs=II.maps.(sen).radius.mean.std;
+        %         VVm=II.maps.(sen).radius.mean.mean;
+        %         VV=((VVs./VVm)*100);
+        %         VV(VV<0)=nan;
+        %         VV=log10(VV);
+        %         pcolor(lo,la,VV);shading flat;colormap(hsv(5))
+        %         clm=[log10([1 100 ]) 6];
+        %         decorate(clm,T,DD,sen,' scale: std/mean ','%',10,0,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapRadStdOMean-' sen],'dpdf');
+        %         %%
+        %         VV=II.maps.(sen).radius.mean.mean/1000;
+        %         colormap(hsv(14));
+        %         pcolor(lo,la,VV);shading flat;colormap(hsv(14));
+        %         clm=[20 160 8];
+        %         decorate(clm,T,DD,sen,'radius','km',0,1,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]); ;
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+        %
+        %         %%
+        %         clf
+        %         VV=(II.maps.(sen).radius.mean.mean./dxq);
+        %         a=full(floor(nanmin(VV(:))));
+        %         b=full(ceil(nanmax(VV(:))));
+        %         clm=[a b b-a+1];
+        %         pcolor(lo,la,VV);shading flat;
+        %         colormap(hsv(clm(3)-1));
+        %         %      clm=[20 160 8];
+        %         cb=decorate(clm,T,DD,sen,'radius/dx',' ',0,1,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]); ;
+        %         xl=(get(cb,'yticklabel'));
+        %         xlc=cell(size(xl,1),1);
+        %         for n=1:size(xl,1);
+        %             xlc{n}=xl(n,:);
+        %             if mod(n,10)~=0
+        %                 xlc{n}=' ';
+        %             end
+        %         end
+        %         set(cb,'yticklabel',xlc)
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['radOdx-' sen],'dpdf');
+        %         %%
+        %         clf
+        %         VV=II.maps.(sen).vel.zonal.mean*100;
+        %         pcolor(lo,la,VV);shading flat
+        %         cw=jet(20);
+        %         cm=[0 0 0];
+        %         ce=(winter(4));
+        %         colormap([cw;cm;ce(:,[1 3 2])])
+        %         decorate([-20 5 6],T,DD,sen,'Zonal velocity','cm/s',0,1,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
+        %         %         CC.(sen).v=VV;
+        %
+        %         %%
+        %         VV=log(II.maps.(sen).age.mean);
+        %         pcolor(lo,la,VV);shading flat;colormap(jet)
+        %         decorate([log(T.age([1 2])) T.age(3)],T,DD,sen,'age','d',exp(1),0,1);
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapAge-' sen],'dpdf')
+        %         %%
+        %         VV=(II.maps.(sen).visits.single);
+        %         VV(VV==0)=nan;
+        %         pcolor(lo,la,VV);shading flat;colormap(jet(11))
+        %         cb=decorate([0 27.5,11],T,DD,sen,'Visits of unique eddy',' ',0,1,1);
+        %         %      decorate(T.visitsunique,T,DD,sen,'Visits of unique eddy',' ',0,1,1);
+        %         set(cb,'ytick',[0 5:5:25])
+        %         set(cb,'yticklabel',[1 5:5:25])
+        %         set(cb,'ylim',[0 27.5])
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
+        %         %%
+        %         clf
+        %         VV=(II.maps.(sen).visits.all);
+        %         VV(VV==0)=nan;
+        %         pcolor(lo,la,VV);shading flat;colormap(hsv(21))
+        %         cb=decorate([0 105,11],T,DD,sen,'Total Visits',' ',0,1,1);
+        %         set(cb,'ytick',[0 10:10:100])
+        %         set(cb,'yticklabel',[1 10:10:100])
+        %         set(cb,'ylim',[0 105])
+        %
+        %         axis(T.axis)   % axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
+        %
+        %         %% TODO
+        %         try
+        %             comp2chelt(II,aviCH)
+        %         end
+        %
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -230,7 +236,7 @@ function comp2chelt(II,aviCH)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function cb=decorate(clm,ticks,DD,tit,tit2,unit,logbase,decim,coast)
+function cb=decorate(clm,ticks,DD,tit,tit2,unit,logbase,decim,coastload)
     %%
     dec=10.^decim;
     %%
@@ -261,13 +267,15 @@ function cb=decorate(clm,ticks,DD,tit,tit2,unit,logbase,decim,coast)
     set(cb,'yticklabel',zticklabel);
     title([tit,' - ',tit2,' [',unit,']'])
     xlabel(['Eddies that died younger ',num2str(DD.thresh.life),' days are excluded'])
-    if coast
-        drawcoast;
+    if coastload
+        load coast;
+%         kill= long<=-180 | long>=180 | lat<=-90 | lat>=90;
+%         long(kill)=[];
+%         lat(kill)=[];
+        if min(ticks.axis([1 2]))>=0 && max(ticks.axis([1 2]))>180
+            long=wrapTo360(long);
+        end
+        hold on; plot(long,lat,'markersize',0.5,'linestyle','.');
     end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function drawcoast
-    load coast;
-    hold on; plot(long,lat,'LineWidth',0.5);
-end

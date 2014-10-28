@@ -42,7 +42,7 @@ function DD=INPUTaviso
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
     DD.parameters.SSHAdepth=-25;
   DD.parameters.salinityFactor=1000;
-     %%
+       %%
     DD.switches.rehashMapDims=true; %!!
     
     

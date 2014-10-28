@@ -7,7 +7,7 @@
 % calculates all contours and saves one file per timestep
 function S03_contours
     %% init
-    DD=initialise('cuts',mfilename);
+    DD = initialise('cuts',mfilename);
     %% spmd
     main(DD)
     %% save info
@@ -26,40 +26,43 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% loop over ssh cuts
-    [TT]=SetThreadVar(DD);
-    II.T=disp_progress('init',['...']);
-    for cc=1:numel(TT)
-        II.T=disp_progress('calc', II.T, numel(TT), 100);
+    [TT] = SetThreadVar(DD);
+    II.T = disp_progress('init',['...']);
+    for cc = 1:numel(TT)
+        II.T = disp_progress('calc', II.T, numel(TT), 100);
         %% contours
         get_contours(DD,TT(cc));
     end
     disp_progress('conclude');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function get_contours(dd,TT)
+function get_contours(DD,TT)
     %%
-    CONT.filename=[dd.path.conts.name dd.pattern.prefix.conts TT.protos];
+    CONT.filename = [DD.path.conts.name DD.pattern.prefix.conts TT.protos];
     %% check
-    if exist(CONT.filename,'file')
+    if exist(CONT.filename,'file') && ~DD.overwrite
         dispM([CONT.filename ' exists'])
         return
     end
     %% init
-    [II]=init_get_contours(dd,TT);
+    [II] = init_get_contours(DD,TT);
     %% loop over levels
-    CONT.all=contourc(II.fields.ssh,II.levels)';
+    CONT.all = contourc(II.fields.ssh,II.levels)';
     %% save data
     save(CONT.filename,'-struct','CONT');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [II]=init_get_contours(dd,TT)
+function [II] = init_get_contours(DD,TT)
     %% load cut
-    II.file=TT.files;
-    II.fields=getfield(load(II.file),'fields');
+    II.file = TT.files;
+    II.fields = getfield(load(II.file),'fields');
     %% calc contours
     dispM('calculating contours... takes long time!',1)
-    %% create level vector at chosen interval    
-    floorlevel=floor(nanmin(II.fields.ssh(:))/dd.contour.step)*dd.contour.step;
-    ceillevel=ceil(nanmax(II.fields.ssh(:))/dd.contour.step)*dd.contour.step;
-    II.levels=floorlevel:dd.contour.step:ceillevel;
+    %% create level vector at chosen interval
+    steplim.min = @(step,ssh) ceil(nanmin(ssh(:))/step)*step;
+    steplim.max = @(step,ssh) floor(nanmax(ssh(:))/step)*step;  
+  
+    floorlevel = steplim.min(DD.contour.step,II.fields.ssh);
+    ceillevel = steplim.max(DD.contour.step,II.fields.ssh);
+    II.levels = floorlevel:DD.contour.step:ceillevel;
 end

@@ -23,7 +23,7 @@ function DD=INPUT
     %% thresholds
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
-    DD.thresh.maxRadiusOverRossbyL=4; %[ ]
+    DD.thresh.maxRadiusOverRossbyL=4; % [ ]
     DD.thresh.amp=0.01; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
     DD.thresh.corners.min=20; % min number of data points for the perimeter of an eddy[ ]

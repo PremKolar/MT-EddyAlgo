@@ -71,7 +71,7 @@ function ncOp(Pname,P,X,Y,Z,fieldname)
 	nc_varput(Pname,'depth',dep);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function dir2(d)
+function S=dir2(d)
 	S=dir(d);
 	[base,~,~]=fileparts(S);
 	for ii=1:numel(S)

@@ -88,11 +88,11 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
             vvM(cc).(fn)=nanmean(S.(fn)(LA==LAuniq(cc)));
             vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));
         end
-        vvM(abs(LAuniq)<2).(fn)=nan;
-        vvS(abs(LAuniq)<2).(fn)=nan;
-        %%
-        
-        
+        try
+        vvM(abs(LAuniq)<5).(fn)=nan;
+        vvS(abs(LAuniq)<5).(fn)=nan;
+        end
+        %%   
     end
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));

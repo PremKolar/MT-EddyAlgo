@@ -43,7 +43,7 @@ function DD=INPUTaviso
     DD.parameters.SSHAdepth=-25;
   DD.parameters.salinityFactor=1000;
        %%
-    DD.switches.rehashMapDims=true; %!!
+    DD.switchs.rehashMapDims=true; %!!
     
     
     

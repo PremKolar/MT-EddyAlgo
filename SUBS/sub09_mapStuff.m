@@ -20,8 +20,7 @@ function sub09_mapStuff
         clm=[0 .3 11]; % base 5
         decorate(clm,T,DD,sen,'amp','m',0,2,true);
         axis(T.axis)   % axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['p2aAmp-' sen],'dpdf');
-        
+        savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
         
         %         clf
         %         logFive=@(x) log(x)/log(5);

@@ -5,6 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculates geostrophic data from ssh
+% NEEDS FULL RE RUN IF DATES ARE CHANGED !!!!
 function S02_infer_fields
     %% init
     DD = initialise('cuts',mfilename);
@@ -20,29 +21,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
-    if ~exist([DD.path.root, 'meanSSH.mat'],'file')
-        if DD.debugmode
-            [JJ] = SetThreadVar(DD);
-            spmd_meanSsh(DD,JJ);
-        else
-            spmd(DD.threads.num)
-                [JJ] = SetThreadVar(DD);
-                spmd_meanSsh(DD,JJ);
-            end
-        end
-        MeanSsh = saveMean(DD);
-    else
-        load([DD.path.root, 'meanSSH.mat']);
-    end
-    %% calc fields
-    if DD.debugmode
+    spmd
         [JJ] = SetThreadVar(DD);
+        spmd_meanSsh(DD,JJ);
+    end
+      MeanSsh = saveMean(DD);
+    spmd
+      [JJ] = SetThreadVar(DD);
         spmd_fields(DD,RS,JJ,MeanSsh);
-    else
-        spmd(DD.threads.num)
-            [JJ] = SetThreadVar(DD);
-            spmd_fields(DD,RS,JJ,MeanSsh);
-        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,8 +59,13 @@ function spmd_meanSsh(DD,JJ)
     Mean.SshSum = nan(DD.map.window.dimPlus.y*DD.map.window.dimPlus.x,1);
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
-        %% load
-        ssh = extractdeepfield(load(JJ(jj).files),'fields.ssh')';
+        %% load        
+        cut=getfield(load(JJ(jj).files),'fields');
+        if isfield(cut,'sshRaw')
+            ssh = extractdeepfield(cut,'sshRaw')';
+        else
+            ssh = extractdeepfield(cut,'ssh')';
+        end
         %% mean ssh
         Mean.SshSum = nansum([Mean.SshSum, ssh],2);
     end
@@ -86,16 +77,6 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
     T = disp_progress('init','infering fields');
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
-        %% skip
-        try
-            alreadyFltrd = isfield(JJ(jj).files,'filtered');
-        catch me
-            disp(me.message)
-            disp(['removing corrupt CUT - run relevant steps prior with DD.overwrite = false again!'])
-            system(['rm ' JJ(jj).files])
-        end
-        
-        if alreadyFltrd && ~DD.overwrite, dispM('skipping');continue; end
         cut = load(JJ(jj).files);
         %% filter
         if DD.switchs.filterSSHinTime
@@ -104,7 +85,7 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
                 cut.fields.sshRaw = cut.fields.ssh;
             end
             %% filter
-            cut.fields.ssh = cut.fields.sshRaw - MeanSsh;
+            cut.fields.ssh = cut.fields.ssh - MeanSsh;
         end
         %%
         coriolis = coriolisStuff(cut.fields.lat);

@@ -61,12 +61,7 @@ function [EE,skip] = work_day(DD,JJ,rossby)
     %% remember date
     [ee(:).daynum] = deal(JJ.daynums);
     %% avoid out of bounds integer coor close to boundaries
-    
-    try % TODO
-        [cut.dim.y,cut.dim.x] = size(cut.fields.ssh);
-    catch
-        [cut.dim.y,cut.dim.x] = size(cut.grids.ssh);
-    end
+    [cut.dim.y,cut.dim.x] = size(cut.fields.ssh);
     [ee_clean] = CleanEddies(ee,cut);
     %% find them
     EE = find_eddies(EE,ee_clean,rossby,cut,DD);
@@ -146,11 +141,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% pre-nan-check
-    try % TODO
-        pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
-    catch
-        pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.grids.ssh);
-    end
+    pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
     if ~pass.rim, return, end;
     %% closed ring check
     [pass.CR_ClosedRing] = CR_ClosedRing(ee);
@@ -159,14 +150,15 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
-    [zoom,pass.winlim] = get_window_limits(ee.coor,2,DD.map.window);
+    if DD.switchs.chelt
+        winincrease=2;  % TODO
+    else
+        winincrease=4;
+    end
+    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
-    try % TODO
-        zoom.fields = EDDyCut_init(cut.fields,zoom);
-    catch
-        zoom.fields = EDDyCut_init(cut.grids,zoom);
-    end
+    zoom.fields = EDDyCut_init(cut.fields,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask = EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
@@ -189,12 +181,14 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
     %% CHELT OP
+    
     ee.chelt = cheltStuff(ee,zoom);
+    
     %% get profiles
     [ee.profiles,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
-    if ~pass.CR_radius, return, end;   
+    if ~pass.CR_radius, return, end;
     %% get ideal ellipse contour
     zoom.mask.ellipse = EDDyEllipse(ee,zoom.mask);
     %% get effective amplitude relative to ellipse;
@@ -215,7 +209,6 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if (DD.switchs.distlimit && DD.switchs.RossbyStuff)
         [ee.projLocsMask] = ProjectedLocations(rossby.c,cut,DD,ee.trackref);
     end
-    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [ch]=cheltStuff(ee,zoom)
@@ -251,18 +244,19 @@ function [pass,sense] = CR_sense(zoom,direc,level)
     pass = false;
     sense = struct;
     %% water column up: seeking anti cyclones; down: cyclones
-    if direc == - 1
-        if all(zoom.fields.ssh(zoom.mask.inside) >= level )
-            pass = true;
-            sense.str = 'AntiCyclonic';
-            sense.num = - 1;
-        end
-    elseif direc == 1
-        if all(zoom.fields.ssh(zoom.mask.inside) <= level )
-            pass = true;
-            sense.str = 'Cyclonic';
-            sense.num = 1;
-        end
+    switch direc
+        case -1
+            if all(zoom.fields.ssh(zoom.mask.inside) >= level )
+                pass = true;
+                sense.str = 'AntiCyclonic'; % TODO
+                sense.num = -1;
+            end
+        case 1
+            if all(zoom.fields.ssh(zoom.mask.inside) <= level )
+                pass = true;
+                sense.str = 'Cyclonic';
+                sense.num = 1;
+            end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -290,17 +284,17 @@ function [pass,peak,base] = CR_AmpPeak(ee,z,thresh)
     if any([peak.z.y==[1 z.dim.y] peak.z.x==[1 z.dim.x]]), pass = false;end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,IQ,chelt] = CR_Shape(z,ee,thresh,switches)
+function [pass,IQ,chelt] = CR_Shape(z,ee,thresh,switchs)
     [passes.iq,IQ] = IsopQuo(ee,thresh.iq);
     [passes.chelt,chelt] = chelton_shape(z,ee);
-    if switches.IQ && ~switches.chelt
+    if switchs.IQ && ~switchs.chelt
         pass = passes.iq;
-    elseif switches.chelt && ~switches.IQ
+    elseif switchs.chelt && ~switchs.IQ
         pass = passes.chelt;
-    elseif switches.chelt && switches.IQ
+    elseif switchs.chelt && switchs.IQ
         pass = passes.chelt && passes.iq;
     else
-        error('choose at least one shape method (IQ or chelton method in input_vars switches section)') %#ok<*ERTAG>
+        error('choose at least one shape method (IQ or chelton method in input_vars switchs section)') %#ok<*ERTAG>
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -311,7 +305,7 @@ function [pass,chelt] = chelton_shape(z,ee)
     y = f.y(f.ii);
     xiy = x + 1i*y;
     [A,B] = meshgrid(xiy,xiy);
-    maxDist = max(max(abs(A - B)))*1e3;
+    maxDist = max(max(abs(A - B)))*1000;
     %%
     medlat = abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
     %%
@@ -536,18 +530,18 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     [water.x] = avoidLand(ssh,ee.peak.z.x);
     prof.x.ssh = (ssh(water.x));
     prof.x.ddis = z.fields.dx(ee.peak.z.y,water.x) ;
-    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1e3 ;
+    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1000 ;
     %% meridional cut
     ssh = - ee.sense.num * (z.fields.ssh(:,ee.peak.z.x) + offset_term);
     water.y = avoidLand(ssh,ee.peak.z.y);
     prof.y.ssh = (ssh(water.y));
     prof.y.ddis = z.fields.dy(water.y,ee.peak.z.x) ;
-    prof.y.dist = z.fields.km_y(water.y,ee.peak.z.x)*1e3 ;
+    prof.y.dist = z.fields.km_y(water.y,ee.peak.z.x)*1000 ;
     %
     %%	cranck up res
     for xyc = {'x','y'};xy = xyc{1};
-        s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),1e3)';
-        s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),1e3)';
+        s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),100)';
+        s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),100)';
         f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
         s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
     end

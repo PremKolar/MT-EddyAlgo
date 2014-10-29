@@ -3,8 +3,8 @@ function makePressure
 	outDir = [rootDir 'pressure/'];
 	[lalo,rhoFiles,sshFiles]=getData(rootDir);
 	%%
+	addpath(genpath('../'));
 	mkdirp(outDir);
-	addpath(genpath('./'));
 	init_threads(12);
 	%%
 	[Z,Y,X,dDEP,~,G]= inits(lalo);

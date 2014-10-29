@@ -14,8 +14,8 @@ function makePressure
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lalo,rhoFiles,sshFiles]=getData(rD)
-	rhoFiles=dir([rD 'rho/rho_*.nc']);
-	sshFiles=dir([rD 'ssh/SSH_*.nc']);
+	rhoFiles=dir2([rD 'rho/rho_*.nc']);
+	sshFiles=dir2([rD 'ssh/SSH_*.nc']);
 	lld=[rD 'LatLonDepth.nc'];
 	lalo.la=nc_varget(lld,'lat');
 	lalo.lo=nc_varget(lld,'lon');
@@ -37,8 +37,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function opDay(sshFiles,rhoFiles,ii,G,dDEP,Y,X,Z,II,outDir)
 	fprintf('%d%%\n',round(ii/II)*100);
-	Frho = rhoFiles(ii).name;
-	Srho = sshFiles(ii).name;
+	Frho = rhoFiles(ii).fullname;
+	Srho = sshFiles(ii).fullname;
 	dens  = (nc_varget(Frho,'density'));
 	P_ageos     = cumsum(G.*dens.*dDEP,1);
 	ssh  = repmat(permute(nc_varget(Srho,'SSH')/100,[3,1,2]),[Z,1,1]); %cm2m
@@ -71,3 +71,10 @@ function ncOp(Pname,P,X,Y,Z,fieldname)
 	nc_varput(Pname,'depth',dep);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function dir2(d)
+	S=dir(d);
+	[base,~,~]=fileparts(S);
+	for ii=1:numel(S)
+		S(ii).fullname=[base S(ii).name];
+	end
+end

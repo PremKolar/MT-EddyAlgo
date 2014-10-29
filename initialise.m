@@ -13,7 +13,7 @@ function DD=initialise(toCheck,parentFunc)
     DDcheck=[DD.path.root, 'DD.mat'];
     %% if DD.mat exists, rehash or keep initial mapDims
     if exist(DDcheck,'file')
-        if DD.switches.rehashMapDims
+        if DD.switchs.rehashMapDims
             DD=catstruct(load(DDcheck),DD);
         else
             DD=catstruct(load(DDcheck),rmfield(DD,'map'));

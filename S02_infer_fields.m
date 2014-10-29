@@ -61,7 +61,7 @@ function spmd_meanSsh(DD,JJ)
         T = disp_progress('disp',T,numel(JJ),100);
         %% load        
         cut=getfield(load(JJ(jj).files),'fields');
-        if ~isfield(cut,'sshRaw')
+        if isfield(cut,'sshRaw')
             ssh = extractdeepfield(cut,'sshRaw')';
         else
             ssh = extractdeepfield(cut,'ssh')';

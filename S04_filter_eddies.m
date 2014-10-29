@@ -284,17 +284,17 @@ function [pass,peak,base] = CR_AmpPeak(ee,z,thresh)
     if any([peak.z.y==[1 z.dim.y] peak.z.x==[1 z.dim.x]]), pass = false;end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pass,IQ,chelt] = CR_Shape(z,ee,thresh,switches)
+function [pass,IQ,chelt] = CR_Shape(z,ee,thresh,switchs)
     [passes.iq,IQ] = IsopQuo(ee,thresh.iq);
     [passes.chelt,chelt] = chelton_shape(z,ee);
-    if switches.IQ && ~switches.chelt
+    if switchs.IQ && ~switchs.chelt
         pass = passes.iq;
-    elseif switches.chelt && ~switches.IQ
+    elseif switchs.chelt && ~switchs.IQ
         pass = passes.chelt;
-    elseif switches.chelt && switches.IQ
+    elseif switchs.chelt && switchs.IQ
         pass = passes.chelt && passes.iq;
     else
-        error('choose at least one shape method (IQ or chelton method in input_vars switches section)') %#ok<*ERTAG>
+        error('choose at least one shape method (IQ or chelton method in input_vars switchs section)') %#ok<*ERTAG>
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -16,9 +16,10 @@ end
 function [lalo,rhoFiles,sshFiles]=getData(rD)
 	rhoFiles=dir([rD './rho_*.nc']);
 	sshFiles=dir([rD './SSH_*.nc']);
-	lalo.la=nc_varget('LatLonDepth.nc','lat');
-	lalo.lo=nc_varget('LatLonDepth.nc','lon');
-	lalo.de=nc_varget('LatLonDepth.nc','depth');
+	lld=[rD 'LatLonDepth.nc'];
+	lalo.la=nc_varget(lld,'lat');
+	lalo.lo=nc_varget(lld,'lon');
+	lalo.de=nc_varget(lld,'depth');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [Z,Y,X,dDEP,LAT,G]= inits(lalo)

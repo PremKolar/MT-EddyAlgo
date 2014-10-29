@@ -14,8 +14,8 @@ function makePressure
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lalo,rhoFiles,sshFiles]=getData(rD)
-	rhoFiles=dir([rD './rho_*.nc']);
-	sshFiles=dir([rD './SSH_*.nc']);
+	rhoFiles=dir([rD 'rho/rho_*.nc']);
+	sshFiles=dir([rD 'ssh/SSH_*.nc']);
 	lld=[rD 'LatLonDepth.nc'];
 	lalo.la=nc_varget(lld,'lat');
 	lalo.lo=nc_varget(lld,'lon');

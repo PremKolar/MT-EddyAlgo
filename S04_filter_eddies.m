@@ -305,7 +305,7 @@ function [pass,chelt] = chelton_shape(z,ee)
     y = f.y(f.ii);
     xiy = x + 1i*y;
     [A,B] = meshgrid(xiy,xiy);
-    maxDist = max(max(abs(A - B)))*1e3;
+    maxDist = max(max(abs(A - B)))*1000;
     %%
     medlat = abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
     %%
@@ -530,18 +530,18 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     [water.x] = avoidLand(ssh,ee.peak.z.x);
     prof.x.ssh = (ssh(water.x));
     prof.x.ddis = z.fields.dx(ee.peak.z.y,water.x) ;
-    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1e3 ;
+    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1000 ;
     %% meridional cut
     ssh = - ee.sense.num * (z.fields.ssh(:,ee.peak.z.x) + offset_term);
     water.y = avoidLand(ssh,ee.peak.z.y);
     prof.y.ssh = (ssh(water.y));
     prof.y.ddis = z.fields.dy(water.y,ee.peak.z.x) ;
-    prof.y.dist = z.fields.km_y(water.y,ee.peak.z.x)*1e3 ;
+    prof.y.dist = z.fields.km_y(water.y,ee.peak.z.x)*1000 ;
     %
     %%	cranck up res
     for xyc = {'x','y'};xy = xyc{1};
-        s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),1e3)';
-        s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),1e3)';
+        s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),100)';
+        s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),100)';
         f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
         s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
     end

@@ -13,6 +13,14 @@ function makePressure
 	end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [lalo,rhoFiles,sshFiles]=getData(rD)
+	rhoFiles=dir([rD './rho_*.nc']);
+	sshFiles=dir([rD './SSH_*.nc']);
+	lalo.la=nc_varget('LatLonDepth.nc','lat');
+	lalo.lo=nc_varget('LatLonDepth.nc','lon');
+	lalo.de=nc_varget('LatLonDepth.nc','depth');
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [Z,Y,X,dDEP,LAT,G]= inits(lalo)
 	[Y,X]=  size(lalo.la);
 	[Z]= numel(lalo.de) ;

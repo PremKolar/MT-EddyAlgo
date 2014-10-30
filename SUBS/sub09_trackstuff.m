@@ -96,7 +96,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
 	h.ch=chOverLayScale(chelt,LAuniq,vvM);
 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
 	%%
-	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<ASGLU,NASGU>
+	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
 	[~,pw]=fileparts(pwd);
 	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
@@ -115,7 +115,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
 	vvM(abs(LAuniq)<5)=nan;
 	vvS(abs(LAuniq)<5)=nan;
 	%%
-	[h.own,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<ASGLU,NASGU>
+	[h.own,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
 	[~,pw]=fileparts(pwd);
 	save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
 	savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf',DD2info(DD));

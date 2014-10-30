@@ -60,16 +60,16 @@ end
 function spmdblock(S,DD,II,T)
     scaleZonmeans(S,DD,II,T);
     
-    %         spmd
-    %             switch labindex
-    %                 case 1
-    %                     scaleZonmeans(S,DD,II,T);
-    %                 case 2
-    %                     velZonmeans(S,DD,II,T);
-    %                 case 3
-    %                     scattStuff(S,T,DD,II);
-    %             end
-    %         end
+         spmd
+             switch labindex
+                case 1
+                    scaleZonmeans(S,DD,II,T);
+                   case 2
+                         velZonmeans(S,DD,II,T);
+                     case 3
+                         scattStuff(S,T,DD,II);
+                 end
+             end
 end
 
 
@@ -90,9 +90,6 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
         end
 %         vvM(abs(LAuniq)<2).(fn)=nan;
 %         vvS(abs(LAuniq)<2).(fn)=nan;
-        %%
-        
-        
     end
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));

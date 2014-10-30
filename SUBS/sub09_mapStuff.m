@@ -22,13 +22,12 @@ function sub09_mapStuff
         axis(T.axis)   % axis([-180 180 -70 70]);
         savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
         
-        %         clf
-        %         logFive=@(x) log(x)/log(5);
-        %         VVr=II.maps.(sen).radius.toRo/2;
-        %         VVr(VVr<1e-3)=nan;VVr(VVr>1e3)=nan;
-        %         VV=logFive(VVr);
+                 clf                 logFive=@(x) log(x)/log(5);
+                 VVr=II.maps.(sen).radius.toRo/2;
+                 VVr(VVr<1e-3)=nan;VVr(VVr>1e3)=nan;
+                 VV=logFive(VVr);
         %         pcolor(lo,la,VV);shading flat;colormap([(hsv(8))])
-        %         %         clm=T.radiusToRo;
+                 %         clm=T.radiusToRo;
         %         clm=[logFive([.125 8]) 9]; % base 5
         %         decorate(clm,T,DD,sen,'Radius/(2Lr)','km',5,1,1);
         %         axis(T.axis)   % axis([-180 180 -70 70]);

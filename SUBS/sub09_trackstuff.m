@@ -58,7 +58,10 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-	%scaleZonmeans(S,DD,II,T);
+% % 	velZonmeans(S,DD,II,T);
+%     	scaleZonmeans(S,DD,II,T);
+%         	scattStuff(S,T,DD,II);
+    
 	spmd
 		switch labindex
 			case 1
@@ -68,7 +71,7 @@ function spmdblock(S,DD,II,T)
 			case 3
 				scattStuff(S,T,DD,II);
 		end
-	end
+ 	end
 end
 
 
@@ -90,16 +93,14 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
 		%         vvM(abs(LAuniq)<2).(fn)=nan;
 		%         vvS(abs(LAuniq)<2).(fn)=nan;
 		%%
-		
-		
-	end
+    end
 	h.ch=chOverLayScale(chelt,LAuniq,vvM);
 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
 	%%
-	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
-	[~,pw]=fileparts(pwd);
-	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
-	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
+% 	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+% 	[~,pw]=fileparts(pwd);
+% 	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
+% 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>

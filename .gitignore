@@ -1,3 +1,5 @@
+INPUT.m
+Sall.m
 *.mat
 *.eps
 *.pdf
@@ -9,8 +11,6 @@
 yo*
 a.*
 ?.*
-INPUT.m
-Sall.m
 ?
 lg
 *.m~

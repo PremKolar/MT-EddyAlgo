@@ -6,7 +6,7 @@
 function DD=INPUT
       DD.template='pop2avi';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=1;
     DD.debugmode=false;
     %DD.debugmode=true;
     DD.overwrite=false;
@@ -15,7 +15,7 @@ function DD=INPUT
     DD.time.from.str  ='19940105';
 f='yyyymmdd';
 dateplus=@(D,a,f) datestr(datenum(D,f)+a,f); 
-    DD.time.till.str  = dateplus(DD.time.from.str,3*365,f);
+    DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %    DD.time.till.str  ='20061227';
 
     %        DD.time.till.str='19950105';

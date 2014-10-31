@@ -38,7 +38,7 @@ function DD=INPUTmad
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
      DD.parameters.salinityFactor=1000;
     %%
-     DD.switches.rehashMapDims=false; %!!
+     DD.switchs.rehashMapDims=false; %!!
     %% special:    
     DD.parameters.boxlims.south=10;
    

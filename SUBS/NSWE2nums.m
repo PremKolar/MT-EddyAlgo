@@ -1,7 +1,7 @@
-function out=NSWE2nums(pathout,filename,geo,timestr)    
-    out=strrep(filename,'SSSS',sprintf('%+03.0f',geo.south) ); %#ok<*NASGU>
-    out=strrep(out, 'NNNN',sprintf('%+03.0f',geo.north) );
-    out=strrep(out, 'WWWW',sprintf('%+03.0f',geo.west) );
-    out=strrep(out, 'EEEE',sprintf('%+03.0f',geo.east) );
+function out=NSWE2nums(pathout,filename,geo,timestr)   
+    out=strrep(filename,'SSS',sprintf('%+03d',round(geo.south))); %#ok<*NASGU>
+    out=strrep(out, 'NNN',sprintf('%+03d',round(geo.north)) );
+    out=strrep(out, 'WWW',sprintf('%03d', round(wrapTo360(geo.west))));
+    out=strrep(out, 'EEE',sprintf('%03d',round(wrapTo360(geo.east))));
     out=[pathout, strrep(out, 'yyyymmdd',timestr)]; 
 end

@@ -4,8 +4,8 @@
 % Matlab:  8.1
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function sub09_trackinit
-    load DD
+function sub09_trackinit(DD)
+    
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
@@ -27,9 +27,10 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     sense.s=senses.s{ss};
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
-    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age'};
+    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function single=sPmDstoof(DD,eds,root,toLoad)
@@ -65,8 +66,15 @@ function vel=makeVel(cats)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveCats(cats,sense)
+   area2L=@(ar) sqrt(ar/pi);
     tmp=cats.radiusmean;         %#ok<*NASGU>
     save(['TR-' sense.s '-rad.mat'],'tmp')
+    tmp=area2L(cats.cheltareaLe);
+    save(['TR-' sense.s '-radLe.mat'],'tmp')
+    tmp=area2L(cats.cheltareaL);
+    save(['TR-' sense.s '-radL.mat'],'tmp')
+    tmp=area2L(cats.cheltareaLeff);
+    save(['TR-' sense.s '-radLeff.mat'],'tmp')
     tmp=cats.age;
     save(['TR-' sense.s '-age.mat'],'tmp')
     tmp=cats.lat;

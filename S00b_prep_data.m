@@ -10,7 +10,7 @@ function S00b_prep_data
     %% set up
     [DD]=set_up;
     %% spmd
-    main(DD)
+    main(DD);
     %% save info
     conclude(DD);
 end
@@ -32,7 +32,7 @@ function [DD]=set_up
     DD = initialise('raw',mfilename);
     %% get sample window
     file=SampleFile(DD);
-    [window]=GetWindow2(file,DD.map.in);
+    [window]=GetWindow3(file,DD.map.in);
     DD.map.window=window;
     save([DD.path.root 'window.mat'],'window');
 end
@@ -51,10 +51,7 @@ function file=SampleFile(DD)
     sample_time=DD.time.from.str;
     while ~readable
         file=[dir_in.name, strrep(pattern_in, 'yyyymmdd',sample_time)];
-        try
-            nc_dump(file);
-        catch me
-            disp(me)
+        if ~exist(file,'file')
             sample_time=datestr(DD.time.from.num + DD.time.delta_t,'yyyymmdd');
             continue
         end

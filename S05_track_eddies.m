@@ -88,9 +88,10 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
     [~,idx.arch] = ismember(ID.old,ID.arch);
     %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
     if any(isnan(NEW.time.delT))
-save(sprintf('%02d-%s.mat',labindex,datestr(now,'yymmdd-HHMM')));
-    NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
-end
+        ydfbvsdfgsd
+        save(sprintf('%02d-%s.mat',labindex,datestr(now,'yymmdd-HHMM')));
+        NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set
@@ -108,16 +109,9 @@ end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    try
-        NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-    catch
-        %% TEMP SOLUTION
-        if strcmp(sen,'AntiCycs')
-            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'anticyclones');
-        else
-            NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),'cyclones');
-        end
-    end
+    
+    NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
+    
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -196,17 +190,9 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-    %% init day one
-    try
-        new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-    catch
-        %% TEMP SOLUTION
-        if strcmp(sen,'AntiCycs')
-            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'anticyclones');
-        else
-            new_eddies=getfield(rmfield(eddies,{'filename','pass'}),'cyclones');
-        end
-    end
+    
+    new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
+    
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
@@ -245,24 +231,26 @@ function [TDB]=tracked_dead_born(MD)
     TDB.inNew.n2oi=n2oi;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [inout]=kill_phantoms(inout)
+function [out]=kill_phantoms(in)
     %% search for identical eddies
-    lola = inout.lon + 1i*inout.lat;
+    lola = in.lon + 1i*in.lat;
     [~,ui,~]=unique(lola);
-    %% loop over
-    if numel(lola)~=numel(ui)
-        sdgbsdfgqergwr %TODO: if this doesnt happen till 14-11-31; all fine; rm check
+    %%
+%     if numel(lola)~=numel(ui)
+        out=killDoubles(in,ui,size(lola));
+%     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    function out=killDoubles(in,ui,oriSize)
+        FN=fieldnames(in)';
+        for ff=1:numel(FN)
+            fn=FN{ff};
+            if size(in.(fn))==oriSize
+                out.(fn)=in.(fn)(ui);
+            else
+                out.(fn)=in.(fn);
+            end
+        end
     end
-    %% old version
-    %     [LOM.a,LOM.b]=meshgrid(inout.lon      ,inout.lon      );
-    %     [LAM.a,LAM.b]=meshgrid(inout.lat      ,inout.lat      );
-    %     lonDIFF=abs(LOM.a - LOM.b);
-    %     DIST=floor(real(acos(sind(LAM.a).*sind(LAM.b) + cosd(LAM.a).*cosd(LAM.b).*cosd(lonDIFF)))*earthRadius); % floor for rounding errors.. <1m -> identity - triu so that only one of the twins gets deleted
-    %     DIST(logical(triu(ones(size(DIST)))))=nan;% nan self distance and lower triangle (we only need one of the two for each pair)
-    %     [Y,~] = find(DIST==0);
-    %     inout.eddies      (Y)=[];
-    %     inout.lon      (Y)=[];
-    %     inout.lat      (Y)=[];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function closeEnough=nanOutOfBounds(NEW,OLD)

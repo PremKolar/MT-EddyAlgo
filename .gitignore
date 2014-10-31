@@ -11,4 +11,10 @@ Sall.m
 yo*
 a.*
 ?.*
+INPUT.m
+Sall.m
 ?
+lg
+*.m~
+*.COPY
+*.copy

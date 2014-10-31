@@ -48,7 +48,7 @@ function DD=INPUTpop2avi
     
     
     %%
-    DD.switches.rehashMapDims=true; %!!
+    DD.switchs.rehashMapDims=true; %!!
     
     
     

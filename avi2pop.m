@@ -64,7 +64,7 @@ function opSSHfile(file,path,ref,sshPOP2AVI)
     end
     Tp=disp_progress('init','averaging');
     for ii=1:numel(ref)
-        Tp=disp_progress('c',Tp,numel(ref),10);
+        Tp=disp_progress('c',Tp,numel(ref),3);
         sshPOP2AVI(ii)=nanmean(ssh(ref{ii}));
     end
     save(outfile,'sshPOP2AVI')
@@ -82,15 +82,15 @@ function [lat,lon]=inits(ncfile)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ref]=makeXref(idx)
-    if ~exist('ref.mat','file')
+    if ~exist('avi2pop.mat','file')
         ref=makeXrefCalc(idx);
     else
-        load ref;
+        load avi2pop;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ref=makeXrefCalc(idx)
-    ref=repmat({[]},Ya*Xa,1); % crossref cell arr
+%     ref=repmat({[]},Ya*Xa,1); % crossref cell arr
     [idxS,idxO]=sort(idx); %
     UN=unique(idxS); %
     [~,bin]=histc(idxS,UN); %
@@ -108,22 +108,23 @@ function ref=makeXrefCalc(idx)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [idx]=CrossRef2Closest(lon,lat)
-    azi=deg2rad(lon.pop(:));
-    elev=deg2rad(lat.pop(:));
-    [x,y,z] = sph2cart(azi,elev,1);
-    qazi= deg2rad(lon.avi(:));
-    qelev= deg2rad(lat.avi(:));
-    [qx,qy,qz] = sph2cart(qazi,qelev,1);
-    inxyz=[x,y,z];
-    outxyz=[qx,qy,qz];
-    JJ=thread_distro(12,numel(azi));
     if exist('idx.mat','file')
         load idx
     else
+        azi=deg2rad(lon.pop(:));
+        elev=deg2rad(lat.pop(:));
+        [x,y,z] = sph2cart(azi,elev,1);
+        qazi= deg2rad(lon.avi(:));
+        qelev= deg2rad(lat.avi(:));
+        [qx,qy,qz] = sph2cart(qazi,qelev,1);
+        popxyz=[x,y,z];
+        avixyz=[qx,qy,qz];
+        JJ=thread_distro(12,numel(azi));
+        
         spmd
             myII=JJ(labindex,1):JJ(labindex,2);
             fprintf('lab %d dsearchn\n',labindex);
-            idx = dsearchn(outxyz,inxyz(myII,:));
+            idx = dsearchn(avixyz,popxyz(myII,:));
             fprintf('lab %d gcat\n',labindex);
             idx = gcat(idx,1,1);
         end

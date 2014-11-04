@@ -6,7 +6,7 @@
 function DD=INPUT
       DD.template='pop2avi';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=4;
     DD.debugmode=false;
     %DD.debugmode=true;
     DD.overwrite=false;

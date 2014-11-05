@@ -3,15 +3,14 @@
 % 'pop' - template for POP SSH data
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
-% 'pop2avi' -
 function DD=INPUT
-    DD.template='aviso';
+      DD.template='pop2avi';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-%     DD.debugmode=true;
+    %DD.debugmode=true;
     DD.overwrite=false;
-%         DD.overwrite=true;
+    %     DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi

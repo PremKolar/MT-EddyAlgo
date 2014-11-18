@@ -3,14 +3,15 @@
 % 'pop' - template for POP SSH data
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
+% 'pop2avi' -
 function DD=INPUT
-      DD.template='pop';
+    DD.template='aviso';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-DD.debugmode=true;
+%     DD.debugmode=true;
     DD.overwrite=false;
-    %     DD.overwrite=true;
+%         DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
@@ -19,7 +20,7 @@ DD.debugmode=true;
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
-    threshlife=7*4; 
+    threshlife=7*8*99999999999; % TODO
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 360;
@@ -38,18 +39,18 @@ DD.debugmode=true;
     DD.thresh.IdentityCheck=[2]; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     DD.thresh.phase = 0.2; % max(abs(rossby phase speed)) [SI]
     %% switches
-    DD.switchs.IQ 			= 1;
-    DD.switchs.chelt 			= 0;
-    DD.switchs.RossbyStuff 		= 1;  % TODO no choice
-    DD.switchs.distlimit 		= 1;      % TODO no choice
-    DD.switchs.AmpAreaCheck 		= 0;
-    DD.switchs.netUstuff		= 0;
-    DD.switchs.meanUviaOW		= 0;
-    DD.switchs.IdentityCheck		= 1;
-    DD.switchs.maxRadiusOverRossbyL	= 1;  % TODO no choice  
-    DD.switchs.spaciallyFilterSSH	= 0;  % TODO delete
-    DD.switchs.filterSSHinTime		= 1;
+    DD.switchs.IQ=0;
+    DD.switchs.chelt=1;
+    DD.switchs.RossbyStuff=1;  % TODO no choice
+    DD.switchs.distlimit=1;      % TODO no choice
+    DD.switchs.AmpAreaCheck=1;
+    DD.switchs.netUstuff=0;
+    DD.switchs.meanUviaOW=0;
+    DD.switchs.IdentityCheck=0;
+    DD.switchs.maxRadiusOverRossbyL=1;  % TODO no choice  
+    DD.switchs.spaciallyFilterSSH=0;  % TODO delete
+    DD.switchs.filterSSHinTime=1;
     %%
-    DD.parameters.fourierOrder		= 4;
+    DD.parameters.fourierOrder=4;
 end
 

@@ -8,8 +8,8 @@ function DD=INPUT
     DD.template='aviso';
     %% threads / debug
     DD.threads.num=12;
-    DD.debugmode=false;
-%     DD.debugmode=true;
+%     DD.debugmode=false;
+    DD.debugmode=true;
     DD.overwrite=false;
 %         DD.overwrite=true;
     %% time

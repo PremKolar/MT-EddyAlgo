@@ -155,7 +155,7 @@ function   pass = CR_looseScaleConstr(ee)
     end
     %%
     mLr          = mean(ROSSBY.Lr(lin));
-    mDxy         = mean([CUT.fields.dx(lin) ; CUT.fields.dx(lin)]);
+    mDxy         = mean([CUT.fields.dx(lin) ; CUT.fields.dy(lin)]);
     contLen      = numel(lin);
     approxRadius = (mDxy * contLen)/(2*pi);
     rad2LrRatio  = approxRadius/mLr;

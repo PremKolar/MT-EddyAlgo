@@ -181,7 +181,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,DD,direction)
 	if ~pass.CR_2dEDDy, return, end;
 	%% get coor for zoom cut
 	if DD.switchs.chelt
-		winincrease=2;  % TODO
+		winincrease=4;  % TODO
 	else
 		winincrease=4;
 	end
@@ -586,12 +586,13 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
 	
 	x = fourierFit(s.x.dist,s.x.ssh,fourierOrder);
 	xo = fit(s.x.dist, s.x.ssh,f.fit.type);
-	
-		
-
-		y = feval(x, s.x.dist);	
+			y = feval(x, s.x.dist);	
 	  yo= feval(xo, s.x.dist);	
-	
+		
+	figure
+	plot(y,'g');hold on
+	plot(yo,'b')
+	plot(s.y.ssh	,'r')
 	
 % 	f.fit.x.ssh = fit(s.x.dist, (s.x.ssh),f.fit.type);
 % 	f.fit.y.ssh = fit(s.y.dist, (s.y.ssh),f.fit.type);

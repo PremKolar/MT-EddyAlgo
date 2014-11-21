@@ -170,10 +170,18 @@ function [pass,ee] = run_eddy_checks(pass,ee,DD,direction)
     %% pre-nan-check
     pass.rim = CR_RimNan(ee.coor.int, CUT.dim.y, CUT.fields.ssh);
     if ~pass.rim, return, end;
-    %% loose constraint on scale for performance only
-    [pass.looseScale] = CR_looseScaleConstr(ee);
-    if ~pass.looseScale, return, end;
-    %% closed ring check
+    
+	%% loose constraint on scale for performance only
+	try
+    		[pass.looseScale] = CR_looseScaleConstr(ee);
+		% if ~pass.looseScale, return, end;
+	catch ie
+		pass.looseScale = true; 
+ 		save looseScErr ie;
+		disp(ie.message);
+	end
+
+  %% closed ring check
     [pass.CR_ClosedRing] = CR_ClosedRing(ee);
     if ~pass.CR_ClosedRing, return, end;
     %% pre filter 'thin 1dimensional' eddies

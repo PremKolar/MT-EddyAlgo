@@ -6,9 +6,9 @@
 function DD=INPUT
       DD.template='pop';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=6;
     DD.debugmode=false;
-DD.debugmode=true;
+%DD.debugmode=true;
     DD.overwrite=false;
     %     DD.overwrite=true;
     %% time

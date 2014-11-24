@@ -1,5 +1,5 @@
-while true
-	try
+%while true
+%	try
 		
 		%S00b_prep_data
 		%S01_BruntVaisRossby
@@ -12,11 +12,11 @@ while true
 		% S08_analyze_tracks
 		% S09_plotsNew
 		
-	catch me
-		disp(me.message)
-		disp(' waiting 5')
-		sleep(5)
-		continue
-	end
-	break
-end
+%	catch me
+%		disp(me.message)
+%		disp(' waiting 5')
+%		sleep(5)
+%		continue
+%	end
+%	break
+%end

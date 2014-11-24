@@ -448,10 +448,10 @@ end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
-[pathstr, name, ext] = fileparts(EE.filename.self);
+[pathstr, ~, ~] = fileparts(EE.filename.self);
 tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
-save(tempname,'-struct','-v7','EE');
-system(['mv ' tempname EE.filename.self]);
+save(tempname,'-v7','-struct','EE');
+system(['mv ' tempname ' ' EE.filename.self]);
 %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -448,7 +448,15 @@ function TR = getTrackRef(ee,tr)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
+<<<<<<< HEAD
 	save(EE.filename.self,'-struct','EE')
+=======
+	[pathstr, name, ext] = fileparts(EE.filename.self);
+	tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
+	save(tempname,'-struct','-v7','EE');	
+	system(['mv ' tempname EE.filename.self]);  
+	%save(EE.filename.self,'-struct','EE')
+>>>>>>> d2e77e8f26395c6a0a5357ce9eca36045f321f32
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [area,pass] = Area(z,rossbyL,scaleThresh)

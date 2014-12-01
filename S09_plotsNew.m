@@ -9,7 +9,7 @@ function S09_plotsNew
 	%           save DD
 	%         load DD
 	ticks.rez=get(0,'ScreenPixelsPerInch');
-	ticks.width=2*800;
+	ticks.width=2*600;
 	ticks.height=2*200;
 	geo=DD.map.window.geo;
 	ticks.y= round(linspace(geo.south,geo.north,5));
@@ -38,8 +38,8 @@ end
 function main(DD,T)
 	II=initStuff(DD);
 	save S09main II DD T
-	sub09_trackstuff
-% 	sub09_mapStuff
+% 	sub09_trackstuff
+	sub09_mapStuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function II=initStuff(DD)

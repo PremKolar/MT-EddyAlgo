@@ -152,9 +152,9 @@ pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
 if ~pass.CR_2dEDDy, return, end;
 %% get coor for zoom cut
 if DD.switchs.chelt
-    winincrease=2;  % TODO
+    winincrease=6;  % TODO
 else
-    winincrease=4;
+    winincrease=6;
 end
 [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
 if ~pass.winlim, return, end;

@@ -6,9 +6,9 @@
 function DD=INPUT
       DD.template='pop';
     %% threads / debug
-    DD.threads.num=6;
+    DD.threads.num=12;
     DD.debugmode=false;
-%DD.debugmode=true;
+DD.debugmode=true;
     DD.overwrite=false;
     %     DD.overwrite=true;
     %% time
@@ -19,7 +19,7 @@ function DD=INPUT
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
-    threshlife=7*4; 
+    threshlife=7*8; 
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 360;

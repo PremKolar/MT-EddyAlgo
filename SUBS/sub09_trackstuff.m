@@ -324,7 +324,8 @@ function scattStuff(S,T,DD,II)
     xlabel(h2,'zon. vel.  [cm/s] - eddies beyond scale dismissed!')
     set(get(gcf,'children'),'clipping','off')
     %%
-    savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpdf',DD2info(DD));
+  %  figure(1)
+    savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpng',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTR(DD)

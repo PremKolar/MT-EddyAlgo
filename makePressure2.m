@@ -10,7 +10,7 @@ function makePressure2
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdBlock(T,files,outDir,geo,Y,X,Z)
-    for ii=II(labindex,1:labindex,2)
+    for ii=1:numel(files.salt)
         T=    disp_progress('kuguz',T,numel(files.salt));
         try
             opDay(files,ii,Y,X,Z,outDir,geo)
@@ -60,7 +60,7 @@ function  [Z,Y,X,geo]= inits(geo,files)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function opDay(files,ii,Y,X,Z,outDir,geo)
-   persistent ssh dZ pseudoSsh rho salt temp land
+    persistent ssh dZ pseudoSsh rho salt temp land
     Fssh  = files.ssh(ii).fullname;
     Fsalt = files.salt(ii).fullname;
     Ftemp = files.temp(ii).fullname;

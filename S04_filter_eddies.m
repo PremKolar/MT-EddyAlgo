@@ -7,6 +7,7 @@
 % walks through all the contours and decides whether they qualify
 function S04_filter_eddies
     %% init
+    
     DD = initialise('conts',mfilename);
     DD.threads.num = init_threads(DD.threads.num);
     rossby = getRossbyPhaseSpeedAndRadius(DD);
@@ -553,8 +554,12 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
     f.fit.type  = sprintf('fourier%d',fourierOrder);
-    f.fit.x.ssh = fit(s.x.dist, (s.x.ssh),f.fit.type);
-    f.fit.y.ssh = fit(s.y.dist, (s.y.ssh),f.fit.type);
+    
+    
+    
+    
+    f.fit.x.ssh = fourierFit_WaitForLicense(s.x.dist, (s.x.ssh),f.fit.type);
+    f.fit.y.ssh = fourierFit_WaitForLicense(s.y.dist, (s.y.ssh),f.fit.type);
     %%
     for xyc = {'x','y'};		xy = xyc{1};
         s.fit.(xy).sshf = feval(f.fit.(xy).ssh, s.(xy).dist);
@@ -708,14 +713,23 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [circum,f] = EDDyCircumference(z)
     %%
+    
     ilin = z.coor.int.lin;
     x = z.fields.km_x(ilin);
     y = z.fields.km_y(ilin);
     f.ii = linspace(0,2*pi,numel(x))';
     f.II = linspace(0,2*pi,360)';
-    options = fitoptions('Method','Smooth','SmoothingParam',0.99);
-    f.x = fit(f.ii,x,'smoothingspline',options);
-    f.y = fit(f.ii,y,'smoothingspline',options);
+    
+    try % TODO   (license issues)
+        foptions = fitoptions('Method','Smooth','SmoothingParam',0.99); % TODO
+        f.x = fourierFit_WaitForLicense(f.ii,x,'smoothingspline',foptions);
+        f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline',foptions);
+    catch err
+        disp(err.message)
+        f.x = fourierFit_WaitForLicense(f.ii,x,'smoothingspline');
+        f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline');
+    end
+    
     circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
     
     % 	%%

@@ -10,6 +10,14 @@ function S04_filter_eddies
     
     DD = initialise('conts',mfilename);
     DD.threads.num = init_threads(DD.threads.num);
+    
+    
+    fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
+    
+    save fopt fopt
+    
+    
+    
     rossby = getRossbyPhaseSpeedAndRadius(DD);
     %% spmd
     main(DD,rossby);
@@ -719,17 +727,29 @@ function [circum,f] = EDDyCircumference(z)
     y = z.fields.km_y(ilin);
     f.ii = linspace(0,2*pi,numel(x))';
     f.II = linspace(0,2*pi,360)';
+    load  fopt
+    f.x = fit(f.ii,x,'smoothingspline',fopt);
+    f.y = fit(f.ii,y,'smoothingspline',fopt);
     
-    try % TODO   (license issues)
-        foptions = fitoptions('Method','Smooth','SmoothingParam',0.99); % TODO
-        f.x = fourierFit_WaitForLicense(f.ii,x,'smoothingspline',foptions);
-        f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline',foptions);
-    catch err
-        disp(err.message)
-        f.x = fourierFit_WaitForLicense(f.ii,x,'smoothingspline');
-        f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline');
-    end
     
+    
+    
+    
+    
+    
+    
+    
+    
+    %     try % TODO   (license issues)
+    %         foptions = ; % TODO
+    %
+    %     catch err
+    %         disp(err.message)
+    %
+    %         f.x = fourierFit_WaitForLicense(f.ii,x,'smoothingspline',foptions);
+    %         f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline',foptions);
+    %     end
+    %
     circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
     
     % 	%%

@@ -9,6 +9,7 @@ function DD=INPUTpop
     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
+ DD.map.out.binSize = 1; % eg 1 for 1 degree
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
 %     DD.map.in.fname='rho_yyyymmdd.nc';
 %     DD.map.in.LatLonDepthFile=[DD.path.raw.name 'LatLonDepth.nc'];

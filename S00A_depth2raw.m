@@ -35,7 +35,7 @@ function main(F,DD)
     %% distro days to threads
     samp    =  nc_varget(F.files(1).fullname,F.varname);
     [Z,Y,X] = size(samp);
-    parfor cc = 1:numel(F.files);
+    for cc = 1:numel(F.files);
         parforPart(Z,Y,X,F,cc,DD);
     end
 end

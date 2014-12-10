@@ -12,10 +12,10 @@ function DD=INPUTdepth
     DD.map.out.binSize = 1; % eg 1 for 1 degree
     %% map in keys
 %     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
-    DD.map.in.fname='pseudoSsh__GLB_t.t0.1_42l_CORE.yyyymmdd_level-39.nc';
+    DD.map.in.fname='pseudoSsh__GLB_t.t0.1_42l_CORE.yyyymmdd_level-10.nc';
     DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';
-    DD.map.in.keys.ssh='ssh';
+    DD.map.in.keys.ssh='pseudoSsh';
     DD.map.in.keys.time='time';
     DD.map.in.keys.U='U';
     DD.map.in.keys.V='V';
@@ -31,7 +31,7 @@ function DD=INPUTdepth
     DD.TS.keys.temp='TEMP';
     DD.TS.keys.depth='depth_t';
     %% parameters
-    DD.parameters.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
+    DD.parameters.ssh_unitFactor = 1; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     DD.parameters.meanU=100; % depth from which to take mean U
     DD.parameters.meanUunit=1; % depth from which to take mean U

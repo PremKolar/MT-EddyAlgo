@@ -34,7 +34,7 @@ function spmd_body(DD,rossby)
         %%
         [EE,skip] = work_day(DD,JJ(jj),rossby);
         %%
-        if skip,disp(['skipping ' num2str(jj)]);return;end
+        if skip,disp(['skipping ' EE.filename.self ]);continue;end
         %% save
         save_eddies(EE);
     end
@@ -47,6 +47,7 @@ function [EE,skip] = work_day(DD,JJ,rossby)
     EE.filename.cont = JJ.files;
     EE.filename.cut = [DD.path.cuts.name, DD.pattern.prefix.cuts, JJ.protos];
     EE.filename.self = [DD.path.eddies.name, DD.pattern.prefix.eddies ,JJ.protos];
+    EE.filename.self
     if exist(EE.filename.self,'file') && ~DD.overwrite, skip = true; return; end
     %% load data
     try % TODO
@@ -151,9 +152,9 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
     if DD.switchs.chelt
-        winincrease=2;  % TODO
+        winincrease=6;  % TODO
     else
-        winincrease=4;
+        winincrease=6;
     end
     [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
     if ~pass.winlim, return, end;
@@ -447,7 +448,11 @@ function TR = getTrackRef(ee,tr)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
-    save(EE.filename.self,'-struct','EE')
+    [pathstr, ~, ~] = fileparts(EE.filename.self);
+    tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
+    save(tempname,'-v7','-struct','EE');
+    system(['mv ' tempname ' ' EE.filename.self]);
+    %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [area,pass] = Area(z,rossbyL,scaleThresh)
@@ -530,7 +535,7 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     [water.x] = avoidLand(ssh,ee.peak.z.x);
     prof.x.ssh = (ssh(water.x));
     prof.x.ddis = z.fields.dx(ee.peak.z.y,water.x) ;
-    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1000 ;
+    prof.x.dist = z.fields.km_x(ee.peak.z.y,water.x)*1000 ;  % TODO make all SI in the first place
     %% meridional cut
     ssh = - ee.sense.num * (z.fields.ssh(:,ee.peak.z.x) + offset_term);
     water.y = avoidLand(ssh,ee.peak.z.y);
@@ -545,18 +550,18 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
         f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
         s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
     end
-    %% intrp versions    
+    %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
     f.fit.type  = sprintf('fourier%d',fourierOrder);
     f.fit.x.ssh = fit(s.x.dist, (s.x.ssh),f.fit.type);
-    f.fit.y.ssh = fit(s.y.dist, (s.y.ssh),f.fit.type);    
+    f.fit.y.ssh = fit(s.y.dist, (s.y.ssh),f.fit.type);
     %%
-    for xyc = {'x','y'};		xy = xyc{1};      
-            s.fit.(xy).sshf = feval(f.fit.(xy).ssh, s.(xy).dist);
-            s.fit.(xy).UV = fs(1,s.(xy).dist,s.fit.(xy).sshf);
-            s.fit.(xy).UVd = fs(2,s.(xy).dist,s.fit.(xy).sshf);       
+    for xyc = {'x','y'};		xy = xyc{1};
+        s.fit.(xy).sshf = feval(f.fit.(xy).ssh, s.(xy).dist);
+        s.fit.(xy).UV = fs(1,s.(xy).dist,s.fit.(xy).sshf);
+        s.fit.(xy).UVd = fs(2,s.(xy).dist,s.fit.(xy).sshf);
     end
-%     s.fit.type=f.fit.type;    
+    %     s.fit.type=f.fit.type;
     %%
     %             [~,pex] = min(abs(s.x.idx - double(ee.peak.z.x)));
     %             [~,pey] = min(abs(s.y.idx - double(ee.peak.z.y)));%

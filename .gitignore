@@ -1,3 +1,5 @@
+INPUT.m
+Sall.m
 *.mat
 *.eps
 *.pdf
@@ -8,8 +10,7 @@
 *.mpeg
 yo*
 a.*
-?.*
-INPUT.m
-Sall.m
-?
 lg
+*.m~
+*.COPY
+*.copy

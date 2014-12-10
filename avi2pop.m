@@ -1,17 +1,18 @@
 function avi2pop
     init_threads(12)
+    dbstop if error
     ncfile.avi='../avidim.nc';
     ncfile.pop='../popdim.nc';
     path.in='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     path.out='/scratch/uni/ifmto/u300065/FINAL/POP2AVIssh/';
-    files.in=dir([path.in 'SSH_GLB_t.t0.1_42l_CORE.*.nc']);
+    files.in=dir2([path.in 'SSH_GLB_t.t0.1_42l_CORE.*.nc']);
     keys.lat='lat';
     keys.lon='lon';
     keys.ssh='msla';
     keys.time='time';
     %%
     [lat,lon]=inits(ncfile);
-    %%
+    %
     [idx]=CrossRef2Closest(lon,lat);
     %%
     ref=makeXref(idx);
@@ -43,24 +44,27 @@ function remapSSH(ref,files,path,lon)
     sshAvi=nan*lon.avi;
     Tf=disp_progress('init','files');
     FF=thread_distro(12,numel(files.in));
-    spmd
+    spmd(12)
         ff=FF(labindex,1):FF(labindex,2) ;
         for f=ff
             Tf=disp_progress('c',Tf,numel(ff));
-            
-            overFiles(files.in(f).name,path,ref,sshAvi);
-            
+            opSSHfile(files.in(f).name,path,ref,sshAvi);
         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function overFiles(file,path,ref,sshPOP2AVI)
+function opSSHfile(file,path,ref,sshPOP2AVI)
     outfile=[path.out file(1:end-3) '.mat'];
-    
-    ssh=nc_varget([path.in file],'SSH');
+    if exist(outfile,'file'), return,end
+    try
+        ssh=nc_varget([path.in file],'SSH');
+    catch  me
+        disp(me.message)
+        return
+    end
     Tp=disp_progress('init','averaging');
     for ii=1:numel(ref)
-        Tp=disp_progress('c',Tp,numel(ref),10);
+        Tp=disp_progress('c',Tp,numel(ref),3);
         sshPOP2AVI(ii)=nanmean(ssh(ref{ii}));
     end
     save(outfile,'sshPOP2AVI')
@@ -78,15 +82,15 @@ function [lat,lon]=inits(ncfile)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ref]=makeXref(idx)
-    if ~exist('ref.mat','file')
+    if ~exist('avi2pop.mat','file')
         ref=makeXrefCalc(idx);
     else
-        load ref;
+        load avi2pop;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ref=makeXrefCalc(idx)
-    ref=repmat({[]},Ya*Xa,1); % crossref cell arr
+%     ref=repmat({[]},Ya*Xa,1); % crossref cell arr
     [idxS,idxO]=sort(idx); %
     UN=unique(idxS); %
     [~,bin]=histc(idxS,UN); %
@@ -100,28 +104,32 @@ function ref=makeXrefCalc(idx)
         ref{avix}=popx;
     end
     save avi2pop ref
+    system('cp avi2pop.mat /scratch/uni/ifmto/u300065/FINAL/avi2popRef.mat')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [idx]=CrossRef2Closest(lon,lat)
-    azi=deg2rad(lon.pop(:));
-    elev=deg2rad(lat.pop(:));
-    [x,y,z] = sph2cart(azi,elev,1);
-    qazi= deg2rad(lon.avi(:));
-    qelev= deg2rad(lat.avi(:));
-    [qx,qy,qz] = sph2cart(qazi,qelev,1);
-    inxyz=[x,y,z];
-    outxyz=[qx,qy,qz];
-    JJ=thread_distro(12,numel(azi));
     if exist('idx.mat','file')
         load idx
     else
+        azi=deg2rad(lon.pop(:));
+        elev=deg2rad(lat.pop(:));
+        [x,y,z] = sph2cart(azi,elev,1);
+        qazi= deg2rad(lon.avi(:));
+        qelev= deg2rad(lat.avi(:));
+        [qx,qy,qz] = sph2cart(qazi,qelev,1);
+        popxyz=[x,y,z];
+        avixyz=[qx,qy,qz];
+        JJ=thread_distro(12,numel(azi));
+        
         spmd
-            labindex
             myII=JJ(labindex,1):JJ(labindex,2);
-            idx = dsearchn(outxyz,inxyz(myII,:));
+            fprintf('lab %d dsearchn\n',labindex);
+            idx = dsearchn(avixyz,popxyz(myII,:));
+            fprintf('lab %d gcat\n',labindex);
             idx = gcat(idx,1,1);
         end
         idx=idx{1};
         save idx idx
+        system('cp idx.mat /scratch/uni/ifmto/u300065/FINAL/pop2aviIdx.mat')
     end
 end

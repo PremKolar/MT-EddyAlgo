@@ -8,3 +8,12 @@ S03_contours
  S06_init_output_maps
  S08_analyze_tracks
  S09_plotsNew
+		
+%	catch me
+%		disp(me.message)
+%		disp(' waiting 5')
+%		sleep(5)
+%		continue
+%	end
+%	break
+%end

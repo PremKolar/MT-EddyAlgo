@@ -8,12 +8,12 @@ function DD=INPUTpop2avi
     DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
     DD.path.raw.name='/scratch/uni/ifmto/u300065/FINAL/POP2AVIssh/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
-     %% binned out map res
+    %% binned out map res
     DD.map.out.binSize = 1; % eg 1 for 1 degree
     %% map in keys
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
-        DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.mat';
-     DD.map.in.keys.lat='lat';
+    DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.mat';
+    DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';
     DD.map.in.keys.ssh='msla';
     DD.map.in.keys.time='time';
@@ -23,10 +23,7 @@ function DD=INPUTpop2avi
     DD.map.in.keys.y='YT';
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
-    DD.map.in.cdfName='new2.cdf';
-           %% remap?
-        DD.map.in.remap= true ;
-        DD.map.in.remapFile='/scratch/uni/ifmto/u300065/avi2pop.mat'  ;
+    DD.map.in.cdfName='new2.cdf';  
     %% temp salt keys
     DD.TS.keys.lat='U_LAT_2D';
     DD.TS.keys.lon='U_LON_2D';
@@ -48,7 +45,7 @@ function DD=INPUTpop2avi
     
     
     %%
-    DD.switches.rehashMapDims=true; %!!
+    DD.switchs.rehashMapDims=true; %!!
     
     
     

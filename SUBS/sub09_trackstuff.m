@@ -1,11 +1,8 @@
 function sub09_trackstuff
     load S09main II DD T
-    
     sub09_trackinit(DD);
     TR=getTR(DD) ;
-    
     %%
-    
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
@@ -31,20 +28,20 @@ function sub09_trackstuff
     
     %%
     [~,sml2lrg] = sort(rad)  ;
-    S.age=age(fliplr(sml2lrg));
-    S.lat=lat(fliplr(sml2lrg));
-    S.rad=rad(fliplr(sml2lrg));
-    S.vel=vel(fliplr(sml2lrg));
+    S.age = age(fliplr(sml2lrg));
+    S.lat = lat(fliplr(sml2lrg));
+    S.rad = rad(fliplr(sml2lrg));
+    S.vel = vel(fliplr(sml2lrg));
     
-    S.radLe=radLe(fliplr(sml2lrg));
-    S.radLeff=radLeff(fliplr(sml2lrg));
-    S.radL=radL(fliplr(sml2lrg));
+    S.radLe   = radLe(fliplr(sml2lrg));
+    S.radLeff = radLeff(fliplr(sml2lrg));
+    S.radL    = radL(fliplr(sml2lrg));
     
-    %%
-    zerage = S.age<=0  ;
-    velHigh= S.vel>20 | S.vel <-30;
+    %% kill unrealistic data
+    zerage  = S.age<=0  ;
+    velHigh = S.vel>20 | S.vel <-30;
     radnill = isnan(S.rad) | S.rad==0;
-    killTag= zerage | velHigh | radnill ;
+    killTag = zerage | velHigh | radnill ;
     
     FN=fieldnames(S);
     for ii=1:numel(FN)
@@ -58,18 +55,20 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    scaleZonmeans(S,DD,II,T);
+%     velZonmeans(S,DD,II,T);
+%     scaleZonmeans(S,DD,II,T);
+            	scattStuff(S,T,DD,II);
     
-    %         spmd
-    %             switch labindex
-    %                 case 1
-    %                     scaleZonmeans(S,DD,II,T);
-    %                 case 2
-    %                     velZonmeans(S,DD,II,T);
-    %                 case 3
-    %                     scattStuff(S,T,DD,II);
-    %             end
-    %         end
+    % 	spmd
+    % 		switch labindex
+    % 			case 1
+    % 				scaleZonmeans(S,DD,II,T);
+    % 			case 2
+    % 				velZonmeans(S,DD,II,T);
+    % 			case 3
+    % 				scattStuff(S,T,DD,II);
+    % 		end
+    %  	end
 end
 
 
@@ -85,22 +84,21 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
         vvM(numel(LAuniq)).(fn)=nan;
         vvS(numel(LAuniq)).(fn)=nan;
         for cc=1:(numel(LAuniq))
-            vvM(cc).(fn)=nanmean(S.(fn)(LA==LAuniq(cc)));
+            vvM(cc).(fn)=nanmedian(S.(fn)(LA==LAuniq(cc)));
+            if abs(LAuniq(cc))<=3, vvM(cc).(fn)=nan; end
             vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));
         end
-%         vvM(abs(LAuniq)<2).(fn)=nan;
-%         vvS(abs(LAuniq)<2).(fn)=nan;
+        %                  vvM(abs(LAuniq)<2).(fn)=nan;
+        %                  vvS(abs(LAuniq)<2).(fn)=nan;
         %%
-        
-        
     end
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
     %%
-    [h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<ASGLU,NASGU>
-    [~,pw]=fileparts(pwd);
-    save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
-    savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
+    % 	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+    % 	[~,pw]=fileparts(pwd);
+    % 	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
+    % 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
@@ -110,16 +108,16 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     vvM=nan(size(LAuniq));
     vvS=nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
-        vvM(cc)=mean(S.vel(LA==LAuniq(cc)));
+        vvM(cc)=nanmedian(S.vel(LA==LAuniq(cc)));
         vvS(cc)=std(S.vel(LA==LAuniq(cc)));
     end
     vvM(abs(LAuniq)<5)=nan;
     vvS(abs(LAuniq)<5)=nan;
     %%
-    [h.own,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<ASGLU,NASGU>
-    [~,pw]=fileparts(pwd);
-    save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
-    savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
+%     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+%     [~,pw]=fileparts(pwd);
+%     save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
+%     savefig(DD.path.plots,100,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
@@ -237,13 +235,14 @@ function h=chOverLayScale(chelt,LAuniq,vvM)
         x.b=lau(mid+2:end);
         y.a=vvm(1:mid);
         y.b=vvm(mid+2:end);
-        forleg(ff)=plot(x.a,spline(x.a,y.a,x.a),'color',int2color(ff),'linewidth',1);
-        plot(x.b,spline(x.b,y.b,x.b),'color',int2color(ff),'linewidth',1);
+        forleg(ff)=plot(x.a,y.a,'color',int2color(ff),'linewidth',1);
+        plot(x.b,y.b,'color',int2color(ff),'linewidth',1);
         plot(lau,vvm,'color',int2color(ff),'linestyle','.','markersize',8);
     end
     legend(forleg,FN)
     %%
     set(gca, 'ytick', 0:25:275);
+    axis([-70 70 0 275])
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
     axis tight
     grid on
@@ -261,7 +260,7 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     %%
     vvm=vvM+15;
     lau=LAuniq;
-    kill=isnan(lau) | isnan(vvM) | abs(lau)<10 | abs(lau)>50;
+    kill=isnan(lau) | isnan(vvM) | abs(lau)<10 | abs(lau)>65;
     lau(kill)=nan;
     vvm(kill)=nan;
     %%
@@ -273,8 +272,8 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     x.b=lau(mid+2:end);
     y.a=vvm(1:mid);
     y.b=vvm(mid+2:end);
-    plot(x.a,spline(x.a,y.a,x.a),'g-','linewidth',1);
-    plot(x.b,spline(x.b,y.b,x.b),'g-','linewidth',1);
+    plot(x.a,y.a,'g-','linewidth',1);
+    plot(x.b,y.b,'g-','linewidth',1);
     plot(lau,vvm,'g.','markersize',8);
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
     axis tight
@@ -282,17 +281,7 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     ylabel('[cm/s]')
     xlabel('[latitude]')
     title(['westward propagation [cm/s]'])
-    %     fnamepatttext=text(-45,-2,['in: ' DD.map.in.fname]);
-    %     set(fnamepatttext,'interpreter','none')
-    %     text(-45,-2+1,['R/L: ' num2str(DD.thresh.maxRadiusOverRossbyL)])
-    %     text(-45,-1+1,['iq: ' num2str(DD.thresh.shape.iq)])
-    %     text(-45,0+1,['life: ' num2str(DD.thresh.life)])
-    %     text(-45,1+1,['id: ' sprintf('%02d%%',-100+100*DD.thresh.IdentityCheck)])
-    %     text(-45,2+1,['vrtcs: ' sprintf('%2d',DD.thresh.corners.min)])
-    %     text(-45,3+1,['days: ' sprintf('%5d',DD.time.span)])
-    %     text(-45,4+1,['dt: ' sprintf('%2d',DD.time.delta_t)])
-    %     text(-45,5+1,['meanAge: ' sprintf('%5d',round(mean(S.age)))])
-    %     text(-45,6+1,['data: ' sprintf('%8d',numel(S.age))])
+    axis([-65 65 -5 20])
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -335,7 +324,8 @@ function scattStuff(S,T,DD,II)
     xlabel(h2,'zon. vel.  [cm/s] - eddies beyond scale dismissed!')
     set(get(gcf,'children'),'clipping','off')
     %%
-    savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpdf',DD2info(DD));
+  %  figure(1)
+    savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpng',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTR(DD)

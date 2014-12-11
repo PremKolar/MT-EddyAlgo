@@ -19,7 +19,7 @@ function DD=INPUT
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
-    threshlife=7*8; 
+    threshlife=3*8; 
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 360;

@@ -406,8 +406,8 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
        dist.(field) = dist.(field) * DD.time.delta_t; % in days!
     end
     %% get major/minor semi - axes [m]
-    ax.maj = sum([dist.east, dist.west])/2;
-    ax.min = DD.parameters.minProjecDist;
+    ax.maj = (dist.east + dist.west)/2;
+    ax.min = dist.y;
     %% get dx/dy at that eddy pos
     dx = cut.fields.dx(trackref.lin);
     dy = cut.fields.dy(trackref.lin);
@@ -446,6 +446,7 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
         mask.logical =flagOvrlp(mask.logical,cut.window.dim.x);
     end
     mask.lin = find(mask.logical);
+   mask  =  rmfield(mask,'logical'); % redundant
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR = getTrackRef(ee,tr)

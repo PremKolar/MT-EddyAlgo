@@ -10,12 +10,10 @@ function S04_filter_eddies
     
     DD = initialise('conts',mfilename);
     DD.threads.num = init_threads(DD.threads.num);
-    
-    
+        
+    % TODO
     fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
-    
     save fopt fopt
-    
     
     
     rossby = getRossbyPhaseSpeedAndRadius(DD);
@@ -180,7 +178,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.CR_sense, return, end;
     %% calculate area with respect to contour
     RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
-    [ee.area,pass.Area] = Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
+    [ee.area,pass.Area] = getArea(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
@@ -190,7 +188,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% get peak position and amplitude w.r.t contour
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
-    %% CHELT OP
+    %% CHELT OP    
     
     ee.chelt = cheltStuff(ee,zoom);
     
@@ -222,9 +220,9 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [ch]=cheltStuff(ee,zoom)
-    ch.A = ee.peak.amp.to_contour;
-    ch.efoldA =   ch.A*exp(-1);   % hmax - (1 - e-1)A = h+ A/e  | ch2011 p208
-    C = contourc(zoom.ssh_BasePos,[ ch.efoldA  ch.efoldA])   ;
+    ch.amp = ee.peak.amp.to_contour;
+    ch.efoldAmp =   ch.amp*exp(-1);   % hmax - (1 - e-1)A = h+ A/e  | ch2011 p208
+    C = contourc(zoom.ssh_BasePos,[ ch.efoldAmp  ch.efoldAmp])   ;
     [ch.ee] = CleanEddies(eddies2struct(C'),zoom);
     %%
     ch.area.Le   = sum(OverPieces(ch.ee,ee.area.meanPerSquare));
@@ -397,11 +395,16 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
     rU = rossbyU(trackref.lin);
     rU(abs(rU)>1) = sign(rU)*1;  % put upper limit on rossby wave speed
-    %% get projected distance (1.75 * dt*rU  as in chelton 2011)
-    dist.east = DD.parameters.minProjecDist;
-    dist.southnorth = dist.east;
-    dist.ro = abs(DD.time.delta_t*86400* DD.parameters.rossbySpeedFactor * rU);
+    %% get projected distance for one day (1.75 * dt*rU  as in chelton 2011)
+    oneDayInSecs = 24*60^2;
+    dist.east = DD.parameters.minProjecDist / 7;
+    dist.y    = dist.east;
+    dist.ro   = abs(rU * oneDayInSecs * DD.parameters.rossbySpeedFactor); 
     dist.west = max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
+    %% correct for time-step
+    for field = fieldnames(dist)'; field = field{1};
+       dist.(field) = dist.(field) * DD.time.delta_t; % in days!
+    end
     %% get major/minor semi - axes [m]
     ax.maj = sum([dist.east, dist.west])/2;
     ax.min = DD.parameters.minProjecDist;
@@ -414,7 +417,7 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     %% translate dist to increments
     dist.eastInc = (ceil(dist.east/dx));
     dist.westInc = (ceil(dist.west/dx));
-    dist.southnorthInc = (ceil(dist.southnorth/dy));
+    dist.yInc = (ceil(dist.y/dy));
     %% get positions of params
     xi.f2 = (trackref.x);
     yi.f2 = (trackref.y);
@@ -464,7 +467,7 @@ function save_eddies(EE)
     %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass] = Area(z,rossbyL,scaleThresh)
+function [area,pass] = getArea(z,rossbyL,scaleThresh)
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
@@ -562,9 +565,6 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
     f.fit.type  = sprintf('fourier%d',fourierOrder);
-    
-    
-    
     
     f.fit.x.ssh = fourierFit_WaitForLicense(s.x.dist, (s.x.ssh),f.fit.type);
     f.fit.y.ssh = fourierFit_WaitForLicense(s.y.dist, (s.y.ssh),f.fit.type);

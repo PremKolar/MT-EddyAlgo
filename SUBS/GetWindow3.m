@@ -63,15 +63,15 @@ function [win,trip]=FindWindowMask(fields,M)
             bool.lo = true(size(trip.lon));
     end
     %% combined
-    win.flag     = trip2any(bool.lo) & trip2any(bool.la);
+    win.flag  = trip2any(bool.lo) & trip2any(bool.la);
     trip.flag = (bool.lo) & (bool.la);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [win]=FindRectangle(win,lon,trip)
     %% sum flag in both dirs
-    cols=sum(win.flag,1);
-    cols3=sum(trip.flag,1);
-    rows=sum(win.flag,2);
+    cols  = sum(win.flag,1);
+    cols3 = sum(trip.flag,1);
+    rows  = sum(win.flag,2);
     %% find zonal edges
     x.x             = length(cols);
     x.a.Zero        = find(cols   == 0,1,'first');

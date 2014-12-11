@@ -1,6 +1,6 @@
 function DD=INPUTpop
     %% time step
-    DD.time.delta_t=7; % [days]!
+    DD.time.delta_t=3; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
@@ -9,6 +9,7 @@ function DD=INPUTpop
     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
+ DD.map.out.binSize = 1; % eg 1 for 1 degree
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
 %     DD.map.in.fname='rho_yyyymmdd.nc';
 %     DD.map.in.LatLonDepthFile=[DD.path.raw.name 'LatLonDepth.nc'];
@@ -38,7 +39,7 @@ function DD=INPUTpop
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     DD.parameters.meanU=100; % depth from which to take mean U
     DD.parameters.meanUunit=1; % depth from which to take mean U
-    DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
+    DD.parameters.minProjecDist=150e3; % (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations

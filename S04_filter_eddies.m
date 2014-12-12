@@ -68,9 +68,9 @@ function [EE,skip] = work_day(DD,JJ,rossby)
     EE = find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function skip = catchCase(failed)
+function skip = catchCase(failed,fname)
     fprintf('cannot read %s! \n',fname)
-    system(['rm ' fname])
+    %     system(['rm ' fname])
     disp(failed.message);
     save(sprintf('S04fail - %s.mat',datestr(now,'mmddHHMM')));
     skip = true;
@@ -171,7 +171,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.CR_sense, return, end;
     %% calculate area with respect to contour
     RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
-    [ee.area,pass.Area] = Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
+    [ee.area,pass.Area] = Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
@@ -455,12 +455,13 @@ function save_eddies(EE)
     %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass] = Area(z,rossbyL,scaleThresh)
+function [area,pass] = Area(z,rossbyL,scaleThresh,minLr)
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
     area.meanPerSquare = mean(z.fields.dx(z.mask.filled).*z.fields.dy(z.mask.filled));
     area.intrp = area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
+    rossbyL(rossbyL<minLr) = minLr;    % correct for min value
     area.RadiusOverRossbyL = sqrt(area.intrp/pi)/rossbyL;
     if area.RadiusOverRossbyL > scaleThresh
         pass = false;

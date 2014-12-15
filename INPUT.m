@@ -14,14 +14,13 @@ function DD=INPUT
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
-     %% time step
-    DD.time.delta_t=7; % [days]!
 %     f='yyyymmdd';
 %     dateplus=@(D,a,f) datestr(datenum(D,f)+a,f);
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
-    threshlife=7*8; 
+DD.time.delta_t=7; % [days]!   
+threshlife=7*8; 
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 360;

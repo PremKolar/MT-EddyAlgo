@@ -14,6 +14,8 @@ function DD=INPUT
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
+     %% time step
+    DD.time.delta_t=7; % [days]!
 %     f='yyyymmdd';
 %     dateplus=@(D,a,f) datestr(datenum(D,f)+a,f);
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);

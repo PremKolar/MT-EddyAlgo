@@ -55,22 +55,20 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    %     velZonmeans(S,DD,II,T);
-    %     scaleZonmeans(S,DD,II,T);
-    %             	scattStuff(S,T,DD,II);
+%     velZonmeans(S,DD,II,T);
+%     scaleZonmeans(S,DD,II,T);
+%             	scattStuff(S,T,DD,II);
     
-    spmd
-        switch labindex
-            case 1
-                scaleZonmeans(S,DD,II,T);
-            case 2
-                velZonmeans(S,DD,II,T);
-            case 3
-                try
-                    scattStuff(S,T,DD,II);
-                end
-        end
-    end
+    	spmd
+    		switch labindex
+    			case 1
+    				scaleZonmeans(S,DD,II,T);
+    			case 2
+    				velZonmeans(S,DD,II,T);
+%     			case 3
+%     				scattStuff(S,T,DD,II);
+    		end
+     	end
 end
 
 

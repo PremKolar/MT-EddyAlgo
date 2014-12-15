@@ -4,7 +4,7 @@
 % S01_BruntVaisRossby
 % S02_infer_fields
 % S03_contours
-% sleep(10*60)
+sleep(10*60)
 S04_filter_eddies
 %%
 S05_track_eddies

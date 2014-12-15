@@ -8,9 +8,9 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-DD.debugmode=true;
+% DD.debugmode=true;
     DD.overwrite=false;
-    %     DD.overwrite=true;
+%         DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
@@ -29,6 +29,7 @@ DD.debugmode=true;
     DD.contour.step=0.01; % [SI]
     DD.thresh.radius=0; % [SI]
     DD.thresh.maxRadiusOverRossbyL=4; %[ ]
+    DD.thresh.minRossbyRadius=20e3; %[SI]
     DD.thresh.amp=DD.contour.step; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
     DD.thresh.corners.min=8; % min number of data points for the perimeter of an eddy[ ]

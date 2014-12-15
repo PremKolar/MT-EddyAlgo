@@ -1,5 +1,4 @@
 function DD=INPUTpop
-   
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
@@ -8,15 +7,15 @@ function DD=INPUTpop
     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
- DD.map.out.binSize = 1; % eg 1 for 1 degree
+    DD.map.out.binSize = 1; % eg 1 for 1 degree
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
-%     DD.map.in.fname='rho_yyyymmdd.nc';
-%     DD.map.in.LatLonDepthFile=[DD.path.raw.name 'LatLonDepth.nc'];
-        DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
-        DD.map.in.keys.lat='U_LAT_2D';
-        DD.map.in.keys.lon='U_LON_2D';
-%     DD.map.in.keys.lat='lat';
-%     DD.map.in.keys.lon='lon';
+    %     DD.map.in.fname='rho_yyyymmdd.nc';
+    %     DD.map.in.LatLonDepthFile=[DD.path.raw.name 'LatLonDepth.nc'];
+    DD.map.in.fname='SSH_GLB_t.t0.1_42l_CORE.yyyymmdd.nc';
+    DD.map.in.keys.lat='U_LAT_2D';
+    DD.map.in.keys.lon='U_LON_2D';
+    %     DD.map.in.keys.lat='lat';
+    %     DD.map.in.keys.lon='lon';
     DD.map.in.keys.rho='density';
     DD.map.in.keys.ssh='SSH';
     DD.map.in.keys.time='TIME';
@@ -26,7 +25,7 @@ function DD=INPUTpop
     DD.map.in.keys.y='YT';
     DD.map.in.keys.z='ZT';
     DD.map.in.keys.N='N';
-    DD.map.in.cdfName='new2.cdf';      
+    DD.map.in.cdfName='new2.cdf';
     %% temp salt keys
     DD.TS.keys.lat='U_LAT_2D';
     DD.TS.keys.lon='U_LON_2D';
@@ -45,16 +44,14 @@ function DD=INPUTpop
     DD.parameters.SSHAdepth=-25;
     DD.parameters.salinityFactor=1000;
     DD.parameters.zLevel=5; % 0 for SSH
-    
-    
     %%
     DD.switchs.rehashMapDims=true; %!!
-    
-    
-    
-    
-    
-    
-    
-    
-    
+end
+
+
+
+
+
+
+
+

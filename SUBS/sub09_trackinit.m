@@ -35,7 +35,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function single=sPmDstoof(DD,eds,root,toLoad)
     JJ=thread_distro(DD.threads.num,numel(eds));
-     spmd
+     spmd(DD.threads.num)
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
         for ff=1:numel(FF) 

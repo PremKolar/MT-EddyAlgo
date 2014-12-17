@@ -10,7 +10,7 @@ function DD=INPUT
     DD.debugmode=false;
 % DD.debugmode=true;
     DD.overwrite=false;
-        DD.overwrite=true;
+%    DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
@@ -19,9 +19,9 @@ function DD=INPUT
 %     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
-    threshlife=3*4; 
-     %% time step
+ %% time step
     DD.time.delta_t=3; % [days]!
+    threshlife=3*8; 
     %% window on globe (0:360° system)
     DD.map.in.west=  0;
     DD.map.in.east=  360;
@@ -31,6 +31,7 @@ function DD=INPUT
     DD.contour.step=0.002; % [SI]
     DD.thresh.radius=0; % [SI]
     DD.thresh.maxRadiusOverRossbyL=4; %[ ]
+    DD.thresh.minRossbyRadius=20e3; %[SI]
     DD.thresh.amp=DD.contour.step; % [SI]
     DD.thresh.shape.iq=0.55; % isoperimetric quotient [ ]
     DD.thresh.corners.min=8; % min number of data points for the perimeter of an eddy[ ]

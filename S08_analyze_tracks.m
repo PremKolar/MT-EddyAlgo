@@ -16,7 +16,7 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    spmd
+    spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
     end
     %% collect
@@ -33,8 +33,27 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
         T=disp_progress('calc',T,numel(JJ),100);
+      
+    
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
+       
+        
+            
+         % TEMP TODO
+    for ee=1:numel(TT.eddy.track)
+        if isfield(TT.eddy.track(ee).chelt,'A')
+            TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
+            TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
+            TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+        end
+        TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
+    end
+        
+        
+        
+        
+        
         %% mapstuff prep
         senii=(TT.sense+3)/2;
         sen=DD.FieldKeys.senses{senii};
@@ -49,6 +68,9 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
+    
+   
+    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -165,6 +187,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
+        
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end

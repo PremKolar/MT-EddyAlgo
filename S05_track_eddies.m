@@ -190,9 +190,7 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-    
     new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-    
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
@@ -236,9 +234,9 @@ function [out]=kill_phantoms(in)
     lola = in.lon + 1i*in.lat;
     [~,ui,~]=unique(lola);
     %%
-%     if numel(lola)~=numel(ui)
-        out=killDoubles(in,ui,size(lola));
-%     end
+    %     if numel(lola)~=numel(ui)
+    out=killDoubles(in,ui,size(lola));
+    %     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     function out=killDoubles(in,ui,oriSize)
         FN=fieldnames(in)';

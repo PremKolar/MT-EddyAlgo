@@ -9,8 +9,8 @@ function S04_filter_eddies
     %% init
     
     DD = initialise('conts',mfilename);
-    DD.threads.num = init_threads(DD.threads.num);
-        
+    %     DD.threads.num = init_threads(DD.threads.num);
+    %
     % TODO
     fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
     save fopt fopt
@@ -36,12 +36,13 @@ end
 function spmd_body(DD,rossby)
     [JJ] = SetThreadVar(DD);
     Td = disp_progress('init','filtering contours');
+    
     for jj = 1:numel(JJ)
         Td = disp_progress('disp',Td,numel(JJ));
         %%
         [EE,skip] = work_day(DD,JJ(jj),rossby);
         %%
-        if skip,disp(['skipping ' EE.filename.self ]);continue;end
+        if skip,disp(['skipping ' EE.filename.self ]);   continue;end
         %% save
         save_eddies(EE);
     end
@@ -75,9 +76,9 @@ function [EE,skip] = work_day(DD,JJ,rossby)
     EE = find_eddies(EE,ee_clean,rossby,cut,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function skip = catchCase(failed)
+function skip = catchCase(failed,fname)
     fprintf('cannot read %s! \n',fname)
-    system(['rm ' fname])
+    %     system(['rm ' fname])
     disp(failed.message);
     save(sprintf('S04fail - %s.mat',datestr(now,'mmddHHMM')));
     skip = true;
@@ -178,7 +179,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.CR_sense, return, end;
     %% calculate area with respect to contour
     RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
-    [ee.area,pass.Area] = getArea(zoom,RoL,DD.thresh.maxRadiusOverRossbyL);
+    [ee.area,pass.Area] = Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
@@ -188,7 +189,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% get peak position and amplitude w.r.t contour
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
-    %% CHELT OP    
+    %% CHELT OP
     
     ee.chelt = cheltStuff(ee,zoom);
     
@@ -399,11 +400,11 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     oneDayInSecs = 24*60^2;
     dist.east = DD.parameters.minProjecDist / 7;
     dist.y    = dist.east;
-    dist.ro   = abs(rU * oneDayInSecs * DD.parameters.rossbySpeedFactor); 
+    dist.ro   = abs(rU * oneDayInSecs * DD.parameters.rossbySpeedFactor);
     dist.west = max([dist.ro, dist.east]); % not less than dist.east, see chelton 11
     %% correct for time-step
     for field = fieldnames(dist)'; field = field{1};
-       dist.(field) = dist.(field) * DD.time.delta_t; % in days!
+        dist.(field) = dist.(field) * DD.time.delta_t; % in days!
     end
     %% get major/minor semi - axes [m]
     ax.maj = (dist.east + dist.west)/2;
@@ -446,7 +447,7 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
         mask.logical =flagOvrlp(mask.logical,cut.window.dim.x);
     end
     mask.lin = find(mask.logical);
-   mask  =  rmfield(mask,'logical'); % redundant
+    mask  =  rmfield(mask,'logical'); % redundant
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR = getTrackRef(ee,tr)
@@ -468,12 +469,13 @@ function save_eddies(EE)
     %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass] = getArea(z,rossbyL,scaleThresh)
+function [area,pass] = Area(z,rossbyL,scaleThresh,minLr)
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
     area.meanPerSquare = mean(z.fields.dx(z.mask.filled).*z.fields.dy(z.mask.filled));
     area.intrp = area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
+    rossbyL(rossbyL<minLr) = minLr;    % correct for min value
     area.RadiusOverRossbyL = sqrt(area.intrp/pi)/rossbyL;
     if area.RadiusOverRossbyL > scaleThresh
         pass = false;

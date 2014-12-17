@@ -1,6 +1,5 @@
 function DD=INPUTdepth
-    %% time step
-    DD.time.delta_t=3; % [days]!
+   
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);    
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
@@ -12,7 +11,7 @@ function DD=INPUTdepth
     DD.map.out.binSize = 1; % eg 1 for 1 degree
     %% map in keys
 %     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
-    DD.map.in.fname='pseudoSsh__GLB_t.t0.1_42l_CORE.yyyymmdd_level-10.nc';
+    DD.map.in.fname='pseudoSsh__GLB_t.t0.1_42l_CORE.yyyymmdd_level-02.nc';
     DD.map.in.keys.lat='lat';
     DD.map.in.keys.lon='lon';
     DD.map.in.keys.ssh='pseudoSsh';
@@ -35,7 +34,7 @@ function DD=INPUTdepth
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     DD.parameters.meanU=100; % depth from which to take mean U
     DD.parameters.meanUunit=1; % depth from which to take mean U
-    DD.parameters.minProjecDist=150e3; % minimum linear_eccentricity*2 of ellipse (see chelton 2011)
+    DD.parameters.minProjecDist=150e3; % (per week!) minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
 %    DD.parameters.trackingRef='centroid'; 
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data

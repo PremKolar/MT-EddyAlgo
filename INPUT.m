@@ -6,7 +6,7 @@
 function DD=INPUT
       DD.template='depth';
     %% threads / debug
-    DD.threads.num=12;
+    DD.threads.num=4;
     DD.debugmode=false;
 % DD.debugmode=true;
     DD.overwrite=false;
@@ -20,6 +20,8 @@ function DD=INPUT
 %     DD.time.till.str='19950105';
 %     threshlife=20*7
     threshlife=3*4; 
+     %% time step
+    DD.time.delta_t=3; % [days]!
     %% window on globe (0:360° system)
     DD.map.in.west=  0;
     DD.map.in.east=  360;

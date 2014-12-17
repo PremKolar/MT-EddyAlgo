@@ -257,7 +257,10 @@ function closeEnough=nanOutOfBounds(NEW,OLD)
     %% get locations of new eddies
     newLin=cat(1,NEW.trackref);
     %% get possible (future) indeces for old eddies
-    oldEllipIncs=rmfield(cell2mat(extractfield(OLD,'projLocsMask')),'logical');
+   oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
+    try
+        oldEllipIncs=rmfield(oldEllipIncs,'logical'); % TODO rm later
+    end
     %% build mask. rows -> new, cols -> old
     closeEnough=false(numel(oldEllipIncs),numel(newLin));
     for ii=1:numel(oldEllipIncs)

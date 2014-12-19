@@ -347,6 +347,12 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     %% find min dists
     [MD      .new2old.dist,MD      .new2old.idx]=min(DIST,[],1);
     [MD      .old2new.dist,MD      .old2new.idx]=min(DIST,[],2);
+    
+    
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)

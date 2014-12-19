@@ -1,6 +1,4 @@
 function DD=INPUTaviso
-    %% time step
-    DD.time.delta_t=7; % [days]!
     %% dirs
     [~,DD.path.OutDirBaseName]=fileparts(pwd);    
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';

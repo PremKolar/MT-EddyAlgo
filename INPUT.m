@@ -4,21 +4,16 @@
 % 'aviso' - template for AVISO SSH data
 % 'mad' - template for Madeleine's data
 function DD=INPUT
-      DD.template='pop';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num=12;
     DD.debugmode=false;
-% DD.debugmode=true;
+%     DD.debugmode=true;
     DD.overwrite=false;
-%         DD.overwrite=true;
+%             DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
-%     f='yyyymmdd';
-%     dateplus=@(D,a,f) datestr(datenum(D,f)+a,f);
-%     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
-%     DD.time.till.str='19950105';
-%     threshlife=20*7
  %% time step
     DD.time.delta_t=3; % [days]!
     threshlife=3*8; 
@@ -49,7 +44,7 @@ function DD=INPUT
     DD.switchs.netUstuff		= 0;
     DD.switchs.meanUviaOW		= 0;
     DD.switchs.IdentityCheck		= 1;
-    DD.switchs.maxRadiusOverRossbyL	= 1;  % TODO no choice  
+    DD.switchs.maxRadiusOverRossbyL	= 1;  % TODO no choice
     DD.switchs.spaciallyFilterSSH	= 0;  % TODO delete
     DD.switchs.filterSSHinTime		= 1;
     %%

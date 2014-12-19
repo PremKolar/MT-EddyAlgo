@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    spmd(DD.threads.num)
-        [MM,map]=spmd_block(DD,map,MM);
-    end
+    %     spmd(DD.threads.num)
+    [MM,map]=spmd_block(DD,map,MM);
+    %     end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -33,28 +33,17 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
         T=disp_progress('calc',T,numel(JJ),100);
-      
-    
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-       
-        
-            
-         % TEMP TODO
-    for ee=1:numel(TT.eddy.track)
-        if isfield(TT.eddy.track(ee).chelt,'A')
-            TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
-            TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
-            TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
-        end
-        TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
-    end
-        
-        
-        
-        
-        
-        %% mapstuff prep
+        % TEMP TODO
+        for ee=1:numel(TT.eddy.track)
+            if isfield(TT.eddy.track(ee).chelt,'A')
+                TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
+                TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
+                TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+            end
+            TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
+        end %% mapstuff prep
         senii=(TT.sense+3)/2;
         sen=DD.FieldKeys.senses{senii};
         [map.(sen),TT.velPP]=MeanStdStuff( TT.eddy,map.(sen),DD);
@@ -69,8 +58,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
     
-   
-    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -79,6 +66,7 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
+    NEW.iq=TRiq(map,eddy);
     map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,6 +150,16 @@ function [age]=TRage(map,eddy)
     ageNow=cat(1,eddy.track.age);
     [age]=uniqMedianStd(idx,ageNow,age);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function	iq=TRiq(map,eddy)
+    A={'iq'};
+    idx=map.strctr.idx;
+    a=A{1};
+    iq=protoInit(map.proto);
+    ampN=extractdeepfield(eddy.track,'isoper');
+    iq=uniqMedianStd(idx,ampN,iq);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	amp=TRamp(map,eddy)
     A={'to_mean';'to_contour';'to_ellipse'};

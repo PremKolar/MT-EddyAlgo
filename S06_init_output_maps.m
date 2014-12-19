@@ -31,7 +31,7 @@ function idx=main(DD,out)
     inxyz=[x',y',z'];
     outxyz=[qx,qy,qz];
     JJ=thread_distro(DD.threads.num,numel(azi));    
-    spmd      
+    spmd(DD.threads.num)      
         idx = dsearchn(outxyz,inxyz(JJ(labindex,1):JJ(labindex,2),:));
         idx = gcat(idx,1,1);
     end    

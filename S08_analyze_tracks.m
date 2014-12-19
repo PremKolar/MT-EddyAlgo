@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-     spmd
-        [MM,map]=spmd_block(DD,map,MM);
-     end
+    %     spmd(DD.threads.num)
+    [MM,map]=spmd_block(DD,map,MM);
+    %     end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -35,7 +35,15 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-        %% mapstuff prep
+        % TEMP TODO
+        for ee=1:numel(TT.eddy.track)
+            if isfield(TT.eddy.track(ee).chelt,'A')
+                TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
+                TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
+                TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+            end
+            TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
+        end %% mapstuff prep
         senii=(TT.sense+3)/2;
         sen=DD.FieldKeys.senses{senii};
         [map.(sen),TT.velPP]=MeanStdStuff( TT.eddy,map.(sen),DD);
@@ -49,6 +57,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
+    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -57,6 +66,7 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
+    NEW.iq=TRiq(map,eddy);
     map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,7 +110,7 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
     end
     
     %% save
-     sendir=DD.FieldKeys.senses;  
+    sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
     %% save
     save(outfile,'-struct','TT');
@@ -138,8 +148,18 @@ function [age]=TRage(map,eddy)
     [age]=protoInit(map.proto);
     idx=map.strctr.idx;
     ageNow=cat(1,eddy.track.age);
-    [age]=uniqMeanStd(idx,ageNow,age);
+    [age]=uniqMedianStd(idx,ageNow,age);
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function	iq=TRiq(map,eddy)
+    A={'iq'};
+    idx=map.strctr.idx;
+    a=A{1};
+    iq=protoInit(map.proto);
+    ampN=extractdeepfield(eddy.track,'isoper');
+    iq=uniqMedianStd(idx,ampN,iq);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	amp=TRamp(map,eddy)
     A={'to_mean';'to_contour';'to_ellipse'};
@@ -148,7 +168,7 @@ function	amp=TRamp(map,eddy)
         a=A{jj};
         amp.(a)=protoInit(map.proto);
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
-        amp.(a)=uniqMeanStd(idx,ampN,amp.(a));
+        amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
     
 end
@@ -162,11 +182,12 @@ function	radius=TRradius(map,eddy)
         a=A{jj};
         radius.(a)=protoInit(map.proto);
         radiusNa=extractdeepfield(eddy.track,['radius.' a]);
-        radius.(a)=uniqMeanStd(idx,radiusNa, radius.(a));        
+        radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
+        
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
-        radius.(b)=uniqMeanStd(idx,radiusNb, radius.(b));
+        radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,11 +202,22 @@ function	[vel,pp]=TRvel(map,eddy)
         %% calc
         position=cumsum(eddy.dist.num.(a).m);
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
-        pp.x=spline(pp.timeaxis,position);
-        pp.x_t=fnder(pp.x,1); % vel pp
-        pp.v=ppval(pp.x_t, pp.timeaxis);
+        
+        while true
+            try
+                pp.x=spline(pp.timeaxis,position);
+                pp.x_t=fnder(pp.x,1); % vel pp
+                pp.v=ppval(pp.x_t, pp.timeaxis);
+            catch er
+                disp(er.message)
+                sleep(10)
+                continue
+            end
+            break
+        end
+        
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
-        vel.(a)=uniqMeanStd(idx,velN,vel.(a));     
+        vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -198,22 +230,22 @@ function	[dist,eddy]=TRdist(map,eddy)
     %%
     %% traj from birth
     newValue=eddy.dist.num.traj.fromBirth;
-    [dist.traj.fromBirth]=uniqMeanStd(idx,newValue,dist.traj.fromBirth);
+    [dist.traj.fromBirth]=uniqMedianStd(idx,newValue,dist.traj.fromBirth);
     %% traj till death
     newValue=eddy.dist.num.traj.tillDeath;
-    [dist.traj.tillDeath]=uniqMeanStd(idx,newValue,dist.traj.tillDeath);
+    [dist.traj.tillDeath]=uniqMedianStd(idx,newValue,dist.traj.tillDeath);
     %% zonal from birth
     newValue=eddy.dist.num.zonal.fromBirth;
-    [dist.zonal.fromBirth]=uniqMeanStd(idx,newValue,dist.zonal.fromBirth);
+    [dist.zonal.fromBirth]=uniqMedianStd(idx,newValue,dist.zonal.fromBirth);
     %% zonal till death
     newValue=eddy.dist.num.zonal.tillDeath;
-    [dist.zonal.tillDeath]=uniqMeanStd(idx,newValue,dist.zonal.tillDeath);
+    [dist.zonal.tillDeath]=uniqMedianStd(idx,newValue,dist.zonal.tillDeath);
     %% meridional from birth
     newValue=eddy.dist.num.merid.fromBirth;
-    [dist.merid.fromBirth]=uniqMeanStd(idx,newValue,dist.merid.fromBirth);
+    [dist.merid.fromBirth]=uniqMedianStd(idx,newValue,dist.merid.fromBirth);
     %% meridional till death
     newValue=eddy.dist.num.merid.tillDeath;
-    [dist.merid.tillDeath]=uniqMeanStd(idx,newValue,dist.merid.tillDeath);
+    [dist.merid.tillDeath]=uniqMedianStd(idx,newValue,dist.merid.tillDeath);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [count,singlecount]=TRvisits(map)
@@ -428,10 +460,10 @@ function map=initmap(DD)
     map.visits.all=map.proto.zeros;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [targ]=uniqMeanStd(idx,source,targ)
+function [targ]=uniqMedianStd(idx,source,targ)
     [uni,~,b]= unique(idx);
     for uu=1:numel(uni)
-        targ.mean(uni(uu))=nanmean(source(b==uu));
+        targ.mean(uni(uu))=nanmedian(source(b==uu));
         targ.std(uni(uu))=nanstd(source(b==uu));
     end
 end

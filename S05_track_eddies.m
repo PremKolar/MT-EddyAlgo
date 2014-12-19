@@ -236,9 +236,9 @@ function [out]=kill_phantoms(in)
     lola = in.lon + 1i*in.lat;
     [~,ui,~]=unique(lola);
     %%
-%     if numel(lola)~=numel(ui)
-        out=killDoubles(in,ui,size(lola));
-%     end
+    %     if numel(lola)~=numel(ui)
+    out=killDoubles(in,ui,size(lola));
+    %     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     function out=killDoubles(in,ui,oriSize)
         FN=fieldnames(in)';
@@ -257,7 +257,10 @@ function closeEnough=nanOutOfBounds(NEW,OLD)
     %% get locations of new eddies
     newLin=cat(1,NEW.trackref);
     %% get possible (future) indeces for old eddies
-    oldEllipIncs=rmfield(cell2mat(extractfield(OLD,'projLocsMask')),'logical');
+    oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
+    try
+        oldEllipIncs=rmfield(oldEllipIncs,'logical'); % TODO rm later
+    end
     %% build mask. rows -> new, cols -> old
     closeEnough=false(numel(oldEllipIncs),numel(newLin));
     for ii=1:numel(oldEllipIncs)
@@ -346,6 +349,12 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     %% find min dists
     [MD      .new2old.dist,MD      .new2old.idx]=min(DIST,[],1);
     [MD      .old2new.dist,MD      .old2new.idx]=min(DIST,[],2);
+    
+    
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)

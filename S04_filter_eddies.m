@@ -168,7 +168,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
     zoom.fields = EDDyCut_init(cut.fields,zoom);
-    %% generate logical masks defining eddy interiour and outline
+   %% generate logical masks defining eddy interiour and outline
     zoom.mask = EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
     [pass.CR_Nan] = CR_Nan(zoom);
@@ -177,12 +177,16 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% check for correct sense
     [pass.CR_sense,ee.sense] = CR_sense(zoom,direction,ee.level);
     if ~pass.CR_sense, return, end;
-    %% calculate area with respect to contour
-    RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
-    [ee.area,pass.Area] = Area(zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
-    if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
+   
+    
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
+    
+    %% calculate area with respect to contour
+    RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
+    [ee.area,pass.Area] = Area(ee,zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
+    if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
+    
     %% filter eddies not circle - like enough
     [pass.CR_Shape,ee.isoper, ee.chelt] = CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
     if ~pass.CR_Shape, return, end;
@@ -221,21 +225,28 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function  [ch]=cheltStuff(ee,zoom)
+    load fopt
     ch.amp = ee.peak.amp.to_contour;
     ch.efoldAmp =   ch.amp*exp(-1);   % hmax - (1 - e-1)A = h+ A/e  | ch2011 p208
     C = contourc(zoom.ssh_BasePos,[ ch.efoldAmp  ch.efoldAmp])   ;
     [ch.ee] = CleanEddies(eddies2struct(C'),zoom);
-    %%
-    ch.area.Le   = sum(OverPieces(ch.ee,ee.area.meanPerSquare));
+    %% collect new indices
+    xi = extractdeepfield(ch.ee,'coor.int.x');
+    yi = extractdeepfield(ch.ee,'coor.int.y');
+    ilin = drop_2d_to_1d(yi,xi,zoom.dim.y);
+    %% in km
+    x = zoom.fields.km_x(ilin) ;
+    y = zoom.fields.km_y(ilin) ;
+    %% get interped function
+    r = @(x) reshape(x,[],1); % need vertical vector
+    [~,f] = contourLengthIntrp(fopt,r(x),r(y));
+    %% intrped and in m
+    x =  feval(f.x,f.II) *1000;
+    y =  feval(f.y,f.II) *1000;
+    %% L's accord. to chelton
+    ch.area.Le   = polyarea(x,y);
     ch.area.L    = ch.area.Le/sqrt(2);
-    ch.area.Leff = ee.area.intrp;
-    
-    function areas=OverPieces(pieces,meanPerSquare) % might get split
-        for ii=1:numel(pieces)
-            coor=pieces(ii).coor.exact;
-            areas(ii)    = meanPerSquare*polyarea(coor.x,coor.y);
-        end
-    end
+    ch.area.Leff = ee.area.intrp;    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL = getLocalRossyRadius(rossbyL,coor)
@@ -255,16 +266,16 @@ function [pass,sense] = CR_sense(zoom,direc,level)
     %% water column up: seeking anti cyclones; down: cyclones
     switch direc
         case -1
+            sense.str = 'AntiCyclonic'; % TODO
+            sense.num = -1;
             if all(zoom.fields.ssh(zoom.mask.inside) >= level )
                 pass = true;
-                sense.str = 'AntiCyclonic'; % TODO
-                sense.num = -1;
             end
         case 1
+            sense.str = 'Cyclonic';
+            sense.num = 1;
             if all(zoom.fields.ssh(zoom.mask.inside) <= level )
                 pass = true;
-                sense.str = 'Cyclonic';
-                sense.num = 1;
             end
     end
 end
@@ -469,12 +480,19 @@ function save_eddies(EE)
     %save(EE.filename.self,'-struct','EE')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [area,pass] = Area(z,rossbyL,scaleThresh,minLr)
+function [area,pass] = Area(ee,z,rossbyL,scaleThresh,minLr)
+   %% TODO reundant
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
-    area.meanPerSquare = mean(z.fields.dx(z.mask.filled).*z.fields.dy(z.mask.filled));
-    area.intrp = area.meanPerSquare*polyarea(z.coor.exact.x,z.coor.exact.y);
+    
+    %% better
+    f = ee.fourierCont;    
+    x =  feval(f.x,f.II) *1000;
+    y =  feval(f.y,f.II) *1000;
+    area.intrp = polyarea(x,y);
+   
+    %%
     rossbyL(rossbyL<minLr) = minLr;    % correct for min value
     area.RadiusOverRossbyL = sqrt(area.intrp/pi)/rossbyL;
     if area.RadiusOverRossbyL > scaleThresh
@@ -721,28 +739,34 @@ function [volume] = CenterOfVolume(zoom,area,Y)
     volume.center.lin = drop_2d_to_1d(y,x,Y);
     volume.center.linz = drop_2d_to_1d(yz,xz,size(ssh,1));
 end
+
+
+function [circum,f] = contourLengthIntrp(fopt,x,y)
+    
+    f.ii = linspace(0,2*pi,numel(x))';
+    f.II = linspace(0,2*pi,360)';
+    f.x = fit(f.ii,x,'smoothingspline',fopt);
+    f.y = fit(f.ii,y,'smoothingspline',fopt);   
+    circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))); 
+end
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [circum,f] = EDDyCircumference(z)
     %%
-    
+    load  fopt
     ilin = z.coor.int.lin;
     x = z.fields.km_x(ilin);
     y = z.fields.km_y(ilin);
-    f.ii = linspace(0,2*pi,numel(x))';
-    f.II = linspace(0,2*pi,360)';
-    load  fopt
-    f.x = fit(f.ii,x,'smoothingspline',fopt);
-    f.y = fit(f.ii,y,'smoothingspline',fopt);
     
+   [circum,f] = contourLengthIntrp(fopt,x,y);
+    circum = circum * 1000;    
     
-    
-    
-    
-    
-    
-    
-    
-    
+    %     f.ii = linspace(0,2*pi,numel(x))';
+    %     f.II = linspace(0,2*pi,360)';    %
+    %     f.x = fit(f.ii,x,'smoothingspline',fopt);
+    %     f.y = fit(f.ii,y,'smoothingspline',fopt);
     %     try % TODO   (license issues)
     %         foptions = ; % TODO
     %
@@ -753,7 +777,7 @@ function [circum,f] = EDDyCircumference(z)
     %         f.y = fourierFit_WaitForLicense(f.ii,y,'smoothingspline',foptions);
     %     end
     %
-    circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
+    %     circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
     
     % 	%%
     % 	clf

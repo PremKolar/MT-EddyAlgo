@@ -11,15 +11,10 @@ function DD=INPUT
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;
-%         DD.overwrite=true;
+%             DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
-%     f='yyyymmdd';
-%     dateplus=@(D,a,f) datestr(datenum(D,f)+a,f);
-%     DD.time.till.str  = dateplus(DD.time.from.str,1*365,f);
-%     DD.time.till.str='19950105';
-%     threshlife=20*7
 DD.time.delta_t=7; % [days]!   
     threshlife=7*8; % TODO
     %% window on globe (0:360° system)

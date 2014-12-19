@@ -45,6 +45,7 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'amp.to_contour';
         'amp.to_ellipse';
         'amp.to_mean';
+        'iq';
         };
     %% fields 4 colorcoded track plots
     FieldKeys.trackPlots= { ...

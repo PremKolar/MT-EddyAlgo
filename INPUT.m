@@ -11,12 +11,13 @@ function DD=INPUT
     DD.debugmode=false;
 %     DD.debugmode=true;
     DD.overwrite=false;
-%             DD.overwrite=true;
+%     DD.overwrite=true;
     %% time
     DD.time.from.str  ='19940105'; %first pop/avi
     DD.time.till.str  ='20061227'; % last pop/avi
-DD.time.delta_t=7; % [days]!   
-    threshlife=7*8; % TODO
+     %% time step
+    DD.time.delta_t=7; % [days]!
+    threshlife=7*8;
     %% window on globe (0:360° system)
     DD.map.in.west= 0;
     DD.map.in.east= 360;
@@ -44,10 +45,9 @@ DD.time.delta_t=7; % [days]!
     DD.switchs.netUstuff=0;
     DD.switchs.meanUviaOW=0;
     DD.switchs.IdentityCheck=1;
-    DD.switchs.maxRadiusOverRossbyL=1;  % TODO no choice  
+    DD.switchs.maxRadiusOverRossbyL=1;  % TODO no choice
     DD.switchs.spaciallyFilterSSH=0;  % TODO delete
     DD.switchs.filterSSHinTime=1;
     %%
     DD.parameters.fourierOrder=4;
 end
-

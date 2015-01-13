@@ -13,7 +13,7 @@ function S00b_main(DD,II)
         [file,exists]=GetCurrentFile(II(cc),DD)  ;
         %% skip if exists and ~overwrite switch
         if exists.out && ~DD.overwrite;
-            disp('exists');return
+            disp('exists');continue
         end
         %% cut data
         [CUT]=CutMap(file,DD);

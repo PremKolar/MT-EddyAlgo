@@ -35,6 +35,8 @@ function rmoldtracks(DD)
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         else
             error('mv old tracks first')
+            sleep(5*60)
+            system(['rm -r ' DD.path.tracks.name '*.mat']);
         end
     end
 end

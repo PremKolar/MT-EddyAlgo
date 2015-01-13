@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    %     spmd(DD.threads.num)
-    [MM,map]=spmd_block(DD,map,MM);
-    %     end
+    spmd(DD.threads.num)
+        [MM,map]=spmd_block(DD,map,MM);
+    end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');

@@ -16,9 +16,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-        spmd(DD.threads.num)
-    [MM,map]=spmd_block(DD,map,MM);
-        end
+    spmd(DD.threads.num)
+        [MM,map]=spmd_block(DD,map,MM);
+    end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -57,7 +57,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
-    
+
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -108,7 +108,7 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-    
+
     %% save
     sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
@@ -170,7 +170,7 @@ function	amp=TRamp(map,eddy)
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
         amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
@@ -185,7 +185,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
-        
+
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end
@@ -202,7 +202,7 @@ function	[vel,pp]=TRvel(map,eddy)
         %% calc
         position=cumsum(eddy.dist.num.(a).m);
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
-        
+
         while true
             try
                 pp.x=spline(pp.timeaxis,position);
@@ -215,7 +215,7 @@ function	[vel,pp]=TRvel(map,eddy)
             end
             break
         end
-        
+
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end

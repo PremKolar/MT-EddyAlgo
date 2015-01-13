@@ -7,11 +7,11 @@
 function DD=INPUT
     DD.template='aviso';
     %% threads / debug
-    DD.threads.num = 6;
+    DD.threads.num = 12;
     DD.debugmode   = false;
-    %     DD.debugmode = true;
+    %DD.debugmode = true;
     DD.overwrite   = false;
-    %         DD.overwrite = true;
+%     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
     DD.time.till.str  = '20061227'; % last pop/avi

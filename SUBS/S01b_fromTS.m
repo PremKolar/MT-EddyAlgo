@@ -167,12 +167,12 @@ function CK=loadChunk(RossbyDir,cc,field)
     CK=getfield(load(file_in,field),field);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function R=	calcRossbyRadius(CK,ccStr)
+function Lr=	calcRossbyRadius(CK,ccStr)
     dispM(['integrating Rossby Radius for chunk ',ccStr],1)
     [~,YY,XX]=size(CK.N);
     M.depthdiff=repmat(diff(CK.DEPTH),[1 YY XX]);
     % R = 1/(pi f) int N dz
-    R=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
+    Lr=abs(double((squeeze(nansum(M.depthdiff.*CK.N,1))./CK.rossby.f)/pi));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [c1]=calcC_one(CK,ccStr)

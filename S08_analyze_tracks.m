@@ -97,11 +97,12 @@ function seq_body(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinMax=resortTracks(DD,MinMax,TT,senii)
-    subfields=DD.FieldKeys.trackPlots;
-    track= TT.eddy.track;
-    TT.lat=extractdeepfield(track,'geo.lat');
-    TT.lon=extractdeepfield(track,'geo.lon');
-    for subfield=subfields'; sub=subfield{1};
+    subfields = DD.FieldKeys.trackPlots;
+    track = TT.eddy.track;
+    TT.lat      = extractdeepfield(track,'geo.lat');
+    TT.lon      = extractdeepfield(track,'geo.lon');
+    TT.trackref = extractdeepfield(track,'trackref.lin');
+    for subfield = subfields'; sub=subfield{1};
         %% nicer for plots
         collapsedField=strrep(sub,'.','');
         TT.(collapsedField) =  extractdeepfield(track,sub);
@@ -159,7 +160,6 @@ function	iq=TRiq(map,eddy)
     ampN=extractdeepfield(eddy.track,'isoper');
     iq=uniqMedianStd(idx,ampN,iq);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	amp=TRamp(map,eddy)
     A={'to_mean';'to_contour';'to_ellipse'};

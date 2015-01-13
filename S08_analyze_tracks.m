@@ -57,7 +57,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
-    
+
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -97,18 +97,19 @@ function seq_body(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function MinMax=resortTracks(DD,MinMax,TT,senii)
-    subfields=DD.FieldKeys.trackPlots;
-    track= TT.eddy.track;
-    TT.lat=extractdeepfield(track,'geo.lat');
-    TT.lon=extractdeepfield(track,'geo.lon');
-    for subfield=subfields'; sub=subfield{1};
+    subfields = DD.FieldKeys.trackPlots;
+    track = TT.eddy.track;
+    TT.lat      = extractdeepfield(track,'geo.lat');
+    TT.lon      = extractdeepfield(track,'geo.lon');
+    TT.trackref = extractdeepfield(track,'trackref.lin');
+    for subfield = subfields'; sub=subfield{1};
         %% nicer for plots
         collapsedField=strrep(sub,'.','');
         TT.(collapsedField) =  extractdeepfield(track,sub);
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-    
+
     %% save
     sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
@@ -159,7 +160,6 @@ function	iq=TRiq(map,eddy)
     ampN=extractdeepfield(eddy.track,'isoper');
     iq=uniqMedianStd(idx,ampN,iq);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	amp=TRamp(map,eddy)
     A={'to_mean';'to_contour';'to_ellipse'};
@@ -170,7 +170,7 @@ function	amp=TRamp(map,eddy)
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
         amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
@@ -185,7 +185,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
-        
+
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end
@@ -202,7 +202,7 @@ function	[vel,pp]=TRvel(map,eddy)
         %% calc
         position=cumsum(eddy.dist.num.(a).m);
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
-        
+
         while true
             try
                 pp.x=spline(pp.timeaxis,position);
@@ -215,7 +215,7 @@ function	[vel,pp]=TRvel(map,eddy)
             end
             break
         end
-        
+
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end

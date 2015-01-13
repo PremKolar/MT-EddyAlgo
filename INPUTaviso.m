@@ -1,8 +1,6 @@
 function DD=INPUTaviso
-    %% time step
-    DD.time.delta_t=7; % [days]!
     %% dirs
-    [~,DD.path.OutDirBaseName]=fileparts(pwd);    
+    [~,DD.path.OutDirBaseName]=fileparts(pwd);
     DD.path.TempSalt.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
     DD.path.UV.name='/scratch/uni/ifmto/u300065/TempSaltUV/';
     DD.path.full3d.name='/scratch/uni/ifmto/u300065/MONTHLY/';
@@ -37,19 +35,10 @@ function DD=INPUTaviso
     DD.parameters.meanUunit=1; % depth from which to take mean U
     DD.parameters.minProjecDist=150e3; %  (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
-%    DD.parameters.trackingRef='centroid'; 
+%    DD.parameters.trackingRef='centroid';
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
     DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
     DD.parameters.SSHAdepth=-25;
   DD.parameters.salinityFactor=1000;
        %%
     DD.switchs.rehashMapDims=true; %!!
-    
-    
-    
-    
-    
-    
-    
-    
-    

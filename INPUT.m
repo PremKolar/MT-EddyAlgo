@@ -37,15 +37,36 @@ function DD=INPUT
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
      %% switches
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> aviI
     %% ch
     DD.switchs.chelt = 0;
     DD.switchs.AmpAreaCheck = 0;
     %% iq
     DD.switchs.IQ = 1;
     DD.switchs.IdentityCheck = 1;
+<<<<<<< HEAD
 
 
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> aviI
     %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;

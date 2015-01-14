@@ -6,8 +6,8 @@
 % 'pop2avi' -
 function DD=INPUT
     %DD.template='pop2avi';
-%    DD.template='aviso';
-    DD.template='pop';
+    DD.template='aviso';
+    %DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
@@ -40,7 +40,7 @@ function DD=INPUT
      %% switches
 
     %%
-    DD.switchs.chelt = 0;
+    DD.switchs.chelt = 1;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;

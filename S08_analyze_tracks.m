@@ -215,7 +215,6 @@ function	[vel,pp]=TRvel(map,eddy)
             end
             break
         end
-
         velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end

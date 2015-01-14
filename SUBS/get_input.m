@@ -60,8 +60,7 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'peak.amp.to_contour';
         'peak.amp.to_mean';
         'peak.amp.to_ellipse';    
-        'peak.amp.to_ellipse';    
-        'trackref.lin'
+        'peak.amp.to_ellipse';   
         };
     FieldKeys.senses= { ...
         'AntiCycs';

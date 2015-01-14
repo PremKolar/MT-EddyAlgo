@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    sub09_trackinit(DD);
+    %     sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -15,6 +15,7 @@ function sub09_trackstuff
     age=catsen('age');
     lat=catsen('lat');
     lon=catsen('lon'); %#ok<NASGU>
+    reflin=catsen('reflin');
     %%
     S.rightyscalenum=5;
     age(end+1:end+S.rightyscalenum)=max(age)-0;
@@ -25,6 +26,7 @@ function sub09_trackstuff
     radL(end+1:end+S.rightyscalenum)=0;
     radLe(end+1:end+S.rightyscalenum)=0;
     radLeff(end+1:end+S.rightyscalenum)=0;
+    reflin(end+1:end+S.rightyscalenum)=0;
     
     %%
     [~,sml2lrg] = sort(rad)  ;
@@ -36,6 +38,8 @@ function sub09_trackstuff
     S.radLe   = radLe(fliplr(sml2lrg));
     S.radLeff = radLeff(fliplr(sml2lrg));
     S.radL    = radL(fliplr(sml2lrg));
+    
+    S.reflin  = reflin(fliplr(sml2lrg));
     
     %% kill unrealistic data
     zerage  = S.age<=0  ;
@@ -55,20 +59,20 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    velZonmeans(S,DD,II,T);
-%     scaleZonmeans(S,DD,II,T);
-%             	scattStuff(S,T,DD,II);
+    %     velZonmeans(S,DD,II,T);
+    scaleZonmeans(S,DD,II,T);
+    %             	scattStuff(S,T,DD,II);
     
-%     	spmd
-%     		switch labindex
-%     			case 1
-%     				scaleZonmeans(S,DD,II,T);
-%     			case 2
-%     				velZonmeans(S,DD,II,T);
-% %     			case 3
-% %     				scattStuff(S,T,DD,II);
-%     		end
-%      	end
+    %     	spmd
+    %     		switch labindex
+    %     			case 1
+    %     				scaleZonmeans(S,DD,II,T);
+    %     			case 2
+    %     				velZonmeans(S,DD,II,T);
+    % %     			case 3
+    % %     				scattStuff(S,T,DD,II);
+    %     		end
+    %      	end
 end
 
 
@@ -78,21 +82,38 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     LA     = round(S.lat);
     LAuniq = unique(LA)';
-    FN     = {'rad','radL','radLe','radLeff'};
-    for ff=1:numel(FN)
-        fn=FN{ff};
+%     FN     = {'rad','radL','radLe','radLeff'};
+    FN     = {'Lrossby'};
+    
+    Rpath = DD.path.Rossby.name;
+    Rname = [DD.FieldKeys.Rossby{2} ,'.mat'];
+    LR = getfield(load([Rpath Rname]),'data');
+    zerFlag = S.reflin == 0;
+    S.reflin(zerFlag) = 1;
+    S.Lrossby = LR(S.reflin)/1000; % m2km
+    S.Lrossby(zerFlag) = nan;
+    
+     for ff=1:numel(FN)        
+        fn=FN{ff}
+     S.(fn)(S.(fn)<10) = nan;
+    end
+    
+    for ff=1:numel(FN)        
+        fn=FN{ff}
         vvM(numel(LAuniq)).(fn)=nan;
-        vvS(numel(LAuniq)).(fn)=nan;
+        vvS(numel(LAuniq)).(fn)=nan;        
         for cc=1:(numel(LAuniq))
             vvM(cc).(fn)=nanmedian(S.(fn)(LA==LAuniq(cc)));
-            if abs(LAuniq(cc))<=3, vvM(cc).(fn)=nan; end
-            vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));
+            if abs(LAuniq(cc))<=5, vvM(cc).(fn)=nan; end
+            vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));  
         end
-        %                  vvM(abs(LAuniq)<2).(fn)=nan;
-        %                  vvS(abs(LAuniq)<2).(fn)=nan;
+       
+        
         %%
     end
+    
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
+    
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
     %%
     % 	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
@@ -102,19 +123,34 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
-   
     
-   close all
+    
+    Rpath = DD.path.Rossby.name;
+    Rname = [DD.FieldKeys.Rossby{1} ,'.mat'];
+    cR = getfield(load([Rpath Rname]),'data');
+    zerFlag = S.reflin == 0;
+    S.reflin(zerFlag) = 1;
+    S.Crossby = cR(S.reflin)*100; % m2cm
+    S.Crossby(zerFlag) = nan;
+    
+    close all
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     vvM=nan(size(LAuniq));
     vvS=nan(size(LAuniq));
+    vvCross = nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
         vvM(cc)=nanmedian(S.vel(LA==LAuniq(cc)));
         vvS(cc)=std(S.vel(LA==LAuniq(cc)));
+        
+        vvCross(cc)=nanmedian(S.Crossby(LA==LAuniq(cc)));
     end
     vvM(abs(LAuniq)<5)=nan;
     vvS(abs(LAuniq)<5)=nan;
+    
+    vvCross(abs(LAuniq)<5)=nan;
+    
+    
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -125,6 +161,11 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     chelt= chelt(135:3595,415:3790,:);
     h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf',DD2info(DD));
+    
+    %       figure
+    %     h.ch=chOverLay(S,DD,chelt,LAuniq,vvCross);
+    %     title([])
+    %     savefig(DD.path.plots,100,800,800,['S-RossbyCfromPopToCh'],'dpdf',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
@@ -333,7 +374,7 @@ end
 function TR=getTR(DD)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     %     F={'rad','age','lat','lon'};
-    F={'rad','age','lat','lon','radL','radLeff','radLe'};
+    F={'rad','age','lat','lon','radL','radLeff','radLe','reflin'};
     g=@(c) cat(1,c{:});
     for ss=1:2
         for fi=1:numel(F);f=F{fi};

@@ -6,7 +6,8 @@
 % 'pop2avi' -
 function DD=INPUT
     DD.template='pop2avi';
-%     DD.template='aviso';
+%    DD.template='aviso';
+%    DD.template='pop';
     %% threads / debug
     DD.threads.num = 4;
     DD.debugmode   = false;

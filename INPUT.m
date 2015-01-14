@@ -16,8 +16,8 @@ function DD=INPUT
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
     DD.time.till.str  = '20061227'; % last pop/avi
-    DD.time.delta_t   = 3; % [days]!
-    threshlife        = 3*8; % TODO
+    DD.time.delta_t   = 7; % [days]!
+    threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)
     DD.map.in.west  =  0;
     DD.map.in.east  =  360;

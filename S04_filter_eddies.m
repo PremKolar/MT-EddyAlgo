@@ -198,7 +198,8 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     ee.chelt = cheltStuff(ee,zoom);
     
     %% get profiles
-    [ee.profiles,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
+    [ee.profiles,pass.CR_radius,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
+     if ~pass.CR_radius, return, end;
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
     if ~pass.CR_radius, return, end;
@@ -560,7 +561,7 @@ function [outIdx] = avoidLand(ssh,peak)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [s,f] = EDDyProfiles(ee,z,fourierOrder)
+function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
     %% detect meridional and zonal profiles shifted to baselevel of current level
     offset_term = ee.peak.amp.to_contour*ee.sense.num - ee.level;
     %%	zonal cut
@@ -577,11 +578,19 @@ function [s,f] = EDDyProfiles(ee,z,fourierOrder)
     prof.y.dist = z.fields.km_y(water.y,ee.peak.z.x)*1000 ;
     %
     %%	cranck up res
-    for xyc = {'x','y'};xy = xyc{1};
-        s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),100)';
-        s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),100)';
-        f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
-        s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
+    pass = true;
+    try
+        for xyc = {'x','y'};xy = xyc{1};
+            s.(xy).dist = linspace(prof.(xy).dist(1), prof.(xy).dist(end),100)';
+            s.(xy).idx = linspace(water.(xy)(1), water.(xy)(end),100)';
+            f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
+            s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
+        end
+    catch me
+        disp(me.message) % non unique data site.. probably at weird land situations TODO!!
+        pass = false;
+        s = [];f = [];
+        return
     end
     %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';

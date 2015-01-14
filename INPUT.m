@@ -7,7 +7,7 @@
 function DD=INPUT
     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 6;
+    DD.threads.num = 12;
     DD.debugmode   = false;
     %DD.debugmode = true;
     DD.overwrite   = false;

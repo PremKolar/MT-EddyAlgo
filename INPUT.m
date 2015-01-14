@@ -5,7 +5,7 @@
 % 'mad' - template for Madeleine's data
 % 'pop2avi' -
 function DD=INPUT
-    DD.template='aviso';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
@@ -35,15 +35,33 @@ function DD=INPUT
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
-    %% switches
-    DD.switchs.IQ = 0;
-    DD.switchs.chelt = 1;
-    DD.switchs.RossbyStuff = 1;  % TODO no choice
-    DD.switchs.distlimit = 1;      % TODO no choice
-    DD.switchs.AmpAreaCheck = 1;
+     %% switches
+    
+    %% ch
+    DD.switchs.chelt = 0;
+    DD.switchs.AmpAreaCheck = 0;
+    %% iq
+    DD.switchs.IQ = 1;
+    DD.switchs.IdentityCheck = 1;
+  
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;
-    DD.switchs.IdentityCheck = 0;
+    DD.switchs.RossbyStuff = 1;  % TODO no choice
+    DD.switchs.distlimit = 1;      % TODO no choice
     DD.switchs.maxRadiusOverRossbyL = 1;  % TODO no choice
     DD.switchs.spaciallyFilterSSH = 0;  % TODO delete
     DD.switchs.filterSSHinTime = 1;

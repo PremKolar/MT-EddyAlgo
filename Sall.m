@@ -1,5 +1,5 @@
- S00b_prep_data
- s00c_fillCorruptCuts
+S00b_prep_data
+s00c_fillCorruptCuts
 % S01_BruntVaisRossby
 S02_infer_fields
 S03_contours

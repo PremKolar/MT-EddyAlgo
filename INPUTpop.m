@@ -44,16 +44,14 @@ function DD=INPUTpop
     DD.parameters.SSHAdepth=-25;
     DD.parameters.salinityFactor=1000;
     DD.parameters.zLevel=5; % 0 for SSH
-    
-    
     %%
     DD.switchs.rehashMapDims=true; %!!
-    
-    
-    
-    
-    
-    
-    
-    
-    
+end
+
+
+
+
+
+
+
+

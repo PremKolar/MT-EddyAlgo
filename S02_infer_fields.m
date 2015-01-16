@@ -21,12 +21,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
-    spmd
+    spmd(DD.threads.num)
         [JJ] = SetThreadVar(DD);
         spmd_meanSsh(DD,JJ);
     end
       MeanSsh = saveMean(DD);
-    spmd
+    spmd(DD.threads.num)
       [JJ] = SetThreadVar(DD);
         spmd_fields(DD,RS,JJ,MeanSsh);
     end

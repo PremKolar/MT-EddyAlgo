@@ -59,8 +59,8 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    %     velZonmeans(S,DD,II,T);
-    scaleZonmeans(S,DD,II,T);
+            velZonmeans(S,DD,II,T);
+%     scaleZonmeans(S,DD,II,T);
     %             	scattStuff(S,T,DD,II);
     
     %     	spmd
@@ -82,8 +82,9 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     LA     = round(S.lat);
     LAuniq = unique(LA)';
-%     FN     = {'rad','radL','radLe','radLeff'};
-    FN     = {'Lrossby'};
+    %     FN     = {'rad','radL','radLe','radLeff'};
+    FN     = {'rad','radLe','radLeff'};
+    %     FN     = {'Lrossby'};
     
     Rpath = DD.path.Rossby.name;
     Rname = [DD.FieldKeys.Rossby{2} ,'.mat'];
@@ -92,39 +93,74 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     S.reflin(zerFlag) = 1;
     S.Lrossby = LR(S.reflin)/1000; % m2km
     S.Lrossby(zerFlag) = nan;
-    
-     for ff=1:numel(FN)        
+    %%
+    for ff=1:numel(FN)
         fn=FN{ff}
-     S.(fn)(S.(fn)<10) = nan;
+        S.(fn)(S.(fn)<10) = nan;
     end
-    
-    for ff=1:numel(FN)        
+    %%
+    visits = nan(size(LAuniq));
+    for ff=1:numel(FN)
         fn=FN{ff}
-        vvM(numel(LAuniq)).(fn)=nan;
-        vvS(numel(LAuniq)).(fn)=nan;        
-        for cc=1:(numel(LAuniq))
-            vvM(cc).(fn)=nanmedian(S.(fn)(LA==LAuniq(cc)));
-            if abs(LAuniq(cc))<=5, vvM(cc).(fn)=nan; end
-            vvS(cc).(fn)=nanstd(S.(fn)(LA==LAuniq(cc)));  
-        end
-       
+        vvM(numel(LAuniq)).(fn)=nan(size(LAuniq));
+        vvS(numel(LAuniq)).(fn)=nan(size(LAuniq));
         
-        %%
+        for cc=1:(numel(LAuniq))
+            idx=LA==LAuniq(cc);
+            
+            visits(cc) = sum(idx);
+            
+            if visits(cc) >= 100
+                vvM(cc).(fn)=nanmedian(S.(fn)(idx));
+                if abs(LAuniq(cc))<=5, vvM(cc).(fn)=nan; end
+                vvS(cc).(fn)=nanstd(S.(fn)(idx));
+            end
+        end
     end
     
-    h.ch=chOverLayScale(chelt,LAuniq,vvM);
+  
     
+    %%
+    h.ch=chOverLayScale(chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
+    
+    
+    %     legend('off')
+    %     title([''])
+    %     savefig(DD.path.plots,100,800,800,['S-RossbyLfromPopToCh'],'dpdf',DD2info(DD));
     %%
     % 	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     % 	[~,pw]=fileparts(pwd);
     % 	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
     % 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
+    
+      %% TODO
+    figure(2)
+    cc = 70;
+    fn=FN{1}
+    idx=LA==LAuniq(cc); % -10
+    hist(S.(fn)(idx),50)
+    axis tight
+    xlabel('\sigma at -10^{\circ}')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,100,600,600,['hist-sigmaAt-10deg'],'dpdf',DD2info(DD));
+    
+    
+    figure(3)
+    cc = 30;
+    fn=FN{1}
+    idx=LA==LAuniq(cc); % -50
+    hist(S.(fn)(idx),50)
+    axis tight
+    title(sprintf('total: %d counts',sum(idx)))
+    xlabel('\sigma at -50^{\circ}')
+    savefig(DD.path.plots,100,600,600,['hist-sigmaAt-50deg'],'dpdf',DD2info(DD));
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
-    
-    
+    close all
+        
     Rpath = DD.path.Rossby.name;
     Rname = [DD.FieldKeys.Rossby{1} ,'.mat'];
     cR = getfield(load([Rpath Rname]),'data');
@@ -138,19 +174,40 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     LAuniq = unique(LA)';
     vvM=nan(size(LAuniq));
     vvS=nan(size(LAuniq));
+    vvSkew=nan(size(LAuniq));
     vvCross = nan(size(LAuniq));
+    visits = nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
-        vvM(cc)=nanmedian(S.vel(LA==LAuniq(cc)));
-        vvS(cc)=std(S.vel(LA==LAuniq(cc)));
-        
-        vvCross(cc)=nanmedian(S.Crossby(LA==LAuniq(cc)));
+        idx=LA==LAuniq(cc);
+        visits(cc) = sum(idx);
+%         if visits(cc) >= 100
+            vvM(cc)=nanmedian(S.vel(idx));
+            vvS(cc)=std(S.vel(idx));
+            vvSkew(cc)=skewness(S.vel(idx));
+            vvCross(cc)=nanmedian(S.Crossby(idx));
+%         end
     end
-    vvM(abs(LAuniq)<5)=nan;
-    vvS(abs(LAuniq)<5)=nan;
-    
-    vvCross(abs(LAuniq)<5)=nan;
-    
-    
+%     vvM(abs(LAuniq)<5)=nan;
+%     vvS(abs(LAuniq)<5)=nan;
+%     vvCross(abs(LAuniq)<5)=nan;
+%     
+%%
+% TODO do this with pop7 or better pop3 data ! and maybe do similar with
+% scales..
+figure(10)  
+clf
+hold on
+ plot(LAuniq,smooth(-vvM,10),'blue')
+%  plot(LAuniq,vvS,'red')
+ plot(LAuniq,smooth(-vvSkew*5,10),'green')
+  plot(LAuniq,smooth(visits/20000*10,10),'red')
+axis([-80 80 -2 10])
+legend({'-u','-skewness(u)','count'})
+plot([-80 80],[0 0],'--black')
+grid on
+set(gca,'yticklabel','')
+  savefig(DD.path.plots,100,800,200,['Skew'],'dpdf',DD2info(DD));
+  
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -159,13 +216,38 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
-    h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
+    h.ch=chOverLay(S,DD,chelt,LAuniq,-vvM);
     savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf',DD2info(DD));
     
     %       figure
     %     h.ch=chOverLay(S,DD,chelt,LAuniq,vvCross);
     %     title([])
     %     savefig(DD.path.plots,100,800,800,['S-RossbyCfromPopToCh'],'dpdf',DD2info(DD));
+    
+    
+    
+      %% TODO
+    figure(2)
+    cc = 70;   
+    idx=LA==LAuniq(cc); % -10
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('u [cm/s] at -10^{\circ}')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,100,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
+    
+    
+    figure(3)
+    cc = 30;   
+    idx=LA==LAuniq(cc); % -50
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('u [cm/s] at -50^{\circ}')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,100,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)

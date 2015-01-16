@@ -54,10 +54,10 @@ function mainDB(DD,ticks)
     
     %     spmd(2)
     sen=senses{labindex};
-    TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
-    TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'iq',30,'iq',0);
+%     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
+%     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
+    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_mean',20,'amp',1);
+    TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
 %     
 %     TPa(DD,ticks,procData.tracks,sen);
 %     TPb(DD,ticks,procData.tracks,sen);
@@ -128,9 +128,10 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     cb=colorbar;
     if logornot
        set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
-    end        
+    end  
+    axis tight
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,300,4*600,4*500,tit,'dpdf')
+    savefig(DD.path.plots,100,1000,600,tit,'dpdf')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -489,12 +490,22 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         maxV = log(maxV);
     end
     kk=linspace(minV,maxV,size(cmap,1));
-    for ee=1:numel(files)
-        V=load(files{ee},fieldName,'lat','lon');
-        VV=V.(fieldName);
-        if numel(VV)<minlen
+    Tac=disp_progress('init','blubb');
+   
+   
+    
+    for ee=1:10:numel(files)
+        round(ee/numel(files)*100)
+        Tac=disp_progress('calc',Tac,numel(files),1000);           
+        len=numel(getfield(load(files{ee},'age'),'age'));
+        if len<minlen            
             continue
         end
+        
+    
+        V=load(files{ee},fieldName,'lat','lon');
+        VV=V.(fieldName);
+      
         if logornot
             VV = log(VV);
         end

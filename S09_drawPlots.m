@@ -5,18 +5,17 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-    % 	DD=initialise([],mfilename);
-    %     save DD
-    load DD
+%     DD=initialise([],mfilename);
+%     save DD
+        load DD
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
     %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez/3;
+    ticks.width=297/25.4*ticks.rez/3; %din A
     Y = round((DD.map.in.north - DD.map.in.south + 1)/DD.map.out.binSize);
     X = round((DD.map.in.east  - DD.map.in.west  + 1)/DD.map.out.binSize);
     ticks.height=ticks.width * Y/X;
-    
     %         ticks.height=ticks.width/sqrt(2); % Din a4
     ticks.y= 0;
     ticks.x= 0;
@@ -34,31 +33,32 @@ function S09_drawPlots
     ticks.disttot=[1;3000;5];
     ticks.vel=[-30;20;6];
     %     TODO repair map.out
-    ticks.axis=[DD.map.in.west  DD.map.in.east DD.map.in.south DD.map.in.north];
+    ticks.axis=[ -180  180 DD.map.in.south+10 DD.map.in.north-10];
     ticks.lat=[ticks.axis(3:4),5];
     % 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
-    
     %% main
-    mainDB(DD,ticks)
-    
+    main(DD,ticks)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mainDB(DD,ticks)
-   close all
-    %      [procData]=inits(DD);
-    %     save([DD.path.analyzed.name 'procData.mat'],'procData');
+function main(DD,ticks)
+%     close all
+    %          [procData]=inits(DD);
+    %         save([DD.path.analyzed.name 'procData.mat'],'procData');
     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
-    % 	IQoverCH(DD,ticks)
+%     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
+
+
+
+    %%
     senses = DD.FieldKeys.senses';
-    
-    %     spmd(2)
+     %     spmd(2)
     sen=senses{labindex};
 %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
 %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_mean',20,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
-%     
+    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',20,'amp',1);
+     TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
+%
 %     TPa(DD,ticks,procData.tracks,sen);
 %     TPb(DD,ticks,procData.tracks,sen);
 %     TPc(DD,ticks,procData.tracks,sen);
@@ -66,11 +66,13 @@ function mainDB(DD,ticks)
 %     TPe(DD,ticks,procData.tracks,sen);
 %     TPf(DD,ticks,procData.tracks,sen);
 %     %     end
-    
+
+    %%
+    % 	IQoverCH(DD,ticks)
     %     velZonmeans(DD,procData,ticks)
     %     scaleZonmeans(DD,procData,ticks)%
     %     histstuff(procData.vecs,DD,ticks)
-    %     mapstuff(procData.maps,procData.vecs,DD,ticks,procData.lo,procData.la)
+    %
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD) %#ok<DEFNU>
@@ -83,7 +85,7 @@ function [OUT]=inits(DD) %#ok<DEFNU>
     end
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
-    
+
     for ss=1:2
         sen = DD.FieldKeys.senses{ss};
         root=DD.path.analyzedTracks.(sen).name;
@@ -95,7 +97,7 @@ function [OUT]=inits(DD) %#ok<DEFNU>
         end
     end
     %%
-    
+
     %% get vectors
     %     disp(['loading vectors'])
     % 	OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);
@@ -105,22 +107,21 @@ end
 function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     globe=true;
     drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe) ;
-    axis([-180 180 -80 80])   
-%     set(gca,'ytick',[-1000   0   1000])
-%     set(gca,'xtick',[-4000 -2000 -1000  0 1000])
+    axis([-180 180 -70 70])
+  drawcoast
     tit=['tracks-' colorfield '-' sen];
     cb=colorbar;
     if logornot
-       set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
-    end        
+        set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
+    end
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,300,4*600,4*500,tit,'dpdf')
+    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)    
+function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,0) ;
-    axis([-5000 3000 -2000 2000])   
+    axis([-5000 3000 -2000 2000])
     axis equal
     set(gca,'ytick',[-1000   0   1000])
     set(gca,'xtick',[-4000 -2000 -1000  0 1000])
@@ -128,7 +129,7 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     cb=colorbar;
     if logornot
        set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
-    end  
+    end
     axis tight
     saveas(gcf,[DD.path.plots tit])
     savefig(DD.path.plots,100,1000,600,tit,'dpdf')
@@ -170,7 +171,7 @@ function TPe(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
     decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPf(DD,ticks,tracks,sen)
@@ -185,30 +186,35 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
     ho=hot;
     % 	je=jet;
     senses={'Cycs','AntiCycs'};
-    for sense=senses;sen=sense{1};
-        if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>
+    sensesB={'Cyclones','Anti-Cyclones'};
+    lo=wrapTo180(lo);
+    [~,loA]=min(lo(1,:));
+    lo = lo(:,[loA:end,1:loA-1]);
+
+    for ss=1:2
+        sen=senses{ss};senB=sensesB{ss};
+        %         if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>
         %
-        figure
-        b.la=vecs.(sen).birth.lat;
-        b.lo=vecs.(sen).birth.lon;
-        d.la=vecs.(sen).death.lat;
-        d.lo=vecs.(sen).death.lon;
-        plot(b.lo,b.la,'.r',d.lo,d.la,'.g','markersize',5)
-        hold on
-        axis(ticks.axis);
-        set(gca,'ytick',ticks.y);
-        set(gca,'xtick',ticks.x) ;
-        legend('births','deaths')
-        title(sen)
-        savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['deathsBirths-' sen],DD.debugmode,'dpdf');
+        %         figure
+        %         b.la=vecs.(sen).birth.lat;
+        %         b.lo=vecs.(sen).birth.lon;
+        %         d.la=vecs.(sen).death.lat;
+        %         d.lo=vecs.(sen).death.lon;
+        %         plot(b.lo,b.la,'.r',d.lo,d.la,'.g','markersize',5)
+        %         hold on
+        %         axis(ticks.axis);
+        %         set(gca,'ytick',ticks.y);
+        %         set(gca,'xtick',ticks.x) ;
+        %         legend('births','deaths')
+        %         title(sen)
+        %         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['deathsBirths-' sen],DD.debugmode,'dpdf');
         %
         %%
-        figure
         maps.(sen).age.logmean=log(maps.(sen).age.mean);
         VV=maps.(sen).age.logmean;
         pcolor(lo,la,VV);shading flat
         %         caxis([ticks.age(1) ticks.age(2)])
-        decorate('age',ticks,DD,sen,'age','d',1,1);
+        decorate('age',ticks,DD,senB,'age','d',1,1);
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapAge-' sen],DD.debugmode,'dpdf')
         %%
         figure
@@ -218,7 +224,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         %                 caxis([ticks.visits(1) ticks.visits(2)])
         decorate('visitsunique',ticks,DD,sen,'Visits of unique eddy',' ',0,1);
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVisits-' sen],DD.debugmode,'dpdf');
-        
+
         %
         figure
         VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
@@ -282,7 +288,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             cb=decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,10,1,1);
             doublemap([ticks.radiusToRo(1),1,ticks.radiusToRo(2)],aut,win,[.9 1 .9])
             savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRadToRo' sen],DD.debugmode,'dpdf');
-            
+
             %
             %%
             figure
@@ -292,7 +298,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             cb=decorate('vel',ticks,DD,sen,['[Zonal U - c_1)]'],'cm/s',0,1);
             doublemap([ticks.vel(1),0,ticks.vel(2)],aut,win,[.9 1 .9])
             savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapUcDiff' sen],DD.debugmode,'dpdf');
-            
+
         end
     end
 end
@@ -339,7 +345,7 @@ function histstuff(vecs,DD,ticks)
         %%
         [hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
     end
-    
+
     %%
     ratioBar(hc,'lat', range.Cycs.lat);
     tit='ratio of cyclones to anticyclones as function of latitude';
@@ -361,7 +367,7 @@ function logyBar(totnum,y)
     y(totnum==0)=[];
     x(totnum==0)=[];
     totnum(totnum==0)=[];
-    
+
     colors = flipud(bone(max(totnum)));
     cols=colors(totnum,:);
     for ii = 1:numel(x)
@@ -444,25 +450,21 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     if nargin<9
         coast=true;
     end
-    
+
     %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %     coast=false
     %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     axis(ticks.axis);
-    set(gca,'ytick',ticks.y);
-    set(gca,'xtick',ticks.x);
     cb=colorbar;
     if logornot
         zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
         zticklabel=round(exp(zticks)*decim)/decim;
         if rats
-            
             [n,d]=rat(zticklabel);
             nc=(num2cell(n));
             dc=(num2cell(d));
             zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
-            
         else
             zticklabel=num2str(zticklabel);
         end
@@ -474,7 +476,7 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     set(cb,'ytick',zticks);
     set(cb,'yticklabel',zticklabel);
     title([tit,' - ',tit2,' [',unit,']'])
-    xlabel(['Eddies that died younger ',num2str(DD.thresh.life),' days are excluded'])
+    xlabel(sprintf('Min. age: %d [d]',DD.thresh.life))
     if coast
         drawcoast;
     end
@@ -491,21 +493,22 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     end
     kk=linspace(minV,maxV,size(cmap,1));
     Tac=disp_progress('init','blubb');
-   
-   
-    
-    for ee=1:10:numel(files)
-        round(ee/numel(files)*100)
-        Tac=disp_progress('calc',Tac,numel(files),1000);           
-        len=numel(getfield(load(files{ee},'age'),'age'));
-        if len<minlen            
+    for ee=1:20:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)/200),100);
+%         len=numel(getfield(load(files{ee},'age'),'age'));
+%         if len<minlen
+%             continue
+%         end
+
+
+        V=load(files{ee},fieldName,'lat','lon');
+        
+         if any(abs(wrapTo180(V.lon))>50)
             continue
         end
         
-    
-        V=load(files{ee},fieldName,'lat','lon');
         VV=V.(fieldName);
-      
+
         if logornot
             VV = log(VV);
         end
@@ -513,17 +516,17 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
         cm(cm<0)=0;
         %% deg2km
-        
+
         if globe
             yy=V.lat;
-            xx=V.lon;
+            xx=wrapTo180(V.lon);
             dJump=100;
-        else            
+        else
             yy=[0 cumsum(deg2km(diff(V.lat)))];
             xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
             dJump=1000;
         end
-        
+
         for ii=1:length(xx)-1
             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
                 line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.1);
@@ -544,7 +547,7 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
     kk=linspace(minV,maxV,size(cmap,1));
     %      kk=linspace(minIQ,maxIQ,10);
     %     iqiq=linspace(minV,maxV,size(cmap,1));
-    
+
     meaniq=nan(size(files));
     for ee=1:numel(files)
         V=load(files{ee},fieldName2);
@@ -553,7 +556,7 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
     end
     meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
-    
+
     maxthick=ticks.rez/300*10;
     minthick=ticks.rez/300*0.1;
     for ee=iqorder

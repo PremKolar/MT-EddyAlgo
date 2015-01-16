@@ -5,11 +5,10 @@
 % 'mad' - template for Madeleine's data
 % 'pop2avi' -
 function DD=INPUT
-    %DD.template='pop2avi';
-    DD.template='aviso';
-    %DD.template='pop';
+    DD.template='pop2avi';
+%     DD.template='aviso';
     %% threads / debug
-    DD.threads.num = 2;
+    DD.threads.num = 12;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
@@ -39,15 +38,12 @@ function DD=INPUT
     DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
      %% switches
 
-    %%
-    DD.switchs.chelt = 0;
-
-    DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
-    DD.switchs.IQ            = ~DD.switchs.chelt;
-    DD.switchs.IdentityCheck = ~DD.switchs.chelt;
-
-
-
+    %% ch
+    DD.switchs.chelt = 1;
+    DD.switchs.AmpAreaCheck = 1;
+    %% iq
+    DD.switchs.IQ = 0;
+    DD.switchs.IdentityCheck = 0;
 
 
     %% TODO

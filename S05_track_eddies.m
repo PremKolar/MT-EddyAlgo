@@ -34,8 +34,8 @@ function rmoldtracks(DD)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         else
-            error('mv old tracks first')
-            sleep(5*60)
+            warning('mv old tracks first')
+            sleep(5*60);
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         end
     end
@@ -231,20 +231,53 @@ function [out]=kill_phantoms(in)
     %% search for identical eddies
     lola = in.lon + 1i*in.lat;
     [~,ui,~]=unique(lola);
-    %%
-    for fn=fieldnames(in)'      
-        out.(fn{1})=in.(fn{1})(ui);
-    end    
+    %%    
+    for fn=fieldnames(in)'
+        if size(in.(fn{1})) == size(lola) % field 'time' doesnt need to be corrected
+            out.(fn{1}) = in.(fn{1})(ui);
+        else
+            out.(fn{1}) = in.(fn{1});
+        end
+    end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function closeEnough=nanOutOfBounds(NEW,OLD)
+function closeEnough=nanOutOfBounds(NEW,OLD,DD)
+    maxLin=prod(struct2array(DD.map.window.dim));
     %% get locations of new eddies
-    newLin=cat(1,NEW.trackref);
+    newLin=extractfield(cat(1,NEW.trackref),'lin');
     %% get possible (future) indeces for old eddies
     oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
-    try
-        oldEllipIncs=rmfield(oldEllipIncs,'logical'); % TODO rm later
+    %% wrap overlap
+    newLin(newLin>maxLin) = newLin(newLin>maxLin) - maxLin;
+    for oo=1:numel(oldEllipIncs)
+    oldEllipIncs(oo).lin(oldEllipIncs(oo).lin>maxLin) = oldEllipIncs(oo).lin(oldEllipIncs(oo).lin>maxLin) - maxLin;
     end
+    
+     O=extractfield(oldEllipIncs,'lin');
+    
+        for ii=1:numel(OLD)
+            if abs(OLD(ii).geo.lon) < 5
+                adfghgd
+        end
+    end
+%     
+    pM=OLD(17).projLocsMask.lin
+    cut=load('../datap2aI/CUTS/CUT_19940105_-80-+80_000-360.mat');
+    ssh=cut.fields.ssh;
+    ssh(O)=1000;
+     ssh(newLin)=-1000;
+    ssh(ssh==0)=nan;
+    
+    imagesc(flipud(ssh));
+    caxis([-1 1])
+    colormap([[1 1 1];jet(50);[0 0 0]])
+    
+    set(gca,'xticklabel',[],'yticklabel',[])
+    title(['Range-ellipses of old set (black) with locations of new set (white dots)'])
+    savefig(DD.path.plots,100,1000,500,['elligEllipsesMapUnwrapped'],'dpdf')
+    
+    
     %% build mask. rows -> new, cols -> old
     closeEnough=false(numel(oldEllipIncs),numel(newLin));
     for ii=1:numel(oldEllipIncs)
@@ -321,7 +354,7 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %%
     if DD.switchs.distlimit
-        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies );
+        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD );
     end
     %%
     if exist('pass','var')
@@ -342,8 +375,10 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
+    
     lon=extractfield(cat(1,eddies.geo),'lon');
     lat=extractfield(cat(1,eddies.geo),'lat');
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

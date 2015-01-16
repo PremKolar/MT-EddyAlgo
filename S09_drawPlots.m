@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-%     DD=initialise([],mfilename);
-%     save DD
-        load DD
+    DD=initialise([],mfilename);
+    save DD
+%         load DD
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
@@ -41,10 +41,10 @@ function S09_drawPlots
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,ticks)
-%     close all
-    %          [procData]=inits(DD);
-    %         save([DD.path.analyzed.name 'procData.mat'],'procData');
-    load([DD.path.analyzed.name 'procData.mat'],'procData');
+    close all
+             [procData]=inits(DD);
+            save([DD.path.analyzed.name 'procData.mat'],'procData');
+%     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
 %     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
 
@@ -57,7 +57,7 @@ function main(DD,ticks)
 %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
 %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',20,'amp',1);
-     TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
+%      TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
 %
 %     TPa(DD,ticks,procData.tracks,sen);
 %     TPb(DD,ticks,procData.tracks,sen);

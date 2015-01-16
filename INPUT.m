@@ -8,9 +8,9 @@ function DD=INPUT
     DD.template='pop2avi';
 %     DD.template='aviso';
     %% threads / debug
-    DD.threads.num = 12;
+    DD.threads.num = 1;
     DD.debugmode   = false;
-%     DD.debugmode = true;
+    DD.debugmode = true;
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time

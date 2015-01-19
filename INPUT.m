@@ -39,7 +39,7 @@ function DD=INPUT
     DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
      %% switches
 
-    %%
+    %% 1 for I    -    0 for II
     DD.switchs.chelt = 0;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;

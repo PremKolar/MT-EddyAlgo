@@ -41,14 +41,12 @@ function S09_drawPlots
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,ticks)
-%     close all
-    %          [procData]=inits(DD);
-    %         save([DD.path.analyzed.name 'procData.mat'],'procData');
-    load([DD.path.analyzed.name 'procData.mat'],'procData');
+    close all
+             [procData]=inits(DD);
+            save([DD.path.analyzed.name 'procData.mat'],'procData');
+%     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
 %     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
-
-
 
     %%
     senses = DD.FieldKeys.senses';
@@ -57,7 +55,7 @@ function main(DD,ticks)
 %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
 %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',20,'amp',1);
-     TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
+%      TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
 %
 %     TPa(DD,ticks,procData.tracks,sen);
 %     TPb(DD,ticks,procData.tracks,sen);
@@ -114,8 +112,8 @@ function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     if logornot
         set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
     end
-    saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
+%     saveas(gcf,[DD.path.plots tit])
+%     savefig(DD.path.plots,100,1000,500,tit,'dpdf')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -494,19 +492,17 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     kk=linspace(minV,maxV,size(cmap,1));
     Tac=disp_progress('init','blubb');
     for ee=1:20:numel(files)
-        Tac=disp_progress('calc',Tac,round(numel(files)/200),100);
-%         len=numel(getfield(load(files{ee},'age'),'age'));
-%         if len<minlen
-%             continue
-%         end
-
-
-        V=load(files{ee},fieldName,'lat','lon');
-        
-         if any(abs(wrapTo180(V.lon))>50)
+        Tac=disp_progress('calc',Tac,round(numel(files)/20),100);
+        len=numel(getfield(load(files{ee},'age'),'age'));
+        if len<minlen
             continue
         end
-        
+
+        V=load(files{ee},fieldName,'lat','lon');
+
+%          if any(abs(wrapTo180(V.lon))>50)
+%             continue
+%         end
         VV=V.(fieldName);
 
         if logornot
@@ -528,9 +524,9 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         end
 
         for ii=1:length(xx)-1
-            if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
+%             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
                 line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.1);
-            end
+%             end
         end
     end
     caxis([minV maxV])

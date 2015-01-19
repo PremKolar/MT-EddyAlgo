@@ -122,9 +122,9 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     %% append geo-coor vectors for min_dist function
     [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies);
     %% kill doubles from overlap
-%     if phantoms
-%         [OLD]=kill_phantoms(OLD);
-%     end
+    if phantoms
+        [OLD]=kill_phantoms(OLD);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
@@ -322,21 +322,21 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     [LOM.new,LOM.old]=meshgrid(NEW.lon  ,OLD.lon  );
     [LAM.new,LAM.old]=meshgrid(NEW.lat  ,OLD.lat  );
     %%
-%     if  DD.switchs.IdentityCheck
-%         [~,pass.idc]=checkDynamicIdentity(OLD,NEW,DD.thresh.IdentityCheck);
-%     end
-%     %%
-%     if DD.switchs.AmpAreaCheck
-%         [pass.AmpArea]=checkAmpAreaBounds(OLD,NEW,DD.thresh.ampArea);
-%     end
-%     %%
-%     if DD.switchs.distlimit
-%         [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
-%     end
-%     %%
-%     if exist('pass','var')
-%         [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
-%     end
+    if  DD.switchs.IdentityCheck
+        [~,pass.idc]=checkDynamicIdentity(OLD,NEW,DD.thresh.IdentityCheck);
+    end
+    %%
+    if DD.switchs.AmpAreaCheck
+        [pass.AmpArea]=checkAmpAreaBounds(OLD,NEW,DD.thresh.ampArea);
+    end
+    %%
+    if DD.switchs.distlimit
+        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
+    end
+    %%
+    if exist('pass','var')
+        [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
+    end
     %% calc distances between all from new to all from old
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
     %     lonDIFF=abs(LOM.new - LOM.old);

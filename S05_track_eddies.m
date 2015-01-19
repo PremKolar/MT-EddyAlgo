@@ -18,7 +18,6 @@ function S05_track_eddies
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-    disp(['using all eddies from ' DD.path.eddies.name, ' !!!'])
     if DD.debugmode
         spmd_body(DD)
     else
@@ -123,9 +122,9 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     %% append geo-coor vectors for min_dist function
     [OLD.lon,OLD.lat]=get_geocoor(OLD.eddies);
     %% kill doubles from overlap
-    if phantoms
-        [OLD]=kill_phantoms(OLD);
-    end
+%     if phantoms
+%         [OLD]=kill_phantoms(OLD);
+%     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
@@ -217,7 +216,7 @@ function [TDB]=tracked_dead_born(MD)
     %% matlab sets dims randomly sometimes for short vecs
     if size(do)~=size(dn), do=do'; end
     if size(io)~=size(in), io=io'; end
-    %% agreement among new and old ie definite tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !
+    %% agreement among new and old ie definitive tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !
     TDB.inNew.tracked = ((do == dn) & (io == in));
     %% flag for fresh eddies with respect to new set
     TDB.inNew.born = ~TDB.inNew.tracked;
@@ -231,14 +230,14 @@ function [out]=kill_phantoms(in)
     %% search for identical eddies
     lola = in.lon + 1i*in.lat; % 2d red
     [~,ui,~]=unique(lola);     % indeces of unique set
-    %%    
+    %%
     for fn=fieldnames(in)'
         if size(in.(fn{1})) == size(lola) % field 'time' doesnt need to be corrected
             out.(fn{1}) = in.(fn{1})(ui);
         else
             out.(fn{1}) = in.(fn{1});
         end
-    end    
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function closeEnough=nanOutOfBounds(NEW,OLD,windowdim)
@@ -248,8 +247,8 @@ function closeEnough=nanOutOfBounds(NEW,OLD,windowdim)
     newLin=extractfield(cat(1,NEW.trackref),'lin');
     %% get possible (future) indeces for old eddies
     oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
-    %% wrap overlap    
-    newLin = wrapOverlap(newLin,maxLin);  
+    %% wrap overlap
+    newLin = wrapOverlap(newLin,maxLin);
     for kk=1:numel(oldEllipIncs)
         oldEllipIncs(kk).lin = wrapOverlap(oldEllipIncs(kk).lin,maxLin);
     end
@@ -303,7 +302,6 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     %%
     pass= quo.combo <= thresh;
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
     onesonly=@(M) M==1;
@@ -324,40 +322,35 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     [LOM.new,LOM.old]=meshgrid(NEW.lon  ,OLD.lon  );
     [LAM.new,LAM.old]=meshgrid(NEW.lat  ,OLD.lat  );
     %%
-    if  DD.switchs.IdentityCheck
-        [~,pass.idc]=checkDynamicIdentity(OLD,NEW,DD.thresh.IdentityCheck);
-    end
-    %%
-    if DD.switchs.AmpAreaCheck
-        [pass.AmpArea]=checkAmpAreaBounds(OLD,NEW,DD.thresh.ampArea);
-    end
-    %%
-    if DD.switchs.distlimit
-        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
-    end
-    %%
-    if exist('pass','var')
-        [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
-    end
+%     if  DD.switchs.IdentityCheck
+%         [~,pass.idc]=checkDynamicIdentity(OLD,NEW,DD.thresh.IdentityCheck);
+%     end
+%     %%
+%     if DD.switchs.AmpAreaCheck
+%         [pass.AmpArea]=checkAmpAreaBounds(OLD,NEW,DD.thresh.ampArea);
+%     end
+%     %%
+%     if DD.switchs.distlimit
+%         [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
+%     end
+%     %%
+%     if exist('pass','var')
+%         [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
+%     end
     %% calc distances between all from new to all from old
-    lonDIFF=abs(LOM.new - LOM.old);
-    DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
+    DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
+    %     lonDIFF=abs(LOM.new - LOM.old);
+    %     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
+    
     %% find min dists
-    [MD      .new2old.dist,MD      .new2old.idx]=min(DIST,[],1);
-    [MD      .old2new.dist,MD      .old2new.idx]=min(DIST,[],2);
-    
-    
-    
-    
-    
+    [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
+    [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [lon, lat]=get_geocoor(eddies)
-    
+function [lon, lat]=get_geocoor(eddies)    
     lon=extractfield(cat(1,eddies.geo),'lon');
-    lat=extractfield(cat(1,eddies.geo),'lat');
-    
+    lat=extractfield(cat(1,eddies.geo),'lat');    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -5,24 +5,24 @@
 % 'mad' - template for Madeleine's data
 % 'pop2avi' -
 function DD=INPUT
-    DD.template='pop2avi';
-%     DD.template='aviso';
+%     DD.template='pop2avi';
+    DD.template='aviso';
     %% threads / debug
-    DD.threads.num = 2;
+    DD.threads.num = 12;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
+    DD.time.till.str  = '19950105'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  0;
-    DD.map.in.east  =  360;
-    DD.map.in.south = -80;
-    DD.map.in.north =  80;
+    DD.map.in.west  =  -30;
+    DD.map.in.east  =  30;
+    DD.map.in.south = -50;
+    DD.map.in.north =  -30;
     %% thresholds
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
@@ -30,7 +30,7 @@ function DD=INPUT
     DD.thresh.minRossbyRadius      = 20e3; %[SI]
     DD.thresh.amp                  = DD.contour.step; % [SI]
     DD.thresh.shape.iq             = 0.55; % isoperimetric quotient [ ]
-    DD.thresh.corners.min          = 8; % min number of data points for the perimeter of an eddy[ ]
+    DD.thresh.corners.min          = 16; % min number of data points for the perimeter of an eddy[ ]
     DD.thresh.corners.max          = 1e42; % dangerous.. [ ]
     DD.thresh.life                 = threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)

@@ -494,18 +494,17 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     kk=linspace(minV,maxV,size(cmap,1));
     Tac=disp_progress('init','blubb');
     for ee=1:20:numel(files)
-        Tac=disp_progress('calc',Tac,round(numel(files)/200),100);
-%         len=numel(getfield(load(files{ee},'age'),'age'));
-%         if len<minlen
-%             continue
-%         end
-
-
-        V=load(files{ee},fieldName,'lat','lon');
-        
-         if any(abs(wrapTo180(V.lon))>50)
+        Tac=disp_progress('calc',Tac,round(numel(files)/20),100);
+        len=numel(getfield(load(files{ee},'age'),'age'));
+        if len<minlen
             continue
         end
+        
+        V=load(files{ee},fieldName,'lat','lon');
+        
+%          if any(abs(wrapTo180(V.lon))>50)
+%             continue
+%         end
         
         VV=V.(fieldName);
 

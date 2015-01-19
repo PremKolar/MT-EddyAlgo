@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    %     sub09_trackinit(DD);
+%     sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -59,8 +59,8 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-            velZonmeans(S,DD,II,T);
-%     scaleZonmeans(S,DD,II,T);
+    velZonmeans(S,DD,II,T);
+    scaleZonmeans(S,DD,II,T);
     %             	scattStuff(S,T,DD,II);
     
     %     	spmd
@@ -86,13 +86,13 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     FN     = {'rad','radLe','radLeff'};
     %     FN     = {'Lrossby'};
     
-    Rpath = DD.path.Rossby.name;
-    Rname = [DD.FieldKeys.Rossby{2} ,'.mat'];
-    LR = getfield(load([Rpath Rname]),'data');
-    zerFlag = S.reflin == 0;
-    S.reflin(zerFlag) = 1;
-    S.Lrossby = LR(S.reflin)/1000; % m2km
-    S.Lrossby(zerFlag) = nan;
+%     Rpath = DD.path.Rossby.name;
+%     Rname = [DD.FieldKeys.Rossby{2} ,'.mat'];
+%     LR = getfield(load([Rpath Rname]),'data');
+%     zerFlag = S.reflin == 0;
+%     S.reflin(zerFlag) = 1;
+%     S.Lrossby = LR(S.reflin)/1000; % m2km
+%     S.Lrossby(zerFlag) = nan;
     %%
     for ff=1:numel(FN)
         fn=FN{ff}
@@ -102,23 +102,24 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     visits = nan(size(LAuniq));
     for ff=1:numel(FN)
         fn=FN{ff}
-        vvM(numel(LAuniq)).(fn)=nan(size(LAuniq));
-        vvS(numel(LAuniq)).(fn)=nan(size(LAuniq));
+        vvM(numel(LAuniq)).(fn)=struct;
+        [vvM(:).(fn)]=deal(nan);
         
         for cc=1:(numel(LAuniq))
             idx=LA==LAuniq(cc);
-            
             visits(cc) = sum(idx);
             
             if visits(cc) >= 100
                 vvM(cc).(fn)=nanmedian(S.(fn)(idx));
-                if abs(LAuniq(cc))<=5, vvM(cc).(fn)=nan; end
-                vvS(cc).(fn)=nanstd(S.(fn)(idx));
+                if abs(LAuniq(cc))<=5
+                    vvM(cc).(fn)=nan;
+                end
+                
             end
         end
     end
     
-  
+    
     
     %%
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
@@ -134,7 +135,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     % 	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
     % 	savefig(DD.path.plots,100,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
     
-      %% TODO
+    %% TODO
     figure(2)
     cc = 70;
     fn=FN{1}
@@ -160,7 +161,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     close all
-        
+    
     Rpath = DD.path.Rossby.name;
     Rname = [DD.FieldKeys.Rossby{1} ,'.mat'];
     cR = getfield(load([Rpath Rname]),'data');
@@ -180,34 +181,34 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     for cc=1:(numel(LAuniq))
         idx=LA==LAuniq(cc);
         visits(cc) = sum(idx);
-%         if visits(cc) >= 100
-            vvM(cc)=nanmedian(S.vel(idx));
-            vvS(cc)=std(S.vel(idx));
-            vvSkew(cc)=skewness(S.vel(idx));
-            vvCross(cc)=nanmedian(S.Crossby(idx));
-%         end
+        %         if visits(cc) >= 100
+        vvM(cc)=nanmedian(S.vel(idx));
+        vvS(cc)=std(S.vel(idx));
+        vvSkew(cc)=skewness(S.vel(idx));
+        vvCross(cc)=nanmedian(S.Crossby(idx));
+        %         end
     end
-%     vvM(abs(LAuniq)<5)=nan;
-%     vvS(abs(LAuniq)<5)=nan;
-%     vvCross(abs(LAuniq)<5)=nan;
-%     
-%%
-% TODO do this with pop7 or better pop3 data ! and maybe do similar with
-% scales..
-figure(10)  
-clf
-hold on
- plot(LAuniq,smooth(-vvM,10),'blue')
-%  plot(LAuniq,vvS,'red')
- plot(LAuniq,smooth(-vvSkew*5,10),'green')
-  plot(LAuniq,smooth(visits/20000*10,10),'red')
-axis([-80 80 -2 10])
-legend({'-u','-skewness(u)','count'})
-plot([-80 80],[0 0],'--black')
-grid on
-set(gca,'yticklabel','')
-  savefig(DD.path.plots,100,800,200,['Skew'],'dpdf',DD2info(DD));
-  
+    %     vvM(abs(LAuniq)<5)=nan;
+    %     vvS(abs(LAuniq)<5)=nan;
+    %     vvCross(abs(LAuniq)<5)=nan;
+    %
+    %%
+    % TODO do this with pop7 or better pop3 data ! and maybe do similar with
+    % scales..
+    figure(10)
+    clf
+    hold on
+    plot(LAuniq,smooth(-vvM,10),'blue')
+    %  plot(LAuniq,vvS,'red')
+    plot(LAuniq,smooth(-vvSkew*5,10),'green')
+    plot(LAuniq,smooth(visits/20000*10,10),'red')
+    axis([-80 80 -2 10])
+    legend({'-u','-skewness(u)','count'})
+    plot([-80 80],[0 0],'--black')
+    grid on
+    set(gca,'yticklabel','')
+    savefig(DD.path.plots,100,800,200,['Skew'],'dpdf',DD2info(DD));
+    
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -216,7 +217,7 @@ set(gca,'yticklabel','')
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
-    h.ch=chOverLay(S,DD,chelt,LAuniq,-vvM);
+    h.ch=chOverLay(S,DD,chelt,LAuniq,vvM);
     savefig(DD.path.plots,100,800,800,['S-velZonmean4chelt11comp'],'dpdf',DD2info(DD));
     
     %       figure
@@ -226,9 +227,9 @@ set(gca,'yticklabel','')
     
     
     
-      %% TODO
+    %% TODO
     figure(2)
-    cc = 70;   
+    cc = 70;
     idx=LA==LAuniq(cc); % -10
     hist(S.vel(idx),50)
     axis tight
@@ -238,7 +239,7 @@ set(gca,'yticklabel','')
     
     
     figure(3)
-    cc = 30;   
+    cc = 30;
     idx=LA==LAuniq(cc); % -50
     hist(S.vel(idx),50)
     axis tight
@@ -351,6 +352,7 @@ function h=chOverLayScale(chelt,LAuniq,vvM)
         lau=LAuniq;
         kill.lau = isnan(lau) | abs(lau)>70;
         vvm=-cat(2,vvM.(fn))+275;
+%         vvm=-vvM.(fn)+275;
         kill.vvm = isnan(vvm);
         kill.both = kill.lau | kill.vvm;
         vvm(kill.both)=nan;

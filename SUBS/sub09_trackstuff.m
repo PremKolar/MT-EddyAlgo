@@ -15,11 +15,13 @@ function sub09_trackstuff
     age=catsen('age');
     lat=catsen('lat');
     lon=catsen('lon'); %#ok<NASGU>
+   
 %     reflin=catsen('reflin');
     %%
     S.rightyscalenum=5;
     age(end+1:end+S.rightyscalenum)=max(age)-0;
     lat(end+1:end+S.rightyscalenum)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
+    lon(end+1:end+S.rightyscalenum)=S.t2l([min(lon) max(lon) S.rightyscalenum]);
     rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
     vel(end+1:end+S.rightyscalenum)=10;
 
@@ -32,6 +34,7 @@ function sub09_trackstuff
     [~,sml2lrg] = sort(rad)  ;
     S.age = age(fliplr(sml2lrg));
     S.lat = lat(fliplr(sml2lrg));
+    S.lon = lon(fliplr(sml2lrg));
     S.rad = rad(fliplr(sml2lrg));
     S.vel = vel(fliplr(sml2lrg));
 
@@ -168,6 +171,25 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
 %     S.reflin(zerFlag) = 1;
 %     S.Crossby = cR(S.reflin)*100; % m2cm
 %     S.Crossby(zerFlag) = nan;
+
+
+  LA     = round(S.lon);
+    LAuniq = unique(LA)';
+    vvM=nan(size(LAuniq));
+   
+   
+    visits = nan(size(LAuniq));
+    for cc=1:(numel(LAuniq))
+        idx=LA==LAuniq(cc);
+        visits(cc) = sum(idx);
+    end
+
+
+
+
+
+
+
 
     close all
     LA     = round(S.lat);

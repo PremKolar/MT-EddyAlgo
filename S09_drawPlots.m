@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-    DD=initialise([],mfilename);
-    save DD
-%         load DD
+%     DD=initialise([],mfilename);
+%     save DD
+        load DD
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
@@ -47,9 +47,6 @@ function main(DD,ticks)
 %     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
 %     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
-<<<<<<< HEAD
-
-
 
     %%
     senses = DD.FieldKeys.senses';
@@ -68,31 +65,7 @@ function main(DD,ticks)
 %     TPf(DD,ticks,procData.tracks,sen);
 %     %     end
 
-=======
-    
-    
-    %%
-    senses = DD.FieldKeys.senses';
-    %     %     spmd(2)
-    %     sen=senses{labindex};
-    %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
-    %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-        TPzGlobe(DD,ticks,procData.tracks,sen,'iq',30,'iq',0);
-    %
-    %     TPa(DD,ticks,procData.tracks,sen);
-    %     TPb(DD,ticks,procData.tracks,sen);
-    %     TPc(DD,ticks,procData.tracks,sen);
-    %     TPd(DD,ticks,procData.tracks,sen);
-    %     TPe(DD,ticks,procData.tracks,sen);
-    %     TPf(DD,ticks,procData.tracks,sen);
-    %     %     end
-    %%
-    
-    
-    
-    
->>>>>>> aviI
+
     %%
     % 	IQoverCH(DD,ticks)
     %     velZonmeans(DD,procData,ticks)
@@ -522,15 +495,15 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     for ee=1:20:numel(files)
         Tac=disp_progress('calc',Tac,round(numel(files)/20),100);
         len=numel(getfield(load(files{ee},'age'),'age'));
-        if len<minlen
-            continue
-        end
+%         if len<minlen
+%             continue
+%         end
         
         V=load(files{ee},fieldName,'lat','lon');
         
-%          if any(abs(wrapTo180(V.lon))>50)
-%             continue
-%         end
+         if any(abs(wrapTo180(V.lon))>50)
+            continue
+        end
         
         VV=V.(fieldName);
 

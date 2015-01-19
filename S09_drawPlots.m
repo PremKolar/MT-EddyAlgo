@@ -47,7 +47,7 @@ function main(DD,ticks)
     %         save([DD.path.analyzed.name 'procData.mat'],'procData');
     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
-    mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
+%     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
     
     
     %%
@@ -57,7 +57,7 @@ function main(DD,ticks)
     %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
     %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
     %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    %     TPzGlobe(DD,ticks,procData.tracks,sen,'iq',30,'iq',0);
+        TPzGlobe(DD,ticks,procData.tracks,sen,'iq',30,'iq',0);
     %
     %     TPa(DD,ticks,procData.tracks,sen);
     %     TPb(DD,ticks,procData.tracks,sen);

@@ -34,8 +34,8 @@ function rmoldtracks(DD)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         else
-            error('mv old tracks first')
-            sleep(5*60)
+            warning('mv old tracks first')
+            sleep(5*60);
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         end
     end
@@ -229,26 +229,38 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out]=kill_phantoms(in)
     %% search for identical eddies
-    lola = in.lon + 1i*in.lat;
-    [~,ui,~]=unique(lola);
-    %%
-    for fn=fieldnames(in)'      
-        out.(fn{1})=in.(fn{1})(ui);
+    lola = in.lon + 1i*in.lat; % 2d red
+    [~,ui,~]=unique(lola);     % indeces of unique set
+    %%    
+    for fn=fieldnames(in)'
+        if size(in.(fn{1})) == size(lola) % field 'time' doesnt need to be corrected
+            out.(fn{1}) = in.(fn{1})(ui);
+        else
+            out.(fn{1}) = in.(fn{1});
+        end
     end    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function closeEnough=nanOutOfBounds(NEW,OLD)
+function closeEnough=nanOutOfBounds(NEW,OLD,windowdim)
+    %% last lin. index of non-overlapped grid
+    maxLin=prod(struct2array(windowdim));
     %% get locations of new eddies
-    newLin=cat(1,NEW.trackref);
+    newLin=extractfield(cat(1,NEW.trackref),'lin');
     %% get possible (future) indeces for old eddies
     oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
-    try
-        oldEllipIncs=rmfield(oldEllipIncs,'logical'); % TODO rm later
+    %% wrap overlap    
+    newLin = wrapOverlap(newLin,maxLin);  
+    for kk=1:numel(oldEllipIncs)
+        oldEllipIncs(kk).lin = wrapOverlap(oldEllipIncs(kk).lin,maxLin);
     end
     %% build mask. rows -> new, cols -> old
     closeEnough=false(numel(oldEllipIncs),numel(newLin));
     for ii=1:numel(oldEllipIncs)
-        closeEnough(ii,:)=ismember(cat(2,newLin(:).lin),oldEllipIncs(ii).lin');
+        closeEnough(ii,:)=ismember(newLin,oldEllipIncs(ii).lin');
+    end
+    %% ---------------------------
+    function V=wrapOverlap(V,m)
+        V(V>m) = V(V>m)-m;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -321,7 +333,7 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %%
     if DD.switchs.distlimit
-        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies );
+        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
     end
     %%
     if exist('pass','var')
@@ -342,8 +354,10 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
+    
     lon=extractfield(cat(1,eddies.geo),'lon');
     lat=extractfield(cat(1,eddies.geo),'lat');
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

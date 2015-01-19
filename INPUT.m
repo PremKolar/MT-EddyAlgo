@@ -9,7 +9,7 @@ function DD=INPUT
     DD.template='aviso';
     %DD.template='pop';
     %% threads / debug
-    DD.threads.num = 2;
+    DD.threads.num = 4;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;

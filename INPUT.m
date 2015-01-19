@@ -6,8 +6,8 @@
 % 'pop2avi' -
 function DD=INPUT
     %DD.template='pop2avi';
-%    DD.template='aviso';
-    DD.template='pop';
+   DD.template='aviso';
+%     DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
@@ -16,7 +16,8 @@ function DD=INPUT
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
+    DD.time.from.str  = '19970105'; %first pop/avi
+%     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)
@@ -31,8 +32,8 @@ function DD=INPUT
     DD.thresh.minRossbyRadius      = 20e3; %[SI]
     DD.thresh.amp                  = DD.contour.step; % [SI]
     DD.thresh.shape.iq             = 0.55; % isoperimetric quotient [ ]
-    DD.thresh.corners.min          = 8; % min number of data points for the perimeter of an eddy[ ]
-    DD.thresh.corners.max          = 1e42; % dangerous.. [ ]
+    DD.thresh.corners.min          = 10; % min number of data points for the perimeter of an eddy[ ]
+    DD.thresh.corners.max          = 500; % dangerous.. [ ]
     DD.thresh.life                 = threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
@@ -45,8 +46,6 @@ function DD=INPUT
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
-
-
 
 
 

@@ -27,7 +27,8 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     sense.s=senses.s{ss};
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
-    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
+%     tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
+  tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
     
@@ -84,10 +85,9 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
-    tmp=cats.trackref;
-    save(['TR-' sense.s '-reflin.mat'],'tmp')
-    
-end
+%     tmp=cats.trackref;
+%     save(['TR-' sense.s '-reflin.mat'],'tmp')
+   end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

@@ -6,24 +6,25 @@
 % 'pop2avi' -
 function DD=INPUT
     %DD.template='pop2avi';
-    DD.template='aviso';
-    %DD.template='pop';
+   DD.template='aviso';
+%     DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
-    DD.debugmode = true;
+%     DD.debugmode = true;
     DD.overwrite   = false;
-    DD.overwrite = true;
+%     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '19940705'; % last pop/avi
+    DD.time.from.str  = '19970105'; %first pop/avi
+%     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
-    threshlife        = 7*4; % TODO
+    threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  -30;
-    DD.map.in.east  =  30;
-    DD.map.in.south = -50;
-    DD.map.in.north =  -30;
+    DD.map.in.west  =  0;
+    DD.map.in.east  =  360;
+    DD.map.in.south = -80;
+    DD.map.in.north =  80;
     %% thresholds
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
@@ -39,7 +40,7 @@ function DD=INPUT
     DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
      %% switches
 
-    %%
+    %% 1 for I    -    0 for II
     DD.switchs.chelt = 1;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;

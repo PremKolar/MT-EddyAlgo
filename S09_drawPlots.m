@@ -65,7 +65,6 @@ function main(DD,ticks)
 %     TPf(DD,ticks,procData.tracks,sen);
 %     %     end
 
-
     %%
     % 	IQoverCH(DD,ticks)
     %     velZonmeans(DD,procData,ticks)
@@ -113,8 +112,8 @@ function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     if logornot
         set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
     end
-    saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
+%     saveas(gcf,[DD.path.plots tit])
+%     savefig(DD.path.plots,100,1000,500,tit,'dpdf')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -495,16 +494,15 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     for ee=1:20:numel(files)
         Tac=disp_progress('calc',Tac,round(numel(files)/20),100);
         len=numel(getfield(load(files{ee},'age'),'age'));
-%         if len<minlen
-%             continue
-%         end
-        
-        V=load(files{ee},fieldName,'lat','lon');
-        
-         if any(abs(wrapTo180(V.lon))>50)
+        if len<minlen
             continue
         end
-        
+
+        V=load(files{ee},fieldName,'lat','lon');
+
+%          if any(abs(wrapTo180(V.lon))>50)
+%             continue
+%         end
         VV=V.(fieldName);
 
         if logornot
@@ -526,9 +524,9 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         end
 
         for ii=1:length(xx)-1
-            if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
+%             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
                 line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.1);
-            end
+%             end
         end
     end
     caxis([minV maxV])

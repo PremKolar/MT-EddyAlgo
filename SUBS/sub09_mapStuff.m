@@ -6,8 +6,40 @@ function sub09_mapStuff
     eurocen = @(M,loMin) M(:,[loMin:end,1:loMin-1]);
     lo = eurocen(lo,loMin);
     la = eurocen(la,loMin);
+    %%
     mapsAll(II,DD,T,lo,la,eurocen,loMin);
+    %%
+    mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
 end
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
+    senses=DD.FieldKeys.senses;
+    compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
+    
+    runA = 'run A';
+    runB = 'run B';   
+    
+    for sense=senses';sen=sense{1};
+        close all
+        VV=(II.maps.(sen).visits.all);
+        VV = eurocen(VV,loMin);
+        VV(VV==0)=nan;
+        VVcomp=(compData.II.maps.(sen).visits.all);
+        VVcomp = eurocen(VVcomp,loMin);
+        VVcomp(VVcomp==0)=nan;
+        pcolor(lo,la,VV-VVcomp);shading flat;
+        colormap([winter(3);flipud(autumn(2))])
+        cb=decorate([-2.5 2.5,5],T,sen,['total visits: ',runA,'-',runB],' ',0,1);        
+        set(cb,'ytick',[-2 -1 0 1 2])
+        set(cb,'yticklabel',[-2 -1 0 1 2])
+        set(cb,'ylim',[-2 2])       
+        axis([-180 180 -70 70]);
+        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
+        
+    end
+end
+
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses=DD.FieldKeys.senses;

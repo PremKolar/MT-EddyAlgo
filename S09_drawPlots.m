@@ -111,7 +111,7 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     end
     axis tight
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,1000,600,tit,'dpdf')
+    savefig(DD.path.plots,100,800,500,tit,'dpdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [totnum]=ratioBar(hc,field,xlab)

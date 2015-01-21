@@ -364,7 +364,7 @@ function [d,drct]=diststuff(geo)
     d.traj.fromBirth = cumsum(d.traj.m);
     d.traj.tillDeath =  d.traj.fromBirth(end) - d.traj.fromBirth ;
     %%
-    [d.zonal.deg, drct.zonal]=distance(latmean,LO(1:end-1),latmean,LO(2:end));
+    [d.zonal.deg, drct.zonal]=distance('rh',latmean,LO(1:end-1),latmean,LO(2:end));
     drct.zonal(drct.zonal<=180 & drct.zonal >= 0) = 1;
     drct.zonal(drct.zonal> 180 & drct.zonal <= 360) = -1;
     d.zonal.m=d2mR(d.zonal.deg,drct.zonal);

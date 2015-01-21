@@ -14,8 +14,9 @@ function S09_plotsNew
 	geo=DD.map.window.geo;
 	ticks.y= round(linspace(geo.south,geo.north,5));
 	ticks.x=  round(linspace(geo.west,geo.east,5));
+    ticks.x=  round(linspace(-180,180,5));
 	ticks.axis=[geo.west  geo.east geo.south geo.north];
-	ticks.age=[1,5*365,10];
+    ticks.age=[1,5*365,10];
 	%     ticks.isoper=[DD.thresh.shape.iq,1,10];
 	ticks.isoper=[.6,1,10];
 	ticks.radius=[50,250,11];

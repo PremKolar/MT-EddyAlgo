@@ -21,7 +21,7 @@ function S09_drawPlots
     ticks.x= 0;
     ticks.age=[1,2*365,10];
     %     ticks.isoper=[DD.thresh.shape.iq,1,10];
-    ticks.isoper=[.6,1,10];
+    ticks.iq=[.55,1,4];
     ticks.radius=[50,250,11];
     ticks.radiusToRo=[0.5,5,6];
     ticks.amp=[1,20,7];
@@ -42,38 +42,20 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,ticks)
     close all
-             [procData]=inits(DD);
-            save([DD.path.analyzed.name 'procData.mat'],'procData');
-%     load([DD.path.analyzed.name 'procData.mat'],'procData');
-    %%
-%     mapstuff(procData.maps,[],DD,ticks,procData.lo,procData.la)
-
+    [procData]=inits(DD);
+    save([DD.path.analyzed.name 'procData.mat'],'procData');
+    %     load([DD.path.analyzed.name 'procData.mat'],'procData');
     %%
     senses = DD.FieldKeys.senses';
-     %     spmd(2)
+    %     spmd(2)
     sen=senses{labindex};
-%     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
-%     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',20,'amp',1);
-%      TPzGlobe(DD,ticks,procData.tracks,sen,'iq',100,'iq',0);
-%
-%     TPa(DD,ticks,procData.tracks,sen);
-%     TPb(DD,ticks,procData.tracks,sen);
-%     TPc(DD,ticks,procData.tracks,sen);
-%     TPd(DD,ticks,procData.tracks,sen);
-%     TPe(DD,ticks,procData.tracks,sen);
-%     TPf(DD,ticks,procData.tracks,sen);
-%     %     end
-
-    %%
-    % 	IQoverCH(DD,ticks)
-    %     velZonmeans(DD,procData,ticks)
-    %     scaleZonmeans(DD,procData,ticks)%
-    %     histstuff(procData.vecs,DD,ticks)
-    %
+    TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
+    TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
+    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
+    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [OUT]=inits(DD) %#ok<DEFNU>
+function [OUT]=inits(DD)
     disp(['loading maps'])
     OUT.maps=load([DD.path.analyzed.name, 'maps.mat']);
     OUT.la=OUT.maps.Cycs.lat;
@@ -100,22 +82,21 @@ function [OUT]=inits(DD) %#ok<DEFNU>
     %     disp(['loading vectors'])
     % 	OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
+function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot,fac)
     globe=true;
-    drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe) ;
+    drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe,fac) ;
     axis([-180 180 -70 70])
-  drawcoast
+    drawcoast
     tit=['tracks-' colorfield '-' sen];
     cb=colorbar;
+    set(cb,'ytick',linspace(ticks.(cticks)(1),ticks.(cticks)(2),ticks.(cticks)(3)))
     if logornot
         set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
     end
-%     saveas(gcf,[DD.path.plots tit])
-%     savefig(DD.path.plots,100,1000,500,tit,'dpdf')
-end
 
+    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,0) ;
@@ -126,14 +107,320 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     tit=['defl-' colorfield '-' sen];
     cb=colorbar;
     if logornot
-       set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
+        set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
     end
     axis tight
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,1000,600,tit,'dpdf')
+    savefig(DD.path.plots,100,800,500,tit,'dpdf')
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [totnum]=ratioBar(hc,field,xlab)
+    %% ratio cyc/acyc per lat
+    figure
+    %% find max length for ratio vecotr
+    len=nanmin([length(hc.Cycs.(field)),length(hc.AntiCycs.(field))]);
+    hc.rat.(field)=hc.Cycs.(field)(1:len)./hc.AntiCycs.(field)(1:len);
+    hc.rat.(field)(isinf(hc.rat.(field)))=nan;
+    hc.rat.(field)((hc.rat.(field)==0))=nan;
+    %% total length
+    totnum=hc.Cycs.(field)(1:len) + hc.AntiCycs.(field)(1:len);
+    %%%%
+    logyBar(totnum,hc.rat.(field))
+    %%%%
+    xt= (1:numel(xlab));
+    set(gca,'XTick',xt)
+    set(gca,'YTickMode','auto')
+    yt= get(gca,'YTick');
+    set(gca,'yticklabel',sprintf('%0.1f|',exp(yt)));
+    set(gca,'xticklabel',num2str(xlab));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function logyBar(totnum,y)
+    len=numel(y);
+    y=log(y);
+    x=1:len;
+    y(totnum==0)=[];
+    x(totnum==0)=[];
+    totnum(totnum==0)=[];
+
+    colors = flipud(bone(max(totnum)));
+    cols=colors(totnum,:);
+    for ii = 1:numel(x)
+        a=bar(x(ii), y(ii));
+        hold on
+        set(a,'facecolor', cols(ii,:));
+    end
+    cm=flipud(bone);
+    colormap(cm)
+    cb=colorbar;
+    zticks=linspace(2,max(totnum),5)';
+    zticklabel=num2str(round((zticks)));
+    caxis([zticks(1) zticks(end)])
+    set(cb,'ytick',zticks);
+    set(cb,'yticklabel',zticklabel);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [lat]=numPerLat(latin,DD,ticks,range,sen)
+    figure
+    lat=histc(latin,range);
+    semilogy(range,lat);
+    tit=['number of ',sen,' per 1deg lat'];
+    title([tit]);
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [age,cum]=ageCum(agein,DD,ticks,range,sen)
+    figure
+    agein(agein<DD.thresh.life)=[];
+    age=histc(agein,range);
+    semilogy(range,age)
+    tit=['number of ',sen,' per age'];
+    unit='d';
+    title([tit,' [',unit,']'])
+    cum=fliplr(cumsum(fliplr(age)));
+    semilogy(range,cum)
+    tit=['upper tail cumulative of ',sen,' per age'];
+    title([tit,' [',unit,']'])
+    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['ageUpCum-' sen ],DD.debugmode);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function drawcoast
+    load coast;
+    hold on; plot(long,lat,'LineWidth',0.5);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
+    if nargin<10
+        rats=false;
+    end
+    if nargin<9
+        coast=true;
+    end
+
+    %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %     coast=false
+    %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    axis(ticks.axis);
+    cb=colorbar;
+    if logornot
+        zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
+        zticklabel=round(exp(zticks)*decim)/decim;
+        if rats
+            [n,d]=rat(zticklabel);
+            nc=(num2cell(n));
+            dc=(num2cell(d));
+            zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
+        else
+            zticklabel=num2str(zticklabel);
+        end
+    else
+        zticks=linspace(ticks.(field)(1),ticks.(field)(2),ticks.(field)(3))';
+        zticklabel=num2str(round(zticks*decim)/decim);
+    end
+    caxis([zticks(1) zticks(end)])
+    set(cb,'ytick',zticks);
+    set(cb,'yticklabel',zticklabel);
+    title([tit,' - ',tit2,' [',unit,']'])
+    xlabel(sprintf('Min. age: %d [d]',DD.thresh.life))
+    if coast
+        drawcoast;
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe,fac)
+    if nargin<8,fac=1;end
+    cmap=jet;% Generate range of color indices that map to cmap
+    %% get extremata
+    minV=ticks.(cticks)(1);
+    maxV=ticks.(cticks)(2);
+    if logornot
+        minV = log(minV);
+        maxV = log(maxV);
+    end
+    kk=linspace(minV,maxV,size(cmap,1));
+    Tac=disp_progress('init','blubb');
+    for ee=1:1:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)),100);
+        len=numel(getfield(load(files{ee},'age'),'age'));
+        if len<minlen
+            continue
+        end
+        V=load(files{ee},fieldName,'lat','lon');
+        VV=V.(fieldName)*fac;
+        if logornot
+            VV = log(VV);
+        end
+        cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
+        cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
+        cm(cm<0)=0;
+        %% deg2km
+        if globe
+            yy=V.lat;
+            xx=wrapTo180(V.lon);
+            dJump=100;
+        else
+            yy=[0 cumsum(deg2km(diff(V.lat)))];
+            xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
+            dJump=1000;
+        end
+
+        for ii=1:length(xx)-1
+            %             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
+            line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.5);
+            %             end
+        end
+    end
+    caxis([minV maxV])
+
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
+    cmap=jet;% Generate range of color indices that map to cmap
+    %% get extremata
+    maxIQ=ticks.isoper(2);
+    minIQ=ticks.isoper(1);
+    minV=ticks.lat(1);
+    maxV=ticks.lat(2);
+    iqiq=linspace(minIQ,maxIQ,10);
+    kk=linspace(minV,maxV,size(cmap,1));
+    %      kk=linspace(minIQ,maxIQ,10);
+    %     iqiq=linspace(minV,maxV,size(cmap,1));
+
+    meaniq=nan(size(files));
+    for ee=1:numel(files)
+        V=load(files{ee},fieldName2);
+        VViq=V.(fieldName2);
+        meaniq(ee)=nanmean(VViq);
+    end
+    meaniq(meaniq>1)=1;
+    [~,iqorder]=sort(meaniq,'descend');
+
+    maxthick=ticks.rez/300*10;
+    minthick=ticks.rez/300*0.1;
+    for ee=iqorder
+        V=load(files{ee},fieldName,fieldName2,'lat','lon');
+        %         V=load(files{ee});
+        VV=V.(fieldName);
+        VViq=V.(fieldName2);
+        VViq(VViq>1)=1;
+        if isempty(VV)
+            continue
+        end
+        cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
+        cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
+        cm(cm<0)=0;
+        %% Find interpolated thickness
+        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
+        iq(iq<0)=minthick;
+        %% deg2km
+        yy=[0 cumsum(deg2km(diff(V.lat)))];
+        xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
+        for ii=1:length(xx)-1
+            if  abs(xx(ii+1)-xx(ii))<1000 % avoid 0->360 jumps
+                line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'LineWidth',iq(ii));
+            end
+        end
+    end
+    caxis([minV maxV])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zeroshift)
+    cmap=jet;% Generate range of color indices that map to cmap
+    if logornot
+        maxV=log(maxV);
+        minV(minV==0)=1;
+        minV=log(minV);
+    end
+    kk=linspace(minV,maxV,size(cmap,1));
+    %%
+    maxIQ=ticks.isoper(2);
+    minIQ=ticks.isoper(1);
+    iqiq=linspace(minIQ,maxIQ,10);
+    %%
+    meaniq=nan(size(files));
+    for ee=1:numel(files)
+        V=load(files{ee},'isoper');
+        VViq=V.isoper;
+        meaniq(ee)=nanmean(VViq);
+    end
+    meaniq(meaniq>1)=1;
+    [~,iqorder]=sort(meaniq,'descend');
+    %%
+    maxthick=ticks.rez/300*10;
+    minthick=ticks.rez/300*0.1;
+    for ee=iqorder
+        V=load(files{ee},fieldName,'isoper','lat','lon');
+        VV=V.(fieldName);
+        VViq=V.isoper;
+        VViq(VViq>1)=1;
+        if isempty(VV)
+            continue
+        end
+        if logornot
+            VV(VV==0)=1;
+            cm = spline(kk,cmap',log(VV));  % Find interpolated colorvalue
+            %             cm = spline(iqiq,cmap',log(VViq));  % Find interpolated colorvalue
+        else
+            cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
+            %             cm = spline(iqiq,cmap',VViq);       % Find interpolated colorvalue
+        end
+        cm(cm>1)=1;                        % Sometimes iterpolation gives values that are out of [0,1] range...
+        cm(cm<0)=0;
+        lo=V.lon;
+        la=V.lat;
+        if zeroshift
+            lo=lo-lo(1);
+            la=la-la(1);
+        end
+        %% Find interpolated thickness
+        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
+        %         iq = spline(kk,linspace(0.01,2,10),VV);
+        iq(iq<0)=minthick;
+        %%
+        for ii=1:length(la)-1
+            if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
+                line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',iq(ii));
+            end
+        end
+    end
+    caxis([minV maxV])
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function TPa(DD,ticks,tracks,sen)
     drawColorLinem(ticks,tracks.(sen),'lat','isoper') ;
     title([sen '- deflections'])
@@ -301,27 +588,6 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [totnum]=ratioBar(hc,field,xlab)
-    %% ratio cyc/acyc per lat
-    figure
-    %% find max length for ratio vecotr
-    len=nanmin([length(hc.Cycs.(field)),length(hc.AntiCycs.(field))]);
-    hc.rat.(field)=hc.Cycs.(field)(1:len)./hc.AntiCycs.(field)(1:len);
-    hc.rat.(field)(isinf(hc.rat.(field)))=nan;
-    hc.rat.(field)((hc.rat.(field)==0))=nan;
-    %% total length
-    totnum=hc.Cycs.(field)(1:len) + hc.AntiCycs.(field)(1:len);
-    %%%%
-    logyBar(totnum,hc.rat.(field))
-    %%%%
-    xt= (1:numel(xlab));
-    set(gca,'XTick',xt)
-    set(gca,'YTickMode','auto')
-    yt= get(gca,'YTick');
-    set(gca,'yticklabel',sprintf('%0.1f|',exp(yt)));
-    set(gca,'xticklabel',num2str(xlab));
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function histstuff(vecs,DD,ticks)
     senses={'Cycs','AntiCycs'};
     for sense=senses;sen=sense{1};
@@ -358,31 +624,6 @@ function histstuff(vecs,DD,ticks)
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-ageratio-' sen],DD.debugmode);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function logyBar(totnum,y)
-    len=numel(y);
-    y=log(y);
-    x=1:len;
-    y(totnum==0)=[];
-    x(totnum==0)=[];
-    totnum(totnum==0)=[];
-
-    colors = flipud(bone(max(totnum)));
-    cols=colors(totnum,:);
-    for ii = 1:numel(x)
-        a=bar(x(ii), y(ii));
-        hold on
-        set(a,'facecolor', cols(ii,:));
-    end
-    cm=flipud(bone);
-    colormap(cm)
-    cb=colorbar;
-    zticks=linspace(2,max(totnum),5)';
-    zticklabel=num2str(round((zticks)));
-    caxis([zticks(1) zticks(end)])
-    set(cb,'ytick',zticks);
-    set(cb,'yticklabel',zticklabel);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function velZonmeans(DD,IN,ticks)
     plot(IN.la(:,1),IN.maps.zonMean.Rossby.small.phaseSpeed	); 	hold on
     acv=squeeze(nanmean(IN.maps.AntiCycs.vel.zonal.mean,2));
@@ -411,236 +652,3 @@ function scaleZonmeans(DD,IN,ticks)
     axis([min(IN.la(:,1)) max(IN.la(:,1)) 0 maxr])
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['S-scaleZonmean'],DD.debugmode,'dpdf');
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [lat]=numPerLat(latin,DD,ticks,range,sen)
-    figure
-    lat=histc(latin,range);
-    semilogy(range,lat);
-    tit=['number of ',sen,' per 1deg lat'];
-    title([tit]);
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['latNum-' sen],DD.debugmode,'dpng',1);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [age,cum]=ageCum(agein,DD,ticks,range,sen)
-    figure
-    agein(agein<DD.thresh.life)=[];
-    age=histc(agein,range);
-    semilogy(range,age)
-    tit=['number of ',sen,' per age'];
-    unit='d';
-    title([tit,' [',unit,']'])
-    cum=fliplr(cumsum(fliplr(age)));
-    semilogy(range,cum)
-    tit=['upper tail cumulative of ',sen,' per age'];
-    title([tit,' [',unit,']'])
-    savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['ageUpCum-' sen ],DD.debugmode);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function drawcoast
-    load coast;
-    hold on; plot(long,lat,'LineWidth',0.5);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
-    if nargin<10
-        rats=false;
-    end
-    if nargin<9
-        coast=true;
-    end
-
-    %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %     coast=false
-    %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    axis(ticks.axis);
-    cb=colorbar;
-    if logornot
-        zticks=linspace(log(ticks.(field)(1)),log(ticks.(field)(2)),ticks.(field)(3))';
-        zticklabel=round(exp(zticks)*decim)/decim;
-        if rats
-            [n,d]=rat(zticklabel);
-            nc=(num2cell(n));
-            dc=(num2cell(d));
-            zticklabel=cellfun(@(a,b) [num2str(a) '/' num2str(b)],nc,dc,'uniformoutput',false);
-        else
-            zticklabel=num2str(zticklabel);
-        end
-    else
-        zticks=linspace(ticks.(field)(1),ticks.(field)(2),ticks.(field)(3))';
-        zticklabel=num2str(round(zticks*decim)/decim);
-    end
-    caxis([zticks(1) zticks(end)])
-    set(cb,'ytick',zticks);
-    set(cb,'yticklabel',zticklabel);
-    title([tit,' - ',tit2,' [',unit,']'])
-    xlabel(sprintf('Min. age: %d [d]',DD.thresh.life))
-    if coast
-        drawcoast;
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe)
-    cmap=jet;% Generate range of color indices that map to cmap
-    %% get extremata
-    minV=ticks.(cticks)(1);
-    maxV=ticks.(cticks)(2);
-    if logornot
-        minV = log(minV);
-        maxV = log(maxV);
-    end
-    kk=linspace(minV,maxV,size(cmap,1));
-    Tac=disp_progress('init','blubb');
-    for ee=1:20:numel(files)
-        Tac=disp_progress('calc',Tac,round(numel(files)/20),100);
-        len=numel(getfield(load(files{ee},'age'),'age'));
-        if len<minlen
-            continue
-        end
-
-        V=load(files{ee},fieldName,'lat','lon');
-
-%          if any(abs(wrapTo180(V.lon))>50)
-%             continue
-%         end
-        VV=V.(fieldName);
-
-        if logornot
-            VV = log(VV);
-        end
-        cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
-        cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
-        cm(cm<0)=0;
-        %% deg2km
-
-        if globe
-            yy=V.lat;
-            xx=wrapTo180(V.lon);
-            dJump=100;
-        else
-            yy=[0 cumsum(deg2km(diff(V.lat)))];
-            xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
-            dJump=1000;
-        end
-
-        for ii=1:length(xx)-1
-%             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
-                line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.1);
-%             end
-        end
-    end
-    caxis([minV maxV])
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
-    cmap=jet;% Generate range of color indices that map to cmap
-    %% get extremata
-    maxIQ=ticks.isoper(2);
-    minIQ=ticks.isoper(1);
-    minV=ticks.lat(1);
-    maxV=ticks.lat(2);
-    iqiq=linspace(minIQ,maxIQ,10);
-    kk=linspace(minV,maxV,size(cmap,1));
-    %      kk=linspace(minIQ,maxIQ,10);
-    %     iqiq=linspace(minV,maxV,size(cmap,1));
-
-    meaniq=nan(size(files));
-    for ee=1:numel(files)
-        V=load(files{ee},fieldName2);
-        VViq=V.(fieldName2);
-        meaniq(ee)=nanmean(VViq);
-    end
-    meaniq(meaniq>1)=1;
-    [~,iqorder]=sort(meaniq,'descend');
-
-    maxthick=ticks.rez/300*10;
-    minthick=ticks.rez/300*0.1;
-    for ee=iqorder
-        V=load(files{ee},fieldName,fieldName2,'lat','lon');
-        %         V=load(files{ee});
-        VV=V.(fieldName);
-        VViq=V.(fieldName2);
-        VViq(VViq>1)=1;
-        if isempty(VV)
-            continue
-        end
-        cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
-        cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
-        cm(cm<0)=0;
-        %% Find interpolated thickness
-        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
-        iq(iq<0)=minthick;
-        %% deg2km
-        yy=[0 cumsum(deg2km(diff(V.lat)))];
-        xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
-        for ii=1:length(xx)-1
-            if  abs(xx(ii+1)-xx(ii))<1000 % avoid 0->360 jumps
-                line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'LineWidth',iq(ii));
-            end
-        end
-    end
-    caxis([minV maxV])
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [maxV,cmap]=drawColorLine(ticks,files,fieldName,maxV,minV,logornot,zeroshift)
-    cmap=jet;% Generate range of color indices that map to cmap
-    if logornot
-        maxV=log(maxV);
-        minV(minV==0)=1;
-        minV=log(minV);
-    end
-    kk=linspace(minV,maxV,size(cmap,1));
-    %%
-    maxIQ=ticks.isoper(2);
-    minIQ=ticks.isoper(1);
-    iqiq=linspace(minIQ,maxIQ,10);
-    %%
-    meaniq=nan(size(files));
-    for ee=1:numel(files)
-        V=load(files{ee},'isoper');
-        VViq=V.isoper;
-        meaniq(ee)=nanmean(VViq);
-    end
-    meaniq(meaniq>1)=1;
-    [~,iqorder]=sort(meaniq,'descend');
-    %%
-    maxthick=ticks.rez/300*10;
-    minthick=ticks.rez/300*0.1;
-    for ee=iqorder
-        V=load(files{ee},fieldName,'isoper','lat','lon');
-        VV=V.(fieldName);
-        VViq=V.isoper;
-        VViq(VViq>1)=1;
-        if isempty(VV)
-            continue
-        end
-        if logornot
-            VV(VV==0)=1;
-            cm = spline(kk,cmap',log(VV));  % Find interpolated colorvalue
-            %             cm = spline(iqiq,cmap',log(VViq));  % Find interpolated colorvalue
-        else
-            cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
-            %             cm = spline(iqiq,cmap',VViq);       % Find interpolated colorvalue
-        end
-        cm(cm>1)=1;                        % Sometimes iterpolation gives values that are out of [0,1] range...
-        cm(cm<0)=0;
-        lo=V.lon;
-        la=V.lat;
-        if zeroshift
-            lo=lo-lo(1);
-            la=la-la(1);
-        end
-        %% Find interpolated thickness
-        iq = spline(iqiq,linspace(minthick,maxthick,10),VViq);
-        %         iq = spline(kk,linspace(0.01,2,10),VV);
-        iq(iq<0)=minthick;
-        %%
-        for ii=1:length(la)-1
-            if  abs(lo(ii+1)-lo(ii))<10 % avoid 0->360 jumps
-                line([lo(ii) lo(ii+1)],[la(ii) la(ii+1)],'color',cm(:,ii),'LineWidth',iq(ii));
-            end
-        end
-    end
-    caxis([minV maxV])
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

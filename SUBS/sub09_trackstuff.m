@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    sub09_trackinit(DD);
+%     sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -62,7 +62,7 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    velZonmeans(S,DD,II,T);
+%     velZonmeans(S,DD,II,T);
     scaleZonmeans(S,DD,II,T);
     %             	scattStuff(S,T,DD,II);
     
@@ -86,7 +86,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     %     FN     = {'rad','radL','radLe','radLeff'};
-    FN     = {'rad','radLe','radLeff'};
+    FN     = {'rad','radLe'};
     %     FN     = {'Lrossby'};
     
     %     Rpath = DD.path.Rossby.name;

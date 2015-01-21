@@ -830,7 +830,7 @@ function fields_out = EDDyCut_init(fields_in,z)
         field = ff{1};
         fields_out.(field) = fields_in.(field)(ya:yb,xa:xb);
     end
-    %%
+    %% TODO do with distance(), looks better
     fields_out.km_x = cumsum(mod(diff(fields_out.lon(:,[[1 1:end]]),1,2),360),2);
     fields_out.km_x = fields_out.km_x .* cosd(fields_out.lat);
     fields_out.km_x = deg2km(fields_out.km_x);

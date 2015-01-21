@@ -278,6 +278,8 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
     
+    
+    
     %     prcnt.amp=sum(sum(AMPfac <= ampArea(2) & AMPfac >= ampArea(1)))/numel(AMPfac)*100;
     %      prcnt.area=sum(sum(AREAfac <= ampArea(2) & AREAfac >= ampArea(1)))/numel(AMPfac)*100;
     % x=1:numel(AREAfac);
@@ -301,6 +303,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
+%     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)

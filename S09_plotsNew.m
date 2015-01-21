@@ -39,8 +39,8 @@ end
 function main(DD,T)
 	II=initStuff(DD);
 	save S09main II DD T
-% 	sub09_trackstuff
-	sub09_mapStuff
+	sub09_trackstuff
+% 	sub09_mapStuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function II=initStuff(DD)

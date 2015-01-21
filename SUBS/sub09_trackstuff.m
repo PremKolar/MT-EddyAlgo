@@ -87,6 +87,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     LAuniq = unique(LA)';
     %     FN     = {'rad','radL','radLe','radLeff'};
     FN     = {'rad','radLe','radLeff'};
+    
     %     FN     = {'Lrossby'};
     
     %     Rpath = DD.path.Rossby.name;
@@ -250,7 +251,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     hist(S.vel(idx),50)
     axis tight
     xlabel('u [cm/s] at -10^{\circ}')
-    title(sprintf('total: %d counts',sum(idx)))
+    title(sprintf('total: %d counts - u at-10deg',sum(idx)))
     savefig(DD.path.plots,100,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
     
     
@@ -260,7 +261,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     hist(S.vel(idx),50)
     axis tight
     xlabel('u [cm/s] at -50^{\circ}')
-    title(sprintf('total: %d counts',sum(idx)))
+    title(sprintf('total: %d counts - u at-50deg',sum(idx)))
     savefig(DD.path.plots,100,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
     
     

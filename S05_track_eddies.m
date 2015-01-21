@@ -301,6 +301,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
+%     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)

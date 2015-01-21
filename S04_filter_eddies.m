@@ -326,13 +326,13 @@ function [pass,chelt] = chelton_shape(z,ee)
     xiy = x + 1i*y;
     [A,B] = meshgrid(xiy,xiy);
     maxDist = max(max(abs(A - B)))*1000;
-    %%
+    %% mean latitude of eddy
     medlat = abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
-    %%
+    %% 
     if medlat> 25
         chelt = 1 - maxDist/4e5;
     else
-        chelt = 1 - maxDist/(8e5*(25 - medlat)/25 + 4e5);
+        chelt = 1 - maxDist/(8e5*(25 - medlat)/25 + 4e5); % equiv. 1200km @ equator
     end
     if chelt >= 0, pass = true; else pass = false; end
 end

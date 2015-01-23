@@ -39,13 +39,13 @@ end
 function main(DD,T)
 	II=initStuff(DD);
 	save S09main II DD T
-	sub09_trackstuff
-% 	sub09_mapStuff
+% 	sub09_trackstuff
+	sub09_mapStuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function II=initStuff(DD)
-	II.aut=autumn(100);
-	II.win=winter(100);
+% 	II.aut=autumn(100);
+% 	II.win=winter(100);
 	II.maps=load([DD.path.analyzed.name, 'maps.mat']);  % see S06
 	II.la=II.maps.Cycs.lat;
 	II.lo=II.maps.Cycs.lon;

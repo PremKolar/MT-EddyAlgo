@@ -350,6 +350,8 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
+   
+    
     lon=extractfield(cat(1,eddies.geo),'lon');
     lat=extractfield(cat(1,eddies.geo),'lat');
 end

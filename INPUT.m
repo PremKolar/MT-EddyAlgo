@@ -6,17 +6,17 @@
 % 'pop2avi' -
 function DD=INPUT
     %DD.template='pop2avi';
-%    DD.template='aviso';
-    DD.template='pop';
+   DD.template='aviso';
+%     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 12;
+    DD.threads.num = 8;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '19970105'; %first pop/avi
+    DD.time.till.str  = '19990105'; %first pop/avi
 %     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
@@ -41,11 +41,13 @@ function DD=INPUT
      %% switches
 
     %% 1 for I    -    0 for II
-    DD.switchs.chelt = 0;
+    DD.switchs.chelt = 1;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
+
+
 
 
 

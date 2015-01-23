@@ -3,7 +3,7 @@
 % S01_BruntVaisRossby
 % S02_infer_fields
 % S03_contours
-sleep(3*60*60)
+
 S04_filter_eddies
 S05_track_eddies
 S06_init_output_maps

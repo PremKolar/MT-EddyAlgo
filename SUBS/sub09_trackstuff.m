@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-%     sub09_trackinit(DD);
+    sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;

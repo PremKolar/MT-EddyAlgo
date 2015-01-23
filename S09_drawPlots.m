@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_drawPlots
-     DD=initialise([],mfilename);
-     save DD
-%     load DD
+    DD=initialise([],mfilename);
+    save DD
+%         load DD
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');

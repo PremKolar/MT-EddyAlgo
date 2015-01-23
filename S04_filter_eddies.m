@@ -733,8 +733,13 @@ end
 function [geo] = geocoor(zoom,volume)
     xz = volume.center.xz;
     yz = volume.center.yz;
-    geo.lat = interp2(zoom.fields.lat,xz,yz);
-    geo.lon = interp2(zoom.fields.lon,xz,yz);
+    geo.lat = interp2(zoom.fields.lat,xz,yz);    
+    if zoom.fields.lon(1,1) > zoom.fields.lon(1,end)
+        zoom.fields.lon = wrapTo180(zoom.fields.lon);
+        geo.lon = wrapTo360(interp2(zoom.fields.lon,xz,yz));
+    else
+        geo.lon = interp2(zoom.fields.lon,xz,yz);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [volume] = CenterOfVolume(zoom,area,Y)

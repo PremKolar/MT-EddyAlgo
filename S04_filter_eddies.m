@@ -247,6 +247,15 @@ function  [ch]=cheltStuff(ee,zoom)
     ch.area.Le   = polyarea(x,y);
     ch.area.L    = ch.area.Le/sqrt(2);
     ch.area.Leff = ee.area.intrp;
+    
+%     
+%     s The right panel shows meridional proﬁles of the
+% average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
+% folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
+% AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
+% (1998).
+
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL = getLocalRossyRadius(rossbyL,coor)

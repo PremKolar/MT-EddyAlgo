@@ -15,6 +15,7 @@ function sub09_trackstuff
     age=catsen('age');
     lat=catsen('lat');
     lon=catsen('lon'); %#ok<NASGU>
+    amp=catsen('amp'); %#ok<NASGU>
     %     reflin=catsen('reflin');
     %%
     S.rightyscalenum=5;
@@ -27,6 +28,7 @@ function sub09_trackstuff
     radL(end+1:end+S.rightyscalenum)=0;
     radLe(end+1:end+S.rightyscalenum)=0;
     radLeff(end+1:end+S.rightyscalenum)=0;
+    amp(end+1:end+S.rightyscalenum)=0;
     %     reflin(end+1:end+S.rightyscalenum)=0;
 
     %%
@@ -36,6 +38,7 @@ function sub09_trackstuff
     S.lon = lon(fliplr(sml2lrg));
     S.rad = rad(fliplr(sml2lrg));
     S.vel = vel(fliplr(sml2lrg));
+    S.amp = amp(fliplr(sml2lrg));
 
     S.radLe   = radLe(fliplr(sml2lrg));
     S.radLeff = radLeff(fliplr(sml2lrg));
@@ -45,9 +48,12 @@ function sub09_trackstuff
 
     %% kill unrealistic data
     zerage  = S.age<=0  ;
-    velHigh = S.vel>20 | S.vel <-30;
+    velHigh = S.vel>100 | S.vel <-100;
     radnill = isnan(S.rad) | S.rad==0;
-    killTag = zerage | velHigh | radnill ;
+    
+    SOonly  = S.lat > -30 | S.lat < -70 ;   
+    
+    killTag = zerage | velHigh | radnill | SOonly  | S.age<30;
 
     FN=fieldnames(S);
     for ii=1:numel(FN)
@@ -55,14 +61,33 @@ function sub09_trackstuff
             S.(FN{ii})(killTag)=[];
         end
     end
-
+    
+    
+   aa= griddata(wrapTo180(S.lon),S.lat,abs(S.vel),(-180:.01:180)',-70:.01:-30);
+    imagesc((-180:.01:180)',-70:.01:-30,flipud(aa))
+    colorbar
+%     pcolor(aa);shading flat
+    caxis([0 10])
+    hold on
+    load coast
+    plot(long,lat,'black','linewidth',3)
+    
+% scatter(wrapTo180(S.lon),S.lat,abs(S.vel),log(S.age))
+%%
+% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
+scatter(S.lon,S.lat,1,(abs(S.vel)))
+cb=colorbar
+caxis([0 10])
+% set(cb,'yticklabel',exp(get(cb,'ytick')))
+set(cb,'yticklabel',(get(cb,'ytick')))
+axis tight
     %%
     spmdblock(S,DD,II,T);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-    velZonmeans(S,DD,II,T);
-    scaleZonmeans(S,DD,II,T);
+%     velZonmeans(S,DD,II,T);
+%     scaleZonmeans(S,DD,II,T);
     %             	scattStuff(S,T,DD,II);
 
     %     	spmd
@@ -72,7 +97,7 @@ function spmdblock(S,DD,II,T)
     %     			case 2
     %     				velZonmeans(S,DD,II,T);
     % %     			case 3
-    % %     				scattStuff(S,T,DD,II);
+        				scattStuff(S,T,DD,II);
     %     		end
     %      	end
 end
@@ -445,7 +470,7 @@ function scattStuff(S,T,DD,II)
     clf
     oie=@(inc,x) x(1:inc:end);
     incscatter=@(inc,a,b,c,d) scatter(oie(inc,a),oie(inc,b),oie(inc,c),oie(inc,d));
-    incscatter(inc,age,lat,rad,vel);
+    incscatter(inc,age,lat,rad/10,abs(vel));
     grid on
     axis tight
     set(gca,'XAxisLocation','bottom')
@@ -453,8 +478,10 @@ function scattStuff(S,T,DD,II)
     cb1 = findobj(gcf,'Type','axes','Tag','Colorbar');
     cbIm = findobj(cb1,'Type','image');
     alpha(cbIm,0.5)
+    T.vel = [0 10 11]
     set(cb,'location','north','xtick',(S.t2l(T.vel)),'xlim',T.vel([1 2]))
-    doublemap([T.vel(1) 0 T.vel(2)],II.aut,II.win,[.9 1 .9],20)
+%     colormap(jet(100));
+    doublemap([T.vel(1) 0 T.vel(2)],autumn(50),winter(50),[.9 1 .9],20)
     h1=gca;
     h1pos = get(h1,'Position'); % store position of first axes
     h2 = axes('Position',h1pos,...
@@ -475,13 +502,14 @@ function scattStuff(S,T,DD,II)
     set(get(gcf,'children'),'clipping','off')
     %%
     %  figure(1)
-    savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpng',DD2info(DD));
+    savefig(DD.path.plots,1.5*T.rez,2*T.width,2*T.height,['sct-ageLatRadUabs'],'dpdf',DD2info(DD));
+%     savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpng',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR=getTR(DD)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     %     F={'rad','age','lat','lon'};
-    F={'rad','age','lat','lon','radL','radLeff','radLe'};
+    F={'rad','age','lat','lon','radL','radLeff','radLe','amp'};
     %     F={'rad','age','lat','lon','radL','radLeff','radLe','reflin'};
     g=@(c) cat(1,c{:});
     for ss=1:2

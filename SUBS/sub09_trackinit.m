@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 22-Sep-2014 18:33:55
 % Computer:  GLNXA64
 % Matlab:  8.1
@@ -28,7 +28,7 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
 %     tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
-  tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
+  tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
 
@@ -89,6 +89,8 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
+    tmp=cats.peakampto_mean;
+    save(['TR-' sense.s '-amp.mat'],'tmp')
 %     tmp=cats.trackref;
 %     save(['TR-' sense.s '-reflin.mat'],'tmp')
    end

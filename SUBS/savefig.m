@@ -18,7 +18,7 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
-%     set(gcf,'Visible','on');
+    set(gcf,'Visible','on');
     set(gcf,'position',posOld);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

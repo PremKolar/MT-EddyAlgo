@@ -131,6 +131,27 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    TT.eddy.track(end)=[];
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

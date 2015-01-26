@@ -14,9 +14,13 @@ end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses=DD.FieldKeys.senses;
+    close all
     
     JJ=jet(100);
     jj=JJ(10:end,:);
+    
+    CM=doublemap([-.1 0 .1],flipud(jet(50)),(hsv(50)),[0 0 1],10)
+    
     spmd(4)
         sense=senses';
         if labindex==1
@@ -49,13 +53,14 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         end
         if labindex==1
             sen=sense{1};
-            VV=II.maps.(sen).vel.zonal.mean;%.*cosd(la);
-            VV = abs(eurocen(VV,loMin));
+            VV=full(II.maps.(sen).vel.zonal.mean);
+            VV = (eurocen(VV,loMin));
+%             VV(VV<0.02)=nan;
             pcolor(lo,la,VV);shading flat
             cw=jet(21);
 %             colormap(cw)
             colormap(jj);
-            decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
+            decorate([-.1 .1 11],T,sen,'Zonal velocity','m/s',0,2);
             %         axis(T.axis)   %
             axis([-180 180 -70 -20]);
             set(gca,'ytick',linspace(-70,-20,6))
@@ -64,13 +69,15 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         
         if labindex==2
             sen=sense{2};
-            VV=II.maps.(sen).vel.zonal.mean.*cosd(la);
-            VV = abs(eurocen(VV,loMin));
+            VV=full(II.maps.(sen).vel.zonal.mean);
+            VV = (eurocen(VV,loMin));
+%             VV(VV<0.02)=nan;
             pcolor(lo,la,VV);shading flat
             cw=jet(21);
 %             colormap(cw)
             colormap(jj);
-            decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
+               decorate([-.1 .1 11],T,sen,'Zonal velocity','m/s',0,2);
+            decorate([0 .1 6],T,sen,'Zonal velocity','m/s',0,2);
             %         axis(T.axis)   %
             axis([-180 180 -70 -20]);
             set(gca,'ytick',linspace(-70,-20,6))

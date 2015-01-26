@@ -18,6 +18,8 @@ function DD=INPUT
     DD.time.from.str  = '19940105'; %first pop/avi
 %     DD.time.till.str  = '19990105'; %first pop/avi
     DD.time.till.str  = '20061227'; % last pop/avi
+%    DD.time.till.str  = '19970105'; %first pop/avi
+%     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)

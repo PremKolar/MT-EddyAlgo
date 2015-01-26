@@ -57,6 +57,9 @@ function main(DD,ticks)
     %     end
     %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
 %    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',50,'iq',0,1);
+%TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',80,'amp',1,100);
+
+%     TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD)
@@ -89,7 +92,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot,fac)
     globe=true;
-    drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe,fac) ;
+    drawLinez(tracks.(sen),minlen)
+%     drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe,fac) ;
     axis([-180 180 -70 70])
     drawcoast
     tit=['tracks-' colorfield '-' sen];
@@ -115,7 +119,7 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     end
     axis tight
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,800*3,500*3,tit,'dpdf')
+    savefig(DD.path.plots,100,3*800,3*500,tit,'dpdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [totnum]=ratioBar(hc,field,xlab)
@@ -232,6 +236,22 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function drawLinez(files,minlen)
+    axesm sinusoid;
+    hold on
+    Tac=disp_progress('init','blibb');
+    for ee=1:1:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)),100);
+%         len=numel(getfield(load(files{ee},'age'),'age'));
+%         if len<minlen
+%             continue
+%         end
+        V=load(files{ee},'lat','lon');
+        plotm(V.lat,wrapTo180(V.lon),'linewidth',0.1);
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe,fac)
     if nargin<8,fac=1;end
     cmap=jet;% Generate range of color indices that map to cmap
@@ -250,6 +270,7 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         if len<minlen
             continue
         end
+
         V=load(files{ee},fieldName,'lat','lon');
         VV=V.(fieldName)*fac;
         if logornot

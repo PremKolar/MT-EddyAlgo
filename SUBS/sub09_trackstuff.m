@@ -92,6 +92,8 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     LAuniq = unique(LA)';
     %     FN     = {'rad','radL','radLe','radLeff'};
     FN     = {'rad','radLe'};
+
+
     %     FN     = {'Lrossby'};
 
     %     Rpath = DD.path.Rossby.name;

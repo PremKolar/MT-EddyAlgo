@@ -21,7 +21,8 @@ function main(DD)
     LON = getfield(getfield(load([DD.path.cuts.name DD.path.cuts.files(1).name]),'fields'),'lon');
     LON180 = wrapTo180(LON);
     
-    parfor ff=1:numel(files)
+    %     parfor ff=1:numel(files)
+    for ff=1:numel(files)
         parforloop(files,senses,ff,LON180,LON)  ;
     end
 end
@@ -36,7 +37,9 @@ function parforloop(files,senses,ff,LON180,LON)
             x=eddy(ee).trackref.x;
             y=eddy(ee).trackref.y;
             lonr=LON(round(y),round(x));
-            if (lonr>358) || (lonr<2)
+            %             if (lonr>358) || (lonr<2)
+            if (lonr>359.5) || (lonr<.5)
+                
                 newlon = wrapTo360(interp2(LON180,x,y));
                 %                 fprintf('correcting %f to %f\n',eddy(ee).geo.lon,newlon)
                 disp(num2str(eddy(ee).geo.lon-newlon));

@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S08_analyze_tracks
-%     DD=initialise([],mfilename);
-%     save DD
-    load DD
+    DD=initialise([],mfilename);
+    save DD
+    %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -18,9 +18,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-%     spmd(DD.threads.num)
+    spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
-%     end
+    end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -360,9 +360,9 @@ function [d,drct]=diststuff(geo)
     d2mR=@(degs,direc)  deg2km(degs).*direc*1000;
     geo=[geo(1,:); geo];
     LA=geo(:,1);
-    LO=geo(:,2);   
+    LO=geo(:,2);
     latmean = nanmean(LA);
-    lonmean = 42; % irrelevant 
+    lonmean = 42; % irrelevant
     %%
     [d.traj.deg, drct.traj]=distance(geo(1:end-1,:),geo(2:end,:));
     d.traj.m=deg2km(d.traj.deg)*1000;
@@ -381,13 +381,13 @@ function [d,drct]=diststuff(geo)
     drct.merid (drct.merid > 90 & drct.merid < 270) = -1;
     d.merid.m=d2mR(d.merid.deg,drct.merid);
     d.merid.fromBirth = cumsum(d.merid.m);
-    d.merid.tillDeath =  d.merid.fromBirth(end) - d.merid.fromBirth ;   
+    d.merid.tillDeath =  d.merid.fromBirth(end) - d.merid.fromBirth ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [param]=protoInit(proto,type)
     if nargin < 2, type='nan'; end
     param.mean=sparse(proto.(type));
-    param.std=sparse(proto.(type));   
+    param.std=sparse(proto.(type));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function old=comboMS(old,new,DD)

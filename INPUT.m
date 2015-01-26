@@ -9,15 +9,15 @@ function DD=INPUT
 %    DD.template='aviso';
     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 12;
+    DD.threads.num = 4;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '20020105'; %first pop/avi
-%     DD.time.till.str  = '20061227'; % last pop/avi
+%     DD.time.till.str  = '20020105'; %first pop/avi
+    DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)

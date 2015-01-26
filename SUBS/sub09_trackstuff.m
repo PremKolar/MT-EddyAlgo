@@ -62,7 +62,7 @@ function sub09_trackstuff
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdblock(S,DD,II,T)
-%     velZonmeans(S,DD,II,T);
+    velZonmeans(S,DD,II,T);
     scaleZonmeans(S,DD,II,T);
     %             	scattStuff(S,T,DD,II);
 

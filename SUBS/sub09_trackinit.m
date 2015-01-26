@@ -63,13 +63,16 @@ function vel=makeVel(cats)
             continue
         end
         cc=cc+1;
-%         vel{ff}=ppval(pp.x_t,pp.timeaxis);
-        vel{ff}=pp.v;
+        try
+            vel{ff}=ppval(pp.x_t,pp.timeaxis);
+        catch
+            vel{ff}=pp.zonal.v;
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveCats(cats,sense)
-   area2L=@(ar) sqrt(ar/pi);
+    area2L=@(ar) sqrt(ar/pi);
     tmp=cats.radiusmean;         %#ok<*NASGU>
     save(['TR-' sense.s '-rad.mat'],'tmp')
     tmp=area2L(cats.cheltareaLe);

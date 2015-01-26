@@ -9,14 +9,14 @@ function sub09_mapStuff
     %%
     mapsAll(II,DD,T,lo,la,eurocen,loMin);
     %%
-%     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
+    %     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses=DD.FieldKeys.senses;
     
     JJ=jet(100);
-    jj=JJ(30:end,:);
+    jj=JJ(10:end,:);
     spmd(4)
         sense=senses';
         if labindex==1
@@ -24,7 +24,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
             VV=II.maps.(sen).radius.mean.mean/1000;
             VV = eurocen(VV,loMin);
             pcolor(lo,la,VV);shading flat;
-%             colormap([jet(21)]);
+            %             colormap([jet(21)]);
             colormap(jj);
             clm=[0 200 6];
             decorate(clm,T,sen,'radius','km',0,1);
@@ -32,7 +32,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
             axis([-180 180 -70 -20]);
             set(gca,'ytick',linspace(-70,-20,6))
             savefig(DD.path.plots,70,1000,250,['xMapRad-' sen],'dpdf');
-        end        
+        end
         if labindex==2
             sen=sense{2};
             VV=II.maps.(sen).radius.mean.mean/1000;
@@ -53,9 +53,9 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
             VV = abs(eurocen(VV,loMin));
             pcolor(lo,la,VV);shading flat
             cw=jet(21);
-            colormap(cw)
+%             colormap(cw)
             colormap(jj);
-            decorate([0 .1 6],T,sen,'Zonal velocity','m/s',0,2);
+            decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
             %         axis(T.axis)   %
             axis([-180 180 -70 -20]);
             set(gca,'ytick',linspace(-70,-20,6))
@@ -64,13 +64,13 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         
         if labindex==2
             sen=sense{2};
-            VV=II.maps.(sen).vel.zonal.mean;%.*cosd(la);
+            VV=II.maps.(sen).vel.zonal.mean.*cosd(la);
             VV = abs(eurocen(VV,loMin));
             pcolor(lo,la,VV);shading flat
             cw=jet(21);
-            colormap(cw)
+%             colormap(cw)
             colormap(jj);
-            decorate([0 .1 6],T,sen,'Zonal velocity','m/s',0,2);
+            decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
             %         axis(T.axis)   %
             axis([-180 180 -70 -20]);
             set(gca,'ytick',linspace(-70,-20,6))
@@ -123,7 +123,7 @@ function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
     compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
     
     runA = 'run A';
-    runB = 'run B';   
+    runB = 'run B';
     
     for sense=senses';sen=sense{1};
         close all
@@ -135,10 +135,10 @@ function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
         VVcomp(VVcomp==0)=nan;
         pcolor(lo,la,VV-VVcomp);shading flat;
         colormap([winter(3);flipud(autumn(2))])
-        cb=decorate([-2.5 2.5,5],T,sen,['total visits: ',runA,'-',runB],' ',0,1);        
+        cb=decorate([-2.5 2.5,5],T,sen,['total visits: ',runA,'-',runB],' ',0,1);
         set(cb,'ytick',[-2 -1 0 1 2])
         set(cb,'yticklabel',[-2 -1 0 1 2])
-        set(cb,'ylim',[-2 2])       
+        set(cb,'ylim',[-2 2])
         axis([-180 180 -70 70]);
         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
         

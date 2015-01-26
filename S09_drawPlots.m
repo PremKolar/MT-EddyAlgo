@@ -7,7 +7,7 @@
 function S09_drawPlots
     DD=initialise([],mfilename);
     save DD
-%         load DD
+    %         load DD
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
@@ -49,10 +49,10 @@ function main(DD,ticks)
     senses = DD.FieldKeys.senses';
     %     spmd(2)
     sen=senses{labindex};
-    TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
-    TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
+    %     TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
+    %     TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
+    %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
+    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',50,'iq',0,1);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD)
@@ -65,7 +65,7 @@ function [OUT]=inits(DD)
     end
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
-
+    
     for ss=1:2
         sen = DD.FieldKeys.senses{ss};
         root=DD.path.analyzedTracks.(sen).name;
@@ -77,7 +77,7 @@ function [OUT]=inits(DD)
         end
     end
     %%
-
+    
     %% get vectors
     %     disp(['loading vectors'])
     % 	OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);
@@ -94,8 +94,8 @@ function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot,fac)
     if logornot
         set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
     end
-
-    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
+    
+    savefig(DD.path.plots,100,3*1000,3*500,tit,'dpdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
@@ -142,7 +142,7 @@ function logyBar(totnum,y)
     y(totnum==0)=[];
     x(totnum==0)=[];
     totnum(totnum==0)=[];
-
+    
     colors = flipud(bone(max(totnum)));
     cols=colors(totnum,:);
     for ii = 1:numel(x)
@@ -196,11 +196,11 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     if nargin<9
         coast=true;
     end
-
+    
     %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %     coast=false
     %     %% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    
     axis(ticks.axis);
     cb=colorbar;
     if logornot
@@ -264,15 +264,15 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
             xx=[0 cumsum(deg2km(diff(V.lon)).*cosd((V.lat(1:end-1)+V.lat(2:end))/2))];
             dJump=1000;
         end
-
+        
         for ii=1:length(xx)-1
-            %             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
-            line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.5);
-            %             end
+            if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
+                line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.5);
+            end
         end
     end
     caxis([minV maxV])
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
@@ -286,7 +286,7 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
     kk=linspace(minV,maxV,size(cmap,1));
     %      kk=linspace(minIQ,maxIQ,10);
     %     iqiq=linspace(minV,maxV,size(cmap,1));
-
+    
     meaniq=nan(size(files));
     for ee=1:numel(files)
         V=load(files{ee},fieldName2);
@@ -295,7 +295,7 @@ function [maxV,cmap]=drawColorLinem(ticks,files,fieldName,fieldName2)
     end
     meaniq(meaniq>1)=1;
     [~,iqorder]=sort(meaniq,'descend');
-
+    
     maxthick=ticks.rez/300*10;
     minthick=ticks.rez/300*0.1;
     for ee=iqorder
@@ -456,7 +456,7 @@ function TPe(DD,ticks,tracks,sen)
     drawColorLine(ticks,tracks.(sen),'peakampto_ellipse',ticks.amp(2)/100,ticks.amp(1)/100,0,0) ;
     decorate('amp',ticks,DD,sen,'Amp to ellipse','cm',1,1)
     savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['TrackPeakampto_ellipse' sen],DD.debugmode,'dpng',1);
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPf(DD,ticks,tracks,sen)
@@ -475,7 +475,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
     lo=wrapTo180(lo);
     [~,loA]=min(lo(1,:));
     lo = lo(:,[loA:end,1:loA-1]);
-
+    
     for ss=1:2
         sen=senses{ss};senB=sensesB{ss};
         %         if isempty(vecs.(sen).lat), warning(['warning, no ' sen ' found!']);continue;end %#ok<*WNTAG>
@@ -509,7 +509,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
         %                 caxis([ticks.visits(1) ticks.visits(2)])
         decorate('visitsunique',ticks,DD,sen,'Visits of unique eddy',' ',0,1);
         savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapVisits-' sen],DD.debugmode,'dpdf');
-
+        
         %
         figure
         VV=maps.(sen).dist.zonal.fromBirth.mean/1000;
@@ -573,7 +573,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             cb=decorate('radiusToRo',ticks,DD,sen,'Radius/(2*L_R)',' ',1,10,1,1);
             doublemap([ticks.radiusToRo(1),1,ticks.radiusToRo(2)],aut,win,[.9 1 .9])
             savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapRadToRo' sen],DD.debugmode,'dpdf');
-
+            
             %
             %%
             figure
@@ -583,7 +583,7 @@ function mapstuff(maps,vecs,DD,ticks,lo,la)
             cb=decorate('vel',ticks,DD,sen,['[Zonal U - c_1)]'],'cm/s',0,1);
             doublemap([ticks.vel(1),0,ticks.vel(2)],aut,win,[.9 1 .9])
             savefig(DD.path.plots,ticks.rez,ticks.width,ticks.height,['MapUcDiff' sen],DD.debugmode,'dpdf');
-
+            
         end
     end
 end
@@ -609,7 +609,7 @@ function histstuff(vecs,DD,ticks)
         %%
         [hc.(sen).age,hc.(sen).cum]=ageCum(vecs.(sen).age,DD,ticks,range.(sen).age,sen);
     end
-
+    
     %%
     ratioBar(hc,'lat', range.Cycs.lat);
     tit='ratio of cyclones to anticyclones as function of latitude';

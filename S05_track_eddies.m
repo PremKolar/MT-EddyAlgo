@@ -32,10 +32,12 @@ function rmoldtracks(DD)
     if ~isempty(DD.path.tracks.files)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         else
             warning('mv old tracks first')
             sleep(5*60);
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         end
     end
 end

@@ -64,7 +64,7 @@ function vel=makeVel(cats)
         end
         cc=cc+1;
 %         vel{ff}=ppval(pp.x_t,pp.timeaxis);
-        vel{ff}=pp.v;
+        vel{ff}=pp.zonal.v;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -149,6 +149,7 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
 
     %%
     h.ch=chOverLayScale(chelt,LAuniq,vvM);
+    grid minor
     savefig(DD.path.plots,T.rez,400,400,['S-scaleZonmean4chelt11comp'],'dpdf',DD2info(DD));
 
     %

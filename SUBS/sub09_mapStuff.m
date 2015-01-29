@@ -14,8 +14,7 @@ end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses    = DD.FieldKeys.senses;
-    sensesAlt =   {'anti-cyclones';'cyclones'}
-    
+    sensesAlt =   {'anti-cyclones';'cyclones'}    
     
     for ss=1:2
         sen=senses{ss};
@@ -45,25 +44,25 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %         end
         %         grid minor;
         %         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
-        %%
-        clf
-        VV=II.maps.(sen).vel.zonal.mean*100;
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);shading flat;
-        cw=jet(20);
-        cm=[0 0 0];
-        ce=(winter(4));
-        colormap([cw;cm;ce(:,[1 3 2])])
-        decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-        axis([-180 180 -80 90]);
-        if ss==2
-            colorbar('hide')
-            set(gca,'yTickLabel','')
-        end
-        grid minor;
-        sleep(1)
-        savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
-        sleep(1)
+        %         %%
+        %         clf
+        %         VV=II.maps.(sen).vel.zonal.mean*100;
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat;
+        %         cw=jet(20);
+        %         cm=[0 0 0];
+        %         ce=(winter(4));
+        %         colormap([cw;cm;ce(:,[1 3 2])])
+        %         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
+        %         axis([-180 180 -80 90]);
+        %         if ss==2
+        %             colorbar('hide')
+        %             set(gca,'yTickLabel','')
+        %         end
+        %         grid minor;
+        %         sleep(1)
+        %         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
+        %         sleep(1)
         
         %         %%
         %         close all
@@ -105,44 +104,40 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %%
     end
     %     joinPdfs('MapSigma',senses,DD)
-    joinPdfs('velZon',senses,DD)
-    
-    
-    %     system(['rm *.pdf'])
-    
-    
-    %%
-    %     close all
-    %     VV=(II.maps.(senses{1}).visits.single);
-    %     VV = eurocen(VV,loMin);
-    %     VV(VV==0)=nan;
-    %     VVV=repmat(VV,[1 1 2]);
+    %     joinPdfs('velZon',senses,DD)
     %
-    %     VV=(II.maps.(senses{2}).visits.single);
-    %     VV = eurocen(VV,loMin);
-    %     VV(VV==0)=nan;
-    %     VVV(:,:,2)=VV;
-    %     VV=sum(VVV,3);
-    %     pcolor(lo,la,VV);shading flat;
-    % %         colormap(parula(21))
-    %            colormap(jet(21))
-    %     cb=decorate([0 105,11],T,sen,'Unique Visits',' ',0,1);
-    %     title('unique visits (all)')
-    %     set(cb,'ytick',[0 10:10:100])
-    %     set(cb,'yticklabel',[1 10:10:100])
-    %     set(cb,'ylim',[0 105])
-    %     %         axis(T.axis)   %
-    %     axis([-180 180 -70 70]);
-    %     grid minor
-    %     fn = ['MapVisitsBoth'];
-    %     savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');
-    %     cpPdfTotexMT(fn)  ;
+    close all
+    VV=(II.maps.(senses{1}).visits.single);
+    VV = eurocen(VV,loMin);
+    VV(VV==0)=nan;
+    VVV=repmat(VV,[1 1 2]);
+    
+    VV=(II.maps.(senses{2}).visits.single);
+    VV = eurocen(VV,loMin);
+    VV(VV==0)=nan;
+    VVV(:,:,2)=VV;
+    VV=sum(VVV,3);
+    pcolor(lo,la,VV);shading flat;
+    %         colormap(parula(21))
+    colormap(jet(13))
+    cb=decorate([0 65,11],T,sen,'Unique Visits',' ',0,1);
+%     title('unique visits (all)')
+    set(cb,'ytick',[0 10:10:60])
+    set(cb,'yticklabel',[1 10:10:60])
+    set(cb,'ylim',[0 65])
+    %         axis(T.axis)   %
+    axis([-180 180 -80 90]);
+    grid minor
+    fn = ['MapVisitsBoth'];
+    savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');
+    cpPdfTotexMT(fn)  ;
 end
 
 function joinPdfs(fname,senses,DD)
     system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
     system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
     cpPdfTotexMT(fname);
+    %     system('rm *.pdf')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,10 +149,10 @@ function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     set(gca,'ytick',ticks.y);
     set(gca,'xtick',ticks.x);
     %     colorbar('off');
-    cb=colorbar('north');
+    cb=colorbar('north','AxisLocation','out');
     cpos = cb.Position;
     cpos(4) = 0.3*cpos(4);
-    cpos(2) = cpos(2) + 0.08*cpos(2);
+    cpos(2) = cpos(2) + 3*cpos(4);
     cb.Position = cpos;
     
     %%
@@ -181,7 +176,7 @@ function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     caxis([zticks(1) zticks(end)])
     set(cb,'ytick',zticks);
     set(cb,'yticklabel',zticklabel);
-    title([tit,' - ',tit2,' [',unit,']'])
+    %     title([tit,' - ',tit2,' [',unit,']'])
     %%
     load coast;
     hold on;

@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    %         sub09_trackinit(DD);
+    sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -61,7 +61,7 @@ function sub09_trackstuff
     %%
     fn=fnA;
     %%
-    %     velZonmeans(S,DD,II,T,fn.vel);
+    velZonmeans(S,DD,II,T,fn.vel);
     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -144,12 +144,12 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
         end
     end
     %
-        h.ch=chOverLayScale(chelt,LAuniq,vvM);
-        %     grid minor
-        savefig(DD.path.plots,T.rez,300,300,outfname,'dpdf',DD2info(DD));
-        cpPdfTotexMT(outfname);
+    h.ch=chOverLayScale(chelt,LAuniq,vvM);
+    %     grid minor
+    savefig(DD.path.plots,T.rez,300,300,outfname,'dpdf',DD2info(DD));
+    cpPdfTotexMT(outfname);
     %
-      %     %
+    %     %
     %     	[h.own,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     	[~,pw]=fileparts(pwd);
     %     	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
@@ -242,10 +242,10 @@ function h=velZonmeans(S,DD,II,T,fn)
     
     
     %%
-        [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
-        [~,pw]=fileparts(pwd);
-        save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
-        savefig(DD.path.plots,T.rez,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
+    [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+    [~,pw]=fileparts(pwd);
+    save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
+    savefig(DD.path.plots,T.rez,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
@@ -262,8 +262,8 @@ function h=velZonmeans(S,DD,II,T,fn)
     nrm=@(x) x/nanmax(x-nanmin(x))
     SK(:,1) = nrm(smooth(-vvM,10));
     SK(:,2) = nrm(smooth(-vvSkew,10));
-    SK(:,3) = nrm(smooth(visits,10))*.8;    
-    plot(repmat(LAuniq',1,3), SK)    
+    SK(:,3) = nrm(smooth(visits,10))*.8;
+    plot(repmat(LAuniq',1,3), SK)
     hold on
     axis([-80 80 -1 1])
     axis tight
@@ -276,25 +276,25 @@ function h=velZonmeans(S,DD,II,T,fn)
     %
     %
     %
-        %% TODO
-        figure(2)
-        cc = 70;
-        idx=LA==LAuniq(cc); % -10
-        hist(S.vel(idx),50)
-        axis tight
-        xlabel('$u$ [cm/s] at $-10^{\circ}$')
-        title(sprintf('total: %d counts',sum(idx)))
-        savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
-    
-    
-        figure(3)
-        cc = 30;
-        idx=LA==LAuniq(cc); % -50
-        hist(S.vel(idx),50)
-        axis tight
-        xlabel('$u$ [cm/s] at $-50^{\circ}$')
-        title(sprintf('total: %d counts',sum(idx)))
-        savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
+    %% TODO
+    %         figure(2)
+    %         cc = 70;
+    %         idx=LA==LAuniq(cc); % -10
+    %         hist(S.vel(idx),50)
+    %         axis tight
+    %         xlabel('$u$ [cm/s] at $-10^{\circ}$')
+    %         title(sprintf('total: %d counts',sum(idx)))
+    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
+    %
+    %
+    %         figure(3)
+    %         cc = 30;
+    %         idx=LA==LAuniq(cc); % -50
+    %         hist(S.vel(idx),50)
+    %         axis tight
+    %         xlabel('$u$ [cm/s] at $-50^{\circ}$')
+    %         title(sprintf('total: %d counts',sum(idx)))
+    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
     
     
     

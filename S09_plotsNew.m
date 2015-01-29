@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-    %     DD = initialise([],mfilename);
-    %     save DD
-    load DD
+    DD = initialise([],mfilename);
+    %         save DD
+    %     load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
     ticks.height=300;
@@ -35,34 +35,14 @@ function S09_plotsNew
     %     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %%
     T=ticks;
-    %     II=initStuff(DD);
-    %     save S09main II DD T
+    II=initStuff(DD);
+    save S09main II DD T
     %%
-    
-    %     sub09_mapStuff
-    sub09TPzStuff(DD,T)
-    %
-    %
-    %     try; sleep(3)
-    %         sub09_mapStuff
-    %     catch
-    %         close all; save A
-    %     end
-    %     try; sleep(3)
+%     sub09_mapStuff
+        sub09_trackstuff
     %     sub09_histStuff
-    %     catch
-    %       close all; save B
-    %     end
-    %     try; sleep(3)
-    %     sub09_trackstuff
-    %     catch
-    %       close all; save C
-    %     end
-    %     try; sleep(3)
     %     sub09TPzStuff(DD,T)
-    %     catch
-    %       close all; save D
-    %     end
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sub09TPzStuff(DD,T)
@@ -73,9 +53,9 @@ function sub09TPzStuff(DD,T)
     %     spmd(2)
     %         if labindex==1
     %             %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
-    TPz(DD,T,procData.tracks,senses,'age',150,'age',1);
+    TPz(DD,T,procData.tracks,senses,'age',140,'age',1);
     %         else
-    %             TPzGlobe(DD,T,procData.tracks,senses,'age',100,'age',1,1);
+    TPzGlobe(DD,T,procData.tracks,senses,'age',140,'age',1,1);
     %         end
     %     end
 end
@@ -180,6 +160,10 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     system(['epstopdf ' fname '.eps']);
     system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
     cpPdfTotexMT(tit);
+    
+    titalt=['defl-' colorfield '-alt'];
+    fname = [DD.path.plots titalt];
+    
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

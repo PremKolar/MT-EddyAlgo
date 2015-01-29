@@ -17,7 +17,7 @@ function S09_plotsNew
     %     ticks.x=  round(linspace(geo.west,geo.east,5));
     ticks.x=  round(linspace(-180,180,5));
     ticks.axis=[geo.west  geo.east geo.south geo.north];
-    ticks.age=[1,5*365,10];
+    ticks.age=[1,10*365,10];
     %     ticks.isoper=[DD.thresh.shape.iq,1,10];
     ticks.isoper=[.6,1,10];
     ticks.radius=[50,250,11];
@@ -70,14 +70,14 @@ function sub09TPzStuff(DD,T)
     save([DD.path.analyzed.name 'procData.mat'],'procData');
     %     load([DD.path.analyzed.name 'procData.mat'],'procData');
     senses = DD.FieldKeys.senses';
-    spmd(2)
-        if labindex==1
-            TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
-            TPz(DD,T,procData.tracks,senses,'age',100,'age',1);
-        else
-            TPzGlobe(DD,T,procData.tracks,senses,'age',100,'age',1,1);
-        end
-    end
+    %     spmd(2)
+    %         if labindex==1
+    %             %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
+    TPz(DD,T,procData.tracks,senses,'age',150,'age',1);
+    %         else
+    %             TPzGlobe(DD,T,procData.tracks,senses,'age',100,'age',1,1);
+    %         end
+    %     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
@@ -127,7 +127,8 @@ function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
-    figure
+    close all
+    
     set(gca,'yaxisLocation','right');
     axis([-5000 3000 -2000 2000]);
     %     axis equal
@@ -136,19 +137,21 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     set(gca,'yticklabel',[-1   0   1]);
     set(gca,'xticklabel',[-4 -2 -1 0 1 ]);
     tit=['defl-' colorfield];
-    title(['cyclones in red / a.-cyc. in blue [latitude]']);
+    title(['cyclones in red / a.-cyc. in blue [days]']);
     xlabel('[Mm]');
     grid on;
+    cbticks=10;
     %%
-    cmap = parula(100);
+    cmap = flipud(parula(100));
     [minV, maxV]=drawColorLinez(ticks,tracks.(senses{1}),colorfield,minlen,cticks,logornot,0,1,cmap) ;
     cb{1} = colorbar;
-    set(cb{1},'ytick',linspace(0,1,6))
-    set(cb{1},'yticklabel',linspace(minV,maxV,6))
+    set(cb{1},'ytick',linspace(0,1,cbticks))
+    set(cb{1},'yticklabel',linspace(minV,maxV,cbticks))
     colormap(cb{1},cmap);
     hold on
-    cmap=hot(110);
-    cmap=cmap(10:end,:);
+    
+    cmap=flipud(hot(110));
+    cmap=cmap(11:end,:);
     [minV, maxV]=drawColorLinez(ticks,tracks.(senses{2}),colorfield,minlen,cticks,logornot,0,1,cmap) ;
     cb{2}=colorbar('westoutside');
     p2 = get(cb{2},'position')
@@ -159,12 +162,13 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     p1(3) = p1(3)/2;
     p1(1) = p2(1) -  p2(3);
     set(cb{1},'position',p1);
-    set(cb{2},'ytick',linspace(0,1,6));
+    set(cb{2},'ytick',linspace(0,1,cbticks));
     set(cb{2},'yticklabel','');
     colormap(cb{2},cmap);
-    %     if logornot
-    %         set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
-    %     end%
+    if logornot
+        set(cb{1},'yticklabel',round(exp(linspace(minV,maxV,cbticks))))
+        %         set(cb{2},'yticklabel',round(exp(get(cb{2},'ytick'))))
+    end%
     
     dims=[8*12 6*12];FS=32;
     set(gcf,'paperunits','inch','papersize',dims,'paperposition',[0 0 dims]);
@@ -191,7 +195,7 @@ function [minV, maxV]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logorno
     end
     kk=linspace(minV,maxV,size(cmap,1));
     Tac=disp_progress('init','blubb');
-    for ee=1:150:numel(files)
+    for ee=1:1:numel(files)
         Tac=disp_progress('calc',Tac,round(numel(files)),100);
         if str2double(files{ee}(end-15:end-12)) < minlen,continue,end
         V=load(files{ee},fieldName,'lat','lon');
@@ -213,7 +217,6 @@ function [minV, maxV]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logorno
             end
         end
     end
-    ll=gca;
     %     caxis([minV maxV])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

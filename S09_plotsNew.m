@@ -40,6 +40,8 @@ function S09_plotsNew
     %%
     
     sub09_mapStuff
+    
+    
 %     spmd(4)
 %         if labindex==    1
 %             close all

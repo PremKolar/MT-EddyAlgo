@@ -32,10 +32,12 @@ function rmoldtracks(DD)
     if ~isempty(DD.path.tracks.files)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         else
             warning('mv old tracks first')
             sleep(5*60);
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         end
     end
 end
@@ -74,7 +76,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
     [tracks]=archive_dead(TDB, tracks, OLD.eddies, DD,sen);
     %% swap
     OLD=NEW;
-    
+
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,9 +106,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    
+
     NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-    
+
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -185,9 +187,9 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-    
+
     new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-    
+
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
@@ -277,7 +279,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
-    
+
     %     prcnt.amp=sum(sum(AMPfac <= ampArea(2) & AMPfac >= ampArea(1)))/numel(AMPfac)*100;
     %      prcnt.area=sum(sum(AREAfac <= ampArea(2) & AREAfac >= ampArea(1)))/numel(AMPfac)*100;
     % x=1:numel(AREAfac);
@@ -301,6 +303,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
+%     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
@@ -317,7 +320,7 @@ function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
-    
+
     %% build geo loc matrices
     [LOM.new,LOM.old]=meshgrid(NEW.lon  ,OLD.lon  );
     [LAM.new,LAM.old]=meshgrid(NEW.lat  ,OLD.lat  );
@@ -341,16 +344,17 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
     %     lonDIFF=abs(LOM.new - LOM.old);
     %     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
-    
+
     %% find min dists
     [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
     [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);
-    
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [lon, lat]=get_geocoor(eddies)    
-    lon=extractfield(cat(1,eddies.geo),'lon');
-    lat=extractfield(cat(1,eddies.geo),'lat');    
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [lon, lat]=get_geocoor(eddies)
+   
+    
+    lon=extractfield(cat(1,eddies.geo),'lon');
+    lat=extractfield(cat(1,eddies.geo),'lat');
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

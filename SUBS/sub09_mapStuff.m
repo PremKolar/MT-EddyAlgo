@@ -9,114 +9,123 @@ function sub09_mapStuff
     %%
     mapsAll(II,DD,T,lo,la,eurocen,loMin);
     %%
-    mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
+    %     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
 end
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
-    senses=DD.FieldKeys.senses;
-    compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
-    
-    runA = 'run A';
-    runB = 'run B';   
-    
-    for sense=senses';sen=sense{1};
-        close all
-        VV=(II.maps.(sen).visits.all);
-        VV = eurocen(VV,loMin);
-        VV(VV==0)=nan;
-        VVcomp=(compData.II.maps.(sen).visits.all);
-        VVcomp = eurocen(VVcomp,loMin);
-        VVcomp(VVcomp==0)=nan;
-        pcolor(lo,la,VV-VVcomp);shading flat;
-        colormap([winter(3);flipud(autumn(2))])
-        cb=decorate([-2.5 2.5,5],T,sen,['total visits: ',runA,'-',runB],' ',0,1);        
-        set(cb,'ytick',[-2 -1 0 1 2])
-        set(cb,'yticklabel',[-2 -1 0 1 2])
-        set(cb,'ylim',[-2 2])       
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
-        
-    end
-end
-
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses=DD.FieldKeys.senses;
-    for sense=senses';sen=sense{1};
-        %%
+    sensesAlt =   {'anti-cyclones';'cyclones'}
+    
+   
+    for ss=1:2
+        sen=senses{ss};
+        senAlt=sensesAlt{ss};
+        %     close all
+        %         VV=full(II.maps.(sen).amp.to_contour.mean);
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);
+        %         clm=[0 .3 6]; % base 5
+        %         decorate(clm,T,sen,'amp','m',0,2);
+        %         shading flat;
+        %         colormap( jet(31)) ;
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
+        %         %%
         close all
-        VV=full(II.maps.(sen).amp.to_contour.mean);
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);
-        clm=[0 .3 6]; % base 5
-        decorate(clm,T,sen,'amp','m',0,2);
-        shading flat;
-        colormap( jet(31)) ;
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
-        %%
-        close all
+%         sleep(1)
         VV=II.maps.(sen).radius.mean.mean/1000;
         VV = eurocen(VV,loMin);
         pcolor(lo,la,VV);shading flat;
         colormap([hsv(14)]);
         clm=[20 160 8];
-        decorate(clm,T,sen,'radius','km',0,1);
+        decorate(clm,T,senAlt,'$\sigma$','km',0,1);
         %         axis(T.axis)   %
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+        axis([-180 180 -70 90]);
+        if ss==2
+            colorbar('hide')
+             set(gca,'yTickLabel','')
+            %              set(gca,'yaxisLocation','right')
+        end
+%                 if ss==1
+%                     set(gca,'yTickLabel','')
+%                 end
+%                 set(gca,'xticklabel','')
+        grid minor
+%         sleep(1)
+
+        savefig('./',T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+        %         %%
+        %         close all
+        %         VV=II.maps.(sen).vel.zonal.mean*100;
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat
+        %         cw=jet(20);
+        %         cm=[0 0 0];
+        %         ce=(winter(4));
+        %         colormap([cw;cm;ce(:,[1 3 2])])
+        %         decorate([-20 5 6],T,sen,'Zonal velocity','cm/s',0,1);
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
+        %         %         CC.(sen).v=VV;
+        %         %%
+        %         close all
+        %         VV=log(II.maps.(sen).age.mean);
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat;colormap(jet)
+        %         decorate([log(T.age([1 2])) T.age(3)],T,sen,'age','d',exp(1),0);
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapAge-' sen],'dpdf')
+        %         %%
+        %         close all
+        %         VV=(II.maps.(sen).visits.single);
+        %         VV = eurocen(VV,loMin);
+        %         VV(VV==0)=nan;
+        %         pcolor(lo,la,VV);shading flat;colormap(jet(11))
+        %         cb=decorate([0 27.5,11],T,sen,'Visits of unique eddy',' ',0,1);
+        %         %      decorate(T.visitsunique,T,DD,sen,'Visits of unique eddy',' ',0,1,1);
+        %         set(cb,'ytick',[0 5:5:25])
+        %         set(cb,'yticklabel',[1 5:5:25])
+        %         set(cb,'ylim',[0 27.5])
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
         %%
-        close all
-        VV=II.maps.(sen).vel.zonal.mean*100;
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);shading flat
-        cw=jet(20);
-        cm=[0 0 0];
-        ce=(winter(4));
-        colormap([cw;cm;ce(:,[1 3 2])])
-        decorate([-20 5 6],T,sen,'Zonal velocity','cm/s',0,1);
-        %         axis(T.axis)   %
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
-        %         CC.(sen).v=VV;
-        %%
-        close all
-        VV=log(II.maps.(sen).age.mean);
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);shading flat;colormap(jet)
-        decorate([log(T.age([1 2])) T.age(3)],T,sen,'age','d',exp(1),0);
-        %         axis(T.axis)   %
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapAge-' sen],'dpdf')
-        %%
-        close all
-        VV=(II.maps.(sen).visits.single);
-        VV = eurocen(VV,loMin);
-        VV(VV==0)=nan;
-        pcolor(lo,la,VV);shading flat;colormap(jet(11))
-        cb=decorate([0 27.5,11],T,sen,'Visits of unique eddy',' ',0,1);
-        %      decorate(T.visitsunique,T,DD,sen,'Visits of unique eddy',' ',0,1,1);
-        set(cb,'ytick',[0 5:5:25])
-        set(cb,'yticklabel',[1 5:5:25])
-        set(cb,'ylim',[0 27.5])
-        %         axis(T.axis)   %
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
-        %%
-        close all
-        VV=(II.maps.(sen).visits.all);
-        VV = eurocen(VV,loMin);
-        VV(VV==0)=nan;
-        pcolor(lo,la,VV);shading flat;colormap(hsv(21))
-        cb=decorate([0 105,11],T,sen,'Total Visits',' ',0,1);
-        set(cb,'ytick',[0 10:10:100])
-        set(cb,'yticklabel',[1 10:10:100])
-        set(cb,'ylim',[0 105])
-        %         axis(T.axis)   %
-        axis([-180 180 -70 70]);
-        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
     end
+    fname='MapSigma'
+    system(['pdfjam --nup 2x1 -o c.pdf ' ['MapRad-' senses{1} '.pdf '] ['MapRad-' senses{2} '.pdf']])
+    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+    %     system(['rm *.pdf'])
+    
+    
+    %%
+    %     close all
+    %     VV=(II.maps.(senses{1}).visits.single);
+    %     VV = eurocen(VV,loMin);
+    %     VV(VV==0)=nan;
+    %     VVV=repmat(VV,[1 1 2]);
+    %
+    %     VV=(II.maps.(senses{2}).visits.single);
+    %     VV = eurocen(VV,loMin);
+    %     VV(VV==0)=nan;
+    %     VVV(:,:,2)=VV;
+    %     VV=sum(VVV,3);
+    %     pcolor(lo,la,VV);shading flat;
+    % %         colormap(parula(21))
+    %            colormap(jet(21))
+    %     cb=decorate([0 105,11],T,sen,'Unique Visits',' ',0,1);
+    %     title('unique visits (all)')
+    %     set(cb,'ytick',[0 10:10:100])
+    %     set(cb,'yticklabel',[1 10:10:100])
+    %     set(cb,'ylim',[0 105])
+    %     %         axis(T.axis)   %
+    %     axis([-180 180 -70 70]);
+    %     grid minor
+    %     fn = ['MapVisitsBoth'];
+    %     savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');
+    %     cpPdfTotexMT(fn)  ;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
@@ -126,7 +135,13 @@ function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     %     axis(ticks.axis);
     set(gca,'ytick',ticks.y);
     set(gca,'xtick',ticks.x);
-    cb=colorbar;
+    %     colorbar('off');
+    cb=colorbar('north');
+    cpos = cb.Position;
+    cpos(4) = 0.3*cpos(4);
+    cpos(2) = cpos(2) + 0.08*cpos(2);
+    cb.Position = cpos;
+    
     %%
     zticks=linspace(clm(1),clm(2),clm(3))';
     %%
@@ -155,6 +170,34 @@ function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     plot(long,lat);
 end
 
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
+    senses=DD.FieldKeys.senses;
+    compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
+    
+    runA = 'run A';
+    runB = 'run B';
+    
+    for sense=senses';sen=sense{1};
+        close all
+        VV=(II.maps.(sen).visits.all);
+        VV = eurocen(VV,loMin);
+        VV(VV==0)=nan;
+        VVcomp=(compData.II.maps.(sen).visits.all);
+        VVcomp = eurocen(VVcomp,loMin);
+        VVcomp(VVcomp==0)=nan;
+        pcolor(lo,la,VV-VVcomp);shading flat;
+        colormap([winter(3);flipud(autumn(2))])
+        cb=decorate([-2.5 2.5,5],T,sen,['total visits: ',runA,'-',runB],' ',0,1);
+        set(cb,'ytick',[-2 -1 0 1 2])
+        set(cb,'yticklabel',[-2 -1 0 1 2])
+        set(cb,'ylim',[-2 2])
+        axis([-180 180 -70 70]);
+        savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
+        
+    end
+end
 
 
 
@@ -336,3 +379,94 @@ end
 % 		decorate(clm,T,DD,sen,' scale: std/mean ','%',10,0,1);
 % 		axis(T.axis)   % axis([-180 180 -70 70]);
 % 		savefig(DD.path.plots,T.rez,T.width,T.height,['MapRadStdOMean-' sen],'dpdf');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%
+%     JJ=jet(100);
+%     jj=JJ(10:end,:);
+%     spmd(4)
+%         sense=senses';
+%         if labindex==1
+%             sen=sense{1};
+%             VV=II.maps.(sen).radius.mean.mean/1000;
+%             VV = eurocen(VV,loMin);
+%             pcolor(lo,la,VV);shading flat;
+%             %             colormap([jet(21)]);
+%             colormap(jj);
+%             clm=[0 200 6];
+%             decorate(clm,T,sen,'radius','km',0,1);
+%             %         axis(T.axis)   %
+%             axis([-180 180 -70 -20]);
+%             set(gca,'ytick',linspace(-70,-20,6))
+%             savefig(DD.path.plots,70,1000,250,['xMapRad-' sen],'dpdf');
+%         end
+%         if labindex==2
+%             sen=sense{2};
+%             VV=II.maps.(sen).radius.mean.mean/1000;
+%             VV = eurocen(VV,loMin);
+%             pcolor(lo,la,VV);shading flat;
+%             colormap([jet(21)]);
+%             colormap(jj);
+%             clm=[0 200 6];
+%             decorate(clm,T,sen,'radius','km',0,1);
+%             %         axis(T.axis)   %
+%             axis([-180 180 -70 -20]);
+%             set(gca,'ytick',linspace(-70,-20,6))
+%             savefig(DD.path.plots,70,1000,250,['xMapRad-' sen],'dpdf');
+%         end
+%         if labindex==1
+%             sen=sense{1};
+%             VV=II.maps.(sen).vel.zonal.mean;%.*cosd(la);
+%             VV = abs(eurocen(VV,loMin));
+%             pcolor(lo,la,VV);shading flat
+%             cw=jet(21);
+% %             colormap(cw)
+%             colormap(jj);
+%             decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
+%             %         axis(T.axis)   %
+%             axis([-180 180 -70 -20]);
+%             set(gca,'ytick',linspace(-70,-20,6))
+%             savefig(DD.path.plots,70,1000,200,['xMapVel-' sen],'dpdf');
+%         end
+%
+%         if labindex==2
+%             sen=sense{2};
+%             VV=II.maps.(sen).vel.zonal.mean.*cosd(la);
+%             VV = abs(eurocen(VV,loMin));
+%             pcolor(lo,la,VV);shading flat
+%             cw=jet(21);
+% %             colormap(cw)
+%             colormap(jj);
+%             decorate([0 .05 6],T,sen,'Zonal velocity','m/s',0,2);
+%             %         axis(T.axis)   %
+%             axis([-180 180 -70 -20]);
+%             set(gca,'ytick',linspace(-70,-20,6))
+%             savefig(DD.path.plots,70,1000,200,['xMapVel-' sen],'dpdf');
+%         end
+%     end
+%

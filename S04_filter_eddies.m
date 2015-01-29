@@ -247,6 +247,15 @@ function  [ch]=cheltStuff(ee,zoom)
     ch.area.Le   = polyarea(x,y);
     ch.area.L    = ch.area.Le/sqrt(2);
     ch.area.Leff = ee.area.intrp;
+    
+%     
+%     s The right panel shows meridional proﬁles of the
+% average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
+% folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
+% AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
+% (1998).
+
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL = getLocalRossyRadius(rossbyL,coor)
@@ -326,13 +335,13 @@ function [pass,chelt] = chelton_shape(z,ee)
     xiy = x + 1i*y;
     [A,B] = meshgrid(xiy,xiy);
     maxDist = max(max(abs(A - B)))*1000;
-    %%
+    %% mean latitude of eddy
     medlat = abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
-    %%
+    %% 
     if medlat> 25
         chelt = 1 - maxDist/4e5;
     else
-        chelt = 1 - maxDist/(8e5*(25 - medlat)/25 + 4e5);
+        chelt = 1 - maxDist/(8e5*(25 - medlat)/25 + 4e5); % equiv. 1200km @ equator
     end
     if chelt >= 0, pass = true; else pass = false; end
 end
@@ -724,8 +733,13 @@ end
 function [geo] = geocoor(zoom,volume)
     xz = volume.center.xz;
     yz = volume.center.yz;
-    geo.lat = interp2(zoom.fields.lat,xz,yz);
-    geo.lon = interp2(zoom.fields.lon,xz,yz);
+    geo.lat = interp2(zoom.fields.lat,xz,yz);    
+    if zoom.fields.lon(1,1) > zoom.fields.lon(1,end)
+        zoom.fields.lon = wrapTo180(zoom.fields.lon);
+        geo.lon = wrapTo360(interp2(zoom.fields.lon,xz,yz));
+    else
+        geo.lon = interp2(zoom.fields.lon,xz,yz);
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [volume] = CenterOfVolume(zoom,area,Y)
@@ -830,7 +844,7 @@ function fields_out = EDDyCut_init(fields_in,z)
         field = ff{1};
         fields_out.(field) = fields_in.(field)(ya:yb,xa:xb);
     end
-    %%
+    %% TODO do with distance(), looks better
     fields_out.km_x = cumsum(mod(diff(fields_out.lon(:,[[1 1:end]]),1,2),360),2);
     fields_out.km_x = fields_out.km_x .* cosd(fields_out.lat);
     fields_out.km_x = deg2km(fields_out.km_x);

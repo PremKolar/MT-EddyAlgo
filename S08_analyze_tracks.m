@@ -1,4 +1,4 @@
-%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 08-Apr-2014 19:50:46
 % Computer:  GLNX86
 % Matlab:  7.9
@@ -6,6 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S08_analyze_tracks
     DD=initialise([],mfilename);
+    save DD
+    %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -43,10 +45,11 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
                 TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
             end
             TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
-        end %% mapstuff prep
+        end
+        %% mapstuff prep
         senii=(TT.sense+3)/2;
         sen=DD.FieldKeys.senses{senii};
-        [map.(sen),TT.velPP]=MeanStdStuff( TT.eddy,map.(sen),DD);
+        [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
         %% resort tracks for output
         [MinMax]=resortTracks(DD,MinMax,TT,senii);
     end
@@ -57,7 +60,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
-
+    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -67,6 +70,7 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
     NEW.iq=TRiq(map,eddy);
+    %% combo old map with new data
     map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,7 +113,7 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-
+    
     %% save
     sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
@@ -127,6 +131,27 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    TT.eddy.track(end)=[];
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -170,7 +195,7 @@ function	amp=TRamp(map,eddy)
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
         amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
@@ -185,7 +210,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
-
+        
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end
@@ -201,13 +226,14 @@ function	[vel,pp]=TRvel(map,eddy)
         [vel.(a)]=protoInit(map.proto);
         %% calc
         position=cumsum(eddy.dist.num.(a).m);
-        pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24;
-
+        pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24; % day2sec
+        % TODO has to wait for available license
         while true
             try
-                pp.x=spline(pp.timeaxis,position);
-                pp.x_t=fnder(pp.x,1); % vel pp
-                pp.v=ppval(pp.x_t, pp.timeaxis);
+                %% get v(t) = dx/dt
+                pp.(a).x=spline(pp.timeaxis,position);
+                pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
+                pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
             catch er
                 disp(er.message)
                 sleep(10)
@@ -215,7 +241,7 @@ function	[vel,pp]=TRvel(map,eddy)
             end
             break
         end
-        velN=noBndr(ppval(pp.x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
+        velN=noBndr(ppval(pp.(a).x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end
 end
@@ -356,15 +382,15 @@ function [d,drct]=diststuff(geo)
     geo=[geo(1,:); geo];
     LA=geo(:,1);
     LO=geo(:,2);
-    latmean=nanmean(LA);
-    lonmean=nanmean(LO);
+    latmean = nanmean(LA);
+    lonmean = 42; % irrelevant
     %%
     [d.traj.deg, drct.traj]=distance(geo(1:end-1,:),geo(2:end,:));
     d.traj.m=deg2km(d.traj.deg)*1000;
     d.traj.fromBirth = cumsum(d.traj.m);
     d.traj.tillDeath =  d.traj.fromBirth(end) - d.traj.fromBirth ;
     %%
-    [d.zonal.deg, drct.zonal]=distance(latmean,LO(1:end-1),latmean,LO(2:end));
+    [d.zonal.deg, drct.zonal]=distance('rh',latmean,LO(1:end-1),latmean,LO(2:end));
     drct.zonal(drct.zonal<=180 & drct.zonal >= 0) = 1;
     drct.zonal(drct.zonal> 180 & drct.zonal <= 360) = -1;
     d.zonal.m=d2mR(d.zonal.deg,drct.zonal);
@@ -383,7 +409,6 @@ function [param]=protoInit(proto,type)
     if nargin < 2, type='nan'; end
     param.mean=sparse(proto.(type));
     param.std=sparse(proto.(type));
-    %     count=proto.zeros;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function old=comboMS(old,new,DD)

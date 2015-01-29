@@ -5,8 +5,10 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
-    set(gcf,'renderer','painter')
-    set(gcf,'Visible','off')
+   set(gcf,'renderer','painter')
+   set(0,'defaultTextInterpreter','LaTeX')
+%     set(gcf,'Visible','off')
+    
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
     fname=[outdir,tit];
@@ -18,8 +20,9 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
-%     set(gcf,'Visible','on');
+    set(gcf,'Visible','on');
     set(gcf,'position',posOld);
+%     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function appendPdfMetaInfo(info,fnamepdf) %#ok<INUSL>
@@ -32,9 +35,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
-        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc ;'])
-        system(['epstopdf ' fname '.eps']);
+        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
+        system(['epstopdf --exact ' fname '.eps']);
+        system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
         system(['rm ' fname '.eps']);
+%          eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
     else
         if strcmp(fname(end-length(frmt)+1),frmt )
             fnfull=fname;
@@ -60,7 +65,11 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
         disp('not setting up position for docked fig')
     end
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
-    set(gca,'FontSize',12)
-    set(findall(gcf,'type','text'),'FontSize',12)
+    
+%     set(findall(gcf,'type','text'),'FontSize',12)
+   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex')
+    set(gca,'FontSize',10)
+%       set(gca,'FontName','SansSerif')
+   
 end
 

@@ -41,15 +41,11 @@ function DD=INPUT
      %% switches
 
     %% 1 for I    -    0 for II
-    DD.switchs.chelt = 0;
+    DD.switchs.chelt = 1;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
-
-
-
-
 
     %% TODO
     DD.switchs.netUstuff = 0;

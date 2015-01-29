@@ -7,7 +7,7 @@
 function S08_analyze_tracks
     DD=initialise([],mfilename);
     save DD
-    load DD
+    %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -131,6 +131,27 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    TT.eddy.track(end)=[];
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

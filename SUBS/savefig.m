@@ -7,7 +7,7 @@
 function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
    set(gcf,'renderer','painter')
    set(0,'defaultTextInterpreter','LaTeX')
-%     set(gcf,'Visible','off')
+    set(gcf,'Visible','off')
     
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
@@ -15,13 +15,14 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     mkdirp(outdir);
     %% set up gcfure
     [resHere,posOld]=setupfigure(resOut,xdim,ydim);
+    sleep(1)
     %% print
     fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere);
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
     set(gcf,'Visible','on');
-    set(gcf,'position',posOld);
+%     set(gcf,'position',posOld);
 %     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,8 +50,12 @@ function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
         todo=['print ',fnfull , ' -f -r',num2str(resOut),' -',frmt,';'];
         disp(todo)
         eval(todo)
-        system(['convert -density ' num2str(resHere) 'x' num2str(resHere) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' -quality 100 ' fnfull ' ' fname '.pdf' ]);
-    end   
+        resHere=resHere*3;
+        xdim=xdim*3;
+        ydim=ydim*3;
+        system(['convert -density ' num2str(resHere) 'x' num2str(resHere) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' -quality 100 +repage ' fnfull ' ' fname '.pdf' ]);
+%    convert -density 300x300 -resize ${resX}x -quality 100 +repage $1  "${1%.*}.pdf"
+   end   
     fnamepdf=[fname '.pdf'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -13,10 +13,10 @@ function sub09_mapStuff
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
-    senses=DD.FieldKeys.senses;
+    senses    = DD.FieldKeys.senses;
     sensesAlt =   {'anti-cyclones';'cyclones'}
     
-   
+    
     for ss=1:2
         sen=senses{ss};
         senAlt=sensesAlt{ss};
@@ -31,29 +31,40 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %         axis([-180 180 -70 70]);
         %         savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
         %         %%
-        close all
-%         sleep(1)
-        VV=II.maps.(sen).radius.mean.mean/1000;
+        %         close all
+        %         VV=II.maps.(sen).radius.mean.mean/1000;
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat;
+        %         colormap([hsv(14)]);
+        %         clm=[20 160 8];
+        %         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
+        %         axis([-180 180 -80 90]);
+        %         if ss==2
+        %             colorbar('hide')
+        %             set(gca,'yTickLabel','')
+        %         end
+        %         grid minor;
+        %         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
+        %%
+        clf
+        VV=II.maps.(sen).vel.zonal.mean*100;
         VV = eurocen(VV,loMin);
         pcolor(lo,la,VV);shading flat;
-        colormap([hsv(14)]);
-        clm=[20 160 8];
-        decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-        %         axis(T.axis)   %
-        axis([-180 180 -70 90]);
+        cw=jet(20);
+        cm=[0 0 0];
+        ce=(winter(4));
+        colormap([cw;cm;ce(:,[1 3 2])])
+        decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
+        axis([-180 180 -80 90]);
         if ss==2
             colorbar('hide')
-             set(gca,'yTickLabel','')
-            %              set(gca,'yaxisLocation','right')
+            set(gca,'yTickLabel','')
         end
-%                 if ss==1
-%                     set(gca,'yTickLabel','')
-%                 end
-%                 set(gca,'xticklabel','')
-        grid minor
-%         sleep(1)
-
-        savefig('./',T.rez,T.width,T.height,['MapRad-' sen],'dpdf');
+        grid minor;
+        sleep(1)
+        savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
+        sleep(1)
+        
         %         %%
         %         close all
         %         VV=II.maps.(sen).vel.zonal.mean*100;
@@ -93,10 +104,10 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
         %%
     end
-    fname='MapSigma'
-    system(['pdfjam --nup 2x1 -o c.pdf ' ['MapRad-' senses{1} '.pdf '] ['MapRad-' senses{2} '.pdf']])
-    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
-    cpPdfTotexMT(fname);
+    %     joinPdfs('MapSigma',senses,DD)
+    joinPdfs('velZon',senses,DD)
+    
+    
     %     system(['rm *.pdf'])
     
     
@@ -127,6 +138,13 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     %     savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');
     %     cpPdfTotexMT(fn)  ;
 end
+
+function joinPdfs(fname,senses,DD)
+    system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
+    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     %%

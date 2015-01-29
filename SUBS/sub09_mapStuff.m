@@ -13,7 +13,7 @@ function sub09_mapStuff
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
-    senses=DD.FieldKeys.senses;
+    senses    = DD.FieldKeys.senses;
     sensesAlt =   {'anti-cyclones';'cyclones'}
     
     
@@ -38,7 +38,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %         colormap([hsv(14)]);
         %         clm=[20 160 8];
         %         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-        %         axis([-180 180 -70 90]);
+        %         axis([-180 180 -80 90]);
         %         if ss==2
         %             colorbar('hide')
         %             set(gca,'yTickLabel','')
@@ -54,15 +54,16 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         cm=[0 0 0];
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
-        decorate([-20 5 6],T,sen,'Zonal velocity','cm/s',0,1);
-        axis([-180 180 -70 90]);
+        decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
+        axis([-180 180 -80 90]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')
         end
         grid minor;
+        sleep(1)
         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
-        
+        sleep(1)
         
         %         %%
         %         close all

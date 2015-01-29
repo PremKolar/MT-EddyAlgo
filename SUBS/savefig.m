@@ -22,6 +22,7 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     end
     set(gcf,'Visible','on');
     set(gcf,'position',posOld);
+%     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function appendPdfMetaInfo(info,fnamepdf) %#ok<INUSL>
@@ -34,9 +35,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
-        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc ;'])
-        system(['epstopdf ' fname '.eps']);
+        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
+        system(['epstopdf --exact ' fname '.eps']);
+        system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
         system(['rm ' fname '.eps']);
+%          eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
     else
         if strcmp(fname(end-length(frmt)+1),frmt )
             fnfull=fname;

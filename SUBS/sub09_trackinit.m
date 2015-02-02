@@ -1,11 +1,11 @@
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Created: 22-Sep-2014 18:33:55
 % Computer:  GLNXA64
 % Matlab:  8.1
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sub09_trackinit(DD)
-    
+
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
@@ -32,7 +32,7 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'isoper'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sngl=sPmDstoof(DD,eds,root,toLoad)
@@ -65,9 +65,9 @@ function vel=makeVel(cats)
         end
         cc=cc+1;
         try
-            vel{ff}=pp.zonal.v;
-        catch
             vel{ff}=ppval(pp.x_t,pp.timeaxis);
+        catch
+            vel{ff}=pp.zonal.v;
         end
     end
 end

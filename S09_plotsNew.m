@@ -38,10 +38,10 @@ function S09_plotsNew
     II=initStuff(DD);
     save S09main II DD T
     %%
-%     sub09_mapStuff
-%         sub09_trackstuff
-    %     sub09_histStuff
-        sub09_TPzStuff
+  sub09_mapStuff
+  sub09_trackstuff
+  sub09_histStuff
+	sub09_TPzStuff
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,10 +52,3 @@ function II=initStuff(DD)
     II.la=II.maps.Cycs.lat;
     II.lo=II.maps.Cycs.lon;
 end
-
-
-
-
-
-
-

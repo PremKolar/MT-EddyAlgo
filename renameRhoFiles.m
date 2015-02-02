@@ -11,7 +11,7 @@ for ii=1:numel(rhoFiles)
     newname=sprintf('rho_%s.nc',dateS);
     todo=sprintf('mv %s %s',F,newname);
     disp(todo);
-        system(todo);
+    system(todo);
     dateN=dateN+1;
 end
 

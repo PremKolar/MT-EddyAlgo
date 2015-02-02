@@ -60,9 +60,24 @@ function [II] = init_get_contours(DD,TT)
     dispM('calculating contours... takes long time!',1)
     %% create level vector at chosen interval
     steplim.min = @(step,ssh) ceil(nanmin(ssh(:))/step)*step;
-    steplim.max = @(step,ssh) floor(nanmax(ssh(:))/step)*step;  
-  
-    floorlevel = steplim.min(DD.contour.step,II.fields.ssh);
-    ceillevel = steplim.max(DD.contour.step,II.fields.ssh);
-    II.levels = floorlevel:DD.contour.step:ceillevel;
+    steplim.max = @(step,ssh) floor(nanmax(ssh(:))/step)*step;
+    
+    ssh = II.fields.ssh;
+    if DD.switchs.dynamicContourStep
+        step = twoNonZeroDigits((nanmax(ssh(:)) - nanmin(ssh(:)))/100);
+    else
+        step = DD.contour.step;
+    end
+    
+    floorlevel = steplim.min(step,ssh);
+    ceillevel = steplim.max(step,ssh);
+    II.levels = floorlevel:step:ceillevel;
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function out = twoNonZeroDigits(in)
+    stepString=sprintf('%e',in);
+    eidx=regexp(stepString,'e');
+    out = str2double(stepString(1:3)) * 10^(str2double(stepString(eidx+1:end)));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

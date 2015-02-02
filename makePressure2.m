@@ -10,7 +10,7 @@ function makePressure2
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmdBlock(T,files,outDir,geo,Y,X,Z)
-    for ii=II(labindex,1:labindex,2)
+    for ii=1:numel(files.salt)
         T=    disp_progress('kuguz',T,numel(files.salt));
         try
             opDay(files,ii,Y,X,Z,outDir,geo)
@@ -60,7 +60,7 @@ function  [Z,Y,X,geo]= inits(geo,files)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function opDay(files,ii,Y,X,Z,outDir,geo)
-   persistent ssh dZ pseudoSsh rho salt temp land
+    persistent ssh dZ pseudoSsh rho salt temp land
     Fssh  = files.ssh(ii).fullname;
     Fsalt = files.salt(ii).fullname;
     Ftemp = files.temp(ii).fullname;
@@ -74,13 +74,14 @@ function opDay(files,ii,Y,X,Z,outDir,geo)
     land                = geo.full.bathym;
     salt                = (nc_varget(Fsalt,'SALT')*1000 );
     temp                = (nc_varget(Ftemp,'TEMP'));
-    ssh                 = nc_varget(Fssh,'SSH')/100; %cm2m
+    ssh                 = nc_varget(Fssh,'SSH')/100; % cm2m
     ssh                 = repmat(permute(ssh,[3,1,2]),[Z,1,1]);
     pseudoSsh.zLevels   = ([0; geo.de(1:end-1)] + geo.de)/2;
     dZ                  = geo.full.depDiff;
     dZ(1,:,:)           = dZ(1,:,:) + ssh(1,:,:); % replace 0's
     rho.data            = nanland(sw_dens(salt,temp,pascal2db(geo.full.Pzero)),land);
-    pseudoSsh.h         = press2h(1000,9.81,nanland(cumsum(rho.data.*geo.G.*dZ,1),land));
+    p                   = nanland(cumsum(rho.data.*geo.G.*dZ,1),land);
+    pseudoSsh.h         = press2h(1000,9.81,p); % water column equivalent
     %%
     ncOp(pseudoSsh, X,Y,Z);
     ncOp(rho, X,Y,Z);

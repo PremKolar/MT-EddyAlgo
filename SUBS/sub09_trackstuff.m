@@ -1,49 +1,42 @@
 function sub09_trackstuff
     load S09main II DD T
-        sub09_trackinit(DD);
-    TR=getTR(DD) ;
+    flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL';'iq';};
+    %         sub09_trackinit(DD);
+    TR=getTR(DD,flds) ;
     %%
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
+    
     %%
-    rad=round(catsen('rad')/1000);
-    radLe=round(catsen('radLe')/1000);
-    radLeff=round(catsen('radLeff')/1000);
-    radL=round(catsen('radL')/1000);
-    vel=catsen('vel')*100;
-    age=catsen('age');
-    lat=catsen('lat');
-    lon=catsen('lon'); 
-    amp=catsen('amp');    
-    reflin=catsen('reflin');
+    for ff=1:numel(flds)
+        fld = flds{ff};
+        eval([fld ' = catsen(' fld ');']);
+    end
+    %%
+    rad=round(rad/1000);
+    radLe=round(radLe/1000);
+    radLeff=round(radLeff/1000);
+    radL=round(radL/1000);
+    vel=vel*100;
     %%
     S.rightyscalenum=5;
+    for ff=1:numel(flds)
+        fld = flds{ff};
+        eval([fld '(end+1:end+S.rightyscalenum) = 0;']);
+    end
     age(end+1:end+S.rightyscalenum)=max(age)-0;
     lat(end+1:end+S.rightyscalenum)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
     lon(end+1:end+S.rightyscalenum)=S.t2l([min(lon) max(lon) S.rightyscalenum]);
     rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
-    vel(end+1:end+S.rightyscalenum)=10;
-    
-    radL(end+1:end+S.rightyscalenum)=0;
-    radLe(end+1:end+S.rightyscalenum)=0;
-    radLeff(end+1:end+S.rightyscalenum)=0;
-    amp(end+1:end+S.rightyscalenum)=0;
-    %     reflin(end+1:end+S.rightyscalenum)=0;
     
     %%
-    [~,sml2lrg] = sort(rad)  ;
-    S.age = age(fliplr(sml2lrg));
-    S.lat = lat(fliplr(sml2lrg));
-    S.lon = lon(fliplr(sml2lrg));
-    S.rad = rad(fliplr(sml2lrg));
-    S.vel = vel(fliplr(sml2lrg));
-    S.amp = amp(fliplr(sml2lrg));
-    S.radLe   = radLe(fliplr(sml2lrg));
-    S.radLeff = radLeff(fliplr(sml2lrg));
-    S.radL    = radL(fliplr(sml2lrg));
+    [~,sml2lrg] = sort(rad)  ; %#ok<ASGLU>
     
-    %     S.reflin  = reflin(fliplr(sml2lrg));
+    for ff=1:numel(flds)
+        fld = flds{ff};
+        eval(['S.(fld) = ' fld '(fliplr(sml2lrg));']);
+    end
     
     %% kill unrealistic data
     zerage  = S.age<=0  ;
@@ -59,13 +52,13 @@ function sub09_trackstuff
         end
     end
     %%
-%     fn=fnA;
+    %     fn=fnA;
     %%
-%     velZonmeans(S,DD,II,T,fn.vel);
-%     scaleZonmeans(S,DD,II,T,fn.sca);
+    %     velZonmeans(S,DD,II,T,fn.vel);
+    %     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
-%     fnB(fn);
+    %     fnB(fn);
     %aa= griddata(wrapTo180(S.lon),S.lat,abs(S.vel),(-180:.01:180)',-70:.01:-30);
     %imagesc((-180:.01:180)',-70:.01:-30,flipud(aa))
     %colorbar
@@ -75,7 +68,7 @@ function sub09_trackstuff
     %load coast
     %plot(long,lat,'black','linewidth',3)
     
-%     scatter(S),S.lat,abs(S.vel),log(S.age))
+        scatter(S.iq,S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))
@@ -491,11 +484,8 @@ function scattStuff(S,T,DD,II)
     %     savefig(DD.path.plots,T.rez,T.width,T.height,['sct-ageLatRadU'],'dpng',DD2info(DD));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TR=getTR(DD)
+function TR=getTR(DD,F)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
-    %     F={'rad','age','lat','lon'};
-    F={'rad','age','lat','lon','radL','radLeff','radLe','amp'};
-    %     F={'rad','age','lat','lon','radL','radLeff','radLe','reflin'};
     g=@(c) cat(1,c{:});
     for ss=1:2
         for fi=1:numel(F);f=F{fi};

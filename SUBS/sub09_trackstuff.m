@@ -11,7 +11,7 @@ function sub09_trackstuff
     %%
     for ff=1:numel(flds)
         fld = flds{ff};
-        eval([fld ' = catsen(' fld ');']);
+        eval([fld ' = catsen(''' fld ''');']);
     end
     %%
     rad=round(rad/1000);
@@ -25,10 +25,10 @@ function sub09_trackstuff
         fld = flds{ff};
         eval([fld '(end+1:end+S.rightyscalenum) = 0;']);
     end
-    age(end+1:end+S.rightyscalenum)=max(age)-0;
-    lat(end+1:end+S.rightyscalenum)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
-    lon(end+1:end+S.rightyscalenum)=S.t2l([min(lon) max(lon) S.rightyscalenum]);
-    rad(end+1:end+S.rightyscalenum)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
+    age(end-S.rightyscalenum+1:end)=max(age)-0;
+    lat(end-S.rightyscalenum+1:end)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
+    lon(end-S.rightyscalenum+1:end)=S.t2l([min(lon) max(lon) S.rightyscalenum]);
+    rad(end-S.rightyscalenum+1:end)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
     
     %%
     [~,sml2lrg] = sort(rad)  ; %#ok<ASGLU>
@@ -52,13 +52,13 @@ function sub09_trackstuff
         end
     end
     %%
-    %     fn=fnA;
+    fn=fnA;
     %%
-    %     velZonmeans(S,DD,II,T,fn.vel);
-    %     scaleZonmeans(S,DD,II,T,fn.sca);
+    velZonmeans(S,DD,II,T,fn.vel);
+    scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
-    %     fnB(fn);
+    fnB(fn);
     %aa= griddata(wrapTo180(S.lon),S.lat,abs(S.vel),(-180:.01:180)',-70:.01:-30);
     %imagesc((-180:.01:180)',-70:.01:-30,flipud(aa))
     %colorbar
@@ -67,8 +67,21 @@ function sub09_trackstuff
     %hold on
     %load coast
     %plot(long,lat,'black','linewidth',3)
+    %     [~,b]=sort(S.iq);
     
-        scatter(S.iq,S.lat,abs(S.vel),log(S.age))
+    %     SS=1:100:1400745;
+    %
+    %     scatter(S.iq(SS),(S.age(SS)),1,abs(S.rad(SS)))
+    %     colorbar
+    % %     caxis([0 300])
+    %     colormap(jet(100))
+    %     set(gcf,'windowStyle','docked')
+    %     axis tight
+    
+    
+    %%
+    
+    scatter(S.iq,S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))

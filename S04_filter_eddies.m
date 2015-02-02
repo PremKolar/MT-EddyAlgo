@@ -187,7 +187,7 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
     
     %% filter eddies not circle - like enough
-    [pass.CR_Shape,ee.isoper, ee.chelt] = CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
+    [pass.CR_Shape,ee.iq, ee.cheltshape] = CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
     if ~pass.CR_Shape, return, end;
     %% get peak position and amplitude w.r.t contour
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);

@@ -4,6 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
     save DD
@@ -18,9 +19,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    spmd(DD.threads.num)
+%     spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
-    end
+%     end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');

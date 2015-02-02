@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    %     sub09_trackinit(DD);
+        sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -14,9 +14,9 @@ function sub09_trackstuff
     vel=catsen('vel')*100;
     age=catsen('age');
     lat=catsen('lat');
-    lon=catsen('lon'); %#ok<NASGU>
-    amp=catsen('amp'); %#ok<NASGU>
-    %     reflin=catsen('reflin');
+    lon=catsen('lon'); 
+    amp=catsen('amp');    
+    reflin=catsen('reflin');
     %%
     S.rightyscalenum=5;
     age(end+1:end+S.rightyscalenum)=max(age)-0;
@@ -47,7 +47,7 @@ function sub09_trackstuff
     
     %% kill unrealistic data
     zerage  = S.age<=0  ;
-    velHigh = S.vel>100 | S.vel <-100;
+    velHigh = S.vel>30 | S.vel <-30;
     radnill = isnan(S.rad) | S.rad==0;
     %    SOonly  = S.lat > -30 | S.lat < -70 ;
     %    killTag = zerage | velHigh | radnill | SOonly  | S.age<30;
@@ -59,13 +59,13 @@ function sub09_trackstuff
         end
     end
     %%
-    fn=fnA;
+%     fn=fnA;
     %%
-    %     velZonmeans(S,DD,II,T,fn.vel);
-    scaleZonmeans(S,DD,II,T,fn.sca);
+%     velZonmeans(S,DD,II,T,fn.vel);
+%     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
-    fnB(fn);
+%     fnB(fn);
     %aa= griddata(wrapTo180(S.lon),S.lat,abs(S.vel),(-180:.01:180)',-70:.01:-30);
     %imagesc((-180:.01:180)',-70:.01:-30,flipud(aa))
     %colorbar
@@ -75,7 +75,7 @@ function sub09_trackstuff
     %load coast
     %plot(long,lat,'black','linewidth',3)
     
-    %% scatter(wrapTo180(S.lon),S.lat,abs(S.vel),log(S.age))
+%     scatter(S),S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))

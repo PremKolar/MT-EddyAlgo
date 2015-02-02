@@ -28,7 +28,7 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
 %     tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
-  tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
+  tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};  
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
 

@@ -33,11 +33,11 @@ function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
     drawColorLinez(ticks,tracks.(senses{2}),colorfield,minlen,cticks,logornot,globe,fac,cmap) ;
     cb{2}=colorbar('westoutside');
     colormap(cb{2},autumn(100))
-    
+
     %%
     axis([-180 180 -70 70])
     drawcoast
-    
+
     tit=['tracks-' colorfield];
     if logornot
         ticks.(cticks)(1:2) = log(ticks.(cticks)(1:2));
@@ -51,12 +51,12 @@ function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
         end
     end
     set(cb{2},'yticklabel',[])
-    
+
     grid on
-    
+
     %     titalt=[tit '-alt'];
     %     savefig(DD.path.plots,ticks.rez,1400,600,titalt,'dpdf')
-    
+
     dims=[8*12 6*12];FS=20;
     set(gcf,'Visible','off','position',[0 0 1200 800],'paperunits','inch','papersize',dims,'paperposition',[0 0 dims]);
     set(findall(gcf,'type','text'),'FontSize',FS,'interpreter','latex')
@@ -95,7 +95,7 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     set(cb{1},'yticklabel',linspace(minV,maxV,cbticks))
     colormap(cb{1},cmap);
     hold on
-    
+
     cmap=flipud(hot(110));
     cmap=cmap(11:end,:);
     [minV, maxV]=drawColorLinez(ticks,tracks.(senses{2}),colorfield,minlen,cticks,logornot,0,1,cmap) ;
@@ -115,7 +115,7 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
         set(cb{1},'yticklabel',round(exp(linspace(minV,maxV,cbticks))))
         %         set(cb{2},'yticklabel',round(exp(get(cb{2},'ytick'))))
     end%
-    
+
     %%
     %     titalt=['defl-' colorfield '-alt'];
     %     savefig(DD.path.plots,200,1200,800,titalt,'dpdf',DD2info(DD));
@@ -136,7 +136,7 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
     sleep(2)
     cpPdfTotexMT(tit);
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [minV, maxV]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe,fac,cmap)
@@ -189,7 +189,7 @@ function [OUT]=inits(DD)
     end
     %% collect tracks
     OUT.tracksfile=[DD.path.analyzed.name , 'tracks.mat' ];
-    
+
     for ss=1:2
         sen = DD.FieldKeys.senses{ss};
         root=DD.path.analyzedTracks.(sen).name;
@@ -201,7 +201,7 @@ function [OUT]=inits(DD)
         end
     end
     %%
-    
+
     %% get vectors
     %     disp(['loading vectors'])
     % 	OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);

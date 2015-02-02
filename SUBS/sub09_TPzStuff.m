@@ -4,23 +4,23 @@ function sub09_TPzStuff
     %     save([DD.path.analyzed.name 'procData.mat'],'procData');
     load([DD.path.analyzed.name 'procData.mat'],'procData');
     senses = DD.FieldKeys.senses';
-    %     spmd(2)
-    %         if labindex==1
-    %             %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
-%     TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
-    %         else
-    TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
-    %         end
-    %     end
+    sghfgh(DD,senses,procData,T);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
+function sghfgh(DD,senses,procData,T)
+    spmd(2)
+        close all
+        if labindex==1
+            %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
+            TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
+        else
+            TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
+        end
+    end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
-%     close all
+    close all
     globe=true;
     %     drawLinez(tracks.(sen),minlen)
     cmap = winter(100);
@@ -43,7 +43,7 @@ function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
         ticks.(cticks)(1:2) = log(ticks.(cticks)(1:2));
         ticks.(cticks)(ticks.(cticks)==0) = 1;
     end
-%     set(cb{1},'ytick',0:.2:.8)
+    %     set(cb{1},'ytick',0:.2:.8)
     for ss=1:2
         set(cb{ss},'ytick',linspace(0,1,ticks.(cticks)(3)))
         if logornot
@@ -54,19 +54,23 @@ function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
     
     grid on
     
-%     titalt=[tit '-alt'];
-%     savefig(DD.path.plots,ticks.rez,1400,600,titalt,'dpdf')
+    %     titalt=[tit '-alt'];
+    %     savefig(DD.path.plots,ticks.rez,1400,600,titalt,'dpdf')
     
     dims=[8*12 6*12];FS=20;
     set(gcf,'Visible','off','position',[0 0 1200 800],'paperunits','inch','papersize',dims,'paperposition',[0 0 dims]);
     set(findall(gcf,'type','text'),'FontSize',FS,'interpreter','latex')
     set(gca,'FontSize',FS);
     fname = [DD.path.plots tit];
+    sleep(5)
     print('-depsc','-painters',fname)
+    sleep(5)
     print('-depsc','-painters',fname)
+    sleep(5)
     system(['epstopdf ' fname '.eps']);
+    sleep(5)
     system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
-    cpPdfTotexMT(tit);   
+    cpPdfTotexMT(tit);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
@@ -96,7 +100,7 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     cmap=cmap(11:end,:);
     [minV, maxV]=drawColorLinez(ticks,tracks.(senses{2}),colorfield,minlen,cticks,logornot,0,1,cmap) ;
     cb{2}=colorbar('westoutside');
-    p2 = get(cb{2},'position')
+    p2 = get(cb{2},'position');
     p2(3) = p2(3)/2;
     p2(1) = p2(1) -  p2(3);
     set(cb{2},'position',p2);
@@ -113,18 +117,24 @@ function TPz(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot)
     end%
     
     %%
-%     titalt=['defl-' colorfield '-alt'];
-%     savefig(DD.path.plots,200,1200,800,titalt,'dpdf',DD2info(DD));
+    %     titalt=['defl-' colorfield '-alt'];
+    %     savefig(DD.path.plots,200,1200,800,titalt,'dpdf',DD2info(DD));
     %%
+    sleep(5)
     dims=[8*12 6*12];FS=32;
     set(gcf,'paperunits','inch','papersize',dims,'paperposition',[0 0 dims]);
     set(findall(gcf,'type','text'),'FontSize',FS,'interpreter','latex')
     set(gca,'FontSize',FS);
     fname = [DD.path.plots tit];
+    sleep(5)
     print('-depsc','-painters',fname)
+    sleep(5)
     print('-depsc','-painters',fname)
+    sleep(5)
     system(['epstopdf ' fname '.eps']);
+    sleep(2)
     system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
+    sleep(2)
     cpPdfTotexMT(tit);
     
 end
@@ -168,7 +178,6 @@ function [minV, maxV]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logorno
     end
     %     caxis([minV maxV])
 end
-
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD)
     disp(['loading maps'])

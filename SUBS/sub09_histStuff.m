@@ -1,5 +1,5 @@
 function sub09_histStuff
-    load DD
+    load S09main DD
     
     T(2).files=struct;
     T(1).files = dir2([DD.path.tracks.name '*' DD.FieldKeys.senses{1} '*']);

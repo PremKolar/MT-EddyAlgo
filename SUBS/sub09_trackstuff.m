@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    %     sub09_trackinit(DD);
+    sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -14,8 +14,8 @@ function sub09_trackstuff
     vel=catsen('vel')*100;
     age=catsen('age');
     lat=catsen('lat');
-    lon=catsen('lon'); %#ok<NASGU>
-    amp=catsen('amp'); %#ok<NASGU>
+    lon=catsen('lon');
+    amp=catsen('amp');
     %     reflin=catsen('reflin');
     %%
     S.rightyscalenum=5;
@@ -47,10 +47,8 @@ function sub09_trackstuff
     
     %% kill unrealistic data
     zerage  = S.age<=0  ;
-    velHigh = S.vel>100 | S.vel <-100;
+    velHigh = S.vel>30 | S.vel <-30;
     radnill = isnan(S.rad) | S.rad==0;
-    %    SOonly  = S.lat > -30 | S.lat < -70 ;
-    %    killTag = zerage | velHigh | radnill | SOonly  | S.age<30;
     killTag = zerage | velHigh | radnill ;
     FN=fieldnames(S);
     for ii=1:numel(FN)
@@ -61,7 +59,7 @@ function sub09_trackstuff
     %%
     fn=fnA;
     %%
-    %     velZonmeans(S,DD,II,T,fn.vel);
+    velZonmeans(S,DD,II,T,fn.vel);
     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -100,7 +98,7 @@ function fnB(fn)
     cpPdfTotexMT(fn.combo);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
+function h=scaleZonmeans(S,DD,II,T,outfname)  %#ok<*INUSL>
     %     s The right panel shows meridional proﬁles of the average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
     % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
     % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
@@ -183,7 +181,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
     %     killevery2ndytl;
     %%
-    fname='hist-sigmaAt-both'
+    fname='hist-sigmaAt-both';
     system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
     system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
     cpPdfTotexMT(fname);
@@ -236,7 +234,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     % scales..
     
     vvM(abs(LAuniq)<5)=nan;
-    vvS(abs(LAuniq)<5)=nan;
+    %     vvS(abs(LAuniq)<5)=nan;
     
     
     %%
@@ -257,7 +255,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     
     figure(10)
     clf
-    nrm=@(x) x/nanmax(x-nanmin(x))
+    nrm=@(x) x/nanmax(x-nanmin(x));
     SK(:,1) = nrm(smooth(-vvM,10));
     SK(:,2) = nrm(smooth(-vvSkew,10));
     SK(:,3) = nrm(smooth(visits,10))*.8;
@@ -299,7 +297,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
+function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS) %#ok<*DEFNU>
     %%
     clf
     lw=2;
@@ -445,7 +443,7 @@ function h=chOverLay(chelt,LAuniq,vvM)
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function scattStuff(S,T,DD,II)
+function scattStuff(S,T,DD,II) %#ok<*INUSD>
     age=S.age;
     lat=S.lat;
     vel=S.vel;

@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-%     DD = initialise([],mfilename);
-    %         save DD
-        load DD
+    DD = initialise([],mfilename);
+            save DD
+    %         load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
     ticks.height=300;
@@ -39,9 +39,9 @@ function S09_plotsNew
     save S09main II DD T
     %%
 %     sub09_mapStuff
-%         sub09_trackstuff
-    %     sub09_histStuff
-        sub09_TPzStuff
+%     sub09_trackstuff
+    sub09_histStuff
+    sub09_TPzStuff
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

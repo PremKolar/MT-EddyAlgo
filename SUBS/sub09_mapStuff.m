@@ -14,55 +14,44 @@ end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses    = DD.FieldKeys.senses;
-    sensesAlt =   {'anti-cyclones';'cyclones'}    
+    sensesAlt =   {'anti-cyclones';'cyclones'}
     
     for ss=1:2
         sen=senses{ss};
         senAlt=sensesAlt{ss};
-        %     close all
-        %         VV=full(II.maps.(sen).amp.to_contour.mean);
-        %         VV = eurocen(VV,loMin);
-        %         pcolor(lo,la,VV);
-        %         clm=[0 .3 6]; % base 5
-        %         decorate(clm,T,sen,'amp','m',0,2);
-        %         shading flat;
-        %         colormap( jet(31)) ;
-        %         axis([-180 180 -70 70]);
-        %         savefig(DD.path.plots,T.rez,T.width,T.height,['chLAmp-' sen],'dpdf');
+        close all
+        VV=II.maps.(sen).radius.mean.mean/1000;
+        VV = eurocen(VV,loMin);
+        pcolor(lo,la,VV);shading flat;
+        colormap([hsv(14)]);
+        clm=[20 160 8];
+        decorate(clm,T,senAlt,'$\sigma$','km',0,1);
+        axis([-180 180 -80 90]);
+        if ss==2
+            colorbar('hide')
+            set(gca,'yTickLabel','')
+        end
+        grid on;
+        savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
         %         %%
-        %         close all
-        %         VV=II.maps.(sen).radius.mean.mean/1000;
-        %         VV = eurocen(VV,loMin);
-        %         pcolor(lo,la,VV);shading flat;
-        %         colormap([hsv(14)]);
-        %         clm=[20 160 8];
-        %         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-        %         axis([-180 180 -80 90]);
-        %         if ss==2
-        %             colorbar('hide')
-        %             set(gca,'yTickLabel','')
-        %         end
-        %         grid minor;
-        %         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
-        %         %%
-        %         clf
-        %         VV=II.maps.(sen).vel.zonal.mean*100;
-        %         VV = eurocen(VV,loMin);
-        %         pcolor(lo,la,VV);shading flat;
-        %         cw=jet(20);
-        %         cm=[0 0 0];
-        %         ce=(winter(4));
-        %         colormap([cw;cm;ce(:,[1 3 2])])
-        %         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-        %         axis([-180 180 -80 90]);
-        %         if ss==2
-        %             colorbar('hide')
-        %             set(gca,'yTickLabel','')
-        %         end
-        %         grid minor;
-        %         sleep(1)
-        %         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
-        %         sleep(1)
+        clf
+        VV=II.maps.(sen).vel.zonal.mean*100;
+        VV = eurocen(VV,loMin);
+        pcolor(lo,la,VV);shading flat;
+        cw=jet(20);
+        cm=[0 0 0];
+        ce=(winter(4));
+        colormap([cw;cm;ce(:,[1 3 2])])
+        decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
+        axis([-180 180 -80 90]);
+        if ss==2
+            colorbar('hide')
+            set(gca,'yTickLabel','')
+        end
+        grid on;
+        sleep(1)
+        savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
+        sleep(1)
         
         %         %%
         %         close all
@@ -103,8 +92,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
         %%
     end
-    %     joinPdfs('MapSigma',senses,DD)
-    %     joinPdfs('velZon',senses,DD)
+    joinPdfs('MapSigma',senses,DD)
+    joinPdfs('velZon',senses,DD)
     %
     close all
     VV=(II.maps.(senses{1}).visits.single);
@@ -121,7 +110,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     %         colormap(parula(21))
     colormap(jet(13))
     cb=decorate([0 65,11],T,sen,'Unique Visits',' ',0,1);
-%     title('unique visits (all)')
+    %     title('unique visits (all)')
     set(cb,'ytick',[0 10:10:60])
     set(cb,'yticklabel',[1 10:10:60])
     set(cb,'ylim',[0 65])

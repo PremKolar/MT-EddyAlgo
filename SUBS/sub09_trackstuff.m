@@ -1,11 +1,12 @@
 function sub09_trackstuff
     load S09main II DD T
-    flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL';'iq';};
+%     flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL';'iq';};
+    flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL'};
     sub09_trackinit(DD);
     TR=getTR(DD,flds) ;
     %%
     senses=DD.FieldKeys.senses;
-    catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
+    catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ]; %#ok<*NASGU>
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
 
     %%
@@ -77,7 +78,7 @@ function sub09_trackstuff
     %     set(gcf,'windowStyle','docked')
     %     axis tight
 
-    scatter(S.iq,S.lat,abs(S.vel),log(S.age))
+%     scatter(S.iq,S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))
@@ -102,7 +103,7 @@ function fnB(fn)
     cpPdfTotexMT(fn.combo);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
+function h=scaleZonmeans(S,DD,II,T,outfname)  %#ok<*INUSL>
     %     s The right panel shows meridional proﬁles of the average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
     % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
     % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
@@ -238,13 +239,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     % scales..
 
     vvM(abs(LAuniq)<5)=nan;
-<<<<<<< HEAD
     %     vvS(abs(LAuniq)<5)=nan;
-=======
-    vvS(abs(LAuniq)<5)=nan;
-
-
->>>>>>> pop7II
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);

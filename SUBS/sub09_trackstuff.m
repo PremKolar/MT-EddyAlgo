@@ -1,6 +1,6 @@
 function sub09_trackstuff
     load S09main II DD T
-    sub09_trackinit(DD);
+    %     sub09_trackinit(DD);
     TR=getTR(DD) ;
     %%
     senses=DD.FieldKeys.senses;
@@ -61,7 +61,7 @@ function sub09_trackstuff
     %%
     fn=fnA;
     %%
-    velZonmeans(S,DD,II,T,fn.vel);
+    %     velZonmeans(S,DD,II,T,fn.vel);
     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -156,15 +156,13 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     %     	savefig(DD.path.plots,T.rez,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
     
     %% TODO
-    figure(2); clf;
+    figure; clf;
     fn=FN{1};
     
     [~,cc]=min(abs(LAuniq-(-10)));
     idx10=LA==LAuniq(cc);
     [~,cc]=min(abs(LAuniq-(-60)));
     idx50=LA==LAuniq(cc);
-    
-    
     histogram(S.(fn)(idx10),[10:10:500])
     axis tight
     yl=get(gca,'yLim');
@@ -174,7 +172,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     title(sprintf('total: %d counts',sum(idx10)))
     %
     savefig('./',T.rez,300,250,'a','dpdf',DD2info(DD));
-    
+    close all;      clf
     histogram(S.(fn)(idx50),[10:3:200])
     set(gca,'yaxisLocation','right')
     axis tight
@@ -242,10 +240,10 @@ function h=velZonmeans(S,DD,II,T,fn)
     
     
     %%
-    [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
-    [~,pw]=fileparts(pwd);
-    save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
-    savefig(DD.path.plots,T.rez,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
+    %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
+    %     [~,pw]=fileparts(pwd);
+    %     save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
+    %     savefig(DD.path.plots,T.rez,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
@@ -465,7 +463,7 @@ function scattStuff(S,T,DD,II)
     cb1 = findobj(gcf,'Type','axes','Tag','Colorbar');
     cbIm = findobj(cb1,'Type','image');
     alpha(cbIm,0.5)
-    T.vel = [0 10 11]
+    T.vel = [0 10 11];
     set(cb,'location','north','xtick',(S.t2l(T.vel)),'xlim',T.vel([1 2]))
     %     colormap(jet(100));
     doublemap([T.vel(1) 0 T.vel(2)],autumn(50),winter(50),[.9 1 .9],20)

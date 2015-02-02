@@ -9,7 +9,7 @@ function DD=INPUT
    DD.template='aviso';
 %     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 2;
+    DD.threads.num = 12;
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
@@ -41,11 +41,15 @@ function DD=INPUT
      %% switches
 
     %% 1 for I    -    0 for II
-    DD.switchs.chelt = 1;
+    DD.switchs.chelt = 0;
 
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
+
+
+
+
 
     %% TODO
     DD.switchs.netUstuff = 0;

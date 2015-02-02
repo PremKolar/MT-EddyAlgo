@@ -7,7 +7,7 @@ function sub09_TPzStuff
     %     spmd(2)
     %         if labindex==1
     %             %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
-%     TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
+    TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
     %         else
     TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
     %         end

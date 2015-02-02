@@ -5,9 +5,9 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-    %     DD = initialise([],mfilename);
+        DD = initialise([],mfilename);
     %     save DD
-    load DD
+%     load DD
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
     ticks.height=300;
@@ -35,8 +35,8 @@ function S09_plotsNew
     %     ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %%
     T=ticks;
-    %     II=initStuff(DD);
-    %     save S09main II DD T
+        II=initStuff(DD);
+        save S09main II DD T
     %%
     
     %     sub09_mapStuff

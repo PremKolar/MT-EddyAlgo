@@ -201,10 +201,18 @@ function h=scaleZonmeans(S,DD,II,T) %#ok<INUSD>
     idx=LA==LAuniq(cc); % -50
     hist(S.(fn)(idx),50)
     axis tight
-    title(sprintf('total: %d counts',sum(idx)))
-    xlabel('\sigma at -50^{\circ}')
-    savefig(DD.path.plots,100,600,600,['hist-sigmaAt-50deg'],'dpdf',DD2info(DD));
-
+    yl=get(gca,'yLim');
+    set(gca,'ytick',round([yl/2 yl(2)]))
+    title(sprintf('total: %d counts',sum(idx50)))
+    xlabel('$\sigma$ at $-50^{\circ}$')
+    savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
+    %     killevery2ndytl;
+    %%
+    fname='hist-sigmaAt-both';
+    system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
+    system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+    system(['rm ?.pdf'])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
@@ -253,9 +261,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
     % scales..
 
     vvM(abs(LAuniq)<5)=nan;
-    vvS(abs(LAuniq)<5)=nan;
-
-
+    %     vvS(abs(LAuniq)<5)=nan;
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -274,6 +280,11 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
 
     figure(10)
     clf
+    nrm=@(x) x/nanmax(x-nanmin(x));
+    SK(:,1) = nrm(smooth(-vvM,10));
+    SK(:,2) = nrm(smooth(-vvSkew,10));
+    SK(:,3) = nrm(smooth(visits,10))*.8;
+    plot(repmat(LAuniq',1,3), SK)
     hold on
     plot(LAuniq,smooth(-vvM,10),'blue')
     %  plot(LAuniq,vvS,'red')
@@ -313,7 +324,7 @@ function h=velZonmeans(S,DD,II,T) %#ok<INUSD>
 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS)
+function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS) %#ok<*DEFNU>
     %%
     clf
     lw=2;
@@ -474,7 +485,7 @@ function h=chOverLay(S,DD,chelt,LAuniq,vvM)
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function scattStuff(S,T,DD,II)
+function scattStuff(S,T,DD,II) %#ok<*INUSD>
     age=S.age;
     lat=S.lat;
     vel=S.vel;

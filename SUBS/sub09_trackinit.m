@@ -27,24 +27,25 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     sense.s=senses.s{ss};
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
-    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
+    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function single=sPmDstoof(DD,eds,root,toLoad)
+function sngl=sPmDstoof(DD,eds,root,toLoad)
     JJ=thread_distro(DD.threads.num,numel(eds));
-     spmd(DD.threads.num)
+    spmd(DD.threads.num)
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
-        for ff=1:numel(FF) 
+        for ff=1:numel(FF)
             T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
-            single(ff)=load([root eds(FF(ff)).name],toLoad(:).name);
+            currFile = [root eds(FF(ff)).name];
+            sngl(ff)=load(currFile,toLoad(:).name);
         end
-        single=gcat(single,2,1);
+        sngl=gcat(sngl,2,1);
     end
-    single=single{1};
+    sngl=sngl{1};
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cats=buildOutStruct(single)
@@ -83,6 +84,9 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
+    tmp=cats.trackref;
+    save(['TR-' sense.s '-reflin.mat'],'tmp')
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

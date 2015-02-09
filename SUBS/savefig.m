@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
-   set(gcf,'renderer','painter')
+   set(gcf,'renderer','painters')
    set(0,'defaultTextInterpreter','LaTeX')
     set(gcf,'Visible','off')
     

@@ -1,8 +1,12 @@
 function sub09_trackstuff
     load S09main II DD T
     flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL';'iq';};
-    sub09_trackinit(DD);
-    TR=getTR(DD,flds) ;
+%     sub09_trackinit(DD);
+% TRv = getVelFunc(DD);   
+ getLonFunc(DD); 
+
+TR=getTR(DD,flds) ;
+    
     %%
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
@@ -238,13 +242,9 @@ function h=velZonmeans(S,DD,II,T,fn)
     % scales..
 
     vvM(abs(LAuniq)<5)=nan;
-<<<<<<< HEAD
+
     %     vvS(abs(LAuniq)<5)=nan;
-=======
-    vvS(abs(LAuniq)<5)=nan;
 
-
->>>>>>> pop7II
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -501,11 +501,53 @@ function TR=getTR(DD,F)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     g=@(c) cat(1,c{:});
     for ss=1:2
-        for fi=1:numel(F);f=F{fi};
-            sen=DD.FieldKeys.senses{ss};
+         sen=DD.FieldKeys.senses{ss};
+        for fi=1:numel(F);f=F{fi};           
             TR.(sen).(f)=((xlt(sen,f))');
         end
         f='vel';
         TR.(sen).(f)=g(g(xlt(sen,f)));
     end
 end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function TR=getVelFunc(DD)
+    xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
+    g=@(c) cat(1,c{:});
+    for ss=1:2
+         sen=DD.FieldKeys.senses{ss};
+        f='vel';
+        TR.(sen).vel = g(xlt(sen,f));
+        TR.(sen).std = cellfun(@std, TR.(sen).vel);
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function getLonFunc(DD)
+    Fs = DD.path.tracks.files;
+   
+    T=disp_progress('init','stdTracksArcLens');
+    lims = thread_distro(12,numel(Fs));
+    spmd(12)
+        arclendiffStd = nan(diff(lims(labindex,:))+1,1);
+        cc=0;
+        for ff = lims(labindex,1):lims(labindex,2)
+            cc=cc+1;
+            %             for ff = 1:numel(Fs)
+            T=disp_progress('calc',T,diff(lims(labindex,:))+1,100);
+            track = cell2mat(extractfield(getfield(load([DD.path.tracks.name Fs(ff).name ]),'track'),'geo'));
+            la = cat(1,track.lat);
+            lo = cat(1,track.lon);
+            arclendiffStd(cc) = nanstd(distance(la(1:end-1),lo(1:end-1),la(2:end),lo(2:end)));
+        end
+        arclendiffStdCat = gcat(arclendiffStd,1,1);
+    end
+    arclendiffStdCat = arclendiffStdCat{1};
+    %%
+        
+    %%
+    save([DD.path.analyzed.name 'arclendiffStd.mat'],'arclendiffStdCat')
+    %%
+    D.II = arclendiffStdCat;
+    D.I  = load([ strrep(DD.path.analyzed.name,'aviII','aviI') 'arclendiffStd.mat'],'arclendiffStdCat');
+end
+
+

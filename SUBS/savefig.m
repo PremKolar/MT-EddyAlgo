@@ -4,17 +4,17 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
-   set(gcf,'renderer','painters')
-%    set(0,'defaultTextInterpreter','LaTeX')
-%     set(gcf,'Visible','off')
-    
+function savefig(outdir,resOut,xdim,ydim,tit,frmt,info,fs)
+   set(gcf,'renderer','painter')
+   set(0,'defaultTextInterpreter','LaTeX')
+%  set(gcf,'Visible','off')
+    if nargin < 8,	fs=12;	end
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
     fname=[outdir,tit];
     mkdirp(outdir);
     %% set up gcfure
-    [resHere,posOld]=setupfigure(resOut,xdim,ydim);
+    [resHere,posOld]=setupfigure(resOut,xdim,ydim,fs);
     sleep(1)
     %% print
     fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere);
@@ -28,21 +28,21 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function appendPdfMetaInfo(info,fnamepdf) %#ok<INUSL>
     structfn=sprintf('%03d_pdfinfo.mat',labindex);
-    save(structfn,'info')    
+    save(structfn,'info')
     system(sprintf('pdftk %s attach_files %s output %s.tmp.pdf',fnamepdf,structfn,fnamepdf));
-    system(sprintf('mv %s.tmp.pdf %s',fnamepdf,fnamepdf));    
+    system(sprintf('mv %s.tmp.pdf %s',fnamepdf,fnamepdf));
     system(['rm ' structfn]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
-%         eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
-%         system(['epstopdf --exact ' fname '.eps']);
+%         eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
 %         system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
-%         system(['rm ' fname '.eps']);
-         eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
-                 system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
 
+        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
+        system(['epstopdf --exact ' fname '.eps']);
+        system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
+        system(['rm ' fname '.eps']);
     else
         if strcmp(fname(end-length(frmt)+1),frmt )
             fnfull=fname;
@@ -57,11 +57,11 @@ function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
         ydim=ydim*3;
         system(['convert -density ' num2str(resHere) 'x' num2str(resHere) ' -resize ' num2str(xdim) 'x' num2str(ydim) ' -quality 100 +repage ' fnfull ' ' fname '.pdf' ]);
 %    convert -density 300x300 -resize ${resX}x -quality 100 +repage $1  "${1%.*}.pdf"
-   end   
+   end
     fnamepdf=[fname '.pdf'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
+function [resHere,posNow]=setupfigure(resOut,xdim,ydim,fs)
     resHere=get(0,'ScreenPixelsPerInch');
     %    ratioRes=resOut/resHere;
     ratioRes=1;
@@ -72,11 +72,8 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
         disp('not setting up position for docked fig')
     end
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
-    
-%     set(findall(gcf,'type','text'),'FontSize',12)
-   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex','FontName','SansSerif')
-%     set(gca,'FontSize',10)
-%       set(gca)
-   
-end
 
+%     set(findall(gcf,'type','text'),'FontSize',12)
+   set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex','FontName','SansSerif')
+%     set(gca,'FontSize',10)
+end

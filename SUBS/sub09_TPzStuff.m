@@ -1,8 +1,8 @@
 function sub09_TPzStuff
     load S09main DD T
-    %     [procData]=inits(DD);
-    %     save([DD.path.analyzed.name 'procData.mat'],'procData');
-    load([DD.path.analyzed.name 'procData.mat'],'procData');
+        [procData]=inits(DD);
+        save([DD.path.analyzed.name 'procData.mat'],'procData');
+%     load([DD.path.analyzed.name 'procData.mat'],'procData');
     senses = DD.FieldKeys.senses';
     sghfgh(DD,senses,procData,T);
 end

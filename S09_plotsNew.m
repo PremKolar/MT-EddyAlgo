@@ -6,7 +6,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
     DD = initialise([],mfilename);
-    
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
     ticks.height=300;
@@ -41,7 +40,7 @@ function S09_plotsNew
     sub09_trackstuff
     sub09_histStuff
     sub09_TPzStuff
-    
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

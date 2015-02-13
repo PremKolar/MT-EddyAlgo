@@ -6,8 +6,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
    set(gcf,'renderer','painters')
-   set(0,'defaultTextInterpreter','LaTeX')
-    set(gcf,'Visible','off')
+%    set(0,'defaultTextInterpreter','LaTeX')
+%     set(gcf,'Visible','off')
     
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
@@ -21,8 +21,8 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
-    set(gcf,'Visible','on');
-%     set(gcf,'position',posOld);
+%     set(gcf,'Visible','on');
+    set(gcf,'position',posOld);
 %     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,11 +36,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     if strcmp(frmt,'dpdf')
-        eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
-        system(['epstopdf --exact ' fname '.eps']);
-        system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
-        system(['rm ' fname '.eps']);
-%          eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
+%         eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
+%         system(['epstopdf --exact ' fname '.eps']);
+%         system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
+%         system(['rm ' fname '.eps']);
+         eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
+                 system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
+
     else
         if strcmp(fname(end-length(frmt)+1),frmt )
             fnfull=fname;
@@ -72,9 +74,9 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
     
 %     set(findall(gcf,'type','text'),'FontSize',12)
-   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex')
-    set(gca,'FontSize',10)
-%       set(gca,'FontName','SansSerif')
+   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex','FontName','SansSerif')
+%     set(gca,'FontSize',10)
+%       set(gca)
    
 end
 

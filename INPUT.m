@@ -5,10 +5,7 @@
 % 'mad' - template for Madeleine's data
 % 'pop2avi' -
 function DD=INPUT
-    %DD.template='pop2avi';
-%    DD.template='aviso';
-%    DD.template='pop';
-    DD.template='pop2avi';
+    DD.template='pop2avi';  
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
@@ -46,6 +43,7 @@ function DD=INPUT
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
+
 
     %% TODO
     DD.switchs.netUstuff = 0;

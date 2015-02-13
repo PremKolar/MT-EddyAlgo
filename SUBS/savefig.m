@@ -4,17 +4,17 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
-   set(gcf,'renderer','painter')
+function savefig(outdir,resOut,xdim,ydim,tit,frmt,info,fs)
+%    set(gcf,'renderer','painter')
    set(0,'defaultTextInterpreter','LaTeX')
     set(gcf,'Visible','off')
-    
+    if nargin < 8,	fs=12;	end
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
     fname=[outdir,tit];
     mkdirp(outdir);
     %% set up gcfure
-    [resHere,posOld]=setupfigure(resOut,xdim,ydim);
+    [resHere,posOld]=setupfigure(resOut,xdim,ydim,fs);
     sleep(1)
     %% print
     fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere);
@@ -22,7 +22,7 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
         appendPdfMetaInfo(info,fnamepdf);
     end
     set(gcf,'Visible','on');
-%     set(gcf,'position',posOld);
+    set(gcf,'position',posOld);
 %     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,7 +39,7 @@ function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
         eval(['print ',[fname,'.eps'] , ' -f -r',num2str(resOut),' -depsc '])
         system(['epstopdf --exact ' fname '.eps']);
         system(['pdfcrop --margins "1 1 1 1" ' fname '.pdf ' fname '.pdf']);
-        system(['rm ' fname '.eps']);
+%         system(['rm ' fname '.eps']);
 %          eval(['print ',[fname,'.pdf'] , ' -f -r',num2str(resOut),' -dpdf ']) % shithouse!
     else
         if strcmp(fname(end-length(frmt)+1),frmt )
@@ -59,7 +59,7 @@ function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
     fnamepdf=[fname '.pdf'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
+function [resHere,posNow]=setupfigure(resOut,xdim,ydim,fs)
     resHere=get(0,'ScreenPixelsPerInch');
     %    ratioRes=resOut/resHere;
     ratioRes=1;
@@ -72,8 +72,8 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
     
 %     set(findall(gcf,'type','text'),'FontSize',12)
-   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex')
-    set(gca,'FontSize',10)
+   set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex')
+    set(gca,'FontSize',fs)
 %       set(gca,'FontName','SansSerif')
    
 end

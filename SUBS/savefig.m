@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
    set(gcf,'renderer','painter')
-   set(0,'defaultTextInterpreter','LaTeX')
+%    set(0,'defaultTextInterpreter','LaTeX')
     set(gcf,'Visible','off')
     
     if nargin < 6,	frmt='dpdf';	end
@@ -22,7 +22,7 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info)
         appendPdfMetaInfo(info,fnamepdf);
     end
     set(gcf,'Visible','on');
-%     set(gcf,'position',posOld);
+    set(gcf,'position',posOld);
 %     sleep(2);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,9 +71,9 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim)
     end
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
     
-%     set(findall(gcf,'type','text'),'FontSize',12)
-   set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex')
-    set(gca,'FontSize',10)
+    set(findall(gcf,'type','text'),'FontSize',12)
+%    set(findall(gcf,'type','text'),'FontSize',12,'interpreter','latex')
+%     set(gca,'FontSize',10)
 %       set(gca,'FontName','SansSerif')
    
 end

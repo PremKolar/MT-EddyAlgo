@@ -29,7 +29,7 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     eds= DD.path.analyzedTracks.(sense.t).files;
     %     tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
     %   tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
-    tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'isoper'};
+    tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'iq'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
 
@@ -92,7 +92,7 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-vel.mat'],'tmp')
     tmp=cats.peakampto_mean;
     save(['TR-' sense.s '-amp.mat'],'tmp')
-    tmp=cats.isoper;
+    tmp=cats.iq;
     save(['TR-' sense.s '-iq.mat'],'tmp')
     %     tmp=cats.trackref;
     %     save(['TR-' sense.s '-reflin.mat'],'tmp')

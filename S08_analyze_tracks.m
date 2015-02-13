@@ -183,7 +183,7 @@ function	iq=TRiq(map,eddy)
     idx=map.strctr.idx;
     a=A{1};
     iq=protoInit(map.proto);
-    ampN=extractdeepfield(eddy.track,'isoper');
+    ampN=extractdeepfield(eddy.track,'iq');
     iq=uniqMedianStd(idx,ampN,iq);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

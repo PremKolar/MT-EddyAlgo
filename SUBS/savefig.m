@@ -72,7 +72,6 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim,fs)
         disp('not setting up position for docked fig')
     end
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
-
 %     set(findall(gcf,'type','text'),'FontSize',12)
    set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex','FontName','SansSerif')
 %     set(gca,'FontSize',10)

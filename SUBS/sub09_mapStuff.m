@@ -14,8 +14,7 @@ end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses    = DD.FieldKeys.senses;
-    sensesAlt =   {'anti-cyclones';'cyclones'};
-
+    sensesAlt =   {'anti-cyclones';'cyclones'}
     for ss=1:2
         sen=senses{ss};
         senAlt=sensesAlt{ss};
@@ -56,7 +55,43 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
         sleep(1)
 
-
+        %         %%
+        %         close all
+        %         VV=II.maps.(sen).vel.zonal.mean*100;
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat
+        %         cw=jet(20);
+        %         cm=[0 0 0];
+        %         ce=(winter(4));
+        %         colormap([cw;cm;ce(:,[1 3 2])])
+        %         decorate([-20 5 6],T,sen,'Zonal velocity','cm/s',0,1);
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVel-' sen],'dpdf');
+        %         %         CC.(sen).v=VV;
+        %         %%
+        %         close all
+        %         VV=log(II.maps.(sen).age.mean);
+        %         VV = eurocen(VV,loMin);
+        %         pcolor(lo,la,VV);shading flat;colormap(jet)
+        %         decorate([log(T.age([1 2])) T.age(3)],T,sen,'age','d',exp(1),0);
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapAge-' sen],'dpdf')
+        %         %%
+        %         close all
+        %         VV=(II.maps.(sen).visits.single);
+        %         VV = eurocen(VV,loMin);
+        %         VV(VV==0)=nan;
+        %         pcolor(lo,la,VV);shading flat;colormap(jet(11))
+        %         cb=decorate([0 27.5,11],T,sen,'Visits of unique eddy',' ',0,1);
+        %         %      decorate(T.visitsunique,T,DD,sen,'Visits of unique eddy',' ',0,1,1);
+        %         set(cb,'ytick',[0 5:5:25])
+        %         set(cb,'yticklabel',[1 5:5:25])
+        %         set(cb,'ylim',[0 27.5])
+        %         %         axis(T.axis)   %
+        %         axis([-180 180 -70 70]);
+        %         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsUnique-' sen],'dpdf')
         %%
     end
     joinPdfs('MapSigma',senses,DD)
@@ -117,7 +152,6 @@ function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
     cpos(4) = 0.3*cpos(4);
     cpos(2) = cpos(2) + 3*cpos(4);
     cb.Position = cpos;
-
     %%
     zticks=linspace(clm(1),clm(2),clm(3))';
     %%

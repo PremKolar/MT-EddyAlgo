@@ -9,8 +9,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sghfgh(DD,senses,procData,T)
     TPzBD(DD,T,procData.tracks,senses,'age',365,'age',1,1);
-
-
     %     spmd(2)
     %         close all
     %         if labindex==1
@@ -60,7 +58,6 @@ function TPzBD(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
     A.lon.b = [ AC.lon.b C.lon.b ];
     A.lat.d = [ AC.lat.d C.lat.d ];
     A.lon.d = [ AC.lon.d C.lon.d ];
-
     %%
     minage=365;
     aa = A.age>minage;

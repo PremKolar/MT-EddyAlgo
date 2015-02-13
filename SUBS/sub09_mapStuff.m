@@ -9,13 +9,13 @@ function sub09_mapStuff
     %%
     mapsAll(II,DD,T,lo,la,eurocen,loMin);
     %%
-%     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
+    %     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     senses    = DD.FieldKeys.senses;
     sensesAlt =   {'anti-cyclones';'cyclones'}
-
+    
     for ss=1:2
         sen=senses{ss};
         senAlt=sensesAlt{ss};
@@ -61,7 +61,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     VV = eurocen(VV,loMin);
     VV(VV==0)=nan;
     VVV=repmat(VV,[1 1 2]);
-
+    
     VV=(II.maps.(senses{2}).visits.single);
     VV = eurocen(VV,loMin);
     VV(VV==0)=nan;
@@ -81,6 +81,13 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     fn = ['MapVisitsBoth'];
     savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');
     cpPdfTotexMT(fn)  ;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function joinPdfs(fname,senses,DD)
+    system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
+    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+    % system('rm *.pdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb=decorate(clm,ticks,tit,tit2,unit,logbase,decim)
@@ -124,10 +131,10 @@ end
 function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
     senses=DD.FieldKeys.senses;
     compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
-
+    
     runA = 'run A';
     runB = 'run B';
-
+    
     for sense=senses';sen=sense{1};
         close all
         VV=(II.maps.(sen).visits.all);
@@ -144,7 +151,7 @@ function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
         set(cb,'ylim',[-2 2])
         axis([-180 180 -70 70]);
         savefig(DD.path.plots,T.rez,T.width,T.height,['MapVisitsAll-' sen],'dpdf')
-
+        
     end
 end
 

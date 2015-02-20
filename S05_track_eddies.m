@@ -44,10 +44,10 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD)
     %% one thread do cycs, other acycs
-    sen=DD.FieldKeys.senses{labindex};
+    sen = DD.FieldKeys.senses{labindex};
     %% set up tracking procedure
-    [tracks,OLD,phantoms]=set_up_init(DD,sen);
-    numDays=DD.checks.passedTotal;
+    [tracks,OLD,phantoms] = set_up_init(DD,sen);
+    numDays = DD.checks.passedTotal;
     %% start tracking
     T=disp_progress('init',['tracking ' sen]);
     for jj=2:numDays

@@ -129,8 +129,8 @@ function differentGeoCase(DD,MATfileName)
     lims=  DD.TS.window.limits;
     getFlag=@(lims,M) double(M(lims.south:lims.north,lims.west:lims.east));
     %%
-    in.lat=getFlag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat));
-    in.lon=getFlag(lims,nc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon));
+    in.lat=getFlag(lims,ncreadOrNc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lat));
+    in.lon=getFlag(lims,ncreadOrNc_varget(DD.path.TempSalt.salt{1},DD.TS.keys.lon));
     %%
     fieldLoad=@(field)  getfield(load(MATfileName,field),field);
     in.data=fieldLoad('data');
@@ -222,30 +222,30 @@ function [rossby]=ChunkRossby(CK)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=ChunkLatLon(DD,dim)
-    lat=nc_varget(DD.path.TempSalt.temp{1},DD.TS.keys.lat,dim.start1d, dim.len1d);
-    lon=nc_varget(DD.path.TempSalt.temp{1},DD.TS.keys.lon,dim.start1d, dim.len1d);
+    lat = ncreadOrNc_varget(DD.path.TempSalt.temp{1},DD.TS.keys.lat,dim.start1d, dim.len1d);
+    lon = ncreadOrNc_varget(DD.path.TempSalt.temp{1},DD.TS.keys.lon,dim.start1d, dim.len1d);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function depth=ChunkDepth(DD)
-    depth=nc_varget(DD.path.TempSalt.salt{1},'depth_t');
+    depth=ncreadOrNc_varget(DD.path.TempSalt.salt{1},'depth_t');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function salt=ChunkSalt(DD,dim)
     num=numel(DD.path.TempSalt.salt);
-    salt=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{1},'SALT',dim.start2d,dim.len2d));
+    salt=(1/num) * squeeze(ncreadOrNc_varget(DD.path.TempSalt.salt{1},'SALT',dim.start2d,dim.len2d));
     for ss=2:num
-        tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.salt{ss},'SALT',dim.start2d,dim.len2d));
+        tmp=(1/num) * squeeze(ncreadOrNc_varget(DD.path.TempSalt.salt{ss},'SALT',dim.start2d,dim.len2d));
         salt=salt + tmp;
     end
     salt(salt==0)=nan;
-    salt=salt* DD.parameters.salinityFactor; 
+    salt=salt* DD.parameters.salinityFactor;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function temp=ChunkTemp(DD,dim)
     num=numel(DD.path.TempSalt.temp);
-    temp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{1},'TEMP',dim.start2d,dim.len2d));
+    temp = (1/num) * squeeze(ncreadOrNc_varget(DD.path.TempSalt.temp{1},'TEMP',dim.start2d,dim.len2d));
     for tt=2:num
-        tmp=(1/num) * squeeze(nc_varget(DD.path.TempSalt.temp{tt},'TEMP',dim.start2d,dim.len2d));
+        tmp=(1/num) * squeeze(ncreadOrNc_varget(DD.path.TempSalt.temp{tt},'TEMP',dim.start2d,dim.len2d));
         temp=temp + tmp;
     end
     temp(temp==0)=nan;

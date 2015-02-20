@@ -36,7 +36,6 @@ end
 function spmd_body(DD,rossby)
     [JJ] = SetThreadVar(DD);
     Td = disp_progress('init','filtering contours');
-
     for jj = 1:numel(JJ)
         Td = disp_progress('disp',Td,numel(JJ));
         %%
@@ -595,7 +594,7 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
             s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
         end
     catch me
-        disp(me.message) % non unique data site.. probably at weird land situations TODO!!
+%         disp(me.message) % non unique data site.. probably at weird land situations TODO!!
         pass = false;
         s = [];f = [];
         return

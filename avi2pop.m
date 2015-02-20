@@ -57,7 +57,7 @@ function opSSHfile(file,path,ref,sshPOP2AVI)
     outfile=[path.out file(1:end-3) '.mat'];
     if exist(outfile,'file'), return,end
     try
-        ssh=nc_varget([path.in file],'SSH');
+        ssh=ncreadOrNc_varget([path.in file],'SSH');
     catch  me
         disp(me.message)
         return
@@ -73,12 +73,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lat,lon]=inits(ncfile)
     %%
-    lat.avi=nc_varget(ncfile.avi,'lat');
-    lon.avi=nc_varget(ncfile.avi,'lon');
+    lat.avi=ncreadOrNc_varget(ncfile.avi,'lat');
+    lon.avi=ncreadOrNc_varget(ncfile.avi,'lon');
     [lon.avi,lat.avi]=meshgrid(lon.avi,lat.avi);
     %%
-    lat.pop=nc_varget(ncfile.pop,'U_LAT_2D');
-    lon.pop=nc_varget(ncfile.pop,'U_LON_2D');
+    lat.pop=ncreadOrNc_varget(ncfile.pop,'U_LAT_2D');
+    lon.pop=ncreadOrNc_varget(ncfile.pop,'U_LON_2D');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ref]=makeXref(idx)

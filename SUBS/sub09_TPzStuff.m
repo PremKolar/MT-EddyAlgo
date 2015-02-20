@@ -1,23 +1,100 @@
 function sub09_TPzStuff
     load S09main DD T
-    %     [procData]=inits(DD);
-    %     save([DD.path.analyzed.name 'procData.mat'],'procData');
-    load([DD.path.analyzed.name 'procData.mat'],'procData');
+        [procData]=inits(DD);
+        save([DD.path.analyzed.name 'procData.mat'],'procData');
+%     load([DD.path.analyzed.name 'procData.mat'],'procData');
     senses = DD.FieldKeys.senses';
     sghfgh(DD,senses,procData,T);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sghfgh(DD,senses,procData,T)
-    spmd(2)
-        close all
-        if labindex==1
-            %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
-            TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
-        else
-            TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
-        end
-    end
+    TPzBD(DD,T,procData.tracks,senses,'age',365,'age',1,1);
+    %     spmd(2)
+    %         close all
+    %         if labindex==1
+    %             %             TPz(DD,T,procData.tracks,senses,'lat',100,'lat',0);
+    %             TPz(DD,T,procData.tracks,senses,'age',500,'age',1);
+    %         else
+    %             TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
+    %         end
+    %     end
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function TPzBD(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
+    files = tracks.AntiCycs;
+    Tac=disp_progress('init','acs');
+    for ee=1:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)),100);
+        pp=strfind(files{ee},'-d');
+        AC.age(ee) = str2double(files{ee}(pp+2:pp+5));
+        tmp = load(files{ee},'lat','lon');
+        AC.lat.b(ee) = tmp.lat(1);
+        AC.lon.b(ee) = tmp.lon(1);
+        AC.lat.d(ee) = tmp.lat(end);
+        AC.lon.d(ee) = tmp.lon(end);
+    end
+    %%
+    files = tracks.Cycs;
+    Tac=disp_progress('init','cs');
+    for ee=1:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)),100);
+        pp=strfind(files{ee},'-d');
+        C.age(ee) = str2double(files{ee}(pp+2:pp+5));
+        tmp = load(files{ee},'lat','lon');
+        C.lat.b(ee) = tmp.lat(1);
+        C.lon.b(ee) = tmp.lon(1);
+        C.lat.d(ee) = tmp.lat(end);
+        C.lon.d(ee) = tmp.lon(end);
+    end
+    %%
+    save([DD.path.analyzed.name,'BDA.mat'],'C','AC')
+    %%
+    load([DD.path.analyzed.name,'BDA.mat'])
+    %%
+    A.age =[ AC.age C.age];
+    A.lat.b = [ AC.lat.b C.lat.b ];
+    A.lon.b = [ AC.lon.b C.lon.b ];
+    A.lat.d = [ AC.lat.d C.lat.d ];
+    A.lon.d = [ AC.lon.d C.lon.d ];
+    %%
+    minage=365;
+    aa = A.age>minage;
+    %%
+    clf
+    load coast
+    axesm('mercator','MapLatLimit',[-70 70],'MapLonlimit',[-180 180],'frame','on','grid', 'on')
+    % axesm('stereo','origin',[-90 0 0],'MapLatLimit',[-90 -10],'frame','on','flinewidth',1,'grid', 'on')
+    plotm(lat,long,'r');    hold on
+    scatterm(A.lat.b(aa),A.lon.b(aa),((A.age(aa))/100).^2,'.')
+    scatterm(A.lat.d(aa),A.lon.d(aa),((A.age(aa))/100).^2,ones(1,sum(aa)),'.')
+    axis tight
+    title('places of birth and death. size indicates final age.')
+%     outfname = 'birthsdeathsHundredDaysAndMore';
+    outfname = 'birthsdeathsOneYearAndMore';
+    savefig(DD.path.plots,100,1000,300,outfname,'dpdf',DD2info(DD));
+    cpPdfTotexMT(outfname);
+    %%
+%     clf
+%     load coast
+%     axesm('mercator','MapLatLimit',[-70 70],'MapLonlimit',[-180 180],'frame','on','grid', 'on')
+%     % axesm('stereo','origin',[-90 0 0],'MapLatLimit',[-90 -10],'frame','on','flinewidth',1,'grid', 'on')
+%     plotm(lat,long,'r');    hold on
+%     scatterm(A.lat.d(aa),A.lon.d(aa),(A.age(aa)),'.')
+%     cb = colorbar;
+%     colormap(jet(100))
+%     caxis(log([minage 365*2]))
+%     yt = log([minage 500 2*365 ]);
+%     set(cb,'ytick',yt)
+%     set(cb,'yticklabel',exp(yt))
+%     axis tight
+%     title('last track coordinates with age [d]')
+%     outfname = 'deaths';
+%     savefig(DD.path.plots,100,1100,500,outfname,'dpdf',DD2info(DD));
+%     cpPdfTotexMT(outfname);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
     close all

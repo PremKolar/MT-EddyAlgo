@@ -21,7 +21,7 @@ function DD=INPUT
 %     threshlife=20*7
  %% time step
     DD.time.delta_t=3; % [days]!
-    threshlife=3*8; 
+    threshlife=3*4; 
     %% window on globe (0:360° system)
     DD.map.in.west=  0;
     DD.map.in.east=  360;

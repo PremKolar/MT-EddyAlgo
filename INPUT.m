@@ -7,8 +7,7 @@
 function DD=INPUT
     %DD.template='pop2avi';
 %    DD.template='aviso';
-%    DD.template='pop';
-    DD.template='pop2avi';
+    DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
@@ -17,6 +16,7 @@ function DD=INPUT
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
+%     DD.time.till.str  = '20020105'; %first pop/avi
     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 1; % [days]!
     threshlife        = 30; % TODO

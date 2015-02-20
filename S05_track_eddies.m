@@ -32,10 +32,12 @@ function rmoldtracks(DD)
     if ~isempty(DD.path.tracks.files)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         else
             warning('mv old tracks first')
             sleep(5*60);
             system(['rm -r ' DD.path.tracks.name '*.mat']);
+            sleep(5*60);
         end
     end
 end
@@ -299,6 +301,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
+%     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)

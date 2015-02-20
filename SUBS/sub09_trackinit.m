@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sub09_trackinit(DD)
-    
+
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
@@ -27,10 +27,12 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     sense.s=senses.s{ss};
     root=DD.path.analyzedTracks.(sense.t).name;
     eds= DD.path.analyzedTracks.(sense.t).files;
-    tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
+    %     tl={'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'trackref'};
+    %   tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL'};
+    tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'isoper'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sngl=sPmDstoof(DD,eds,root,toLoad)
@@ -62,12 +64,16 @@ function vel=makeVel(cats)
             continue
         end
         cc=cc+1;
-        vel{ff}=ppval(pp.x_t,pp.timeaxis);
+        try
+            vel{ff}=ppval(pp.x_t,pp.timeaxis);
+        catch
+            vel{ff}=pp.zonal.v;
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveCats(cats,sense)
-   area2L=@(ar) sqrt(ar/pi);
+    area2L=@(ar) sqrt(ar/pi);
     tmp=cats.radiusmean;         %#ok<*NASGU>
     save(['TR-' sense.s '-rad.mat'],'tmp')
     tmp=area2L(cats.cheltareaLe);
@@ -84,18 +90,11 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
-    tmp=cats.trackref;
-    save(['TR-' sense.s '-reflin.mat'],'tmp')
-    
+    tmp=cats.peakampto_mean;
+    save(['TR-' sense.s '-amp.mat'],'tmp')
+    tmp=cats.isoper;
+    save(['TR-' sense.s '-iq.mat'],'tmp')
+    %     tmp=cats.trackref;
+    %     save(['TR-' sense.s '-reflin.mat'],'tmp')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-
-
-

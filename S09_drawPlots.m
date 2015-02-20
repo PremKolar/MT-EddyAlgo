@@ -8,22 +8,24 @@ function S09_drawPlots
     %     DD=initialise([],mfilename);
     %     save DD
     load DD
+    dbstop if error
     %%	set ticks here!
     %     ticks.rez=200;
     ticks.rez=get(0,'ScreenPixelsPerInch');
-    %           ticks.rez=42;
-    ticks.width=297/25.4*ticks.rez/3; %din A
-    Y = round((DD.map.in.north - DD.map.in.south + 1)/DD.map.out.binSize);
-    X = round((DD.map.in.east  - DD.map.in.west  + 1)/DD.map.out.binSize);
-    ticks.height=ticks.width * Y/X;
-    %         ticks.height=ticks.width/sqrt(2); % Din a4
-    ticks.y= 0;
-    ticks.x= 0;
-    ticks.age=[1,2*365,10];
+    ticks.width=2*600;
+    ticks.height=2*200;
+    geo=DD.map.window.geo;
+    %     ticks.y= round(linspace(geo.south,geo.north,5));
+    ticks.y= [-70 -50 -30 0 30 50 70];
+    %     ticks.x=  round(linspace(geo.west,geo.east,5));
+    ticks.x=  round(linspace(-180,180,5));
+    ticks.axis=[geo.west  geo.east geo.south geo.north];
+    ticks.age=[1,5*365,10];
     %     ticks.isoper=[DD.thresh.shape.iq,1,10];
-    ticks.iq=[.55,1,4];
+    ticks.isoper=[.6,1,10];
     ticks.radius=[50,250,11];
-    ticks.radiusToRo=[0.5,5,6];
+    ticks.radiusStd=[0,150,11];
+    ticks.radiusToRo=[1,5,5];
     ticks.amp=[1,20,7];
     %ticks.visits=[0,max([maps.AntiCycs.visitsSingleEddy(:); maps.Cycs.visitsSingleEddy(:)]),5];
     ticks.visits=[1,20,11];
@@ -32,10 +34,7 @@ function S09_drawPlots
     %ticks.dist=[-100;50;16];
     ticks.disttot=[1;3000;5];
     ticks.vel=[-30;20;6];
-    %     TODO repair map.out
-    ticks.axis=[ -180  180 DD.map.in.south+10 DD.map.in.north-10];
     ticks.lat=[ticks.axis(3:4),5];
-    % 	ticks.minMax=cell2mat(extractfield( load([DD.path.analyzed.name, 'vecs.mat']), 'minMax'));
     %% main
     main(DD,ticks)
 end
@@ -48,11 +47,19 @@ function main(DD,ticks)
     %%
     senses = DD.FieldKeys.senses';
     %     spmd(2)
-    sen=senses{labindex};
-    TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
-    TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
-    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
+    %     for labindex=1:2
+    %         sen=senses{labindex};
+    %         TPz(DD,ticks,procData.tracks,sen,'lat',30,'lat',0);
+    %         TPz(DD,ticks,procData.tracks,sen,'peakampto_mean',30,'amp',1);
+    %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',30,'amp',1,100);
+    TPzGlobe(DD,ticks,procData.tracks,senses,'age',50,'age',1,1);
+    %         TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
+    %     end
+    %     TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',3,'amp',1,100);
+    %    TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',50,'iq',0,1);
+    %TPzGlobe(DD,ticks,procData.tracks,sen,'peakampto_ellipse',80,'amp',1,100);
+    %     TPzGlobe(DD,ticks,procData.tracks,sen,'isoper',3,'iq',0,1);
+    %     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OUT]=inits(DD)
@@ -83,19 +90,39 @@ function [OUT]=inits(DD)
     % 	OUT.vecs=load([DD.path.analyzed.name, 'vecs.mat']);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function TPzGlobe(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot,fac)
+function TPzGlobe(DD,ticks,tracks,senses,colorfield,minlen,cticks,logornot,fac)
+    close all
     globe=true;
-    drawColorLinez(ticks,tracks.(sen),colorfield,minlen,cticks,logornot,globe,fac) ;
+    %     drawLinez(tracks.(sen),minlen)
+    cmap = winter(100);
+    drawColorLinez(ticks,tracks.(senses{1}),colorfield,minlen,cticks,logornot,globe,fac,cmap) ;
+    cb{1} = colorbar;
+    colormap(cb{1},winter(100));
+    hold on
+    %%
+    cmap=autumn(100);
+    drawColorLinez(ticks,tracks.(senses{2}),colorfield,minlen,cticks,logornot,globe,fac,cmap) ;
+    cb{2}=colorbar('westoutside');
+    colormap(cb{2},autumn(100))
+    
+    %%
     axis([-180 180 -70 70])
     drawcoast
-    tit=['tracks-' colorfield '-' sen];
-    cb=colorbar;
-    set(cb,'ytick',linspace(ticks.(cticks)(1),ticks.(cticks)(2),ticks.(cticks)(3)))
-    if logornot
-        set(cb,'yticklabel',round(exp(get(cb,'ytick'))))
-    end
     
-    savefig(DD.path.plots,100,1000,500,tit,'dpdf')
+    tit=['tracks-' colorfield];
+    if logornot
+        ticks.(cticks)(1:2) = log(ticks.(cticks)(1:2));
+        ticks.(cticks)(ticks.(cticks)==0) = 1;
+    end
+    for ss=1:2
+        set(cb{ss},'ytick',linspace(ticks.(cticks)(1),ticks.(cticks)(2),ticks.(cticks)(3)))
+        if logornot
+            set(cb{ss},'yticklabel',round(exp(get(cb{ss},'ytick'))))
+        end
+    end
+    set(cb{2},'yticklabel',[])
+    grid minor
+    savefig(DD.path.plots,ticks.rez,1400,600,tit,'dpdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
@@ -111,7 +138,7 @@ function TPz(DD,ticks,tracks,sen,colorfield,minlen,cticks,logornot)
     end
     axis tight
     saveas(gcf,[DD.path.plots tit])
-    savefig(DD.path.plots,100,800,500,tit,'dpdf')
+    savefig(DD.path.plots,100,3*800,3*500,tit,'dpdf')
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [totnum]=ratioBar(hc,field,xlab)
@@ -228,9 +255,25 @@ function cb=decorate(field,ticks,DD,tit,tit2,unit,logornot,decim,coast,rats)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe,fac)
+function drawLinez(files,minlen)
+    axesm sinusoid;
+    hold on
+    Tac=disp_progress('init','blibb');
+    for ee=1:1:numel(files)
+        Tac=disp_progress('calc',Tac,round(numel(files)),100);
+        %         len=numel(getfield(load(files{ee},'age'),'age'));
+        %         if len<minlen
+        %             continue
+        %         end
+        V=load(files{ee},'lat','lon');
+        plotm(V.lat,wrapTo180(V.lon),'linewidth',0.1);
+    end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [maxV]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot,globe,fac,cmap)
     if nargin<8,fac=1;end
-    cmap=jet;% Generate range of color indices that map to cmap
+    %     cmap=jet;% Generate range of color indices that map to cmap
     %% get extremata
     minV=ticks.(cticks)(1);
     maxV=ticks.(cticks)(2);
@@ -242,10 +285,11 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
     Tac=disp_progress('init','blubb');
     for ee=1:1:numel(files)
         Tac=disp_progress('calc',Tac,round(numel(files)),100);
-        len=numel(getfield(load(files{ee},'age'),'age'));
-        if len<minlen
-            continue
-        end
+%         len=numel(getfield(load(files{ee},'age'),'age'));
+%         if len<minlen
+%             continue
+%         end
+        
         V=load(files{ee},fieldName,'lat','lon');
         VV=V.(fieldName)*fac;
         if logornot
@@ -254,6 +298,7 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         cm = spline(kk,cmap',VV);       % Find interpolated colorvalue
         cm(cm>1)=1;                     % Sometimes iterpolation gives values that are out of [0,1] range...
         cm(cm<0)=0;
+        cm(:,1)=cm(:,2);
         %% deg2km
         if globe
             yy=V.lat;
@@ -266,9 +311,9 @@ function [maxV,cmap]=drawColorLinez(ticks,files,fieldName,minlen,cticks,logornot
         end
         
         for ii=1:length(xx)-1
-            %             if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
-            line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.5);
-            %             end
+            if  abs(xx(ii+1)-xx(ii))<dJump % avoid 0->360 jumps
+                line([xx(ii) xx(ii+1)],[yy(ii) yy(ii+1)],'color',cm(:,ii),'linewidth',0.2);
+            end
         end
     end
     caxis([minV maxV])

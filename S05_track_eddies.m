@@ -18,7 +18,6 @@ function S05_track_eddies
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-    disp(['using all eddies from ' DD.path.eddies.name, ' !!!'])
     if DD.debugmode
         spmd_body(DD)
     else
@@ -34,7 +33,9 @@ function rmoldtracks(DD)
         if DD.overwrite
             system(['rm -r ' DD.path.tracks.name '*.mat']);
         else
-            error('mv old tracks first')
+            warning('mv old tracks first')
+            sleep(5*60);
+            system(['rm -r ' DD.path.tracks.name '*.mat']);
         end
     end
 end
@@ -73,7 +74,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
     [tracks]=archive_dead(TDB, tracks, OLD.eddies, DD,sen);
     %% swap
     OLD=NEW;
-    
+
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,12 +87,6 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
     IDc=num2cell(ID.old);
     %% find position in archive
     [~,idx.arch] = ismember(ID.old,ID.arch);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%% TEMP SOLUTION %%%%%%%%%%%%%%%%%%%%%%%%%%
-    if any(isnan(NEW.time.delT))
-        ydfbvsdfgsd
-        save(sprintf('%02d-%s.mat',labindex,datestr(now,'yymmdd-HHMM')));
-        NEW.time.delT(isnan(NEW.time.delT))=round(nanmedian(NEW.time.delT));
-    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     age = num2cell(cat(2,tracks(idx.arch).age) + NEW.time.delT); % get new age
     %% set
@@ -109,9 +104,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-    
+
     NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-    
+
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -219,7 +214,7 @@ function [TDB]=tracked_dead_born(MD)
     %% matlab sets dims randomly sometimes for short vecs
     if size(do)~=size(dn), do=do'; end
     if size(io)~=size(in), io=io'; end
-    %% agreement among new and old ie definite tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !
+    %% agreement among new and old ie definitive tracking (with respect to new set)  NOTE: this also takes care of nan'ed dists from nanOutOfBounds() since nan~=nan !
     TDB.inNew.tracked = ((do == dn) & (io == in));
     %% flag for fresh eddies with respect to new set
     TDB.inNew.born = ~TDB.inNew.tracked;
@@ -231,38 +226,38 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [out]=kill_phantoms(in)
     %% search for identical eddies
-    lola = in.lon + 1i*in.lat;
-    [~,ui,~]=unique(lola);
+    lola = in.lon + 1i*in.lat; % 2d red
+    [~,ui,~]=unique(lola);     % indeces of unique set
     %%
-    %     if numel(lola)~=numel(ui)
-    out=killDoubles(in,ui,size(lola));
-    %     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    function out=killDoubles(in,ui,oriSize)
-        FN=fieldnames(in)';
-        for ff=1:numel(FN)
-            fn=FN{ff};
-            if size(in.(fn))==oriSize
-                out.(fn)=in.(fn)(ui);
-            else
-                out.(fn)=in.(fn);
-            end
+    for fn=fieldnames(in)'
+        if size(in.(fn{1})) == size(lola) % field 'time' doesnt need to be corrected
+            out.(fn{1}) = in.(fn{1})(ui);
+        else
+            out.(fn{1}) = in.(fn{1});
         end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function closeEnough=nanOutOfBounds(NEW,OLD)
+function closeEnough=nanOutOfBounds(NEW,OLD,windowdim)
+    %% last lin. index of non-overlapped grid
+    maxLin=prod(struct2array(windowdim));
     %% get locations of new eddies
-    newLin=cat(1,NEW.trackref);
+    newLin=extractfield(cat(1,NEW.trackref),'lin');
     %% get possible (future) indeces for old eddies
-   oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
-    try
-        oldEllipIncs=rmfield(oldEllipIncs,'logical'); % TODO rm later
+    oldEllipIncs=cell2mat(extractfield(OLD,'projLocsMask'));
+    %% wrap overlap
+    newLin = wrapOverlap(newLin,maxLin);
+    for kk=1:numel(oldEllipIncs)
+        oldEllipIncs(kk).lin = wrapOverlap(oldEllipIncs(kk).lin,maxLin);
     end
     %% build mask. rows -> new, cols -> old
     closeEnough=false(numel(oldEllipIncs),numel(newLin));
     for ii=1:numel(oldEllipIncs)
-        closeEnough(ii,:)=ismember(cat(2,newLin(:).lin),oldEllipIncs(ii).lin');
+        closeEnough(ii,:)=ismember(newLin,oldEllipIncs(ii).lin');
+    end
+    %% ---------------------------
+    function V=wrapOverlap(V,m)
+        V(V>m) = V(V>m)-m;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -280,7 +275,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
-    
+
     %     prcnt.amp=sum(sum(AMPfac <= ampArea(2) & AMPfac >= ampArea(1)))/numel(AMPfac)*100;
     %      prcnt.area=sum(sum(AREAfac <= ampArea(2) & AREAfac >= ampArea(1)))/numel(AMPfac)*100;
     % x=1:numel(AREAfac);
@@ -305,7 +300,6 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     %%
     pass= quo.combo <= thresh;
 end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
     onesonly=@(M) M==1;
@@ -321,7 +315,7 @@ function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
-    
+
     %% build geo loc matrices
     [LOM.new,LOM.old]=meshgrid(NEW.lon  ,OLD.lon  );
     [LAM.new,LAM.old]=meshgrid(NEW.lat  ,OLD.lat  );
@@ -335,18 +329,21 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %%
     if DD.switchs.distlimit
-        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies );
+        [pass.ellipseDist]=nanOutOfBounds(NEW.eddies ,OLD.eddies, DD.map.window.dim );
     end
     %%
     if exist('pass','var')
         [LOM,LAM,~]=nanUnPassed(LOM,LAM,pass);
     end
     %% calc distances between all from new to all from old
-    lonDIFF=abs(LOM.new - LOM.old);
-    DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
+    DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
+    %     lonDIFF=abs(LOM.new - LOM.old);
+    %     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
+
     %% find min dists
-    [MD      .new2old.dist,MD      .new2old.idx]=min(DIST,[],1);
-    [MD      .old2new.dist,MD      .old2new.idx]=min(DIST,[],2);
+    [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
+    [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
@@ -354,4 +351,3 @@ function [lon, lat]=get_geocoor(eddies)
     lat=extractfield(cat(1,eddies.geo),'lat');
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

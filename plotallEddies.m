@@ -1,35 +1,44 @@
+DD = initialise;
 a = load('../dataaviI/EDDIES/EDDIE_19940105_-80-+80_000-360.mat');
 b = load('../dataaviI/CUTS/CUT_19940105_-80-+80_000-360.mat');
 %%
 LA = b.fields.lat;
 LO = wrapTo180(b.fields.lon);
 %%
+COLS = parula(10);
 close all
 hold on
 % axesm('aitoff','MapLatLimit',[-80 80],'MapLonlimit',[-180 180],'frame','off','grid', 'off')
-axesm('aitoff','frame','on','grid', 'off')
+axesm('aitoff','frame','on','grid', 'on')
 load coast
-plotm(lat,long)
+plotm(lat,long,'color','green')
 %  axesm('stereo','origin',[-90 0 0],'MapLatLimit',[-90 -10],'frame','on','flinewidth',1,'grid', 'on')
+% set(gcf,'windowstyle','docked')
+%%
 
-for cc = 1:1:numel(a.AntiCycs)
-    fprintf('%d promil\n',round(1000*cc/numel(a.AntiCycs)))
-    coo = a.AntiCycs(cc).coor.exact;   
-    la = interp2(LA,coo.x,coo.y);
-    lo = interp2(LO,coo.x,coo.y);
-    flag = diff(la)>10;
-    la([false flag']) = nan;
-    lo([false flag']) = nan;
-    plotm(la,lo,'r')
-end
-for cc = 1:1:numel(a.Cycs)
-    fprintf('%d promil\n',round(1000*cc/numel(a.Cycs)))
-    coo = a.Cycs(cc).coor.exact;   
-    la = interp2(LA,coo.x,coo.y);
-    lo = interp2(LO,coo.x,coo.y);
-    flag = diff(la)>10;
-    la([false flag']) = nan;
-    lo([false flag']) = nan;
-    plotm(interp2(LA,coo.x,coo.y),interp2(LO,coo.x,coo.y),'g')
-end
+coo.x = extractdeepfield(a.AntiCycs,'coor.exact.x');
+coo.y = extractdeepfield(a.AntiCycs,'coor.exact.y');
+dd = 1
+la = interp2(LA,coo.x,coo.y);
+lo = interp2(LO,coo.x,coo.y);
+flag = abs(diff(lo))>dd | abs(diff(la))>dd;
+la([  false flag])=nan;
+lo([false flag ])=nan;
+ac=plotm(la,lo,'color','red')
+hold on
+%%
+coo.x = extractdeepfield(a.Cycs,'coor.exact.x');
+coo.y = extractdeepfield(a.Cycs,'coor.exact.y');
+la = interp2(LA,coo.x,coo.y);
+lo = interp2(LO,coo.x,coo.y);
+flag = abs(diff(lo))>dd | abs(diff(la))>dd;
+la([  false flag])=nan;
+lo([false flag ])=nan;
+c=plotm(la,lo,'color','black')
+%%
 axis tight
+legend([ac,c],'anti-cyclones','cyclones')
+%%
+fn = ['allEddies'];
+savefig(DD.path.plots,72,600,300,fn,'dpdf');
+cpPdfTotexMT(fn) ;

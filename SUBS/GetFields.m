@@ -23,7 +23,13 @@ end
 function Fff = tryCase(ff,file,keys)
     [~,~,ext]=fileparts(file);
     if any(strcmpi(ext,{'.nc','.netcdf'}))
-        sqDouNCv=@(F,k,ff) squeeze(double(nc_varget(F,k.(ff))));
+        if exist('nc_varget') %#ok<*EXIST>
+            sqDouNCv=@(F,k,ff) squeeze(double(nc_varget(F,k.(ff))));
+        elseif exist('ncread')
+            sqDouNCv=@(F,k,ff) permute(squeeze(double(ncread(F,k.(ff)))),[2 1]);
+        else
+            error('how to read netcdfs?');
+        end
     elseif any(strcmpi(ext,{'.mat'}))
         sqDouNCv=@(F,k,ff) squeeze(double(getfield(load(F),k.(ff))));
     end

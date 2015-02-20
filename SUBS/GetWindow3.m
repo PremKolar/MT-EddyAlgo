@@ -142,7 +142,6 @@ function [type]=nonFullXCase(x,cols)
     if regularWindowOnMap
         type='normal';
     elseif boxCrossesZonalBndry
-        %         [limits.west,limits.east]=swap2values(limits.west,limits.east);
         type='zonCross';
     elseif boxBeginsAtWesternEdgeOfMap
         type='beginsAtWesternBndry';

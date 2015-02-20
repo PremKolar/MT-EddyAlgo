@@ -365,135 +365,93 @@ function ownPlotScale
     aI = load('../aviI/SaviI.mat');
     p = load('../p2aII/Sp2aII.mat');
     m = load('../pop7II/Spop7II.mat');
-  %%
-    LA.p = round(p.S.lat);
-    LA.a = round(a.S.lat);
-    LA.aI = round(aI.S.lat);
-    LA.m = round(m.S.lat);
-    LAuniq     = unique([ LA.p; LA.a;LA.aI; LA.m]');
+    %%
+    AP = {'a';'aI';'p';'m'};
+    for aa=1:4
+        ap = AP{aa};
+        eval([ 'LA.' ap ' = round(' ap '.S.lat);'])
+        eval([ 'LO.' ap ' = round(' ap '.S.lon);'])
+        LALO.(ap) = LA.(ap) + 1i*LO.(ap);
+    end
+    %     LAuniq     = unique([ LA.p; LA.a;LA.aI; LA.m]');
+    LALOuniq     =  intersect(LALO.p,intersect(LALO.a,intersect(LALO.aI, LALO.m)));
+    LAuniq = unique(real(LALOuniq));
     fn     = 'rad';
-    p.S.(fn)(p.S.(fn)<5) = nan;
-    a.S.(fn)(a.S.(fn)<5) = nan;
-    aI.S.(fn)(aI.S.(fn)<5) = nan;
-    m.S.(fn)(m.S.(fn)<5) = nan;
+    
+    for aa=1:4
+        ap = AP{aa};
+        eval([ap '.S.(fn)( ~ismember(LALO.' ap ',LALOuniq )) = nan;'])
+        eval([ap '.S.(fn)( ' ap '.S.(fn)<5 ) = nan;'])
+    end
+
     
     %%
-    ap='a';
-    visits.(ap) = nan(size(LAuniq));
-    vvM.(ap) = visits.(ap);
-    vvMe.(ap) = visits.(ap);
-    for cc=1:(numel(LAuniq))
-        idx.(ap)=LA.(ap)==LAuniq(cc);      
-        visits.(ap)(cc) = sum(idx.(ap));         
-        if visits.(ap)(cc) >= 100          
-            vvM.(ap)(cc) = nanmean(a.S.(fn)(idx.(ap)));
-            vvMe.(ap)(cc) = nanmedian(a.S.(fn)(idx.(ap)));
-            if abs(LAuniq(cc))<=5
-                vvM.(ap)(cc)=nan;              
-                vvMe.(ap)(cc)=nan;              
-            end
-        end
-    end
-     %%
-    ap='p';
-    visits.(ap) = nan(size(LAuniq));
-    vvM.(ap) = visits.(ap);
-   vvMe.(ap) = visits.(ap);
-    for cc=1:(numel(LAuniq))
-        idx.(ap)=LA.(ap)==LAuniq(cc);      
-        visits.(ap)(cc) = sum(idx.(ap));         
-        if visits.(ap)(cc) >= 100          
-            vvM.(ap)(cc) = nanmean(p.S.(fn)(idx.(ap)));
-            vvMe.(ap)(cc) = nanmedian(p.S.(fn)(idx.(ap)));
-            if abs(LAuniq(cc))<=5
-                vvM.(ap)(cc)=nan;              
-                vvMe.(ap)(cc)=nan;              
-            end
-        end
-    end
-      %%
-    ap='aI';
-    visits.(ap) = nan(size(LAuniq));
-    vvM.(ap) = visits.(ap);
-    vvMe.(ap) = visits.(ap);
-    for cc=1:(numel(LAuniq))
-        idx.(ap)=LA.(ap)==LAuniq(cc);      
-        visits.(ap)(cc) = sum(idx.(ap));         
-        if visits.(ap)(cc) >= 100          
-            vvM.(ap)(cc) = nanmean(aI.S.(fn)(idx.(ap)));
-            vvMe.(ap)(cc) = nanmedian(aI.S.(fn)(idx.(ap)));
-            if abs(LAuniq(cc))<=5
-                vvM.(ap)(cc)=nan;              
-                vvMe.(ap)(cc)=nan;              
+    for aa=1:4
+        ap = AP{aa};
+        visits.(ap) = nan(size(LAuniq));
+        vvM.(ap) = visits.(ap);
+        vvMe.(ap) = visits.(ap);
+        for cc=1:(numel(LAuniq))
+            idx.(ap)=LA.(ap)==LAuniq(cc);
+            visits.(ap)(cc) = sum(idx.(ap));
+            if visits.(ap)(cc) >= 100
+                eval(['vvM.(ap)(cc)  =   nanmean(' ap '.S.(fn)(idx.(ap)));'])
+                eval(['vvMe.(ap)(cc) = nanmedian(' ap '.S.(fn)(idx.(ap)));'])              
+                if abs(LAuniq(cc))<=5
+                    vvM.(ap)(cc)=nan;
+                    vvMe.(ap)(cc)=nan;
+                end
             end
         end
     end
     
-      %%
-    ap='m';
-    visits.(ap) = nan(size(LAuniq));
-    vvM.(ap) = visits.(ap);
-    vvMe.(ap) = visits.(ap);
-    for cc=1:(numel(LAuniq))
-        idx.(ap)=LA.(ap)==LAuniq(cc);      
-        visits.(ap)(cc) = sum(idx.(ap));         
-        if visits.(ap)(cc) >= 100          
-            vvM.(ap)(cc) = nanmean(m.S.(fn)(idx.(ap)));
-            vvMe.(ap)(cc) = nanmedian(m.S.(fn)(idx.(ap)));
-            if abs(LAuniq(cc))<=5
-                vvM.(ap)(cc)=nan;              
-                vvMe.(ap)(cc)=nan;              
-            end
-        end
-    end
-  %%
-  clf
+    %%
+     figure(1)
+    clf
     pl = plot(LAuniq,vvM.a - vvM.p,LAuniq,vvM.aI - vvM.p)
-     hold on  
+    hold on
     plot(LAuniq,vvMe.a - vvMe.p,'linestyle',':','color',pl(1).Color)
     plot(LAuniq,vvMe.aI - vvMe.p,'linestyle',':','color',pl(2).Color)
     title('\textit{satellite - remapped model}')
-     xlabel('latitude')
+    xlabel('latitude')
     ylabel('$\sigma$ [km]')
     legend('MII','MI','median','location','northwest')
     grid on
-    axis([-70 70 -12 42])
-   
-    plot([-70 70],[0 0],'black--')
+    axis([-75 75 -12 42])
+    
+    plot([-75 75],[0 0],'black--')
     plot([0 0],[-12 42],'black--')
     set(gca,'ytick',[-10:10:40])
-    set(gca,'xtick',[-60:10:60])
-   
+    set(gca,'xtick',[-70:10:70])
+    
     %%
-  outfname = 'sigmaSatMinusP2a';
-    savefig(aI.DD.path.plots,72,500,150,outfname,'dpdf',DD2info(aI.DD),14);   
+    outfname = 'sigmaSatMinusP2aINTRSCTLOLA';
+    savefig(aI.DD.path.plots,72,500,200,outfname,'dpdf',DD2info(aI.DD),15);
     cpPdfTotexMT(outfname);
-  %%
- clf
+    %%
+    figure(2)
+    clf
     pl = plot(LAuniq,vvM.a - vvM.m,LAuniq,vvM.aI - vvM.m)
-     hold on  
+    hold on
     plot(LAuniq,vvMe.a - vvMe.m,'linestyle',':','color',pl(1).Color)
     plot(LAuniq,vvMe.aI - vvMe.m,'linestyle',':','color',pl(2).Color)
-   
+    
     title('\textit{satellite - model}')
-%      xlabel('latitude')
+    %      xlabel('latitude')
     ylabel('$\sigma$ [km]')
-%     legend('MII','MI','location','northwest')
+    %     legend('MII','MI','location','northwest')
     grid on
-    axis([-70 70 -12 42])
+    axis([-75 75 -12 42])
     hold on
-    plot([-70 70],[0 0],'black--')
+    plot([-75 75],[0 0],'black--')
     plot([0 0],[-12 42],'black--')
     set(gca,'ytick',[-10:10:40])
-    set(gca,'xtick',[-60:10:60])
-     box on
+    set(gca,'xtick',[-70:10:70])
+
     %%
-  outfname = 'sigmaSatMinusModelb';
-    savefig(aI.DD.path.plots,72,500,150,outfname,'dpdf',DD2info(aI.DD),14);   
+    outfname = 'sigmaSatMinusModelbINTRSCTLOLA';
+    savefig(aI.DD.path.plots,72,500,200,outfname,'dpdf',DD2info(aI.DD),15);
     cpPdfTotexMT(outfname);
-    
-   
-    
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

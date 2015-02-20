@@ -49,7 +49,7 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         };
     %% fields 4 colorcoded track plots
     FieldKeys.trackPlots= { ...
-        'isoper';
+        'iq';
         'radius.mean';
         'radius.meridional';
         'radius.zonal';

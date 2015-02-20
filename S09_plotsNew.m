@@ -38,7 +38,7 @@ function S09_plotsNew
     save S09main II DD T
     %%
     sub09_mapStuff
-%     sub09_trackstuff
+    sub09_trackstuff
     sub09_histStuff
     sub09_TPzStuff
     

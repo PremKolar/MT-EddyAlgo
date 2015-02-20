@@ -7,7 +7,7 @@
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
-    save DD
+%     save DD
     %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
@@ -19,9 +19,9 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-    spmd(DD.threads.num)
+%     spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
-    end
+%     end
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -183,7 +183,8 @@ function	iq=TRiq(map,eddy)
     idx=map.strctr.idx;
     a=A{1};
     iq=protoInit(map.proto);
-    ampN=extractdeepfield(eddy.track,'isoper');
+%     ampN=extractdeepfield(eddy.track,'isoper');
+    ampN=extractdeepfield(eddy.track,'iq');
     iq=uniqMedianStd(idx,ampN,iq);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

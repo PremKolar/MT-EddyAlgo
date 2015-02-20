@@ -26,7 +26,7 @@ function Fff = tryCase(ff,file,keys)
         if exist('nc_varget') %#ok<*EXIST>
             sqDouNCv=@(F,k,ff) squeeze(double(nc_varget(F,k.(ff))));
         elseif exist('ncread')
-            sqDouNCv=@(F,k,ff) squeeze(double(ncread(F,k.(ff))));
+            sqDouNCv=@(F,k,ff) permute(squeeze(double(ncread(F,k.(ff)))),[2 1]);
         else
             error('how to read netcdfs?');
         end

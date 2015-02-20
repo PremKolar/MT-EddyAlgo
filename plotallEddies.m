@@ -1,6 +1,6 @@
-DD = initialise;
-a = load('../dataaviI/EDDIES/EDDIE_19940105_-80-+80_000-360.mat');
-b = load('../dataaviI/CUTS/CUT_19940105_-80-+80_000-360.mat');
+DD = initialise('',mfilename);
+a = load([DD.path.eddies.files(1).name]);
+b = load([DD.path.cuts.files(1).name]);
 %%
 LA = b.fields.lat;
 LO = wrapTo180(b.fields.lon);

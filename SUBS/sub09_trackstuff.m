@@ -58,10 +58,10 @@ TR=getTR(DD,flds) ;
     %%
     fn=fnA;
     %%
-    velZonmeans(S,DD,II,T,fn.vel);
+%     velZonmeans(S,DD,II,T,fn.vel);
 %  save SaviI
-
-    scaleZonmeans(S,DD,II,T,fn.sca);
+ownPlotScale
+%     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
     fnB(fn);
@@ -359,45 +359,142 @@ function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS) %#ok<*DEFNU>
     h=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [h,pp,dd]=ownPlotScale(DD,II,LAuniq,vvM,vvS)
-    lw=2;
+function ownPlotScale
+    
+    a = load('../aviII/SaviII.mat');
+    aI = load('../aviI/SaviI.mat');
+    p = load('../p2aII/Sp2aII.mat');
+    m = load('../pop7II/Spop7II.mat');
+  %%
+    LA.p = round(p.S.lat);
+    LA.a = round(a.S.lat);
+    LA.aI = round(aI.S.lat);
+    LA.m = round(m.S.lat);
+    LAuniq     = unique([ LA.p; LA.a;LA.aI; LA.m]');
+    fn     = 'rad';
+    p.S.(fn)(p.S.(fn)<5) = nan;
+    a.S.(fn)(a.S.(fn)<5) = nan;
+    aI.S.(fn)(aI.S.(fn)<5) = nan;
+    m.S.(fn)(m.S.(fn)<5) = nan;
+    
     %%
-    dd(1).y=II.maps.zonMean.Rossby.small.radius/1000*2;
-    dd(2).y=vvM;
-    dd(4).y=vvM+vvS;
-    dd(5).y=vvM-vvS;
-    dd(3).y= [0 0];
-    %%
-    dd(1).name='2x 1st barocl. Rossby radius';
-    dd(2).name='zonal mean eddy radius (\sigma)';
-    dd(4).name='std upper bound';
-    dd(5).name='std lower bound';
-    dd(3).name='nill line';
-    %%
-    dd(1).x=II.la(:,1);
-    dd(2).x=LAuniq;
-    dd(4).x=LAuniq;
-    dd(5).x=LAuniq;
-    geo=DD.map.window.geo;
-    dd(3).x=[geo.south geo.north];
-    %%
-    clf
-    pp(1)=plot(dd(1).x,dd(1).y); 	hold on
-    pp(2)=plot(dd(2).x,dd(2).y,'r');
-    pp(4)=plot(dd(4).x,dd(4).y,'r');
-    pp(5)=plot(dd(5).x,dd(5).y,'r');
-    pp(3)=plot(dd(3).x,dd(3).y,'b--');
-    %%
-    axis([-70 70 0 max(dd(4).y)])
-    set(pp(1:3),'linewidth',lw)
-    leg=legend(dd(1).name,2,dd(2).name,2,'std');
-    legch=get(leg,'children');
-    set( legch(1:3),'linewidth',lw)
-    ylabel('[km]')
-    xlabel('[latitude]')
-    set(get(gcf,'children'),'linewidth',lw)
+    ap='a';
+    visits.(ap) = nan(size(LAuniq));
+    vvM.(ap) = visits.(ap);
+    vvMe.(ap) = visits.(ap);
+    for cc=1:(numel(LAuniq))
+        idx.(ap)=LA.(ap)==LAuniq(cc);      
+        visits.(ap)(cc) = sum(idx.(ap));         
+        if visits.(ap)(cc) >= 100          
+            vvM.(ap)(cc) = nanmean(a.S.(fn)(idx.(ap)));
+            vvMe.(ap)(cc) = nanmedian(a.S.(fn)(idx.(ap)));
+            if abs(LAuniq(cc))<=5
+                vvM.(ap)(cc)=nan;              
+                vvMe.(ap)(cc)=nan;              
+            end
+        end
+    end
+     %%
+    ap='p';
+    visits.(ap) = nan(size(LAuniq));
+    vvM.(ap) = visits.(ap);
+   vvMe.(ap) = visits.(ap);
+    for cc=1:(numel(LAuniq))
+        idx.(ap)=LA.(ap)==LAuniq(cc);      
+        visits.(ap)(cc) = sum(idx.(ap));         
+        if visits.(ap)(cc) >= 100          
+            vvM.(ap)(cc) = nanmean(p.S.(fn)(idx.(ap)));
+            vvMe.(ap)(cc) = nanmedian(p.S.(fn)(idx.(ap)));
+            if abs(LAuniq(cc))<=5
+                vvM.(ap)(cc)=nan;              
+                vvMe.(ap)(cc)=nan;              
+            end
+        end
+    end
+      %%
+    ap='aI';
+    visits.(ap) = nan(size(LAuniq));
+    vvM.(ap) = visits.(ap);
+    vvMe.(ap) = visits.(ap);
+    for cc=1:(numel(LAuniq))
+        idx.(ap)=LA.(ap)==LAuniq(cc);      
+        visits.(ap)(cc) = sum(idx.(ap));         
+        if visits.(ap)(cc) >= 100          
+            vvM.(ap)(cc) = nanmean(aI.S.(fn)(idx.(ap)));
+            vvMe.(ap)(cc) = nanmedian(aI.S.(fn)(idx.(ap)));
+            if abs(LAuniq(cc))<=5
+                vvM.(ap)(cc)=nan;              
+                vvMe.(ap)(cc)=nan;              
+            end
+        end
+    end
+    
+      %%
+    ap='m';
+    visits.(ap) = nan(size(LAuniq));
+    vvM.(ap) = visits.(ap);
+    vvMe.(ap) = visits.(ap);
+    for cc=1:(numel(LAuniq))
+        idx.(ap)=LA.(ap)==LAuniq(cc);      
+        visits.(ap)(cc) = sum(idx.(ap));         
+        if visits.(ap)(cc) >= 100          
+            vvM.(ap)(cc) = nanmean(m.S.(fn)(idx.(ap)));
+            vvMe.(ap)(cc) = nanmedian(m.S.(fn)(idx.(ap)));
+            if abs(LAuniq(cc))<=5
+                vvM.(ap)(cc)=nan;              
+                vvMe.(ap)(cc)=nan;              
+            end
+        end
+    end
+  %%
+  clf
+    pl = plot(LAuniq,vvM.a - vvM.p,LAuniq,vvM.aI - vvM.p)
+     hold on  
+    plot(LAuniq,vvMe.a - vvMe.p,'linestyle',':','color',pl(1).Color)
+    plot(LAuniq,vvMe.aI - vvMe.p,'linestyle',':','color',pl(2).Color)
+    title('\textit{satellite - remapped model}')
+     xlabel('latitude')
+    ylabel('$\sigma$ [km]')
+    legend('MII','MI','median','location','northwest')
     grid on
-    h=gcf;
+    axis([-70 70 -12 42])
+   
+    plot([-70 70],[0 0],'black--')
+    plot([0 0],[-12 42],'black--')
+    set(gca,'ytick',[-10:10:40])
+    set(gca,'xtick',[-60:10:60])
+   
+    %%
+  outfname = 'sigmaSatMinusP2a';
+    savefig(aI.DD.path.plots,72,500,150,outfname,'dpdf',DD2info(aI.DD),14);   
+    cpPdfTotexMT(outfname);
+  %%
+ clf
+    pl = plot(LAuniq,vvM.a - vvM.m,LAuniq,vvM.aI - vvM.m)
+     hold on  
+    plot(LAuniq,vvMe.a - vvMe.m,'linestyle',':','color',pl(1).Color)
+    plot(LAuniq,vvMe.aI - vvMe.m,'linestyle',':','color',pl(2).Color)
+   
+    title('\textit{satellite - model}')
+%      xlabel('latitude')
+    ylabel('$\sigma$ [km]')
+%     legend('MII','MI','location','northwest')
+    grid on
+    axis([-70 70 -12 42])
+    hold on
+    plot([-70 70],[0 0],'black--')
+    plot([0 0],[-12 42],'black--')
+    set(gca,'ytick',[-10:10:40])
+    set(gca,'xtick',[-60:10:60])
+     box on
+    %%
+  outfname = 'sigmaSatMinusModelb';
+    savefig(aI.DD.path.plots,72,500,150,outfname,'dpdf',DD2info(aI.DD),14);   
+    cpPdfTotexMT(outfname);
+    
+   
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)

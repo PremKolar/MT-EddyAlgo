@@ -68,7 +68,8 @@ function [resHere,posNow]=setupfigure(resOut,xdim,ydim,fs)
    
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
 %     set(findall(gcf,'type','text'),'FontSize',fs)
-   set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex','FontName','SansSerif')  
-   set(findall(gcf,'type','Legend'),'FontSize',fs)
-%     set(gca,'FontSize',fs)
+   set(findall(gcf,'type','text'),'FontSize',fs-2,'interpreter','latex','FontName','SansSerif')  
+   set(findall(gcf,'type','Legend'),'FontSize',10)
+     set(gca,'FontSize',fs-2)
+     set(findall(gcf,'type','title'),'FontSize',10)
 end

@@ -6,9 +6,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
-    DD=initialise([],mfilename);
-%     save DD
-    %     load DD
+%     DD=initialise([],mfilename);
+    %     save DD
+        load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -19,9 +19,10 @@ function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-%     spmd(DD.threads.num)
+    spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
-%     end
+    end
+    save('ANAmainSave.mat');
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -35,33 +36,42 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     T=disp_progress('init','analyzing tracks');
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
-        T=disp_progress('calc',T,numel(JJ),100);
-        %% get track
-        [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-        % TEMP TODO
-        for ee=1:numel(TT.eddy.track)
-            if isfield(TT.eddy.track(ee).chelt,'A')
-                TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
-                TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
-                TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+        try
+            T=disp_progress('calc',T,numel(JJ),100);
+            %% get track
+            [TT]=getTrack(DD,jj); if isempty(TT),continue;end
+            % TEMP TODO
+            for ee=1:numel(TT.eddy.track)
+                if isfield(TT.eddy.track(ee).chelt,'A')
+                    TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
+                    TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
+                    TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+                end
+                TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
             end
-            TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
+            %% mapstuff prep
+            senii=(TT.sense+3)/2;
+            sen=DD.FieldKeys.senses{senii};
+            [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
+            %% resort tracks for output
+            [MinMax]=resortTracks(DD,MinMax,TT,senii);
+        catch me
+            save(sprintf('ANAspmdCatch%02d.mat',labindex));
+            error(me.message);
         end
-        %% mapstuff prep
-        senii=(TT.sense+3)/2;
-        sen=DD.FieldKeys.senses{senii};
-        [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
-        %% resort tracks for output
-        [MinMax]=resortTracks(DD,MinMax,TT,senii);
     end
     %% gather
+    labBarrier;
+    save(sprintf('ANAspmdCatch%02d.mat',labindex));
+    labBarrier;
+    
     MinMax=gcat(MinMax,1,1);
     map=gcat(map,1,1);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
-
+    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
@@ -114,7 +124,7 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-
+    
     %% save
     sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
@@ -132,13 +142,13 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
-
-
-
+    
+    
+    
     TT.eddy.track(end)=[];
-
-
-
+    
+    
+    
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -182,7 +192,7 @@ function	amp=TRamp(map,eddy)
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
         amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
@@ -197,7 +207,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
-
+        
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end

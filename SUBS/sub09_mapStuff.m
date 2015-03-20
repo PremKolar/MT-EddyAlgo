@@ -124,13 +124,6 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     cpPdfTotexMT(fn)  ;
 end
 
-function joinPdfs(fname,senses,DD)
-    system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
-    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
-    cpPdfTotexMT(fname);
-    %     system('rm *.pdf')
-end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function joinPdfs(fname,senses,DD)
     system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])

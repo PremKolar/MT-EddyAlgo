@@ -4,10 +4,9 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function savefig(outdir,resOut,xdim,ydim,tit,frmt,info,fs)
-   set(gcf,'renderer','painter')
-   set(0,'defaultTextInterpreter','LaTeX')
-%  set(gcf,'Visible','off')
+function savefig(outdir,resOut,xdim,ydim,tit,frmt,info,fs)  
+%    set(0,'defaultTextInterpreter','LaTeX')
+ set(gcf,'renderer','painter','windowstyle','normal','Visible','off')
     if nargin < 8,	fs=12;	end
     if nargin < 6,	frmt='dpdf';	end
     if nargin < 7,	info=[]    ;	end
@@ -21,7 +20,7 @@ function savefig(outdir,resOut,xdim,ydim,tit,frmt,info,fs)
     if nargin == 7,
         appendPdfMetaInfo(info,fnamepdf);
     end
-%     set(gcf,'Visible','on');
+    set(gcf,'Visible','on');
     set(gcf,'position',posOld);
 %     sleep(2);
 end
@@ -62,17 +61,14 @@ function fnamepdf=printStuff(frmt,fname,resOut,xdim,ydim,resHere)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [resHere,posNow]=setupfigure(resOut,xdim,ydim,fs)
-    resHere=get(0,'ScreenPixelsPerInch');
-    %    ratioRes=resOut/resHere;
+    resHere=get(0,'ScreenPixelsPerInch');  
     ratioRes=1;
-    try
-        posNow=get(gcf,'position');
-        set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);
-    catch
-        disp('not setting up position for docked fig')
-    end
+    posNow=get(gcf,'position');
+   set(gcf,'position',[0 0 [xdim ydim]/ratioRes]);
+   
     set(gcf,'paperunits','inch','papersize',[xdim ydim]/resOut,'paperposition',[0 0 [xdim ydim]/resOut]);
-%     set(findall(gcf,'type','text'),'FontSize',12)
-   set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex','FontName','SansSerif')
-%     set(gca,'FontSize',10)
+%     set(findall(gcf,'type','text'),'FontSize',fs)
+   set(findall(gcf,'type','text'),'FontSize',fs,'interpreter','latex','FontName','SansSerif')  
+   set(findall(gcf,'type','Legend'),'FontSize',fs)
+%     set(gca,'FontSize',fs)
 end

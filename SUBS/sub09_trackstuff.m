@@ -104,7 +104,7 @@ end
 function fnB(fn)
     fn.plts = [fn.roo '/PLOTS/' fn.pw '/'];
     system(['pdfjam --nup 2x1 -o ' fn.plts fn.combo '.pdf ' fn.plts fn.vel '.pdf '  fn.plts fn.sca '.pdf']);
-    system(['pdfcrop ' fn.plts fn.combo '.pdf '  fn.plts fn.combo '.pdf ' ]);
+    system(['pdfcrop --margins "1 1 1 1" ' fn.plts fn.combo '.pdf '  fn.plts fn.combo '.pdf ' ]);
     cpPdfTotexMT(fn.combo);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,7 +162,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     %
     h.ch=chOverLayScale(chelt,LAuniq,vvM,vvMed);
     %     grid minor
-    savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD));
+    savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD),12);
    
     cpPdfTotexMT(outfname);
     %
@@ -265,7 +265,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
     h.ch=chOverLay(chelt,LAuniq,vvM);
-    savefig(DD.path.plots,72,400,300,fn,'dpdf',DD2info(DD));
+    savefig(DD.path.plots,72,400,300,fn,'dpdf',DD2info(DD),12);
     cpPdfTotexMT(fn)
     %       figure
     %     h.ch=chOverLay(S,DD,chelt,LAuniq,vvCross);
@@ -443,7 +443,7 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
     PP2=plot(x,y,'linewidth',.8,'linestyle',':');
     set(PP2(1),'color',PP(1).Color)
     set(PP2(2),'color',PP(2).Color)   
-  legend(PP,{'\sigma';'L_e';'medians'})
+  legend('\sigma','L_e','medians')
     
     %%
     set(gca, 'ytick', 0:25:275);

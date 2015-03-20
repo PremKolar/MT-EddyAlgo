@@ -7,9 +7,9 @@ function sub09_mapStuff
     lo = eurocen(lo,loMin);
     la = eurocen(la,loMin);
     %%
-    mapsAll(II,DD,T,lo,la,eurocen,loMin);
+%     mapsAll(II,DD,T,lo,la,eurocen,loMin);
     %%
-    %     mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../trb/');
+        mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../pop7II/');
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)
@@ -125,13 +125,6 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     cpPdfTotexMT(fn)  ;
 end
 
-function joinPdfs(fname,senses,DD)
-    system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
-    system(['pdfcrop c.pdf --margins "1 1 1 1" ' DD.path.plots fname '.pdf'])
-    cpPdfTotexMT(fname);
-    %     system('rm *.pdf')
-end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function joinPdfs(fname,senses,DD)
     system(['pdfjam --nup 2x1 -o c.pdf ' [fname '-' senses{1} '.pdf '] [fname '-' senses{2} '.pdf']])
@@ -183,12 +176,38 @@ end
 
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir) %#ok<DEFNU>
+function mapsDiff(II,DD,T,lo,la,eurocen,loMin,compDir)
     senses=DD.FieldKeys.senses;
     compData = load([compDir 'S09main.mat'],'II', 'DD', 'T');
 
-    runA = 'run A';
-    runB = 'run B';
+
+
+    RA.visits.ac = (II.maps.AntiCycs.visits.all);
+    RA.visits.c  = (II.maps.Cycs.visits.all);
+    RA.sigma.ac = full(II.maps.AntiCycs.radius.mean.mean);
+    RA.sigma.c  = full(II.maps.Cycs.radius.mean.mean);
+    RA.sigma.all= (RA.visits.ac .* RA.sigma.ac + RA.visits.c .* RA.sigma.c)./(RA.visits.c + RA.visits.ac);
+
+%     pcolor(RA.sigma.all/1000);shading flat;colorbar;axis tight;    caxis([10 200])
+
+    RB.visits.ac = (compData.II.maps.AntiCycs.visits.all);
+    RB.visits.c  = (compData.II.maps.Cycs.visits.all);
+    RB.sigma.ac = full(compData.II.maps.AntiCycs.radius.mean.mean);
+    RB.sigma.c  = full(compData.II.maps.Cycs.radius.mean.mean);
+    RB.sigma.all= (RB.visits.ac .* RB.sigma.ac + RB.visits.c .* RB.sigma.c)./(RB.visits.c + RB.visits.ac);
+
+%     pcolor(RB.sigma.all/1000);shading flat;colorbar;axis tight;    caxis([10 200])
+
+figure('Color','white')
+load coast
+axesm miller
+axis off; framem on; gridm on;
+plotm(lat,long);
+hold on
+pcolorm(la,lo,RA.sigma.all -RB.sigma.all)
+tightmap
+
+
 
     for sense=senses';sen=sense{1};
         close all

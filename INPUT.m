@@ -5,8 +5,8 @@
 % 'mad' - template for Madeleine's data
 % 'pop2avi' -
 function DD=INPUT
-    %DD.template='pop2avi';
-   DD.template='aviso';
+    DD.template='pop2avi';
+%    DD.template='aviso';
 %     DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
@@ -16,8 +16,8 @@ function DD=INPUT
 %     DD.overwrite = true;
     %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-%     DD.time.till.str  = '19990105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
+    DD.time.till.str  = '19970105'; %first pop/avi
+%     DD.time.till.str  = '20061227'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
     threshlife        = 7*8; % TODO
     %% window on globe (0:360° system)
@@ -48,10 +48,9 @@ function DD=INPUT
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
 
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 6970571cda2995576028f414e4aee0e68d94cc07
+
+
     %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;

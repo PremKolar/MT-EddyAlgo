@@ -9,6 +9,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sghfgh(DD,senses,procData,T)
     TPzBD(DD,T,procData.tracks,senses,'age',365,'age',1,1);
+      TPzGlobe(DD,T,procData.tracks,senses,'age',365,'age',1,1);
+      
     %     spmd(2)
     %         close all
     %         if labindex==1

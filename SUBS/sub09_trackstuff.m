@@ -1,17 +1,17 @@
 function sub09_trackstuff
     load S09main II DD T
     flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL'};
-%     sub09_trackinit(DD);
-% TRv = getVelFunc(DD);   
-%  getLonFunc(DD); 
-
-TR=getTR(DD,flds) ;
+    sub09_trackinit(DD);
+    % TRv = getVelFunc(DD);
+    %  getLonFunc(DD);
+    
+    TR=getTR(DD,flds) ;
     
     %%
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
     S.t2l=@(t) round(linspace(t(1),t(2),t(3)));
-
+    
     %%
     for ff=1:numel(flds)
         fld = flds{ff};
@@ -33,15 +33,15 @@ TR=getTR(DD,flds) ;
     lat(end-S.rightyscalenum+1:end)=S.t2l([min(lat) max(lat) S.rightyscalenum]);
     lon(end-S.rightyscalenum+1:end)=S.t2l([min(lon) max(lon) S.rightyscalenum]);
     rad(end-S.rightyscalenum+1:end)=S.t2l([min(rad) max(rad) S.rightyscalenum]);
-
+    
     %%
     [~,sml2lrg] = sort(rad)  ; %#ok<ASGLU>
-
+    
     for ff=1:numel(flds)
         fld = flds{ff};
         eval(['S.(fld) = ' fld '(fliplr(sml2lrg));']);
     end
-
+    
     %% kill unrealistic data
     zerage  = S.age<=0  ;
     velHigh = S.vel>30 | S.vel <-30;
@@ -58,10 +58,11 @@ TR=getTR(DD,flds) ;
     %%
     fn=fnA;
     %%
+     save SaviI
+    
     velZonmeans(S,DD,II,T,fn.vel);
-%  save SaviI
-
     scaleZonmeans(S,DD,II,T,fn.sca);
+    
     %     scattStuff(S,T,DD,II);
     %%
     fnB(fn);
@@ -82,8 +83,8 @@ TR=getTR(DD,flds) ;
     %     colormap(jet(100))
     %     set(gcf,'windowStyle','docked')
     %     axis tight
-
-%     scatter(S.iq,S.lat,abs(S.vel),log(S.age))
+    
+    %     scatter(S.iq,S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))
@@ -113,7 +114,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
     % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
     % (1998).
-
+    
     S.beta = 2*(2*pi/(24*60*60))/earthRadius * cosd(S.lat);
     S.rhinesScale = sqrt(S.amp./(S.beta.*S.rad*1000));
     
@@ -122,7 +123,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     %     FN     = {'rad','radL','radLe','radLeff'};
-%     FN     = {'rad','radLe','rhinesScale'};
+    %     FN     = {'rad','radLe','rhinesScale'};
     FN     = {'rad','radLe'};
     %     FN     = {'Lrossby'};
     %     Rpath = DD.path.Rossby.name;
@@ -144,11 +145,11 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
         vvMed(numel(LAuniq)).(fn)=struct;
         [vvM(:).(fn)]=deal(nan);
         [vvMed(:).(fn)]=deal(nan);
-
+        
         for cc=1:(numel(LAuniq))
             idx=LA==LAuniq(cc);
             visits(cc) = sum(idx);
-
+            
             if visits(cc) >= 100
                 vvMed(cc).(fn)=nanmedian(S.(fn)(idx));
                 vvM(cc).(fn)=nanmean(S.(fn)(idx));
@@ -163,7 +164,7 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     h.ch=chOverLayScale(chelt,LAuniq,vvM,vvMed);
     %     grid minor
     savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD));
-   
+    
     cpPdfTotexMT(outfname);
     %
     %     %
@@ -171,45 +172,45 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     %     	[~,pw]=fileparts(pwd);
     %     	save(sprintf('scaleZonMean-%s.mat',pw),'h','pp','dd');
     %     	savefig(DD.path.plots,T.rez,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
-
+    
     %% TODO
-%     figure; clf;
-%     fn=FN{1};
-% 
-%     [~,cc]=min(abs(LAuniq-(-10)));
-%     idx10=LA==LAuniq(cc);
-%     [~,cc]=min(abs(LAuniq-(-60)));
-%     idx50=LA==LAuniq(cc);
-%     histogram(S.(fn)(idx10),[10:10:500])
-%     axis tight
-%     yl=get(gca,'yLim');
-%     set(gca,'ytick',round([yl/2 yl(2)]))
-%     xlabel('$\sigma$ at $-10^{\circ}$')
-%     %     killevery2ndytl;
-%     title(sprintf('total: %d counts',sum(idx10)))
-%     %
-%     savefig('./',T.rez,300,250,'a','dpdf',DD2info(DD));
-%     close all;      clf
-%     histogram(S.(fn)(idx50),[10:3:200])
-%     set(gca,'yaxisLocation','right')
-%     axis tight
-%     yl=get(gca,'yLim');
-%     set(gca,'ytick',round([yl/2 yl(2)]))
-%     title(sprintf('total: %d counts',sum(idx50)))
-%     xlabel('$\sigma$ at $-50^{\circ}$')
-%     savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
-%     %     killevery2ndytl;
-%     %%
-%     fname='hist-sigmaAt-both';
-%     system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
-%     system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
-%     cpPdfTotexMT(fname);
-%     system(['rm ?.pdf'])
+    figure; clf;
+    fn=FN{1};
+    
+    [~,cc]=min(abs(LAuniq-(-10)));
+    idx10=LA==LAuniq(cc);
+    [~,cc]=min(abs(LAuniq-(-60)));
+    idx50=LA==LAuniq(cc);
+    histogram(S.(fn)(idx10),[10:10:500])
+    axis tight
+    yl=get(gca,'yLim');
+    set(gca,'ytick',round([yl/2 yl(2)]))
+    xlabel('$\sigma$ at $-10^{\circ}$')
+    %     killevery2ndytl;
+    title(sprintf('total: %d counts',sum(idx10)))
+    %
+    savefig('./',T.rez,300,250,'a','dpdf',DD2info(DD));
+    close all;      clf
+    histogram(S.(fn)(idx50),[10:3:200])
+    set(gca,'yaxisLocation','right')
+    axis tight
+    yl=get(gca,'yLim');
+    set(gca,'ytick',round([yl/2 yl(2)]))
+    title(sprintf('total: %d counts',sum(idx50)))
+    xlabel('$\sigma$ at $-50^{\circ}$')
+    savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
+    %     killevery2ndytl;
+    %%
+    fname='hist-sigmaAt-both';
+    system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
+    system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+    system(['rm ?.pdf'])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T,fn)
     close all
-
+    
     %     Rpath = DD.path.Rossby.name;
     %     Rname = [DD.FieldKeys.Rossby{1} ,'.mat'];
     %     cR = getfield(load([Rpath Rname]),'data');
@@ -217,8 +218,8 @@ function h=velZonmeans(S,DD,II,T,fn)
     %     S.reflin(zerFlag) = 1;
     %     S.Crossby = cR(S.reflin)*100; % m2cm
     %     S.Crossby(zerFlag) = nan;
-
-
+    
+    
     %   LA     = round(S.lon);
     %     LAuniq = unique(LA)';
     %     vvM=nan(size(LAuniq));
@@ -229,14 +230,14 @@ function h=velZonmeans(S,DD,II,T,fn)
     %         idx=LA==LAuniq(cc);
     %         visits(cc) = sum(idx);
     %     end
-
-
+    
+    
     close all
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     vvM=nan(size(LAuniq));
     vvS=nan(size(LAuniq));
-
+    
     vvSkew=nan(size(LAuniq));
     visits = nan(size(LAuniq));
     for cc=1:(numel(LAuniq))
@@ -251,11 +252,11 @@ function h=velZonmeans(S,DD,II,T,fn)
     %%
     % TODO do this with pop7 or better pop3 data ! and maybe do similar with
     % scales..
-
+    
     vvM(abs(LAuniq)<5)=nan;
-
+    
     %     vvS(abs(LAuniq)<5)=nan;
-
+    
     %%
     %     [h.own,~,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS); %#ok<NASGU>
     %     [~,pw]=fileparts(pwd);
@@ -271,49 +272,49 @@ function h=velZonmeans(S,DD,II,T,fn)
     %     h.ch=chOverLay(S,DD,chelt,LAuniq,vvCross);
     %     title([])
     %     savefig(DD.path.plots,T.rez,800,800,['S-RossbyCfromPopToCh'],'dpdf',DD2info(DD));
-
-%     figure(10)
-%     clf
-%     nrm=@(x) x/nanmax(x-nanmin(x));
-%     SK(:,1) = nrm(smooth(-vvM,10));
-%     SK(:,2) = nrm(smooth(-vvSkew,10));
-%     SK(:,3) = nrm(smooth(visits,10))*.8;
-%     plot(repmat(LAuniq',1,3), SK)
-%     hold on
-%     axis([-80 80 -1 1])
-%     axis tight
-%     legend('-u','-skew(u)','count')
-%     plot([-70 70],[0 0],'--black')
-%     grid on
-%     set(gca,'yticklabel','')
-%     savefig(DD.path.plots,T.rez,400,200,['Skew'],'dpdf',DD2info(DD));
-%     cpPdfTotexMT('Skew')
-%     %
-%     %
+    
+    figure(10)
+    clf
+    nrm=@(x) x/nanmax(x-nanmin(x));
+    SK(:,1) = nrm(smooth(-vvM,10));
+    SK(:,2) = nrm(smooth(-vvSkew,10));
+    SK(:,3) = nrm(smooth(visits,10))*.8;
+    plot(repmat(LAuniq',1,3), SK)
+    hold on
+    axis([-80 80 -1 1])
+    axis tight
+    legend('-u','-skew(u)','count')
+    plot([-70 70],[0 0],'--black')
+    grid on
+    set(gca,'yticklabel','')
+    savefig(DD.path.plots,T.rez,400,200,['Skew'],'dpdf',DD2info(DD));
+    cpPdfTotexMT('Skew')
+    %     %
+    %     %
     %
     %% TODO
-    %         figure(2)
-    %         cc = 70;
-    %         idx=LA==LAuniq(cc); % -10
-    %         hist(S.vel(idx),50)
-    %         axis tight
-    %         xlabel('$u$ [cm/s] at $-10^{\circ}$')
-    %         title(sprintf('total: %d counts',sum(idx)))
-    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
-    %
-    %
-    %         figure(3)
-    %         cc = 30;
-    %         idx=LA==LAuniq(cc); % -50
-    %         hist(S.vel(idx),50)
-    %         axis tight
-    %         xlabel('$u$ [cm/s] at $-50^{\circ}$')
-    %         title(sprintf('total: %d counts',sum(idx)))
-    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
-
-
-
-
+    figure(2)
+    cc = 70;
+    idx=LA==LAuniq(cc); % -10
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('$u$ [cm/s] at $-10^{\circ}$')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
+    
+    
+    figure(3)
+    cc = 30;
+    idx=LA==LAuniq(cc); % -50
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('$u$ [cm/s] at $-50^{\circ}$')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [h,pp,dd]=ownPlotVel(DD,II,LAuniq,vvM,vvS) %#ok<*DEFNU>
@@ -424,9 +425,9 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
         y(:,ff)=vvm;
     end
     PP=plot(x,y,'linewidth',.8);
-   
+    
     %%
-     FN=fieldnames(vvMed)';
+    FN=fieldnames(vvMed)';
     for ff=1:numel(FN)
         lau=LAuniq;
         kill.lau = isnan(lau) | abs(lau)>70;
@@ -438,18 +439,18 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
         lau(kill.both)=nan;
         x(:,ff)=lau;
         y(:,ff)=vvm;
-    end 
-   
+    end
+    
     PP2=plot(x,y,'linewidth',.8,'linestyle',':');
     set(PP2(1),'color',PP(1).Color)
-    set(PP2(2),'color',PP(2).Color)   
-  legend(PP,{'\sigma';'L_e';'medians'})
+    set(PP2(2),'color',PP(2).Color)
+    legend(PP,{'\sigma';'L_e';'medians'})
     
     %%
     set(gca, 'ytick', 0:25:275);
     axis([-70 70 0 275])
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
-%     axis tight
+    %     axis tight
     grid on
     ylabel('[km]')
     xlabel('latitude')
@@ -532,8 +533,8 @@ function TR=getTR(DD,F)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     g=@(c) cat(1,c{:});
     for ss=1:2
-         sen=DD.FieldKeys.senses{ss};
-        for fi=1:numel(F);f=F{fi};           
+        sen=DD.FieldKeys.senses{ss};
+        for fi=1:numel(F);f=F{fi};
             TR.(sen).(f)=((xlt(sen,f))');
         end
         f='vel';
@@ -545,7 +546,7 @@ function TR=getVelFunc(DD)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     g=@(c) cat(1,c{:});
     for ss=1:2
-         sen=DD.FieldKeys.senses{ss};
+        sen=DD.FieldKeys.senses{ss};
         f='vel';
         TR.(sen).vel = g(xlt(sen,f));
         TR.(sen).std = cellfun(@std, TR.(sen).vel);
@@ -554,7 +555,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function getLonFunc(DD)
     Fs = DD.path.tracks.files;
-   
+    
     T=disp_progress('init','stdTracksArcLens');
     lims = thread_distro(12,numel(Fs));
     spmd(12)
@@ -573,7 +574,7 @@ function getLonFunc(DD)
     end
     arclendiffStdCat = arclendiffStdCat{1};
     %%
-        
+    
     %%
     save([DD.path.analyzed.name 'arclendiffStd.mat'],'arclendiffStdCat')
     %%

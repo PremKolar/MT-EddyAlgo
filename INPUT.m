@@ -48,7 +48,10 @@ function DD=INPUT
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6970571cda2995576028f414e4aee0e68d94cc07
     %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;

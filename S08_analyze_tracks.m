@@ -146,13 +146,7 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
-
-
-    % kill trailing erronuous position
-    TT.eddy.track(end)=[];
-
-
-
+    TT.eddy.track(end)=[];    % kill trailing erronuous position
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

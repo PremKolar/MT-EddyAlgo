@@ -4,7 +4,6 @@ function sub09_trackstuff
     sub09_trackinit(DD);
     % TRv = getVelFunc(DD);
     %  getLonFunc(DD);
-
     TR=getTR(DD,flds) ;
 
     %%

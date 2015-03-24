@@ -7,8 +7,8 @@
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
-        save DD
-%         load DD
+    save DD
+    %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -75,8 +75,8 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
-    [NEW.dist,eddy]=TRdist(map,eddy);
-    [NEW.vel,velpp]=TRvel(map,eddy);
+    [NEW.dist,eddy]   = TRdist(map,eddy);
+    [NEW.vel,velpp]   = TRvel(map,eddy);
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
@@ -85,11 +85,13 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ACs,Cs]=netVels(DD,map)
+function [ACs,Cs] = netVels(DD,map)
+    
     velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
-        'means.small.zonal'),DD.map.out.Y,DD.map.out.X);
-    ACs=	map.AntiCycs.vel.zonal.mean -velmean;
-    Cs =	map.Cycs.vel.zonal.mean		 -velmean;
+        'means.small.zonal'),map.Cycs.dim.y,[]);
+    
+    ACs =	map.AntiCycs.vel.zonal.mean -velmean;
+    Cs  =	map.Cycs.vel.zonal.mean		-velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
@@ -102,11 +104,13 @@ function seq_body(DD)
         map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
     end
     %% build zonal means
-    map.zonMean=zonmeans(map,DD);
+    map.zonMean = zonmeans(map,DD);
     %% build net vels
-    if DD.switchs.netUstuff
-        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
-    end
+    % TODO
+    %     if DD.switchs.netUstuff
+    [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+    %     end
+    
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 end
@@ -213,6 +217,39 @@ function	radius=TRradius(map,eddy)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function	[vel,pp]=TRvelDS(map,eddy)
+    
+    
+    
+    noBndr=@(v) v(2:end-1);
+    idx=noBndr(map.strctr.idx);
+    A={'traj';'merid';'zonal'};
+    for jj=1:3;
+        a=A{jj};
+        %% init
+        [vel.(a)]=protoInit(map.proto);
+        %% calc
+        position=cumsum(eddy.dist.num.(a).m);
+        pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24; % day2sec
+        % TODO has to wait for available license
+        while true
+            try
+                %% get v(t) = dx/dt
+                pp.(a).x=spline(pp.timeaxis,position);
+                pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
+                pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
+            catch er
+                disp(er.message)
+                sleep(10)
+                continue
+            end
+            break
+        end
+        velN=noBndr(ppval(pp.(a).x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
+        vel.(a)=uniqMedianStd(idx,velN,vel.(a));
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[vel,pp]=TRvel(map,eddy)
     noBndr=@(v) v(2:end-1);
     idx=noBndr(map.strctr.idx);
@@ -294,10 +331,10 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,MinMax]=initAll(DD)
-    map.AntiCycs=initmap(DD);
-    map.Cycs=initmap(DD);
-    for subfield=DD.FieldKeys.trackPlots'; sub=subfield{1};
-        collapsedField=strrep(sub,'.','');
+    map.AntiCycs = initmap(DD);
+    map.Cycs     = initmap(DD);
+    for subfield       = DD.FieldKeys.trackPlots'; sub=subfield{1};
+        collapsedField = strrep(sub,'.','');
         MinMax.max.(collapsedField)=-inf;
         MinMax.min.(collapsedField)=inf;
     end

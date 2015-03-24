@@ -48,8 +48,8 @@ function DD=INPUT
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
 
     %% TODO
-    DD.switchs.netUstuff = 0;
-    DD.switchs.meanUviaOW = 0;
+    DD.switchs.netUstuff = 1;
+    DD.switchs.meanUviaOW = 0; % TODO no choice
     DD.switchs.RossbyStuff = 1;  % TODO no choice
     DD.switchs.distlimit = 1;      % TODO no choice
     DD.switchs.maxRadiusOverRossbyL = 1;  % TODO no choice

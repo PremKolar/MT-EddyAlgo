@@ -23,7 +23,7 @@ function DD=INPUTpop
     DD.map.in.keys.V='VVEL';
     DD.map.in.keys.x='XT';
     DD.map.in.keys.y='YT';
-    DD.map.in.keys.z='ZT';
+    DD.map.in.keys.z='w_dep';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
     %% temp salt keys

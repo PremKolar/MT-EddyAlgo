@@ -7,8 +7,8 @@
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
-        save DD
-%         load DD
+    save DD
+    %         load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
@@ -144,7 +144,7 @@ function [TT]=getTrack(DD,jj)
     end
     
     
-    
+    % kill trailing erronuous position
     TT.eddy.track(end)=[];
     
     

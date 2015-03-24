@@ -26,7 +26,7 @@ function DD=INPUT
     DD.map.in.south = -80;
     DD.map.in.north =  0;
     %% thresholds
-    DD.contour.step                = 0.02; % [SI]
+    DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
     DD.thresh.maxRadiusOverRossbyL = 4; %[ ]
     DD.thresh.minRossbyRadius      = 20e3; %[SI]

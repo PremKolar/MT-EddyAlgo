@@ -7,9 +7,9 @@ function sub09_mapStuff
     lo = eurocen(lo,loMin);
     la = eurocen(la,loMin);
     %%
-%     mapsAll(II,DD,T,lo,la,eurocen,loMin);
+    mapsAll(II,DD,T,lo,la,eurocen,loMin);
     %%
-        mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../pop7II/');
+%         mapsDiff(II,DD,T,lo,la,eurocen,loMin,'../pop7II/');
 end
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mapsAll(II,DD,T,lo,la,eurocen,loMin)

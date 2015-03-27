@@ -2,7 +2,10 @@ function simpleTrackPlot2
     %    DD = initialise([],mfilename);
     load DD
     
-    cut = load([DD.path.cuts.name DD.path.cuts.files(1).name]);
+    eddie = load([DD.path.eddies.name DD.path.eddies.files(1).name]);
+   
+    
+    
     LAT = cut.fields.lat;
     LON = cut.fields.lon;
    

@@ -11,9 +11,9 @@ function DD=INPUT
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
-    DD.debugmode = true;
+%     DD.debugmode = true;
     DD.overwrite   = false;
-    DD.overwrite = true;
+%     DD.overwrite = true;
     %% time
     DD.time.from.str  = '20030101'; %first pop/avi
 %     DD.time.till.str  = '19990105'; %first pop/avi

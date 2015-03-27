@@ -4,77 +4,22 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function S07_getMeanU
+function S07b_meanU2tracks
     %% init
     %     DD = initialise([],mfilename);
     %       save DD
     load DD
     %     if ~DD.switchs.netUstuff,return;end
-    %% find files
-    [file] = findVelFiles(DD);
-    %% get dims
-    [d,pos,dim] = getDims(file,DD);
-    %% means
-    means = getMeans(d,pos,dim,file,DD); %#ok<NASGU>
-    %%
-    means.d = d;
-    means.pos = pos;
-    means.dim = dim;
-    %% save
-    save([DD.path.meanU.file], 'means')
+   
+    %% load
+   load([DD.path.meanU.file],'-mat'); % load $means
+    
+   
     
     
-    
-    
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [means] = gMsConstCase(file,DD,dim,d,pos)
-    for kk = 1:numel(file)
-        disp(['found ' file(kk).U ' and ' file(kk).V])
-        %%
-        traforead = @(f,fac,key)  permute(squeeze(ncread(f,key,dim.start,dim.length))/fac,[2,1]);
-        U(:,:,kk) = traforead(file(kk).U,DD.parameters.meanUunit,DD.map.in.keys.U);
-        V(:,:,kk) = traforead(file(kk).V,DD.parameters.meanUunit,DD.map.in.keys.V);
-        %%
-        x = DD.map.window.dim.x;
-        y = DD.map.window.dim.y;
-        if x ~= size(U,2) || y ~= size(U,1)
-            warning('trivially resizing U/V data!!! ')
-            U = downsize(U,x,y);
-            V = downsize(V,x,y);
-        end
-    end
-    disp(['creating means'])
-    U(U<-1e33) = nan; % missing values
-    V(V<-1e33) = nan; % missing values
-    means.zonal = nanmean(U,3);
-    means.merid = nanmean(V,3);
-    means.total = hypot(means.zonal,means.merid);
-    %     means.direc = azimuth(zeros(size(means.zonal)),zeros(size(means.zonal)),means.merid,means.zonal);
-    means.depth = d(pos.z.start);
-    %%
-  
-    
-    
-    disp(['resizing to output size'])
-    proto = load(DD.path.protoMaps.file);
-    lin = proto.idx(1:numel(U(:,:,1))); % ignore overlap    
-    means.small.zonal = proto.proto.nan;
-    %%
-    
-    indextrafo = cell(size(proto.proto.nan));
-    parfor cc = 1:numel(indextrafo)
-        indextrafo{cc} = find((lin == cc));
-    end
-    means.small.indextrafo = indextrafo;
-    %%
-    for cc = 1:numel(indextrafo)
-        if numel(indextrafo{cc}) > 0
-            means.small.zonal(cc) = nanmean(means.zonal(indextrafo{cc}));
-        end
-    end
   
 end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function means = getMeans(d,pos,dim,file,DD)
     [means] = gMsConstCase(file,DD,dim,d,pos);

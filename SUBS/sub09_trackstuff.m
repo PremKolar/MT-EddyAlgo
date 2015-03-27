@@ -2,11 +2,10 @@ function sub09_trackstuff
     load S09main II DD T
     flds = {'age';'lat';'lon';'rad';'vel';'amp';'radLe';'radLeff';'radL'};
     sub09_trackinit(DD);
-% TRv = getVelFunc(DD);   
-%  getLonFunc(DD); 
+    % TRv = getVelFunc(DD);
+    %  getLonFunc(DD);
+    TR=getTR(DD,flds) ;
 
-TR=getTR(DD,flds) ;
-    
     %%
     senses=DD.FieldKeys.senses;
     catsen= @(f) [TR.(senses{1}).(f); TR.(senses{2}).(f) ];
@@ -58,10 +57,11 @@ TR=getTR(DD,flds) ;
     %%
     fn=fnA;
     %%
-    velZonmeans(S,DD,II,T,fn.vel);
-%  save SaviI
+     save SaviI
 
+    velZonmeans(S,DD,II,T,fn.vel);
     scaleZonmeans(S,DD,II,T,fn.sca);
+
     %     scattStuff(S,T,DD,II);
     %%
     fnB(fn);
@@ -83,7 +83,7 @@ TR=getTR(DD,flds) ;
     %     set(gcf,'windowStyle','docked')
     %     axis tight
 
-%     scatter(S.iq,S.lat,abs(S.vel),log(S.age))
+    %     scatter(S.iq,S.lat,abs(S.vel),log(S.age))
     %%%
     %% scatter(S.lat,log(abs(S.amp)),log(S.age),log(abs(S.vel)))
     %scatter(S.lon,S.lat,1,(abs(S.vel)))
@@ -116,13 +116,13 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
 
     S.beta = 2*(2*pi/(24*60*60))/earthRadius * cosd(S.lat);
     S.rhinesScale = sqrt(S.amp./(S.beta.*S.rad*1000));
-    
+
     close all
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/presStuff/LTpresMT/FIGS/png1024x/chSc.png');
     LA     = round(S.lat);
     LAuniq = unique(LA)';
     %     FN     = {'rad','radL','radLe','radLeff'};
-%     FN     = {'rad','radLe','rhinesScale'};
+    %     FN     = {'rad','radLe','rhinesScale'};
     FN     = {'rad','radLe'};
     %     FN     = {'Lrossby'};
     %     Rpath = DD.path.Rossby.name;
@@ -163,7 +163,6 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     h.ch=chOverLayScale(chelt,LAuniq,vvM,vvMed);
     %     grid minor
     savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD),12);
-   
     cpPdfTotexMT(outfname);
     %
     %     %
@@ -173,38 +172,38 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
     %     	savefig(DD.path.plots,T.rez,800,800,['S-scaleZonmean'],'dpdf',DD2info(DD));
 
     %% TODO
-%     figure; clf;
-%     fn=FN{1};
-% 
-%     [~,cc]=min(abs(LAuniq-(-10)));
-%     idx10=LA==LAuniq(cc);
-%     [~,cc]=min(abs(LAuniq-(-60)));
-%     idx50=LA==LAuniq(cc);
-%     histogram(S.(fn)(idx10),[10:10:500])
-%     axis tight
-%     yl=get(gca,'yLim');
-%     set(gca,'ytick',round([yl/2 yl(2)]))
-%     xlabel('$\sigma$ at $-10^{\circ}$')
-%     %     killevery2ndytl;
-%     title(sprintf('total: %d counts',sum(idx10)))
-%     %
-%     savefig('./',T.rez,300,250,'a','dpdf',DD2info(DD));
-%     close all;      clf
-%     histogram(S.(fn)(idx50),[10:3:200])
-%     set(gca,'yaxisLocation','right')
-%     axis tight
-%     yl=get(gca,'yLim');
-%     set(gca,'ytick',round([yl/2 yl(2)]))
-%     title(sprintf('total: %d counts',sum(idx50)))
-%     xlabel('$\sigma$ at $-50^{\circ}$')
-%     savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
-%     %     killevery2ndytl;
-%     %%
-%     fname='hist-sigmaAt-both';
-%     system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
-%     system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
-%     cpPdfTotexMT(fname);
-%     system(['rm ?.pdf'])
+    figure; clf;
+    fn=FN{1};
+
+    [~,cc]=min(abs(LAuniq-(-10)));
+    idx10=LA==LAuniq(cc);
+    [~,cc]=min(abs(LAuniq-(-60)));
+    idx50=LA==LAuniq(cc);
+    histogram(S.(fn)(idx10),[10:10:500])
+    axis tight
+    yl=get(gca,'yLim');
+    set(gca,'ytick',round([yl/2 yl(2)]))
+    xlabel('$\sigma$ at $-10^{\circ}$')
+    %     killevery2ndytl;
+    title(sprintf('total: %d counts',sum(idx10)))
+    %
+    savefig('./',T.rez,300,250,'a','dpdf',DD2info(DD));
+    close all;      clf
+    histogram(S.(fn)(idx50),[10:3:200])
+    set(gca,'yaxisLocation','right')
+    axis tight
+    yl=get(gca,'yLim');
+    set(gca,'ytick',round([yl/2 yl(2)]))
+    title(sprintf('total: %d counts',sum(idx50)))
+    xlabel('$\sigma$ at $-50^{\circ}$')
+    savefig('./',T.rez,300,250,'b','dpdf',DD2info(DD));
+    %     killevery2ndytl;
+    %%
+    fname='hist-sigmaAt-both';
+    system(['pdfjam --nup 2x1 -o c.pdf a.pdf b.pdf'])
+    system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
+    cpPdfTotexMT(fname);
+    system(['rm ?.pdf'])
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T,fn)
@@ -272,44 +271,44 @@ function h=velZonmeans(S,DD,II,T,fn)
     %     title([])
     %     savefig(DD.path.plots,T.rez,800,800,['S-RossbyCfromPopToCh'],'dpdf',DD2info(DD));
 
-%     figure(10)
-%     clf
-%     nrm=@(x) x/nanmax(x-nanmin(x));
-%     SK(:,1) = nrm(smooth(-vvM,10));
-%     SK(:,2) = nrm(smooth(-vvSkew,10));
-%     SK(:,3) = nrm(smooth(visits,10))*.8;
-%     plot(repmat(LAuniq',1,3), SK)
-%     hold on
-%     axis([-80 80 -1 1])
-%     axis tight
-%     legend('-u','-skew(u)','count')
-%     plot([-70 70],[0 0],'--black')
-%     grid on
-%     set(gca,'yticklabel','')
-%     savefig(DD.path.plots,T.rez,400,200,['Skew'],'dpdf',DD2info(DD));
-%     cpPdfTotexMT('Skew')
-%     %
-%     %
+    figure(10)
+    clf
+    nrm=@(x) x/nanmax(x-nanmin(x));
+    SK(:,1) = nrm(smooth(-vvM,10));
+    SK(:,2) = nrm(smooth(-vvSkew,10));
+    SK(:,3) = nrm(smooth(visits,10))*.8;
+    plot(repmat(LAuniq',1,3), SK)
+    hold on
+    axis([-80 80 -1 1])
+    axis tight
+    legend('-u','-skew(u)','count')
+    plot([-70 70],[0 0],'--black')
+    grid on
+    set(gca,'yticklabel','')
+    savefig(DD.path.plots,T.rez,400,200,['Skew'],'dpdf',DD2info(DD));
+    cpPdfTotexMT('Skew')
+    %     %
+    %     %
     %
     %% TODO
-    %         figure(2)
-    %         cc = 70;
-    %         idx=LA==LAuniq(cc); % -10
-    %         hist(S.vel(idx),50)
-    %         axis tight
-    %         xlabel('$u$ [cm/s] at $-10^{\circ}$')
-    %         title(sprintf('total: %d counts',sum(idx)))
-    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
-    %
-    %
-    %         figure(3)
-    %         cc = 30;
-    %         idx=LA==LAuniq(cc); % -50
-    %         hist(S.vel(idx),50)
-    %         axis tight
-    %         xlabel('$u$ [cm/s] at $-50^{\circ}$')
-    %         title(sprintf('total: %d counts',sum(idx)))
-    %         savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
+    figure(2)
+    cc = 70;
+    idx=LA==LAuniq(cc); % -10
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('$u$ [cm/s] at $-10^{\circ}$')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,T.rez,600,600,['hist-uAt-10deg'],'dpdf',DD2info(DD));
+
+
+    figure(3)
+    cc = 30;
+    idx=LA==LAuniq(cc); % -50
+    hist(S.vel(idx),50)
+    axis tight
+    xlabel('$u$ [cm/s] at $-50^{\circ}$')
+    title(sprintf('total: %d counts',sum(idx)))
+    savefig(DD.path.plots,T.rez,600,600,['hist-uAt-50deg'],'dpdf',DD2info(DD));
 
 
 
@@ -424,9 +423,9 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
         y(:,ff)=vvm;
     end
     PP=plot(x,y,'linewidth',.8);
-   
+
     %%
-     FN=fieldnames(vvMed)';
+    FN=fieldnames(vvMed)';
     for ff=1:numel(FN)
         lau=LAuniq;
         kill.lau = isnan(lau) | abs(lau)>70;
@@ -438,18 +437,18 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
         lau(kill.both)=nan;
         x(:,ff)=lau;
         y(:,ff)=vvm;
-    end 
-   
+    end
+
     PP2=plot(x,y,'linewidth',.8,'linestyle',':');
     set(PP2(1),'color',PP(1).Color)
-    set(PP2(2),'color',PP(2).Color)   
+    set(PP2(2),'color',PP(2).Color)
   legend('\sigma','L_e','medians')
-    
+
     %%
     set(gca, 'ytick', 0:25:275);
     axis([-70 70 0 275])
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
-%     axis tight
+    %     axis tight
     grid on
     ylabel('[km]')
     xlabel('latitude')
@@ -532,8 +531,8 @@ function TR=getTR(DD,F)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     g=@(c) cat(1,c{:});
     for ss=1:2
-         sen=DD.FieldKeys.senses{ss};
-        for fi=1:numel(F);f=F{fi};           
+        sen=DD.FieldKeys.senses{ss};
+        for fi=1:numel(F);f=F{fi};
             TR.(sen).(f)=((xlt(sen,f))');
         end
         f='vel';
@@ -545,7 +544,7 @@ function TR=getVelFunc(DD)
     xlt=@(sen,f) extractfield(load(['TR-' sen '-' f '.mat']),'tmp');
     g=@(c) cat(1,c{:});
     for ss=1:2
-         sen=DD.FieldKeys.senses{ss};
+        sen=DD.FieldKeys.senses{ss};
         f='vel';
         TR.(sen).vel = g(xlt(sen,f));
         TR.(sen).std = cellfun(@std, TR.(sen).vel);
@@ -554,7 +553,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function getLonFunc(DD)
     Fs = DD.path.tracks.files;
-   
+
     T=disp_progress('init','stdTracksArcLens');
     lims = thread_distro(12,numel(Fs));
     spmd(12)
@@ -573,12 +572,10 @@ function getLonFunc(DD)
     end
     arclendiffStdCat = arclendiffStdCat{1};
     %%
-        
+
     %%
     save([DD.path.analyzed.name 'arclendiffStd.mat'],'arclendiffStdCat')
     %%
     D.II = arclendiffStdCat;
     D.I  = load([ strrep(DD.path.analyzed.name,'aviII','aviI') 'arclendiffStd.mat'],'arclendiffStdCat');
 end
-
-

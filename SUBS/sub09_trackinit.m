@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sub09_trackinit(DD)
-    
+
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
@@ -16,7 +16,9 @@ function sub09_trackinit(DD)
         %%
         cats=buildOutStruct(single);
         %%
-        cats.vel=makeVel(cats);
+        cats.vel   = makeVel(cats);
+        %%
+        cats.velDP = makeDPV(cats);
         %%
         saveCats(cats,sense);
     end
@@ -32,12 +34,12 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'iq'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sngl=sPmDstoof(DD,eds,root,toLoad)
     JJ=thread_distro(DD.threads.num,numel(eds));
-    
+
     spmd(DD.threads.num)
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
@@ -58,7 +60,7 @@ function sngl=sPmDstoof(DD,eds,root,toLoad)
         sngl=gcat(sngl,2,1);
     end
     sngl=sngl{1};
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cats=buildOutStruct(single)
@@ -67,6 +69,21 @@ function cats=buildOutStruct(single)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function vel=makeDPV(cats)
+    cc=0;
+    for ff=1:numel(cats.vel)
+        vel = cats.vel{ff};
+       SDBDGBFBDB
+        cc=cc+1;
+        try
+            vel{ff}=ppval(pp.x_t,pp.timeaxis);
+        catch
+            vel{ff}=pp.zonal.v;
+        end
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function vel=makeVel(cats)
     cc=0;
     for ff=1:numel(cats.velPP)

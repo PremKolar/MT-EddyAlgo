@@ -26,7 +26,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         colormap([hsv(14)]);
         clm=[20 160 8];
         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-        axis([-180 180 -80 90]);
+%         axis([-180 180 -80 90]);
+        axis([-180 180 -80 10]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')
@@ -45,7 +46,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-        axis([-180 180 -80 90]);
+        axis([-180 180 -80 10]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')
@@ -117,7 +118,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     set(cb,'yticklabel',[1 10:10:60])
     set(cb,'ylim',[0 65])
     %         axis(T.axis)   %
-    axis([-180 180 -80 90]);
+    axis([-180 180 -80 10]);
     grid minor
     fn = ['MapVisitsBoth'];
     savefig(DD.path.plots,T.rez,T.width,T.height,fn,'dpdf');

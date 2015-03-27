@@ -13,18 +13,18 @@ function DD=INPUT
     DD.debugmode   = false;
 %     DD.debugmode = true;
     DD.overwrite   = false;
-%     DD.overwrite = true;
+    DD.overwrite = true;
     %% time
     DD.time.from.str  = '20030101'; %first pop/avi
 %     DD.time.till.str  = '19990105'; %first pop/avi
     DD.time.till.str  = '20040101'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
-    threshlife        = 33;  %7*8; % TODO
+    threshlife        = 7*4;  %7*8; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  149;
-    DD.map.in.east  =  152;
-    DD.map.in.south = -46;
-    DD.map.in.north = -40;
+    DD.map.in.west  =  40;
+    DD.map.in.east  =  90;
+    DD.map.in.south = -50;
+    DD.map.in.north = -30;
     %% thresholds
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]

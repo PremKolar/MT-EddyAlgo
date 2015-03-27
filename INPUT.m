@@ -24,7 +24,7 @@ function DD=INPUT
     DD.map.in.west  =  0;
     DD.map.in.east  =  360;
     DD.map.in.south = -80;
-    DD.map.in.north =  0;
+    DD.map.in.north =  80;
     %% thresholds
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
@@ -37,7 +37,7 @@ function DD=INPUT
     DD.thresh.life                 = threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
-    DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
+    DD.thresh.phase                = 1; % max(abs(rossby phase speed)) [SI]
      %% switches
 
     %% 1 for I    -    0 for II

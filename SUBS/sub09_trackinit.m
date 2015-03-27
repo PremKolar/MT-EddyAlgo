@@ -18,7 +18,7 @@ function sub09_trackinit(DD)
         %%
         cats.vel   = makeVel(cats);
         %%
-        cats.velDP = makeDPV(cats);
+%         cats.velDP = makeDPV(cats);
         %%
         saveCats(cats,sense);
     end

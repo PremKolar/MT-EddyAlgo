@@ -36,29 +36,34 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     T=disp_progress('init','analyzing tracks');
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
-        try
-            T=disp_progress('calc',T,numel(JJ),100);
-            %% get track
-            [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-            % TEMP TODO
-            for ee=1:numel(TT.eddy.track)
-                if isfield(TT.eddy.track(ee).chelt,'A')
-                    TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
-                    TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
-                    TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
-                end
-                TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
-            end
-            %% mapstuff prep
-            senii=(TT.sense+3)/2;
-            sen=DD.FieldKeys.senses{senii};
-            [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
-            %% resort tracks for output
-            [MinMax]=resortTracks(DD,MinMax,TT,senii);
-        catch me
-            save(sprintf('ANAspmdCatch%02d.mat',labindex));
-            error(me.message);
+        
+        T=disp_progress('calc',T,numel(JJ),100);
+        %% get track
+        [TT]=getTrack(DD,jj); if isempty(TT),continue;end
+        
+        if numel(TT.eddy.track)<2
+            continue
         end
+        
+        % TEMP TODO
+        for ee=1:numel(TT.eddy.track)
+            if isfield(TT.eddy.track(ee).chelt,'A')
+                TT.eddy.track(ee).chelt.amp = TT.eddy.track(ee).chelt.A;
+                TT.eddy.track(ee).chelt.efoldAmp = TT.eddy.track(ee).chelt.efoldA;
+                TT.eddy.track(ee).chelt = rmfield(TT.eddy.track(ee).chelt, {'A','efoldA'});
+            end
+            TT.eddy.track(ee).chelt = orderfields(TT.eddy.track(ee).chelt);
+        end
+        %% mapstuff prep
+        senii=(TT.sense+3)/2;
+        sen=DD.FieldKeys.senses{senii};
+        [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
+        if isempty(map)
+            continue % TODO
+        end
+        %% resort tracks for output
+        [MinMax]=resortTracks(DD,MinMax,TT,senii);
+        
     end
     %% gather
     labBarrier;
@@ -73,10 +78,19 @@ end
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
     
     [map.strctr, eddy]=TRstructure(map,eddy);
-    if isempty(eddy.track),return;end % out of bounds
+    if isempty(eddy.track)
+        map = [];
+        velpp = [];
+        return % TODO
+    end % out of bounds
     [NEW.age]=TRage(map,eddy);
     [NEW.dist,eddy]=TRdist(map,eddy);
-    [NEW.vel,velpp]=TRvel(map,eddy);
+    [NEW.vel,velpp,succ]=TRvel(map,eddy);
+    if ~succ
+        map = [];
+        velpp = [];
+        return % TODO
+    end
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
@@ -213,7 +227,7 @@ function	radius=TRradius(map,eddy)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[vel,pp]=TRvel(map,eddy)
+function	[vel,pp,success]=TRvel(map,eddy)
     noBndr=@(v) v(2:end-1);
     idx=noBndr(map.strctr.idx);
     A={'traj';'merid';'zonal'};
@@ -225,19 +239,27 @@ function	[vel,pp]=TRvel(map,eddy)
         position=cumsum(eddy.dist.num.(a).m);
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24; % day2sec
         % TODO has to wait for available license
-        while true
-            try
-                %% get v(t) = dx/dt
-                pp.(a).x=spline(pp.timeaxis,position);
-                pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
-                pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
-            catch er
-                disp(er.message)
-                sleep(10)
-                continue
-            end
-            break
+        %         while true
+        %             try
+        %% get v(t) = dx/dt
+        success = true;
+        try
+            pp.(a).x=spline(pp.timeaxis,position);
+            pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
+            pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
+        catch void
+            success = false;
+            vel = [];
+            pp = [];
+            return
         end
+        %             catch er
+        %                 disp(er.message)
+        %                 sleep(10)
+        %                 continue
+        %             end
+        %             break
+        %         end
         velN=noBndr(ppval(pp.(a).x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end

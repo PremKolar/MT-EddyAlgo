@@ -15,18 +15,18 @@ function DD=INPUT
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time
-    DD.time.from.str  = '19940105'; %first pop/avi
+    DD.time.from.str  = '20030101'; %first pop/avi
 %     DD.time.till.str  = '19990105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
+    DD.time.till.str  = '20040101'; % last pop/avi
     DD.time.delta_t   = 7; % [days]!
-    threshlife        = 7*8; % TODO
+    threshlife        = 33;  %7*8; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  0;
-    DD.map.in.east  =  360;
-    DD.map.in.south = -80;
-    DD.map.in.north =  80;
+    DD.map.in.west  =  149;
+    DD.map.in.east  =  152;
+    DD.map.in.south = -46;
+    DD.map.in.north = -40;
     %% thresholds
-    DD.contour.step                = 0.1; % [SI]
+    DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
     DD.thresh.maxRadiusOverRossbyL = 4; %[ ]
     DD.thresh.minRossbyRadius      = 20e3; %[SI]

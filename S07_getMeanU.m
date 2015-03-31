@@ -6,9 +6,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S07_getMeanU
     %% init
-    %     DD = initialise([],mfilename);
-    %       save DD
-    load DD
+        DD = initialise([],mfilename);
+%           save DD
+%     load DD
     %     if ~DD.switchs.netUstuff,return;end
     %% find files
     [file] = findVelFiles(DD);
@@ -22,10 +22,7 @@ function S07_getMeanU
     means.dim = dim;
     %% save
     save([DD.path.meanU.file], 'means')
-    
-    
-    
-    
+ 
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [means] = gMsConstCase(file,DD,dim,d,pos)
@@ -33,16 +30,21 @@ function [means] = gMsConstCase(file,DD,dim,d,pos)
         disp(['found ' file(kk).U ' and ' file(kk).V])
         %%
         traforead = @(f,fac,key)  permute(squeeze(ncread(f,key,dim.start,dim.length))/fac,[2,1]);
+        
+        
+        
         U(:,:,kk) = traforead(file(kk).U,DD.parameters.meanUunit,DD.map.in.keys.U);
         V(:,:,kk) = traforead(file(kk).V,DD.parameters.meanUunit,DD.map.in.keys.V);
+        
+        
         %%
-        x = DD.map.window.dim.x;
-        y = DD.map.window.dim.y;
-        if x ~= size(U,2) || y ~= size(U,1)
-            warning('trivially resizing U/V data!!! ')
-            U = downsize(U,x,y);
-            V = downsize(V,x,y);
-        end
+%         x = DD.map.window.dim.x;
+%         y = DD.map.window.dim.y;
+%         if x ~= size(U,2) || y ~= size(U,1)
+%             warning('trivially resizing U/V data!!! ')
+%             U = downsize(U,x,y);
+%             V = downsize(V,x,y);
+%         end
     end
     disp(['creating means'])
     U(U<-1e33) = nan; % missing values

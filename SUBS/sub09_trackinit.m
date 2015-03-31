@@ -5,9 +5,11 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sub09_trackinit(DD)
-
+    
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
+    %%
+    meanU = load(DD.path.meanU.file);
     %%
     for ss=1:2
         [sense,root,eds,toLoad]=inits(DD,senses,ss);
@@ -18,7 +20,7 @@ function sub09_trackinit(DD)
         %%
         cats.vel   = makeVel(cats);
         %%
-        cats.velDP = makeDPV(cats);
+        cats.velDP = makeDPV(cats,meanU);
         %%
         saveCats(cats,sense);
     end
@@ -34,12 +36,12 @@ function [sense,root,eds,toLoad]=inits(DD,senses,ss)
     tl={'peakampto_mean';'radiusmean'; 'lat'; 'lon'; 'velPP'; 'age';'cheltareaLe';'cheltareaLeff';'cheltareaL';'iq'};
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function sngl=sPmDstoof(DD,eds,root,toLoad)
     JJ=thread_distro(DD.threads.num,numel(eds));
-
+    
     spmd(DD.threads.num)
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
@@ -48,6 +50,14 @@ function sngl=sPmDstoof(DD,eds,root,toLoad)
             T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
             currFile = [root eds(FF(ff)).name];
             sngl(ff)=load(currFile,toLoad(:).name);
+            
+        end
+        %         -----------------------------------------------
+        T=disp_progress('init','blubb');
+        for ff=1:numel(FF)
+            T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
+            currFile = [root eds(FF(ff)).name];
+            sngl(ff).trackref = {getfield(load(currFile,'trackref'),'trackref')};
         end
         %         -----------------------------------------------
         T=disp_progress('init','blubb');
@@ -60,7 +70,7 @@ function sngl=sPmDstoof(DD,eds,root,toLoad)
         sngl=gcat(sngl,2,1);
     end
     sngl=sngl{1};
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cats=buildOutStruct(single)
@@ -69,17 +79,12 @@ function cats=buildOutStruct(single)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function vel=makeDPV(cats)
+function velDP = makeDPV(cats,meanU)
     cc=0;
     for ff=1:numel(cats.vel)
         vel = cats.vel{ff};
-       SDBDGBFBDB
-        cc=cc+1;
-        try
-            vel{ff}=ppval(pp.x_t,pp.timeaxis);
-        catch
-            vel{ff}=pp.zonal.v;
-        end
+        idx = cell2mat(cats.trackref{ff});
+        velDP{ff} = vel - reshape(meanU.means.zonal(idx),[],1);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,6 +145,8 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
+    tmp=cats.velDP;
+    save(['TR-' sense.s '-velDP.mat'],'tmp')
     tmp=cats.peakampto_mean;
     save(['TR-' sense.s '-amp.mat'],'tmp')
     tmp=cats.iq;

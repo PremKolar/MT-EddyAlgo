@@ -7,12 +7,12 @@
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
-    save DD
+%     save DD
     %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
-    conclude(DD);
+%     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -76,7 +76,7 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     if isempty(eddy.track),return;end % out of bounds
     [NEW.age]=TRage(map,eddy);
     [NEW.dist,eddy]   = TRdist(map,eddy);
-    [NEW.vel,velpp]   = TRvel(map,eddy);
+    [NEW.vel,velpp]   = TRvel(map,eddy);   
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
@@ -87,11 +87,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACs,Cs] = netVels(DD,map)
 
-    velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
-        'means.small.zonal'),map.Cycs.dim.y,[]);
+     tmp = load(DD.path.meanU.file);
+     velmean = tmp.means.small.zonal;    
 
-    ACs =	map.AntiCycs.vel.zonal.mean -velmean;
-    Cs  =	map.Cycs.vel.zonal.mean		-velmean;
+    ACs =	full(map.AntiCycs.vel.zonal.mean) -velmean;
+    Cs  =	full(map.Cycs.vel.zonal.mean)     -velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)

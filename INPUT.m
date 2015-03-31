@@ -6,24 +6,24 @@
 % 'pop2avi' -
 function DD=INPUT
     %DD.template='pop2avi';
-%    DD.template='aviso';
+    %    DD.template='aviso';
     DD.template='pop';
     %% threads / debug
     DD.threads.num = 12;
     DD.debugmode   = false;
-%     DD.debugmode = true;
+    %     DD.debugmode = true;
     DD.overwrite   = false;
-%     DD.overwrite = true;
+    %     DD.overwrite = true;
     %% time
     
     
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.from.str  = '19970403';
+    DD.time.till.str  = '19970403';
     
-%     DD.time.till.str  = '20000701';
+    %     DD.time.till.str  = '20000701';
     
     
-%     DD.time.till.str  = '20061227'; % last pop/avi
+    %     DD.time.till.str  = '20061227'; % last pop/avi
     
     
     
@@ -49,15 +49,15 @@ function DD=INPUT
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     DD.thresh.phase                = 1; % max(abs(rossby phase speed)) [SI]
-     %% switches
-
+    %% switches
+    
     %% 1 for I    -    0 for II
     DD.switchs.chelt = 0;
-
+    
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
-
+    
     %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;

@@ -15,9 +15,20 @@ function DD=INPUT
     DD.overwrite   = false;
 %     DD.overwrite = true;
     %% time
+    
+    
     DD.time.from.str  = '19940105'; %first pop/avi
-%     DD.time.till.str  = '20020105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
+    DD.time.from.str  = '19970403';
+    
+%     DD.time.till.str  = '20000701';
+    
+    
+%     DD.time.till.str  = '20061227'; % last pop/avi
+    
+    
+    
+    
+    
     DD.time.delta_t   = 1; % [days]!
     threshlife        = 30; % TODO
     %% window on globe (0:360° system)

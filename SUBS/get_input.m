@@ -102,7 +102,13 @@ function PATH=findfiles(DD)
     senses=DD.FieldKeys.senses;
     
     PATH=DD.path;
-    PATH.root=['../data' PATH.OutDirBaseName '/'];
+    
+    
+    %% TEMP SOLUTION TODO
+    PATH.root=['../data' PATH.OutDirBaseName(1:end-1) '/'];
+    %% TEMP
+    
+    
     PATH.plots=['../PLOTS/' PATH.OutDirBaseName '/'];
     PATH.code=[PATH.root, 'code/'];
     PATH.codesubs=[PATH.root, 'code/SUBS/'];
@@ -121,7 +127,7 @@ function PATH=findfiles(DD)
     %%
     [~,~,ext.raw]=fileparts(DD.map.in.fname);
     patt=strsplit(DD.map.in.fname,'yyyymmdd');
-    PATH.raw.files=dir([PATH.raw.name,patt{1},'*',ext.raw]);
+    PATH.raw.files=dir([PATH.raw.name,patt{1},'*']);
     PATH.protoMaps.file=[PATH.root, 'protoMaps.mat'];
     PATH.meanU.file=[PATH.root, 'meanU.mat'];
     PATH.UV.files=dir([PATH.UV.name,'*.nc']);

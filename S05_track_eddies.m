@@ -106,9 +106,7 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-
     NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -279,14 +277,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
-
-    %     prcnt.amp=sum(sum(AMPfac <= ampArea(2) & AMPfac >= ampArea(1)))/numel(AMPfac)*100;
-    %      prcnt.area=sum(sum(AREAfac <= ampArea(2) & AREAfac >= ampArea(1)))/numel(AMPfac)*100;
-    % x=1:numel(AREAfac);
-    % y=[ones(1,numel(AMPfac))*ampArea(1);ones(1,numel(AMPfac))*ampArea(2)];
-    % semilogy(x,sort(AMPfac(:)),'b',x,sort(AREAfac(:)),'red',x,y,'black');
-    % legend(sprintf('amp (%2.0f %% passed)',prcnt.amp),sprintf('area (%2.0f %% passed)',prcnt.area),'thresholds');
-end
+  end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     RAL=@(M) permute(abs(log10(M)),[3,1,2]);
@@ -342,9 +333,7 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %% calc distances between all from new to all from old
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
-    %     lonDIFF=abs(LOM.new - LOM.old);
-    %     DIST=real(acos(sind(LAM.new).*sind(LAM.old) + cosd(LAM.new).*cosd(LAM.old).*cosd(lonDIFF)))*earthRadius;
-
+   
     %% find min dists
     [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
     [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);

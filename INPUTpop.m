@@ -23,7 +23,7 @@ function DD=INPUTpop
     DD.map.in.keys.V='VVEL';
     DD.map.in.keys.x='XT';
     DD.map.in.keys.y='YT';
-    DD.map.in.keys.z='ZT';
+    DD.map.in.keys.z='w_dep';
     DD.map.in.keys.N='N';
     DD.map.in.cdfName='new2.cdf';
     %% temp salt keys
@@ -35,23 +35,16 @@ function DD=INPUTpop
     %% parameters
     DD.parameters.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    DD.parameters.meanU=100; % depth from which to take mean U
-    DD.parameters.meanUunit=1; % depth from which to take mean U
+    DD.parameters.meanUtop = 0; % depth from which to take mean U
+    DD.parameters.meanUbot = 5000; % depth from which to take mean U
+    DD.parameters.meanUunit=100; %
     DD.parameters.minProjecDist=150e3; % (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
-    DD.parameters.RossbySplits =36*6; % number of chunks for brunt väis calculations
+    DD.parameters.RossbySplits =12; % number of chunks for brunt väis calculations
     DD.parameters.SSHAdepth=-25;
     DD.parameters.salinityFactor=1000;
     DD.parameters.zLevel=5; % 0 for SSH
     %%
     DD.switchs.rehashMapDims=true; %!!
 end
-
-
-
-
-
-
-
-

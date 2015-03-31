@@ -37,7 +37,7 @@ function DD=INPUTpop
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
     DD.parameters.meanUtop = 0; % depth from which to take mean U
     DD.parameters.meanUbot = 5000; % depth from which to take mean U
-    DD.parameters.meanUunit=100; % 
+    DD.parameters.meanUunit=100; %
     DD.parameters.minProjecDist=150e3; % (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'
     DD.parameters.Nknown=false; % Brunt-Väisälä f already in data
@@ -48,11 +48,3 @@ function DD=INPUTpop
     %%
     DD.switchs.rehashMapDims=true; %!!
 end
-
-
-
-
-
-
-
-

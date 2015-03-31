@@ -102,7 +102,13 @@ function PATH=findfiles(DD)
     senses=DD.FieldKeys.senses;
     
     PATH=DD.path;
-    PATH.root=['../data' PATH.OutDirBaseName '/'];
+    
+    
+    %% TEMP SOLUTION TODO
+    PATH.root=['../data' PATH.OutDirBaseName(1:end-1) '/'];
+    %% TEMP
+    
+    
     PATH.plots=['../PLOTS/' PATH.OutDirBaseName '/'];
     PATH.code=[PATH.root, 'code/'];
     PATH.codesubs=[PATH.root, 'code/SUBS/'];

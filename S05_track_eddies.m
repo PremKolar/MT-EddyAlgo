@@ -57,7 +57,7 @@ function spmd_body(DD)
         %% do calculations and archivings
         [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen);
     end
-    %% write/kill dead
+    %% write out those old enough and still alive at the end
     archive_stillLiving(tracks, DD,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -35,8 +35,8 @@ function DD=INPUTpop
     %% parameters
     DD.parameters.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    DD.parameters.meanUtop = 0; % depth from which to take mean U
-    DD.parameters.meanUbot = 5000; % depth from which to take mean U
+    DD.parameters.meanUtop = 800; % depth from which to take mean U top
+    DD.parameters.meanUbot = 1000; % depth from which to take mean U bottom
     DD.parameters.meanUunit=100; % 
     DD.parameters.minProjecDist=150e3; % (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)
     DD.parameters.trackingRef='CenterOfVolume'; % choices: 'centroid', 'CenterOfVolume', 'Peak'

@@ -63,6 +63,12 @@ function [EE,skip] = work_day(DD,JJ,rossby)
         skip = catchCase(failed,EE.filename.cont);
         return;
     end
+    
+    if numel(cont.all)==0
+        
+        return % TODO
+    end
+    
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee = eddies2struct(cont.all,DD.thresh.corners);
     %% remember date

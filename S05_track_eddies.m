@@ -57,6 +57,8 @@ function spmd_body(DD)
         %% do calculations and archivings
         [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen);
     end
+    %% write/kill dead
+    archive_stillLiving(tracks, DD,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
@@ -127,6 +129,20 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function archive_stillLiving(tracks,DD,sen)
+    age = cat(1,tracks(:).age);
+    id = cat(1,tracks(:).ID);
+    pass = age >= DD.thresh.life;
+    %%  write to 'heap'
+    if any(pass)
+        lens = cat(2,tracks(pass).length); % so as not to include empty values
+         ll=0;
+        for pa = find(pass)';ll=ll+1;
+            archive(tracks(pa).track{1}(1:lens(ll)), DD.path.tracks.name, id(pa),sen);
+        end
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
     %% collect all ID's in archive
     ArchIDs=cat(2,tracks.ID);
@@ -139,7 +155,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
     pass = age >= DD.thresh.life;
     %%  write to 'heap'
     if any(pass)
-        lens=cat(2,tracks(AIdxdead(pass)).length);
+        lens=cat(2,tracks(AIdxdead(pass)).length); % so as not to include empty values
         ll=0;
         for pa=find(pass)'; ll=ll+1;
             archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path.tracks.name,id(pa),sen);
@@ -277,7 +293,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
-  end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     RAL=@(M) permute(abs(log10(M)),[3,1,2]);
@@ -294,7 +310,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
-%     TODO explain
+    %     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
@@ -333,7 +349,7 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %% calc distances between all from new to all from old
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
-   
+
     %% find min dists
     [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
     [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);
@@ -341,8 +357,6 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
-   
-    
     lon=extractfield(cat(1,eddies.geo),'lon');
     lat=extractfield(cat(1,eddies.geo),'lat');
 end

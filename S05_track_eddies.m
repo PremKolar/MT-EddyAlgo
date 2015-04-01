@@ -349,7 +349,6 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %% calc distances between all from new to all from old
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
-
     %% find min dists
     [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
     [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);

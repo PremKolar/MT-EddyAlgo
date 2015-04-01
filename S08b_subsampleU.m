@@ -231,24 +231,21 @@ function	[dist,eddy]=TRdist(map,eddy)
     toLoad(numel(tl)).name=struct;
     [toLoad(:).name] = deal(tl{:});
     %%
-    %     parfor yy = yearA:yearB
-    %         doYear(yy,senses,DD,toLoad);
-    %     end
+    parfor yy = yearA:yearB
+        doYear(yy,senses,DD,toLoad);
+    end
     %%
     kk=0;
     for yy = yearA:yearB
         kk=kk+1;
         drawYears(DD,yy,kk,yearB,yearA);
     end
-
     ylabel('-u')
     xlabel('latitude')
     title(sprintf('yearly subsamples %d - %d',yearA,yearB));
     grid minor
     outfname = 'Usubsampled',
     savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD),14);
-
-
 end
 % -------------------------------------------------------------------------
 function drawYears(DD,yy,kk,yearB,yearA)
@@ -296,4 +293,3 @@ function doYear(yy,senses,DD,toLoad)
     %% save
     save(outfname,'tout')
 end
-% -------------------------------------------------------------------------

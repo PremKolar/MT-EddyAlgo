@@ -18,13 +18,13 @@ function S05_track_eddies
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-    %     if DD.debugmode
-    %         spmd_body(DD)
-    %     else
-    %         spmd(2)
-    spmd_body(DD)
-    %         end
-    %     end
+    if DD.debugmode
+        spmd_body(DD)
+    else
+        spmd(2)
+            spmd_body(DD)
+        end
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

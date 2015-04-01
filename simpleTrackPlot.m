@@ -1,9 +1,7 @@
 function simpleTrackPlot
-    DD = initialise([],mfilename);
-    save DD
-%     system(['cp DD.mat ../aviSingleTrackI/DDII.mat'])
-    addpath(genpath('./'))
-    %     load DD
+    %     DD = initialise([],mfilename);
+    %     save DD
+    load DD
     senses = DD.FieldKeys.senses;
     ss=2;
     SSs=[-1 1];
@@ -16,55 +14,38 @@ function simpleTrackPlot
     tracks = dir2([DD.path.tracks.name]);
     tracks(1:2)  = [];
     TRACKS = loadtracks(tracks);
-%     system(['cp TRACKS.mat ../aviSingleTrackI/TRACKSII.mat'])
-    
+    for  tt = DD.time.from.num:DD.time.delta_t:DD.time.till.num
+        clf
+        kk=kk+1;
+        clc;
+        fprintf('day %d/%d\n',kk,ceil((DD.time.till.num-DD.time.from.num)/DD.time.delta_t));
+
+        cut = load([DD.path.cuts.name DD.path.cuts.files(kk).name]);
+        eddy =  load([DD.path.eddies.name DD.path.eddies.files(kk).name]);
+        ssh =  cut.fields.ssh(yy(1):yy(2),xx(1):xx(2));
+        lon = cut.fields.lon(yy(1):yy(2),xx(1):xx(2));
+        lat = cut.fields.lat(yy(1):yy(2),xx(1):xx(2));
         %%
-        TT = DD.time.from.num:DD.time.delta_t:DD.time.till.num;
-           for  tt = TT
-            kk=kk+1;
-            main(tt,kk,DD,xx,yy,SSs,ss,sen,TRACKS);
-        end
-    
-end
+        plotssh(lon,lat,ssh)
+        %%
+        ploteddies(eddy,lon,lat,sen,xx,yy)
+        %%
+        plottracks(TRACKS,tt,lon,lat,SSs(ss),xx,yy);
+        %%
+       title(datestr(tt),'fontsize',14);
+       set(gca,'xtick',[50 60])
+       set(gca,'ytick',[-41 -36 ])
+       %%
+        saveas(gcf,sprintf('%03d.png',kk))
 
-function main(tt,kk,DD,xx,yy,SSs,ss,sen,TRACKS)
-    clf
-    clc;
-    fprintf('day %d/%d\n',kk,ceil((DD.time.till.num-DD.time.from.num)/DD.time.delta_t));
-    
-    cut = load([DD.path.cuts.name DD.path.cuts.files(kk).name]);
-    eddy =load([DD.path.eddies.name DD.path.eddies.files(kk).name]);
-    ssh = cut.fields.ssh(yy(1):yy(2),xx(1):xx(2));
-    lon = cut.fields.lon(yy(1):yy(2),xx(1):xx(2));
-    lat = cut.fields.lat(yy(1):yy(2),xx(1):xx(2));
-    %%
-    plotssh(lon,lat,ssh)
-    %%
-    ploteddies(eddy,lon,lat,sen,xx,yy)
-    %%
-    plottracks(TRACKS,tt,lon,lat,SSs(ss),xx,yy);
-    %%
-    %     title(datestr(tt),'fontsize',18,'interpreter','latex');
-    set(gca,'xtick', 40:.25: 80,'fontsize',2)
-    set(gca,'ytick',-50:.25:-30,'fontsize',2)
-    %     set(gca,'
-    set(gca,'xticklabel','')
-    set(gca,'yticklabel','')
-    set(gca,'layer','top')
-    grid on
-    
-    %%
-    saveas(gcf,sprintf('%03d.png',kk))
-    
-end
 
+    end
+
+end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotssh(lon,lat,ssh)
-    pcolor(lon,lat,ssh);
-    shading flat
-    shading interp
-    hold on;
-    %     colormap([bone(30);flipud(hot(30))]);
+    pcolor(lon,lat,ssh); shading flat;hold on;
+%     colormap([bone(30);flipud(hot(30))]);
     colormap(parula(50));
     caxis([-.7,.4])
 end
@@ -81,12 +62,12 @@ function ploteddies(eddy,lon,lat,sen,xx,yy)
 end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plottracks(T,tt,lon,lat,senN,xx,yy)
-    
+
     for jj = 1:numel(T)
         %         fprintf('plotting track %d/%d\n',jj,numel(T));
         dateA =  T(jj).d.track(1).daynum;
         dateB =  T(jj).d.track(end).daynum;
-        
+
         if dateA <= tt && dateB >= tt && T(jj).d.track(1).sense.num == senN
             track = T(jj).d.track;
             tdn = cat(1,track.daynum);

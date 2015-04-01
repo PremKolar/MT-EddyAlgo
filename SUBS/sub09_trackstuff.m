@@ -60,7 +60,8 @@ TR=getTR(DD,flds) ;
     %%
 %     velZonmeans(S,DD,II,T,fn.vel);
 %  save SaviI
-ownPlotScale
+% ownPlotScale
+scaleZonmeansLeSigmaRatio(S,DD,II,T,fn.scaRat)
 %     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -97,6 +98,7 @@ end
 function fn=fnA
     fn.vel= 'S-velZonmean4chelt11comp';
     fn.sca= 'S-scaleZonmean4chelt11comp';
+    fn.scaRat= 'S-scaleRatios';
     fn.combo = 'Schelts';
     [fn.roo,fn.pw]=fileparts(pwd);
 end
@@ -205,6 +207,54 @@ function h=scaleZonmeans(S,DD,II,T,outfname) %#ok<INUSD>
 %     system(['pdfcrop c.pdf ' DD.path.plots fname '.pdf'])
 %     cpPdfTotexMT(fname);
 %     system(['rm ?.pdf'])
+end
+function scaleZonmeansLeSigmaRatio(S,DD,II,T,outfname)       
+    close all  
+    LA     = round(S.lat);
+    LAuniq = unique(LA)';
+    %     FN     = {'rad','radL','radLe','radLeff','rhinesScale'};
+    FN     = {'rad','radLe'};  
+    for ff=1:numel(FN)
+        fn=FN{ff};
+        S.(fn)(S.(fn)<5) = nan;
+    end
+    %%
+    visits = nan(size(LAuniq));
+    for ff=1:numel(FN)
+        fn=FN{ff};       
+        [vvM.(fn)]  = nan(size(LAuniq));
+        [vvMed.(fn)]= nan(size(LAuniq));
+      for cc=1:(numel(LAuniq))
+            idx=LA==LAuniq(cc);
+            visits(cc) = sum(idx);
+
+            if visits(cc) >= 100
+                vvMed.(fn)(cc) = nanmedian(S.(fn)(idx));
+                vvM.(fn)(cc)   = nanmean(S.(fn)(idx));
+                if abs(LAuniq(cc))<=5
+                    vvM.(fn)(cc)   = nan;
+                    vvMed.(fn)(cc) = nan;
+                end
+            end
+        end
+    end
+    %%
+    figure(1)
+    clf
+    pl =  plot(LAuniq,vvM.rad./vvM.radLe);  hold on
+    plot(LAuniq,vvMed.rad./vvMed.radLe,'color',pl.Color,'linestyle',':');  
+    title('\textit{ratio } $\sigma/\mathrm{L_e}$')
+    xlabel('latitude')  
+%     legend('MII','MI','median','location','northwest')
+    grid on
+    axis([-75 75 1.1 1.6])   
+    set(gca,'ytick',[1.1:.1:1.6])
+    set(gca,'xtick',[-70:10:70])
+    
+    %%
+    grid minor
+    savefig(DD.path.plots,72,500,200,outfname,'dpdf',DD2info(DD),15);   
+    cpPdfTotexMT(outfname);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function h=velZonmeans(S,DD,II,T,fn)
@@ -408,7 +458,7 @@ function ownPlotScale
     %%
      figure(1)
     clf
-    pl = plot(LAuniq,vvM.a - vvM.p,LAuniq,vvM.aI - vvM.p)
+    pl = plot(LAuniq,vvM.a - vvM.p,LAuniq,vvM.aI - vvM.p);
     hold on
     plot(LAuniq,vvMe.a - vvMe.p,'linestyle',':','color',pl(1).Color)
     plot(LAuniq,vvMe.aI - vvMe.p,'linestyle',':','color',pl(2).Color)
@@ -431,7 +481,7 @@ function ownPlotScale
     %%
     figure(2)
     clf
-    pl = plot(LAuniq,vvM.a - vvM.m,LAuniq,vvM.aI - vvM.m)
+    pl = plot(LAuniq,vvM.a - vvM.m,LAuniq,vvM.aI - vvM.m);
     hold on
     plot(LAuniq,vvMe.a - vvMe.m,'linestyle',':','color',pl(1).Color)
     plot(LAuniq,vvMe.aI - vvMe.m,'linestyle',':','color',pl(2).Color)

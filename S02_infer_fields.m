@@ -21,13 +21,16 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
+    %     spmd(DD.threads.num)
+    %         [JJ] = SetThreadVar(DD);
+    %         spmd_meanSsh(DD,JJ);
+    %     end
+    %       MeanSsh = saveMean(DD);
+    
+    MeanSsh = getfield(load([DD.path.root, 'meanSSH.mat']),'MeanSsh');
+    
     spmd(DD.threads.num)
         [JJ] = SetThreadVar(DD);
-        spmd_meanSsh(DD,JJ);
-    end
-      MeanSsh = saveMean(DD);
-    spmd(DD.threads.num)
-      [JJ] = SetThreadVar(DD);
         spmd_fields(DD,RS,JJ,MeanSsh);
     end
 end
@@ -59,7 +62,7 @@ function spmd_meanSsh(DD,JJ)
     Mean.SshSum = nan(DD.map.window.dimPlus.y*DD.map.window.dimPlus.x,1);
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
-        %% load        
+        %% load
         cut=getfield(load(JJ(jj).files),'fields');
         if isfield(cut,'sshRaw')
             ssh = extractdeepfield(cut,'sshRaw')';
@@ -105,25 +108,25 @@ function gr = geostrophy(gr,corio,RS)
     gr.V = corio.GOverF.*gr.sshgrad_x;
     gr.absUV = hypot(abs(gr.U),abs(gr.V));
     %% 2d - deformation
-    def = deformation(gr);
-    gr.vorticity = def.dVdx - def.dUdy;
-    gr.divergence = def.dUdx + def.dVdy;
-    gr.stretch = def.dUdx - def.dVdy;
-    gr.shear = def.dVdx + def.dUdy;
+    %     def = deformation(gr);
+    %     gr.vorticity = def.dVdx - def.dUdy;
+    %     gr.divergence = def.dUdx + def.dVdy;
+    %     gr.stretch = def.dUdx - def.dVdy;
+    %     gr.shear = def.dVdx + def.dUdy;
     %% okubo weiss
     %     gr.OW = .5*( - gr.vorticity.*2 + gr.divergence.*2 + gr.stretch.*2 + gr.shear.*2);
     %% or in 2d
-    gr.OW = 2*(def.dVdx.*def.dUdy + def.dUdx.^2);
+    %     gr.OW = 2*(def.dVdx.*def.dUdy + def.dUdx.^2);
     %% assuming Ro = 1
     if ~isempty(RS)
         gr.L = gr.absUV./corio.f;
-        kinVis = 1e-6;
-        gr.Re = gr.absUV.*gr.L/kinVis;
-        gr.Ro = ones(size(gr.L));
-        gr.Rrhines = earthRadius./gr.L;
-        gr.Lrhines = sqrt(gr.absUV./corio.beta);
-        gr.L_R = abs(RS.c./corio.f);
-        gr.Bu = (gr.L_R./gr.L).^2;
+        %         kinVis = 1e-6;
+        %         gr.Re = gr.absUV.*gr.L/kinVis;
+        %         gr.Ro = ones(size(gr.L));
+        %         gr.Rrhines = earthRadius./gr.L;
+        %         gr.Lrhines = sqrt(gr.absUV./corio.beta);
+        %         gr.L_R = abs(RS.c./corio.f);
+        %         gr.Bu = (gr.L_R./gr.L).^2;
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

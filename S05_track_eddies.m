@@ -18,13 +18,13 @@ function S05_track_eddies
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
-    if DD.debugmode
-        spmd_body(DD)
-    else
-        spmd(2)
-            spmd_body(DD)
-        end
-    end
+    %     if DD.debugmode
+    %         spmd_body(DD)
+    %     else
+    %         spmd(2)
+    spmd_body(DD)
+    %         end
+    %     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%% main %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,6 +57,8 @@ function spmd_body(DD)
         %% do calculations and archivings
         [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen);
     end
+    %% write/kill dead
+    archive_stillLiving(tracks, DD,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
@@ -76,7 +78,7 @@ function [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen)
     [tracks]=archive_dead(TDB, tracks, OLD.eddies, DD,sen);
     %% swap
     OLD=NEW;
-
+    
 end
 %%%%%%%%%%%%%%%%%%% subs %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,9 +108,9 @@ function [tracks,NEW]=append_tracked(TDB,tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [NEW]=set_up_today(DD,jj,sen)
-
+    
     NEW.eddies=getfield(rmfield(read_fields(DD,jj,'eddies'),{'filename','pass'}),sen);
-
+    
     %% get delta time
     NEW.time.daynum=DD.checks.passed(jj).daynums;
     NEW.time.delT=DD.checks.del_t(jj);
@@ -126,6 +128,19 @@ function [tracks,OLD,phantoms]=set_up_init(DD,sen)
     %% kill doubles from overlap
     if phantoms
         [OLD]=kill_phantoms(OLD);
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function archive_stillLiving(tracks,DD,sen)
+    age = cat(1,tracks(:).age);
+    id = cat(1,tracks(:).ID);
+    pass = age >= DD.thresh.life;
+    %%  write to 'heap'
+    if any(pass)
+        lens = cat(2,tracks(pass).length);
+        for pa = find(pass)';
+            archive(tracks(pa).track{1}, DD.path.tracks.name, id(pa),sen);
+        end
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -187,9 +202,9 @@ function [tracks,NEW]=append_born(TDB, tracks,OLD,NEW)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [tracks,new_eddies]=init_day_one(eddies,sen)
-
+    
     new_eddies=getfield(rmfield(eddies,{'filename','pass'}),sen);
-
+    
     %% set initial ID's etc
     ee=(1:numel(new_eddies));
     eec=num2cell(ee);
@@ -279,7 +294,7 @@ function pass=checkAmpAreaBounds(OLD,NEW,ampArea)
     %% check for thresholds
     pass=(AMPfac <= ampArea(2)) & (AMPfac >= ampArea(1))...
         & (AREAfac <= ampArea(2)) & (AREAfac >= ampArea(1));
-  end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     RAL=@(M) permute(abs(log10(M)),[3,1,2]);
@@ -296,7 +311,7 @@ function [quo,pass]=checkDynamicIdentity(OLD,NEW,thresh)
     quo.combo=10.^(permute(max([RAL(quo.dynRad); RAL(quo.peak2ellip)],[],1),[2,3,1]));
     %%
     pass= quo.combo <= thresh;
-%     TODO explain
+    %     TODO explain
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
@@ -313,7 +328,7 @@ function [LOM,LAM,passLog]=nanUnPassed(LOM,LAM,pass)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
-
+    
     %% build geo loc matrices
     [LOM.new,LOM.old]=meshgrid(NEW.lon  ,OLD.lon  );
     [LAM.new,LAM.old]=meshgrid(NEW.lat  ,OLD.lat  );
@@ -335,15 +350,15 @@ function [MD]=EligibleMinDistsMtrx(OLD,NEW,DD)
     end
     %% calc distances between all from new to all from old
     DIST=distance(LAM.new,LOM.new,LAM.old,LOM.old);
-   
+    
     %% find min dists
     [MD.new2old.dist,MD.new2old.idx]=min(DIST,[],1);
     [MD.old2new.dist,MD.old2new.idx]=min(DIST,[],2);
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [lon, lat]=get_geocoor(eddies)
-   
+    
     
     lon=extractfield(cat(1,eddies.geo),'lon');
     lat=extractfield(cat(1,eddies.geo),'lat');

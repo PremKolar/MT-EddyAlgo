@@ -9,8 +9,8 @@ function simpleTrackPlot
     SSs=[-1 1];
     sen = senses{ss};
     %%
-    xx = [20 90];
-    yy = [20 50];
+    xx = [1 100];
+    yy = [10 80];
     %%
     kk = 0;
     tracks.I = dir2([DD.path.tracks.name]);
@@ -25,7 +25,7 @@ function simpleTrackPlot
     %     TRACKS.II = loadtracks(tracks.II);
     
     
-    TT = DD.time.from.num:DD.time.delta_t*2:DD.time.till.num;
+    TT = DD.time.from.num:DD.time.delta_t:DD.time.till.num;
     
     colors.I = [1 0 0];
     colors.II = [0 0 0];
@@ -54,7 +54,7 @@ function main(tt,kk,DDI,DDII,xx,yy,SSs,ss,sen,TRACKS,colors,LS)
     lat = cut.fields.lat(yy(1):yy(2),xx(1):xx(2));
     %%
     plotssh(lon,lat,ssh)
-    %%
+    %%c
     ploteddies(eddy.I,lon,lat,sen,xx,yy,colors.I,LS.I)
     ploteddies(eddy.II,lon,lat,sen,xx,yy,colors.II,LS.II)
     %%
@@ -69,10 +69,12 @@ function main(tt,kk,DDI,DDII,xx,yy,SSs,ss,sen,TRACKS,colors,LS)
     set(gca,'yticklabel','')
     set(gca,'layer','top')
     grid on
-    set(gcf,'visible','on')
-    axis equal tight
+    set(gcf,'visible','off','renderer','opengl')
+    axis tight
     %%
-    text(59,-38.5,sprintf('day%03d',kk),'fontsize',24)
+    text(60.8,-31.2,datestr(tt,'mm/dd'),'fontsize',22)
+    
+    
     saveas(gcf,sprintf('%03d.png',kk))
     
 end

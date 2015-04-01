@@ -108,7 +108,7 @@ function seq_body(DD)
     %% build net vels
     % TODO
     %     if DD.switchs.netUstuff
-    [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+%     [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
     %     end
 
     %% save

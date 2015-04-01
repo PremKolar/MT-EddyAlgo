@@ -60,8 +60,8 @@ function [II] = init_get_contours(DD,TT)
     dispM('calculating contours... takes long time!',1)
     %% create level vector at chosen interval
     steplim.min = @(step,ssh) ceil(nanmin(ssh(:))/step)*step;
-    steplim.max = @(step,ssh) floor(nanmax(ssh(:))/step)*step;  
-  
+    steplim.max = @(step,ssh) floor(nanmax(ssh(:))/step)*step;
+    
     floorlevel = steplim.min(DD.contour.step,II.fields.ssh);
     ceillevel = steplim.max(DD.contour.step,II.fields.ssh);
     II.levels = floorlevel:DD.contour.step:ceillevel;

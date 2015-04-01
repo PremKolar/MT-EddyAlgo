@@ -57,7 +57,7 @@ function spmd_body(DD)
         %% do calculations and archivings
         [OLD,tracks]=operate_day(OLD,NEW,tracks,DD,phantoms,sen);
     end
-    %% write out those old enough and still alive at the end
+    %% write/kill dead
     archive_stillLiving(tracks, DD,sen);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,9 +137,10 @@ function archive_stillLiving(tracks,DD,sen)
     pass = age >= DD.thresh.life;
     %%  write to 'heap'
     if any(pass)
-        lens = cat(2,tracks(pass).length);
-        for pa = find(pass)';
-            archive(tracks(pa).track{1}, DD.path.tracks.name, id(pa),sen);
+        lens = cat(2,tracks(pass).length); % so as not to include empty values
+         ll=0;
+        for pa = find(pass)';ll=ll+1;          
+            archive(tracks(pa).track{1}(1:lens(ll)), DD.path.tracks.name, id(pa),sen);
         end
     end
 end
@@ -156,7 +157,7 @@ function [tracks]=archive_dead(TDB, tracks, old,DD,sen)
     pass = age >= DD.thresh.life;
     %%  write to 'heap'
     if any(pass)
-        lens=cat(2,tracks(AIdxdead(pass)).length);
+        lens=cat(2,tracks(AIdxdead(pass)).length); % so as not to include empty values
         ll=0;
         for pa=find(pass)'; ll=ll+1;
             archive(tracks(AIdxdead(pa)).track{1}(1:lens(ll)), DD.path.tracks.name,id(pa),sen);

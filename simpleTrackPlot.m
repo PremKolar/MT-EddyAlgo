@@ -1,16 +1,16 @@
 function simpleTrackPlot
-    %     DD = initialise([],mfilename);
-    %     save DD
+    DD = initialise([],mfilename);
+    save DD
     addpath(genpath('./'))
-    load DD
+    %     load DD
     DDII = getfield(load('DDII.mat'),'DD')
     senses = DD.FieldKeys.senses;
     ss=2;
     SSs=[-1 1];
     sen = senses{ss};
     %%
-    xx = [1 100];
-    yy = [10 80];
+     xx = [20 100];
+    yy = [20 60];
     %%
     kk = 0;
     tracks.I = dir2([DD.path.tracks.name]);
@@ -18,7 +18,7 @@ function simpleTrackPlot
     tracks.II = dir2([DDII.path.tracks.name]);
     tracks.II(1:2)  = [];
     
-    %     TRACKS.I = loadtracks(tracks.I);
+    void = loadtracks(tracks.I);
     %     TRACKS.II = loadtracks(tracks.II);
     TRACKS.I  = getfield(load('TRACKSI.mat'),'TRACKS');
     TRACKS.II = getfield(load('TRACKSII.mat'),'TRACKS');
@@ -122,16 +122,16 @@ function plottracks(T,tt,lon,lat,senN,xx,yy,col,LS)
 end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TRACKS = loadtracks(tracks)
-    %     if ~exist('TRACKS.mat','file')
-    TRACKS(numel(tracks)) = struct;
-    for jj = 1:numel(tracks)
-        clc;
-        fprintf('loading %d/%d\n',jj,numel(tracks));
-        TRACKS(jj).d = load(tracks(jj).fullname);
+    if ~exist('TRACKSI.mat','file')
+        TRACKS(numel(tracks)) = struct;
+        for jj = 1:numel(tracks)
+            clc;
+            fprintf('loading %d/%d\n',jj,numel(tracks));
+            TRACKS(jj).d = load(tracks(jj).fullname);
+        end
+        save TRACKSI TRACKS
+    else
+        load TRACKSI
     end
-    %     save TRACKS TRACKS
-    %     else
-    %         load TRACKS
-    %     end
 end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

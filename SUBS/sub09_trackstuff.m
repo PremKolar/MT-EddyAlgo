@@ -1,7 +1,7 @@
 function sub09_trackstuff
     load S09main II DD T
     flds = {'age';'lat';'lon';'rad';'vel';'velDP';'amp';'radLe';'radLeff';'radL'};
-%     sub09_trackinit(DD);
+    sub09_trackinit(DD);
     % TRv = getVelFunc(DD);
     %  getLonFunc(DD);
     TR=getTR(DD,flds) ;

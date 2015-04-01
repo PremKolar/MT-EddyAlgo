@@ -227,241 +227,73 @@ function	[dist,eddy]=TRdist(map,eddy)
     [eddy.dist.num,eddy.dist.drct]=diststuff(field2mat(eddy.track,'geo')');
     idx=map.strctr.idx;
     %%
-    %% traj from birth
-    newValue=eddy.dist.num.traj.fromBirth;
-    [dist.traj.fromBirth]=uniqMedianStd(idx,newValue,dist.traj.fromBirth);
-    %% traj till death
-    newValue=eddy.dist.num.traj.tillDeath;
-    [dist.traj.tillDeath]=uniqMedianStd(idx,newValue,dist.traj.tillDeath);
-    %% zonal from birth
-    newValue=eddy.dist.num.zonal.fromBirth;
-    [dist.zonal.fromBirth]=uniqMedianStd(idx,newValue,dist.zonal.fromBirth);
-    %% zonal till death
-    newValue=eddy.dist.num.zonal.tillDeath;
-    [dist.zonal.tillDeath]=uniqMedianStd(idx,newValue,dist.zonal.tillDeath);
-    %% meridional from birth
-    newValue=eddy.dist.num.merid.fromBirth;
-    [dist.merid.fromBirth]=uniqMedianStd(idx,newValue,dist.merid.fromBirth);
-    %% meridional till death
-    newValue=eddy.dist.num.merid.tillDeath;
-    [dist.merid.tillDeath]=uniqMedianStd(idx,newValue,dist.merid.tillDeath);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [count,singlecount]=TRvisits(map)
-    count=sparse(map.proto.zeros);
-    singlecount=sparse(map.proto.zeros);
-    idx=map.strctr.idx;
-    [sidx]=unique(idx);
-    %% the eddy counts +1 at every timestep at current position
-    count(sidx) =  histc(idx,sidx);
-    %% the eddy can tag each position only once
-    singlecount(sidx)=1;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% others
-function [TT,MinMax]=getStats(TT,MinMax,cf)
-    %% local
-    TT.max.(cf)=nanmax(TT.(cf));
-    TT.min.(cf)=nanmin(TT.(cf));
-    TT.median.(cf)=nanmedian(TT.(cf));
-    TT.std.(cf)=nanstd(TT.(cf));
-    %% global updates
-    if TT.max.(cf) > MinMax.max.(cf), MinMax.max.(cf)=TT.max.(cf); end
-    if TT.min.(cf) < MinMax.min.(cf), MinMax.min.(cf)=TT.min.(cf); end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [map,MinMax]=initAll(DD)
-    map.AntiCycs=initmap(DD);
-    map.Cycs=initmap(DD);
-    for subfield=DD.FieldKeys.trackPlots'; sub=subfield{1};
-        collapsedField=strrep(sub,'.','');
-        MinMax.max.(collapsedField)=-inf;
-        MinMax.min.(collapsedField)=inf;
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Ro=loadRossby(DD)
-    map=initmap(DD);
-    Ro.large.radius=getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-    Ro.large.radius(Ro.large.radius==0)=nan;
-    Ro.small.radius=map.proto.nan;
+    tl = {'velPP';'lat';'lon'};
+    toLoad(numel(tl)).name=struct;
+    [toLoad(:).name] = deal(tl{:});
     %%
-    Ro.large.phaseSpeed=getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
-    Ro.large.phaseSpeed(Ro.large.phaseSpeed==0)=nan;
-    Ro.small.phaseSpeed=map.proto.nan;
-    %% nanmean to smaller map
-    lin=map.idx;
-    T=disp_progress('init','reallocating rossby stuff indices to output map');
-    [slin,linOrdr]=sort(lin);
-    slind=find([1;diff(slin);1]);
+    %     parfor yy = yearA:yearB
+    %         doYear(yy,senses,DD,toLoad);
+    %     end
     %%
-    nm=@(source,sidx)  nanmean(source(sidx));
-    for ii=2:numel(slind)
-        T=disp_progress('show',T,numel(slind)-1,10);
-        a=slind(ii-1);  b=slind(ii)-1;  tidx=slin(a);
-        Ro.small.radius(tidx)       = nm(Ro.large.radius,    linOrdr(a:b));
-        Ro.small.phaseSpeed(tidx)   = nm(Ro.large.phaseSpeed,linOrdr(a:b));
+    kk=0;
+    for yy = yearA:yearB
+        kk=kk+1;
+        drawYears(DD,yy,kk,yearB,yearA);
     end
+
+    ylabel('-u')
+    xlabel('latitude')
+    title(sprintf('yearly subsamples %d - %d',yearA,yearB));
+    grid minor
+    outfname = 'Usubsampled',
+    savefig(DD.path.plots,72,400,300,outfname,'dpdf',DD2info(DD),14);
+
+
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Global=globalExtr(MinMax)
-    %% collect high-scores for all tracks from threads
-    for cf=fieldnames(MinMax(1).max)'; cf=cf{1};
-        dataAll=extractdeepfield(MinMax,['max.' cf]);
-        Global.max.(cf) = max(dataAll);
-        Global.min.(cf) = min(dataAll);
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function zonMean=zonmeans(M,DD)
-    zonMean=M;
-    for sense=DD.FieldKeys.senses'; sen=sense{1};
-        N=M.(sen).visits.all;
-        for Field=DD.FieldKeys.MeanStdFields'; field=Field{1};
-            wms=weightedZonMean(cell2mat(extractdeepfield(M.(sen),field)),N);
-            fields = textscan(field,'%s','Delimiter','.');
-            zonMean.(sen)=setfield(zonMean.(sen),fields{1}{:},wms);
+% -------------------------------------------------------------------------
+function drawYears(DD,yy,kk,yearB,yearA)
+    track = getfield(load(sprintf('%ssubVelYear%d.mat',DD.path.analyzed.name,yy)),'tout');
+    latround = round(track.lat);
+    laU = unique(latround);
+    velDraw = nan(size(laU));
+    cc=1;
+    for la = laU
+        todrawidx = latround == la;
+        if sum(todrawidx)>100 && abs(la)>10
+            velDraw(cc) = nanmean(track.vel(todrawidx));
         end
+        cc=cc+1;
     end
-    if DD.switchs.RossbyStuff
-        %%
-        zonMean.Rossby.small.radius=nanmean(M.Rossby.small.radius,2);
-        zonMean.Rossby.large.radius=nanmean(M.Rossby.large.radius,2);
-        %%
-        zonMean.Rossby.small.phaseSpeed=nanmean(M.Rossby.small.phaseSpeed,2);
-        zonMean.Rossby.large.phaseSpeed=nanmean(M.Rossby.large.phaseSpeed,2);
+    plot(laU,-velDraw,'color',rainbow(1,1,1,kk,yearB-yearA+1))
+    hold on
+    axis tight
+end
+% -------------------------------------------------------------------------
+function doYear(yy,senses,DD,toLoad)
+    fprintf('year %d',yy);
+    outfname = sprintf('%ssubVelYear%d.mat',DD.path.analyzed.name,yy);
+    if exist(outfname,'file')
+        return
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function OUT=weightedZonMean(MS,weight)
-    warning('off','MATLAB:divideByZero') %#ok<*RMWRN>
-    weight(weight==0)=nan;
-    OUT.mean=nansum(MS.mean.*weight,2)./nansum(weight,2);
-    OUT.std=nansum(MS.std.*weight,2)./nansum(weight,2);
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dist]=setupDist(map)
-    A={'traj';'merid';'zonal'};
-    B={'fromBirth';'tillDeath'};
-    for a=A'
-        for b=B'
-            [dist.(a{1}).(b{1})]=protoInit(map.proto);
-        end
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [d,drct]=diststuff(geo)
-    %      d2k=@(laloA,laloB)  deg2km(distance(laloA,laloB));
-    d2mR=@(degs,direc)  deg2km(degs).*direc*1000;
-    geo=[geo(1,:); geo];
-    LA=geo(:,1);
-    LO=geo(:,2);
-    latmean = nanmean(LA);
-    lonmean = 42; % irrelevant
     %%
-    [d.traj.deg, drct.traj]=distance(geo(1:end-1,:),geo(2:end,:));
-    d.traj.m=deg2km(d.traj.deg)*1000;
-    d.traj.fromBirth = cumsum(d.traj.m);
-    d.traj.tillDeath =  d.traj.fromBirth(end) - d.traj.fromBirth ;
+    pattern = ['*TRACK*-' num2str(yy) '*_id*'];
+    TRACKSa = dir2([DD.path.analyzedTracks.(senses{1}).name pattern]);
+    TRACKSb = dir2([DD.path.analyzedTracks.(senses{2}).name pattern]);
+    TRACKS = [TRACKSa(3:end); TRACKSb(3:end)];
+    %     TRACKS = [TRACKSa(3:10); TRACKSb(3:10)];
+    track(numel(TRACKS)).data = struct;
     %%
-    [d.zonal.deg, drct.zonal]=distance('rh',latmean,LO(1:end-1),latmean,LO(2:end));
-    drct.zonal(drct.zonal<=180 & drct.zonal >= 0) = 1;
-    drct.zonal(drct.zonal> 180 & drct.zonal <= 360) = -1;
-    d.zonal.m=d2mR(d.zonal.deg,drct.zonal);
-    d.zonal.fromBirth = cumsum(d.zonal.m);
-    d.zonal.tillDeath =  d.zonal.fromBirth(end) - d.zonal.fromBirth ;
+    for tt = 1:numel(TRACKS)
+        tmp = load(TRACKS(tt).fullname,toLoad(:).name);
+        tmp.vel = tmp.velPP.zonal.v';
+        track(tt).data = rmfield(tmp,'velPP');
+    end
     %%
-    [d.merid.deg, drct.merid]=distance(LA(1:end-1),lonmean,LA(2:end),lonmean);
-    drct.merid(drct.merid<=90 & drct.merid >= 270) = 1;
-    drct.merid (drct.merid > 90 & drct.merid < 270) = -1;
-    d.merid.m=d2mR(d.merid.deg,drct.merid);
-    d.merid.fromBirth = cumsum(d.merid.m);
-    d.merid.tillDeath =  d.merid.fromBirth(end) - d.merid.fromBirth ;
+    tmp = cat(2,track.data);
+    tout.vel = cat(2,tmp.vel);
+    tout.lat = cat(2,tmp.lat);
+    tout.lon = cat(2,tmp.lon); %#ok<STRNU>
+    %% save
+    save(outfname,'tout')
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [param]=protoInit(proto,type)
-    if nargin < 2, type='nan'; end
-    param.mean=sparse(proto.(type));
-    param.std=sparse(proto.(type));
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function old=comboMS(old,new,DD)
-    subFields=DD.FieldKeys.MeanStdFields;
-    xtrctMS=@(S,F) cell2mat(extractdeepfield(S,[F]));
-    for ff=1:numel(subFields)
-        %%	 extract current field to mean/std level
-        value.new=xtrctMS(new,subFields{ff});
-        value.old=xtrctMS(old,subFields{ff});
-        %% combo update
-        combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
-        combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
-        %% set to updated values
-        subsubFields = textscan(subFields{ff},'%s','Delimiter','.');
-        meanfields={[subsubFields{1};'mean']};
-        stdfields={[subsubFields{1};'std']};
-        old=setfield(old,meanfields{1}{:},combo.mean);
-        old=setfield(old,stdfields{1}{:},combo.std);
-    end
-    old.visits.all=old.visits.all + new.visits.all;
-    old.visits.single=old.visits.single + new.visits.single;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function ALL=comboAllMaps(map,DD)
-    subfieldstrings=DD.FieldKeys.MeanStdFields;
-    for sense=[{'AntiCycs'},{'Cycs'}];
-        sen=sense{1};
-        ALL.(sen)=map(1).(sen);
-        T=disp_progress('init',['combining results from all threads - ',sen,' ']);
-        for tt=1:numel(map) %threads
-            T=disp_progress('calc',T,DD.threads.num,DD.threads.num);
-            new =  map(tt).(sen);
-            if tt>1
-                for ff=1:numel(subfieldstrings)
-                    %%	 extract current field to mean/std level
-                    value.new=cell2mat(extractdeepfield(new,[subfieldstrings{ff}]));
-                    value.old=cell2mat(extractdeepfield(old,[subfieldstrings{ff}]));
-                    %% nan2zero
-                    value.new.mean(isnan(value.new.mean))=0;
-                    value.old.mean(isnan(value.old.mean))=0;
-                    value.new.std(isnan(value.new.std))=0;
-                    value.old.std(isnan(value.old.std))=0;
-                    %% combo update
-                    combo.mean=ComboMean(new.visits.all,old.visits.all,value.new.mean,value.old.mean);
-                    combo.std=ComboStd(new.visits.all,old.visits.all,value.new.std,value.old.std);
-                    %% set to updated values
-                    fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-                    meanfields={[fields{1};'mean']};
-                    stdfields={[fields{1};'std']};
-                    ALL.(sen)=setfield(ALL.(sen),meanfields{1}{:},combo.mean);
-                    ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std);
-                end
-                ALL.(sen).visits.all=ALL.(sen).visits.all + new.visits.all;
-                ALL.(sen).visits.single=ALL.(sen).visits.single+ new.visits.single;
-            end
-            old=ALL.(sen);
-        end
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function map=initmap(DD)
-    map=load([DD.path.root,'protoMaps.mat']);
-    subfieldstrings=DD.FieldKeys.MeanStdFields;
-    [MSproto]=protoInit(map.proto);
-    for ff=1:numel(subfieldstrings)
-        fields = textscan(subfieldstrings{ff},'%s','Delimiter','.');
-        meanfields={[fields{1};'mean']};
-        stdfields={[fields{1};'std']};
-        map=setfield(map,meanfields{1}{:},MSproto.mean);
-        map=setfield(map,stdfields{1}{:},MSproto.std);
-    end
-    map.visits.single=map.proto.zeros;
-    map.visits.all=map.proto.zeros;
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [targ]=uniqMedianStd(idx,source,targ)
-    [uni,~,b]= unique(idx);
-    for uu=1:numel(uni)
-        targ.mean(uni(uu))=nanmedian(source(b==uu));
-        targ.std(uni(uu))=nanstd(source(b==uu));
-    end
-end
+% -------------------------------------------------------------------------

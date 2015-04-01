@@ -1,12 +1,12 @@
-cd ../aviI
-addpath(genpath('./'))
-sub09_trackstuff
-cd ../aviII
-addpath(genpath('./'))
-sub09_trackstuff
-cd ../pop7II
-addpath(genpath('./'))
-sub09_trackstuff
-cd ../p2aII
-addpath(genpath('./'))
-sub09_trackstuff
+function runSomethingAllFour(todo)
+    dirs = {'aviI';'aviII';'pop7II';'p2aII'};
+    for dd=1:numel(dirs)
+        DOIT(['../' dirs{dd}],todo);
+    end
+end
+
+function DOIT(dr,todo)
+    cd(dr);
+    addpath(genpath('./'));
+    eval(todo)
+end

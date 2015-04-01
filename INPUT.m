@@ -6,27 +6,35 @@
 function DD=INPUT
     %DD.template='depth';
     %DD.template='pop2avi';
-		%DD.template='aviso';
-		%DD.template='pop';
-    DD.template='pop2avi';
+    %    DD.template='aviso';
+    DD.template='pop';
     %% threads / debug
-    DD.threads.num=4;
-    DD.debugmode=false;
-		%DD.debugmode=true;
-    DD.overwrite=false;
-		%DD.overwrite=true;
-		% time
+    DD.threads.num = 12;
+    DD.debugmode   = false;
+    %     DD.debugmode = true;
+    DD.overwrite   = false;
+    %     DD.overwrite = true;
+    %% time
     DD.time.from.str  = '19940105'; %first pop/avi
-    DD.time.till.str  = '20061227'; % last pop/avi
-    DD.time.delta_t   = 1; % [days]!
+    DD.time.till.str  = '19970403';
+
+%     DD.time.from.str  = '19970405'
+%     DD.time.till.str  = '20000704'
+
+    %     DD.time.till.str  = '20000701';
+
+
+    %     DD.time.till.str  = '20061227'; % last pop/avi
+
+    DD.time.delta_t   = 2; % [days]!
     threshlife        = 30; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  0;
-    DD.map.in.east  =  360;
-    DD.map.in.south = -80;
-    DD.map.in.north =  0;
+    DD.map.in.west  =  40;
+    DD.map.in.east  =  90;
+    DD.map.in.south = -50;
+    DD.map.in.north = -30;
     %% thresholds
-    DD.contour.step                = 0.02; % [SI]
+    DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
     DD.thresh.maxRadiusOverRossbyL = 4; %[ ]
     DD.thresh.minRossbyRadius      = 20e3; %[SI]
@@ -37,8 +45,8 @@ function DD=INPUT
     DD.thresh.life                 = threshlife; % min num of living days for saving [days]
     DD.thresh.ampArea              = [.25 2.5]; % allowable factor between old and new time step for amplitude and area (1/4 and 5/2 ??? chelton)
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
-    DD.thresh.phase                = 0.2; % max(abs(rossby phase speed)) [SI]
-     %% switches
+    DD.thresh.phase                = 1; % max(abs(rossby phase speed)) [SI]
+    %% switches
 
     %% 1 for I    -    0 for II
     DD.switchs.chelt = 0;

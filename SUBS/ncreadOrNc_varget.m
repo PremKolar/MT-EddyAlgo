@@ -12,7 +12,15 @@ function [out] = ncreadOrNc_varget(File,field,dimStart,dimLen)
             out = nc_varget(File,field,dimStart,dimLen);
         elseif exist('ncread')
             dimStart = dimStart + 1;
-            out = ncread(File,field,dimStart,dimLen);
+            switch numel(dimLen)
+                case 4
+                    pp = @(x) x([4 3 1 2]);
+                    out = permute(squeeze(ncread(File,field,pp(dimStart),pp(dimLen))),[3 2 1]);
+                case 2
+                    pp = @(x) x([2 1]);
+                    out = permute(squeeze(ncread(File,field,pp(dimStart),pp(dimLen))),[2 1]);
+            end
+           
         else
             error('how to read netcdfs?');
         end

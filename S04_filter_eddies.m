@@ -20,7 +20,7 @@ function S04_filter_eddies
     %% spmd
     main(DD,rossby);
     %% update infofile
-    conclude(DD);
+%     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossby)
@@ -63,6 +63,12 @@ function [EE,skip] = work_day(DD,JJ,rossby)
         skip = catchCase(failed,EE.filename.cont);
         return;
     end
+    
+    if numel(cont.all)==0
+        
+        return % TODO
+    end
+    
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee = eddies2struct(cont.all,DD.thresh.corners);
     %% remember date
@@ -413,9 +419,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
-    rU = rossbyU(trackref.lin);
-    rU(abs(rU)>1) = sign(rU)*1;  % put upper limit on rossby wave speed
-    %% get projected distance for one day (1.75 * dt*rU  as in chelton 2011)
+    rU = rossbyU(trackref.lin);   
+    %% get projected distance for one day (rossbySpeedFactor * dt*rU  as in chelton 2011)
     oneDayInSecs = 24*60^2;
     dist.east = DD.parameters.minProjecDist / 7;
     dist.y    = dist.east;
@@ -482,7 +487,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
     [pathstr, ~, ~] = fileparts(EE.filename.self);
-    tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
+    % TODO TEMP !! (...02d_eddieB.mat)
+    tempname = sprintf('%s/temp-labid-%02d_eddieB.mat',pathstr,labindex);
+    
     save(tempname,'-v7','-struct','EE');
     system(['mv ' tempname ' ' EE.filename.self]);
     %save(EE.filename.self,'-struct','EE')

@@ -12,16 +12,17 @@ function S08_analyze_tracks
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
     main(DD);
     seq_body(DD);
-    conclude(DD);
+%     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
     %% get stuff
     [map,MM]=initAll(DD);
     %%
-%     spmd(DD.threads.num)
+    spmd(DD.threads.num)
         [MM,map]=spmd_block(DD,map,MM);
-%     end
+    end
+    save('ANAmainSave.mat');
     %% collect
     MinMax=globalExtr(MM{1}); %#ok<*NASGU>
     save([DD.path.analyzed.name,'MinMax.mat'],'-struct','MinMax');
@@ -35,9 +36,15 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     T=disp_progress('init','analyzing tracks');
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
+
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
+
+        if numel(TT.eddy.track)<2
+            continue
+        end
+
         % TEMP TODO
         for ee=1:numel(TT.eddy.track)
             if isfield(TT.eddy.track(ee).chelt,'A')
@@ -51,10 +58,18 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
         senii=(TT.sense+3)/2;
         sen=DD.FieldKeys.senses{senii};
         [map.(sen),TT.velPP]=MeanStdStuff(TT.eddy,map.(sen),DD);
+        if isempty(map)
+            continue % TODO
+        end
         %% resort tracks for output
         [MinMax]=resortTracks(DD,MinMax,TT,senii);
+
     end
     %% gather
+    labBarrier;
+    save(sprintf('ANAspmdCatch%02d.mat',labindex));
+    labBarrier;
+
     MinMax=gcat(MinMax,1,1);
     map=gcat(map,1,1);
 end
@@ -63,10 +78,14 @@ end
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
 
     [map.strctr, eddy]=TRstructure(map,eddy);
-    if isempty(eddy.track),return;end % out of bounds
+    if isempty(eddy.track)
+        map = [];
+        velpp = [];
+        return % TODO
+    end % out of bounds
     [NEW.age]=TRage(map,eddy);
-    [NEW.dist,eddy]=TRdist(map,eddy);
-    [NEW.vel,velpp]=TRvel(map,eddy);
+    [NEW.dist,eddy]   = TRdist(map,eddy);
+    [NEW.vel,velpp]   = TRvel(map,eddy);
     NEW.radius=TRradius(map,eddy);
     NEW.amp=TRamp(map,eddy);
     [NEW.visits.all,NEW.visits.single]=TRvisits(map);
@@ -75,11 +94,13 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
     map=comboMS(map,NEW,DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [ACs,Cs]=netVels(DD,map)
-    velmean=reshape(extractdeepfield(load(DD.path.meanU.file),...
-        'means.small.zonal'),DD.map.out.Y,DD.map.out.X);
-    ACs=	map.AntiCycs.vel.zonal.mean -velmean;
-    Cs =	map.Cycs.vel.zonal.mean		 -velmean;
+function [ACs,Cs] = netVels(DD,map)
+
+     tmp = load(DD.path.meanU.file);
+     velmean = tmp.means.small.zonal;
+
+    ACs =	full(map.AntiCycs.vel.zonal.mean) -velmean;
+    Cs  =	full(map.Cycs.vel.zonal.mean)     -velmean;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
@@ -92,11 +113,13 @@ function seq_body(DD)
         map.Cycs.radius.toRo=map.Cycs.radius.mean.mean./map.Rossby.small.radius;
     end
     %% build zonal means
-    map.zonMean=zonmeans(map,DD);
+    map.zonMean = zonmeans(map,DD);
     %% build net vels
-    if DD.switchs.netUstuff
-        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean]=netVels(DD,map);
-    end
+    % TODO
+    %     if DD.switchs.netUstuff
+%     [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+    %     end
+
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 end
@@ -132,13 +155,7 @@ function [TT]=getTrack(DD,jj)
         disp('skipping!')
         TT=[]; return
     end
-
-
-
-    TT.eddy.track(end)=[];
-
-
-
+    TT.eddy.track(end)=[];    % kill trailing erronuous position
     TT.sense=TT.eddy.track(1).sense.num;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -203,7 +220,7 @@ function	radius=TRradius(map,eddy)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[vel,pp]=TRvel(map,eddy)
+function	[vel,pp]=TRvelDS(map,eddy)
     noBndr=@(v) v(2:end-1);
     idx=noBndr(map.strctr.idx);
     A={'traj';'merid';'zonal'};
@@ -215,19 +232,27 @@ function	[vel,pp]=TRvel(map,eddy)
         position=cumsum(eddy.dist.num.(a).m);
         pp.timeaxis = (cat(1,eddy.track.age)) * 60*60*24; % day2sec
         % TODO has to wait for available license
-        while true
-            try
-                %% get v(t) = dx/dt
-                pp.(a).x=spline(pp.timeaxis,position);
-                pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
-                pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
-            catch er
-                disp(er.message)
-                sleep(10)
-                continue
-            end
-            break
+        %         while true
+        %             try
+        %% get v(t) = dx/dt
+        success = true;
+        try
+            pp.(a).x=spline(pp.timeaxis,position);
+            pp.(a).x_t=fnder(pp.(a).x,1); % vel pp
+            pp.(a).v=ppval(pp.(a).x_t, pp.timeaxis);
+        catch void
+            success = false;
+            vel = [];
+            pp = [];
+            return
         end
+        %             catch er
+        %                 disp(er.message)
+        %                 sleep(10)
+        %                 continue
+        %             end
+        %             break
+        %         end
         velN=noBndr(ppval(pp.(a).x_t, pp.timeaxis)); % discard 1st and last value frmo cubic spline
         vel.(a)=uniqMedianStd(idx,velN,vel.(a));
     end
@@ -284,10 +309,10 @@ function [TT,MinMax]=getStats(TT,MinMax,cf)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,MinMax]=initAll(DD)
-    map.AntiCycs=initmap(DD);
-    map.Cycs=initmap(DD);
-    for subfield=DD.FieldKeys.trackPlots'; sub=subfield{1};
-        collapsedField=strrep(sub,'.','');
+    map.AntiCycs = initmap(DD);
+    map.Cycs     = initmap(DD);
+    for subfield       = DD.FieldKeys.trackPlots'; sub=subfield{1};
+        collapsedField = strrep(sub,'.','');
         MinMax.max.(collapsedField)=-inf;
         MinMax.min.(collapsedField)=inf;
     end

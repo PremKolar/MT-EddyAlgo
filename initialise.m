@@ -5,10 +5,10 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=initialise(toCheck,parentFunc)
-    preInits
-    if nargin==0, return;end
+    preInits 
     %% get user input
     DD = get_input;
+    if nargin==0, return;end
     %% check whether info file exists already
     DDcheck=[DD.path.root, 'DD.mat'];
     %% if DD.mat exists, rehash or keep initial mapDims

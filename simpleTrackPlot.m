@@ -9,8 +9,8 @@ function simpleTrackPlot
     SSs=[-1 1];
     sen = senses{ss};
     %%
-     xx = [20 100];
-    yy = [20 60];
+     xx = [20 80];
+    yy = [20 50];
     %%
     kk = 0;
     tracks.I = dir2([DD.path.tracks.name]);

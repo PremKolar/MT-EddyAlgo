@@ -104,10 +104,12 @@ function PATH=findfiles(DD)
     PATH=DD.path;
     
     
-    %% TEMP SOLUTION TODO
-    PATH.root=['../data' PATH.OutDirBaseName(1:end-1) '/'];
+%     %% TEMP SOLUTION TODO
+%     PATH.root=['../data' PATH.OutDirBaseName(1:end-1) '/'];
+%     %% TEMP
+      %% TEMP SOLUTION TODO
+    PATH.root=['../data' PATH.OutDirBaseName(1:end) '/'];
     %% TEMP
-    
     
     PATH.plots=['../PLOTS/' PATH.OutDirBaseName '/'];
     PATH.code=[PATH.root, 'code/'];

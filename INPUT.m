@@ -15,26 +15,28 @@ function DD=INPUT
     DD.overwrite   = false;
     %     DD.overwrite = true;
     %% time
-
-
-    DD.time.from.str  = '19940105'; %first pop/avi
+      DD.time.from.str  = '19940105'; %first pop/avi
     DD.time.till.str  = '19970403';
-
-%     DD.time.from.str  = '19970405'
-%     DD.time.till.str  = '20000704'
-
+    
+%     DD.time.from.str  = '19970405';
+%     DD.time.till.str  = '20000704';
+    
     %     DD.time.till.str  = '20000701';
-
-
+    
+    
     %     DD.time.till.str  = '20061227'; % last pop/avi
-
+    
+    
+    
+    
+    
     DD.time.delta_t   = 2; % [days]!
     threshlife        = 30; % TODO
     %% window on globe (0:360° system)
-    DD.map.in.west  =  40;
-    DD.map.in.east  =  90;
-    DD.map.in.south = -50;
-    DD.map.in.north = -30;
+    DD.map.in.west  =  0;
+    DD.map.in.east  =  360;
+    DD.map.in.south = -80;
+    DD.map.in.north =  80;
     %% thresholds
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
@@ -49,14 +51,14 @@ function DD=INPUT
     DD.thresh.IdentityCheck        = 2; % 1: perfect fit, 2: 100% change ie factor 2 in either sigma or amp
     DD.thresh.phase                = 1; % max(abs(rossby phase speed)) [SI]
     %% switches
-
+    
     %% 1 for I    -    0 for II
     DD.switchs.chelt = 0;
-
+    
     DD.switchs.AmpAreaCheck  =  DD.switchs.chelt;
     DD.switchs.IQ            = ~DD.switchs.chelt;
     DD.switchs.IdentityCheck = ~DD.switchs.chelt;
-
+    
     %% TODO
     DD.switchs.netUstuff = 0;
     DD.switchs.meanUviaOW = 0;

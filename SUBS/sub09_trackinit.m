@@ -9,6 +9,8 @@ function sub09_trackinit(DD)
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
+    meanU = load(DD.path.meanU.file);
+    %%
     for ss=1:2
         [sense,root,eds,toLoad]=inits(DD,senses,ss);
         %%
@@ -18,7 +20,7 @@ function sub09_trackinit(DD)
         %%
         cats.vel   = makeVel(cats);
         %%
-%         cats.velDP = makeDPV(cats);
+        cats.velDP = makeDPV(cats,meanU);
         %%
         saveCats(cats,sense);
     end
@@ -43,13 +45,21 @@ function sngl=sPmDstoof(DD,eds,root,toLoad)
     spmd(DD.threads.num)
         FF=JJ(labindex,1):JJ(labindex,2);
         T=disp_progress('init','blubb');
-%         -----------------------------------------------
+        %         -----------------------------------------------
         for ff=1:numel(FF)
             T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
             currFile = [root eds(FF(ff)).name];
             sngl(ff)=load(currFile,toLoad(:).name);
+
         end
-        % -----------------------------------------------
+        %         -----------------------------------------------
+        T=disp_progress('init','blubb');
+        for ff=1:numel(FF)
+            T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
+            currFile = [root eds(FF(ff)).name];
+            sngl(ff).trackref = {getfield(load(currFile,'trackref'),'trackref')};
+        end
+        %         -----------------------------------------------
         T=disp_progress('init','blubb');
         for ff=1:numel(FF)
             T=disp_progress('calc',T,diff(JJ(labindex,:))+1,100);
@@ -69,17 +79,12 @@ function cats=buildOutStruct(single)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function vel=makeDPV(cats)
+function velDP = makeDPV(cats,meanU)
     cc=0;
     for ff=1:numel(cats.vel)
         vel = cats.vel{ff};
-       SDBDGBFBDB
-        cc=cc+1;
-        try
-            vel{ff}=ppval(pp.x_t,pp.timeaxis);
-        catch
-            vel{ff}=pp.zonal.v;
-        end
+        idx = cell2mat(cats.trackref{ff});
+        velDP{ff} = vel - reshape(meanU.means.zonal(idx),[],1);
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,26 +107,26 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function saveCats(cats,sense)
     area2L=@(ar) sqrt(ar/pi);
-%     tmp=cats.radiusmean;         %#ok<*NASGU>
-%     save(['TR-' sense.s '-rad.mat'],'tmp')
-%     tmp=area2L(cats.cheltareaLe);
-%     save(['TR-' sense.s '-radLe.mat'],'tmp')
-%     tmp=area2L(cats.cheltareaL);
-%     save(['TR-' sense.s '-radL.mat'],'tmp')
-%     tmp=area2L(cats.cheltareaLeff);
-%     save(['TR-' sense.s '-radLeff.mat'],'tmp')
-%     tmp=cats.age;
-%     save(['TR-' sense.s '-age.mat'],'tmp')
-%     tmp=cats.lat;
-%     save(['TR-' sense.s '-lat.mat'],'tmp')
-%     tmp=cats.lon;
-%     save(['TR-' sense.s '-lon.mat'],'tmp')
-%     tmp=cats.vel;
-%     save(['TR-' sense.s '-vel.mat'],'tmp')
-%     tmp=cats.peakampto_mean;
-%     save(['TR-' sense.s '-amp.mat'],'tmp')
-%     tmp=cats.isoper;
-%     save(['TR-' sense.s '-iq.mat'],'tmp')
+    %     tmp=cats.radiusmean;         %#ok<*NASGU>
+    %     save(['TR-' sense.s '-rad.mat'],'tmp')
+    %     tmp=area2L(cats.cheltareaLe);
+    %     save(['TR-' sense.s '-radLe.mat'],'tmp')
+    %     tmp=area2L(cats.cheltareaL);
+    %     save(['TR-' sense.s '-radL.mat'],'tmp')
+    %     tmp=area2L(cats.cheltareaLeff);
+    %     save(['TR-' sense.s '-radLeff.mat'],'tmp')
+    %     tmp=cats.age;
+    %     save(['TR-' sense.s '-age.mat'],'tmp')
+    %     tmp=cats.lat;
+    %     save(['TR-' sense.s '-lat.mat'],'tmp')
+    %     tmp=cats.lon;
+    %     save(['TR-' sense.s '-lon.mat'],'tmp')
+    %     tmp=cats.vel;
+    %     save(['TR-' sense.s '-vel.mat'],'tmp')
+    %     tmp=cats.peakampto_mean;
+    %     save(['TR-' sense.s '-amp.mat'],'tmp')
+    %     tmp=cats.isoper;
+    %     save(['TR-' sense.s '-iq.mat'],'tmp')
     tmp=cats.maxUV;
     save(['TR-' sense.s '-maxUV.mat'],'tmp')
     tmp=cats.radiusmean;         %#ok<*NASGU>
@@ -140,6 +145,8 @@ function saveCats(cats,sense)
     save(['TR-' sense.s '-lon.mat'],'tmp')
     tmp=cats.vel;
     save(['TR-' sense.s '-vel.mat'],'tmp')
+    tmp=cats.velDP;
+    save(['TR-' sense.s '-velDP.mat'],'tmp')
     tmp=cats.peakampto_mean;
     save(['TR-' sense.s '-amp.mat'],'tmp')
     tmp=cats.iq;

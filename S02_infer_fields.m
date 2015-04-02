@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculates geostrophic data from ssh
-% NEEDS FULL RE RUN IF DATES ARE CHANGED !!!!
+% theoretically (meanSSH) NEEDS FULL RE RUN IF DATES ARE CHANGED !!!!
 function S02_infer_fields
     %% init
     DD = initialise('cuts',mfilename);

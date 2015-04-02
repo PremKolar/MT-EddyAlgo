@@ -19,26 +19,31 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         sen=senses{ss};
         senAlt=sensesAlt{ss};
 
-        close all
-        VV=II.maps.(sen).radius.mean.mean/1000;
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);shading flat;
-        colormap([hsv(14)]);
-        clm=[20 160 8];
-        decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-%         axis([-180 180 -80 90]);
-        axis([-180 180 -80 10]);
-        if ss==2
-            colorbar('hide')
-            set(gca,'yTickLabel','')
-        end
-        grid minor;
-        sleep(1)
-        savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
-        sleep(1)
+%         close all
+%         VV=II.maps.(sen).radius.mean.mean/1000;
+%         VV = eurocen(VV,loMin);
+%         pcolor(lo,la,VV);shading flat;
+%         colormap([hsv(14)]);
+%         clm=[20 160 8];
+%         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
+% %         axis([-180 180 -80 90]);
+%         axis([-180 180 -80 10]);
+%         if ss==2
+%             colorbar('hide')
+%             set(gca,'yTickLabel','')
+%         end
+%         grid minor;
+%         sleep(1)
+%         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
+%         sleep(1)
         %%
+        
+        
+       
         close all
         VV=II.maps.(sen).vel.zonal.mean*100;
+        
+        
         VV = eurocen(VV,loMin);
         pcolor(lo,la,VV);shading flat;
         cw=jet(20);
@@ -46,7 +51,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-        axis([-180 180 -80 10]);
+    %         axis([-180 180 -80 10]);
+        axis([40 65 -50 -25 ]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')
@@ -54,6 +60,27 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         grid minor;
         sleep(1)
         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
+        sleep(1) 
+        
+        %%        
+        close all
+        VV=II.maps.(sen).vel.net.mean*100;
+        VV = eurocen(VV,loMin);
+        pcolor(lo,la,VV);shading flat;
+        cw=jet(20);
+        cm=[0 0 0];
+        ce=(winter(4));
+        colormap([cw;cm;ce(:,[1 3 2])])
+        decorate([-20 5 6],T,senAlt,'Net Zonal velocity','cm/s',0,1);
+%         axis([-180 180 -80 10]);
+        axis([40 65 -50 -25 ]);
+        if ss==2
+            colorbar('hide')
+            set(gca,'yTickLabel','')
+        end
+        grid minor;
+        sleep(1)
+        savefig('./',T.rez,T.width,T.height,['velZonNet-' sen],'dpdf');
         sleep(1)
 
         %         %%

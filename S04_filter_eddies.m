@@ -62,6 +62,12 @@ function [EE,skip] = work_day(DD,JJ,rossby)
         skip = catchCase(failed,EE.filename.cont);
         return;
     end
+    
+    if numel(cont.all)==0
+        
+        return % TODO
+    end
+    
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee = eddies2struct(cont.all,DD.thresh.corners);
     %% remember date
@@ -480,7 +486,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
     [pathstr, ~, ~] = fileparts(EE.filename.self);
-    tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
+    % TODO TEMP !! (...02d_eddieB.mat)
+    tempname = sprintf('%s/temp-labid-%02d_eddieB.mat',pathstr,labindex);
+    
     save(tempname,'-v7','-struct','EE');
     system(['mv ' tempname ' ' EE.filename.self]);
     %save(EE.filename.self,'-struct','EE')

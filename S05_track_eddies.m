@@ -8,6 +8,7 @@
 function S05_track_eddies
     %% init
     DD=initialise('eddies',mfilename);
+     DD.map.window = getfieldload(DD.path.windowFile,'window');
     %% rm old files
     rmoldtracks(DD)
     %% parallel!

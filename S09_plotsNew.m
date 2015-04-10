@@ -6,6 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
     DD = initialise([],mfilename);
+     DD.map.window = getfieldload(DD.path.windowFile,'window');
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
     ticks.height=150;
@@ -36,10 +37,10 @@ function S09_plotsNew
     II=initStuff(DD);
     save S09main II DD T
     %%
-%     sub09_mapStuff
-%     sub09_trackstuff
-%     sub09_histStuff
-%     sub09_TPzStuff
+     sub09_trackstuff
+    sub09_mapStuff   
+    sub09_histStuff
+    sub09_TPzStuff
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

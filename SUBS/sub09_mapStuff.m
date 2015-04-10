@@ -51,8 +51,9 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-    %         axis([-180 180 -80 10]);
-        axis([40 65 -50 -25 ]);
+     axis([-180 180 -40 -30]);
+%         axis([-180 180 -80 10]);
+%         axis([40 65 -50 -25 ]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')

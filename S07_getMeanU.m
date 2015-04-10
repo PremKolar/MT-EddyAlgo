@@ -7,6 +7,7 @@
 function S07_getMeanU
     %% init
     DD = initialise([],mfilename);
+     DD.map.window = getfieldload(DD.path.windowFile,'window');
     %           save DD
     %     load DD
     %     if ~DD.switchs.netUstuff,return;end

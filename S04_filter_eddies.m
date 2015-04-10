@@ -8,8 +8,8 @@
 function S04_filter_eddies
     %% init
     DD = initialise('conts',mfilename);
-    %     DD.threads.num = init_threads(DD.threads.num);
-    %
+    DD.map.window = getfieldload(DD.path.windowFile,'window');
+    
     % TODO
     fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
     save fopt fopt
@@ -19,7 +19,7 @@ function S04_filter_eddies
     %% spmd
     main(DD,rossby);
     %% update infofile
-%     conclude(DD);
+    %     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossby)
@@ -34,7 +34,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_body(DD,rossby)
     [JJ] = SetThreadVar(DD);
-    Td = disp_progress('init','filtering contours');    
+    Td = disp_progress('init','filtering contours');
     for jj = 1:numel(JJ)
         Td = disp_progress('disp',Td,numel(JJ));
         %%
@@ -102,12 +102,12 @@ function [eddies, pass] = walkThroughContsVertically(ee,rossby,cut,DD,sense)
     %% init
     [eddyType,Zloop] = determineSense(DD.FieldKeys.senses,sense,numel(ee));
     %% loop
-%     Tv = disp_progress('init','running through contours vertically');
+    %     Tv = disp_progress('init','running through contours vertically');
     for kk = Zloop % dir dep. on sense. note: ee is sorted vertically
-%         Tv = disp_progress('disp',Tv,numel(Zloop),3);
+        %         Tv = disp_progress('disp',Tv,numel(Zloop),3);
         [pass(kk),ee_out] = run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
         if all(struct2array(pass(kk))), pp = pp + 1;
-            [eddies(pp),cut]=eddiesFoundOp(ee_out,cut);
+            [eddies(pp),cut]=eddiesFoundOp(ee_out,DD.map,cut);
         end
     end
     %% catch
@@ -116,10 +116,10 @@ function [eddies, pass] = walkThroughContsVertically(ee,rossby,cut,DD,sense)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [eddy,cut]=eddiesFoundOp(eddy,cut)
+function [eddy,cut]=eddiesFoundOp(eddy,map,cut)
     %% flag respective overlap too
-    if strcmp(cut.window.type,'globe')
-        eddy.mask=flagOvrlp(eddy.mask,cut.window.dim.x);
+    if strcmp(map.window.type,'globe')
+        eddy.mask = flagOvrlp(eddy.mask,map.window.dim.x);
     end
     %% nan out ssh where eddy was found
     cut.fields.ssh(eddy.mask) = nan;
@@ -152,8 +152,9 @@ function [eddyType,Zloop] = determineSense(senseKeys,sense,NumEds)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
+    MAP = DD.map.window;
     %% pre-nan-check
-    pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
+    pass.rim = CR_RimNan(ee.coor.int, MAP.dim.y, cut.fields.ssh);
     if ~pass.rim, return, end;
     %% closed ring check
     [pass.CR_ClosedRing] = CR_ClosedRing(ee);
@@ -167,10 +168,10 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     else
         winincrease=6;
     end
-    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
+    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,MAP);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
-    zoom.fields = EDDyCut_init(cut.fields,zoom);
+    zoom.fields = EDDyCut_init(MAP,cut.fields,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask = EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
@@ -252,13 +253,13 @@ function  [ch]=cheltStuff(ee,zoom)
     ch.area.L    = ch.area.Le/sqrt(2);
     ch.area.Leff = ee.area.intrp;
     
-%     
-%     s The right panel shows meridional proﬁles of the
-% average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
-% folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
-% AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
-% (1998).
-
+    %
+    %     s The right panel shows meridional proﬁles of the
+    % average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
+    % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
+    % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
+    % (1998).
+    
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -341,7 +342,7 @@ function [pass,chelt] = chelton_shape(z,ee)
     maxDist = max(max(abs(A - B)))*1000;
     %% mean latitude of eddy
     medlat = abs(nanmean(reshape(z.mask.rim_only.*z.fields.lat,1,[]))) ;
-    %% 
+    %%
     if medlat> 25
         chelt = 1 - maxDist/4e5;
     else
@@ -418,7 +419,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
-    rU = rossbyU(trackref.lin);   
+    rU = rossbyU(trackref.lin);
     %% get projected distance for one day (rossbySpeedFactor * dt*rU  as in chelton 2011)
     oneDayInSecs = 24*60^2;
     dist.east = DD.parameters.minProjecDist / 7;
@@ -433,8 +434,8 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     ax.maj = (dist.east + dist.west)/2;
     ax.min = dist.y;
     %% get dx/dy at that eddy pos
-    dx = cut.fields.dx(trackref.lin);
-    dy = cut.fields.dy(trackref.lin);
+    dx = DD.map.window.dx(trackref.lin);
+    dy = DD.map.window.dy(trackref.lin);
     %% get major/minor semi - axes [increments]
     ax.majinc = ceil(ax.maj/dx);
     ax.mininc = ceil(ax.min/dy);
@@ -466,8 +467,8 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.y)) = true;
     mask.logical = sparse(imfill(mask.logical,double([yi.center xi.center]),4));
     %% flag respective overlap too
-    if strcmp(cut.window.type,'globe')
-        mask.logical =flagOvrlp(mask.logical,cut.window.dim.x);
+    if strcmp(DD.map.window.type,'globe')
+        mask.logical =flagOvrlp(mask.logical, DD.map.window.dim.x );
     end
     mask.lin = find(mask.logical);
     mask  =  rmfield(mask,'logical'); % redundant
@@ -600,7 +601,7 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
             s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
         end
     catch me
-%         disp(me.message) % non unique data site.. probably at weird land situations TODO!!
+        %         disp(me.message) % non unique data site.. probably at weird land situations TODO!!
         pass = false;
         s = [];f = [];
         return
@@ -738,7 +739,7 @@ end
 function [geo] = geocoor(zoom,volume)
     xz = volume.center.xz;
     yz = volume.center.yz;
-    geo.lat = interp2(zoom.fields.lat,xz,yz);    
+    geo.lat = interp2(zoom.fields.lat,xz,yz);
     if zoom.fields.lon(1,1) > zoom.fields.lon(1,end)
         zoom.fields.lon = wrapTo180(zoom.fields.lon);
         geo.lon = wrapTo360(interp2(zoom.fields.lon,xz,yz));
@@ -839,22 +840,26 @@ function mask = EDDyCut_mask(zoom)
     [mask.dim.y, mask.dim.x] = size(dummymask);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function fields_out = EDDyCut_init(fields_in,z)
+function fields_out = EDDyCut_init(win,ssh,z)
     ya = z.limits.y(1);
     yb = z.limits.y(2);
     xa = z.limits.x(1);
     xb = z.limits.x(2);
     %% cut all fields
-    for ff = fieldnames(fields_in)'
-        field = ff{1};
-        fields_out.(field) = fields_in.(field)(ya:yb,xa:xb);
-    end
-    %% TODO do with distance(), looks better
+    cutfield=@(X) X(ya:yb,xa:xb);
+    fields_out.lat = cutfield(win.lat);
+    fields_out.lon = cutfield(win.lon);
+    fields_out.dx  = cutfield(win.dx);
+    fields_out.dy  = cutfield(win.dy);
+    fields_out.ssh = cutfield(ssh.ssh);
+    %     fields_out.ssh = cutfield(ssh.L);
+    %% distances (dont change to cumsum(DX). doesnt work for -180<->180 cases)
     fields_out.km_x = cumsum(mod(diff(fields_out.lon(:,[[1 1:end]]),1,2),360),2);
     fields_out.km_x = fields_out.km_x .* cosd(fields_out.lat);
     fields_out.km_x = deg2km(fields_out.km_x);
     %%
     fields_out.km_y = deg2km(cumsum(diff(fields_out.lat([1 1:end],:),1,1),1));
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [z,passout] = get_window_limits(coor,enlargeFac,map)

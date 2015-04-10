@@ -5,30 +5,30 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculates geostrophic data from ssh
-% theoretically (meanSSH) NEEDS FULL RE RUN IF DATES ARE CHANGED !!!!
+% theoretically NEEDS FULL RE RUN IF DATES ARE CHANGED !!!!(meanSSH)
 function S02_infer_fields
     %% init
     DD = initialise('cuts',mfilename);
     %% read input file
-    cut1 = load( DD.checks.passed(1).filenames);
-    DD.coriolis = coriolisStuff(cut1.fields.lat);
+    DD.map.window = getfieldload(DD.path.windowFile,'window');
+    DD.coriolis = coriolisStuff(DD.map.window.lat);
     RS = getRossbyStuff(DD);
     %% spmd
     main(DD,RS)
     %% save info file
-%     conclude(DD)
+    %     conclude(DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,RS)
     %% infer mean ssh
-    %     spmd(DD.threads.num)
-    %         [JJ] = SetThreadVar(DD);
-    %         spmd_meanSsh(DD,JJ);
-    %     end
-    %       MeanSsh = saveMean(DD);
-    
-    MeanSsh = getfield(load([DD.path.root, 'meanSSH.mat']),'MeanSsh');
-    
+    spmd(DD.threads.num)
+        [JJ] = SetThreadVar(DD);
+        spmd_meanSsh(DD,JJ);
+    end
+    %     %
+    MeanSsh = saveMean(DD);
+    %         MeanSsh = getfield(load([DD.path.root, 'meanSSH.mat']),'MeanSsh');
+    %%
     spmd(DD.threads.num)
         [JJ] = SetThreadVar(DD);
         spmd_fields(DD,RS,JJ,MeanSsh);
@@ -59,7 +59,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function spmd_meanSsh(DD,JJ)
     T = disp_progress('init','infering mean ssh');
-    Mean.SshSum = nan(DD.map.window.dimPlus.y*DD.map.window.dimPlus.x,1);
+    Mean.SshSum = nan(DD.map.window.dimPlus.y * DD.map.window.dimPlus.x,1);
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
         %% load
@@ -80,29 +80,52 @@ function spmd_fields(DD,RS,JJ,MeanSsh)
     T = disp_progress('init','infering fields');
     for jj = 1:numel(JJ)
         T = disp_progress('disp',T,numel(JJ),100);
+        
+        %         %% TODO
+        %         if getfield(dir(JJ(jj).files),'bytes')/1e6 > 300
+        %             continue
+        %         end
+        %%
+        
         cut = load(JJ(jj).files);
         %% filter
         if DD.switchs.filterSSHinTime
-            %% not yet built
-            if ~isfield(cut.fields,'sshRaw')
-                cut.fields.sshRaw = cut.fields.ssh;
+            %% already built
+            if isfield(cut.fields,'sshRaw')
+                %                 continue
+                cut.fields.ssh = cut.fields.sshRaw;
             end
+            %% TODO
+            %             eddy = strrep(JJ(jj).files,'CUT','EDDIE');
+            %             try
+            %                 system(['rm ' eddy]);
+            %             catch nohave
+            %                 disp([nohave.message]) ;
+            %             end
+            %
+            %             cont = strrep(JJ(jj).files,'CUT','CONT');
+            %             try
+            %                 system(['rm ' cont]);
+            %             catch nohave
+            %                 disp([nohave.message]) ;
+            %             end
+            %%
+            cut.fields.sshRaw = cut.fields.ssh;
             %% filter
             cut.fields.ssh = cut.fields.ssh - MeanSsh;
         end
         %%
-        coriolis = coriolisStuff(cut.fields.lat);
+        coriolis = coriolisStuff(DD.map.window.lat);
         %% calc
-        fields = geostrophy(cut.fields,coriolis,RS); %#ok<NASGU>
-        %% write
-        cut.filtered = true;
+        fields = geostrophy(DD.map.window,cut.fields,coriolis,RS); %#ok<NASGU>
+        %% write      
         save(JJ(jj).files,'fields','-append');
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function gr = geostrophy(gr,corio,RS)
+function gr = geostrophy(win,gr,corio,RS)
     %% ssh gradient
-    [gr.sshgrad_x,gr.sshgrad_y] = dsshdxi(gr.ssh,gr.dx,gr.dy);
+    [gr.sshgrad_x,gr.sshgrad_y] = dsshdxi(gr.ssh,win.dx,win.dy);
     %% velocities
     gr.U = - corio.GOverF.*gr.sshgrad_y;
     gr.V = corio.GOverF.*gr.sshgrad_x;
@@ -128,6 +151,9 @@ function gr = geostrophy(gr,corio,RS)
         %         gr.L_R = abs(RS.c./corio.f);
         %         gr.Bu = (gr.L_R./gr.L).^2;
     end
+    % TODO build switches at top which ones to save
+    gr = rmfield(gr,{'sshgrad_x','sshgrad_y','U','V','absUV'});
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function def = deformation(fields)

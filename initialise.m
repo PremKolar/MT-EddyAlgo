@@ -5,7 +5,7 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function DD=initialise(toCheck,parentFunc)
-    preInits 
+    preInits
     %% get user input
     DD = get_input;
     if nargin==0, return;end
@@ -22,10 +22,6 @@ function DD=initialise(toCheck,parentFunc)
     %% scan data2bchckd
     if ~isempty(toCheck)
         DD=ini(DD,toCheck);
-    end
-    %% in case DD was deleted after S00 was executed rehash window info from cut file
-    if ~isempty(DD.path.cuts.files)
-        [DD.map.window]=GetWin(DD);
     end
     %% load workers
     DD.threads.num=init_threads(DD.threads.num);
@@ -163,16 +159,6 @@ function del_t=newDt(TT)
             tempdelt=TT.delta_t;
         end
     end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [window]=GetWin(DD)
-    for cc=1:4242
-        smplFile=[DD.path.cuts.name DD.path.cuts.files(cc).name];
-        if strfind(smplFile,'CORRUPT'), continue;    end
-        break
-    end
-    load(smplFile,'window');
-    window.flag=[];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function passed=getFnames(DD,checks,toCheck)

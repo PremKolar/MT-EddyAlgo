@@ -7,6 +7,7 @@
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
     DD=initialise([],mfilename);
+     DD.map.window = getfieldload(DD.path.windowFile,'window');
 %     save DD
     %     load DD
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
@@ -220,7 +221,7 @@ function	radius=TRradius(map,eddy)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function	[vel,pp]=TRvelDS(map,eddy)
+function	[vel,pp]=TRvel(map,eddy)
     noBndr=@(v) v(2:end-1);
     idx=noBndr(map.strctr.idx);
     A={'traj';'merid';'zonal'};

@@ -6,14 +6,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
-    DD=initialise([],mfilename);
-     DD.map.window = getfieldload(DD.path.windowFile,'window');
-%     save DD
-    %     load DD
+    %     DD=initialise([],mfilename);
+    %
+    %     save DD
+    load DD
+    DD.map.window = getfieldload(DD.path.windowFile,'window');
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-    main(DD);
+%     main(DD);
     seq_body(DD);
-%     conclude(DD);
+    %     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD)
@@ -37,15 +38,15 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
     T=disp_progress('init','analyzing tracks');
     JJ=DD.threads.tracks(labindex,1):DD.threads.tracks(labindex,2);
     for jj=JJ;
-
+        
         T=disp_progress('calc',T,numel(JJ),100);
         %% get track
         [TT]=getTrack(DD,jj); if isempty(TT),continue;end
-
+        
         if numel(TT.eddy.track)<2
             continue
         end
-
+        
         % TEMP TODO
         for ee=1:numel(TT.eddy.track)
             if isfield(TT.eddy.track(ee).chelt,'A')
@@ -64,20 +65,20 @@ function [MinMax,map]=spmd_block(DD,map,MinMax)
         end
         %% resort tracks for output
         [MinMax]=resortTracks(DD,MinMax,TT,senii);
-
+        
     end
     %% gather
     labBarrier;
     save(sprintf('ANAspmdCatch%02d.mat',labindex));
     labBarrier;
-
+    
     MinMax=gcat(MinMax,1,1);
     map=gcat(map,1,1);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [map,velpp]=MeanStdStuff(eddy,map,DD)
-
+    
     [map.strctr, eddy]=TRstructure(map,eddy);
     if isempty(eddy.track)
         map = [];
@@ -96,10 +97,10 @@ function [map,velpp]=MeanStdStuff(eddy,map,DD)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACs,Cs] = netVels(DD,map)
-
-     tmp = load(DD.path.meanU.file);
-     velmean = tmp.means.small.zonal;
-
+    
+    tmp = load(DD.path.meanU.file);
+    velmean = tmp.means.small.zonal;
+    
     ACs =	full(map.AntiCycs.vel.zonal.mean) -velmean;
     Cs  =	full(map.Cycs.vel.zonal.mean)     -velmean;
 end
@@ -116,11 +117,11 @@ function seq_body(DD)
     %% build zonal means
     map.zonMean = zonmeans(map,DD);
     %% build net vels
-    % TODO
-    %     if DD.switchs.netUstuff
-%     [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
-    %     end
-
+   
+%     if DD.switchs.netUstuff
+        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+%     end
+    
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
 end
@@ -138,7 +139,7 @@ function MinMax=resortTracks(DD,MinMax,TT,senii)
         %% get statistics for track
         [TT,MinMax]=getStats(TT,MinMax,collapsedField);
     end
-
+    
     %% save
     sendir=DD.FieldKeys.senses;
     outfile=[DD.path.analyzedTracks.(sendir{senii}).name,TT.fname];
@@ -200,7 +201,7 @@ function	amp=TRamp(map,eddy)
         ampN=extractdeepfield(eddy.track,['peak.amp.' a]);
         amp.(a)=uniqMedianStd(idx,ampN,amp.(a));
     end
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	radius=TRradius(map,eddy)
@@ -215,7 +216,7 @@ function	radius=TRradius(map,eddy)
         radius.(a)=uniqMedianStd(idx,radiusNa, radius.(a));
         b=B{jj};
         radius.(b)=protoInit(map.proto);
-
+        
         radiusNb=area2L(extractdeepfield(eddy.track,['chelt.area.' b]));
         radius.(b)=uniqMedianStd(idx,radiusNb, radius.(b));
     end

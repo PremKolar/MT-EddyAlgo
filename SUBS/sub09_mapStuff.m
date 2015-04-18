@@ -18,7 +18,7 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
     for ss=1:2
         sen=senses{ss};
         senAlt=sensesAlt{ss};
-
+% 
 %         close all
 %         VV=II.maps.(sen).radius.mean.mean/1000;
 %         VV = eurocen(VV,loMin);
@@ -26,8 +26,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
 %         colormap([hsv(14)]);
 %         clm=[20 160 8];
 %         decorate(clm,T,senAlt,'$\sigma$','km',0,1);
-% %         axis([-180 180 -80 90]);
-%         axis([-180 180 -80 10]);
+%         axis([-180 180 -80 90]);
+% %         axis([-180 180 -80 10]);
 %         if ss==2
 %             colorbar('hide')
 %             set(gca,'yTickLabel','')
@@ -36,11 +36,20 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
 %         sleep(1)
 %         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
 %         sleep(1)
-        %%
-        
-        
-       
-        close all
+%         %%
+%         
+%         
+%        
+    
+
+% VV.ac = eurocen(II.maps.AntiCycs.vel.zonal.mean,loMin);
+% VV.c = eurocen(II.maps.AntiCycs.vel.zonal.mean,loMin);
+% VV.mean = full(VV.ac + VV.c)/2*100;
+% save pop1IIVVmean VV
+% %   pcolor(lo,la,VV.mean);shading flat;
+
+
+close all
         VV=II.maps.(sen).vel.zonal.mean*100;
         
         
@@ -51,8 +60,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
         decorate([-20 5 6],T,senAlt,'Zonal velocity','cm/s',0,1);
-     axis([-180 180 -40 -30]);
-%         axis([-180 180 -80 10]);
+%      axis([-180 180 -40 -30]);
+        axis([-180 180 -80 90]);
 %         axis([40 65 -50 -25 ]);
         if ss==2
             colorbar('hide')
@@ -73,8 +82,8 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         ce=(winter(4));
         colormap([cw;cm;ce(:,[1 3 2])])
         decorate([-20 5 6],T,senAlt,'Net Zonal velocity','cm/s',0,1);
-%         axis([-180 180 -80 10]);
-        axis([40 65 -50 -25 ]);
+        axis([-180 180 -80 90]);
+%         axis([40 65 -50 -25 ]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')

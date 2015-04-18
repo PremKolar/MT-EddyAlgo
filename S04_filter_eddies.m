@@ -9,12 +9,12 @@ function S04_filter_eddies
     %% init
     DD = initialise('conts',mfilename);
     DD.map.window = getfieldload(DD.path.windowFile,'window');
-    
+
     % TODO
     fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
     save fopt fopt
-    
-    
+
+
     rossby = getRossbyPhaseSpeedAndRadius(DD);
     %% spmd
     main(DD,rossby);
@@ -44,7 +44,7 @@ function spmd_body(DD,rossby)
         %% save
         save_eddies(EE);
     end
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE,skip] = work_day(DD,JJ,rossby)
@@ -62,12 +62,12 @@ function [EE,skip] = work_day(DD,JJ,rossby)
         skip = catchCase(failed,EE.filename.cont);
         return;
     end
-    
+
     if numel(cont.all)==0
-        
+
         return % TODO
     end
-    
+
     %% put all eddies into a struct: ee(number of eddies).characteristica
     ee = eddies2struct(cont.all,DD.thresh.corners);
     %% remember date
@@ -163,11 +163,9 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
-    if DD.switchs.chelt
+
         winincrease=6;  % TODO
-    else
-        winincrease=6;
-    end
+
     [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,MAP);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
@@ -181,16 +179,16 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% check for correct sense
     [pass.CR_sense,ee.sense] = CR_sense(zoom,direction,ee.level);
     if ~pass.CR_sense, return, end;
-    
-    
+
+
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
-    
+
     %% calculate area with respect to contour
     RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
     [ee.area,pass.Area] = Area(ee,zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
-    
+
     %% filter eddies not circle - like enough
     [pass.CR_Shape,ee.iq, ee.cheltshape] = CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
     if ~pass.CR_Shape, return, end;
@@ -198,9 +196,9 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
     %% CHELT OP
-    
+
     ee.chelt = cheltStuff(ee,zoom);
-    
+
     %% get profiles
     [ee.profiles,pass.CR_radius,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
     if ~pass.CR_radius, return, end;
@@ -252,15 +250,15 @@ function  [ch]=cheltStuff(ee,zoom)
     ch.area.Le   = polyarea(x,y);
     ch.area.L    = ch.area.Le/sqrt(2);
     ch.area.Leff = ee.area.intrp;
-    
+
     %
     %     s The right panel shows meridional proﬁles of the
     % average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
     % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
     % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
     % (1998).
-    
-    
+
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL = getLocalRossyRadius(rossbyL,coor)
@@ -395,7 +393,7 @@ function RS = getRossbyPhaseSpeedAndRadius(DD)
         RS.c  = [];
         RS.Lr = [];
     end
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [centroid] = AreaCentroid(zoom,Y)
@@ -487,9 +485,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
     [pathstr, ~, ~] = fileparts(EE.filename.self);
-    
+
     tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
-    
+
     save(tempname,'-v7','-struct','EE');
     system(['mv ' tempname ' ' EE.filename.self]);
     %save(EE.filename.self,'-struct','EE')
@@ -500,13 +498,13 @@ function [area,pass] = Area(ee,z,rossbyL,scaleThresh,minLr)
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
-    
+
     %% better
     f = ee.fourierCont;
     x =  feval(f.x,f.II) *1000;
     y =  feval(f.y,f.II) *1000;
     area.intrp = polyarea(x,y);
-    
+
     %%
     rossbyL(rossbyL<minLr) = minLr;    % correct for min value
     area.RadiusOverRossbyL = sqrt(area.intrp/pi)/rossbyL;
@@ -566,13 +564,13 @@ function [ellipse] = EDDyEllipse(ee,mask)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outIdx] = avoidLand(ssh,peak)
-    
+
     land = reshape(isnan([nan reshape(ssh,1,[]) nan]),1,[]);
     ii = [1 1:numel(ssh) numel(ssh)];
     a = ii(find( ii <= peak & land,1,'last') + 1) ;
     b = ii(find( ii >= peak & land,1,'first') - 1) ;
     outIdx = a:b;
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
@@ -609,7 +607,7 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
     %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
     f.fit.type  = sprintf('fourier%d',fourierOrder);
-    
+
     f.fit.x.ssh = fourierFit_WaitForLicense(s.x.dist, (s.x.ssh),f.fit.type);
     f.fit.y.ssh = fourierFit_WaitForLicense(s.y.dist, (s.y.ssh),f.fit.type);
     %%
@@ -658,11 +656,11 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     radius.coor.xeast = halfidx(x.idx,x.sigma(2));
     radius.coor.ysouth = halfidx(y.idx,y.sigma(1));
     radius.coor.ynorth = halfidx(y.idx,y.sigma(2));
-    
+
     if radius.mean >= thresh, pass = true; else pass = false; end
-    
+
     %%
-    
+
     %
     %     clf
     %     nrmc = @(x) (x - min(x))/max(x - min(x));
@@ -679,7 +677,7 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     %     plot(y.idx([y.peakLow y.peakLow]),[0 1],'r')
     %     saveas(gcf,['AA',num2str(now),'.png'])
     %%
-    
+
     %
     %     figure(1000)
     %     xy = 'y';
@@ -701,7 +699,7 @@ function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
     %     plot(prof.fit.(xy).UVd	);grid minor;axis  tight
     %     %
     %%
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [A] = findSigma(peak,prof,yx)
@@ -770,7 +768,7 @@ end
 
 
 function [circum,f] = contourLengthIntrp(fopt,x,y)
-    
+
     f.ii = linspace(0,2*pi,numel(x))';
     f.II = linspace(0,2*pi,360)';
     f.x = fit(f.ii,x,'smoothingspline',fopt);
@@ -787,10 +785,10 @@ function [circum,f] = EDDyCircumference(z)
     ilin = z.coor.int.lin;
     x = z.fields.km_x(ilin);
     y = z.fields.km_y(ilin);
-    
+
     [circum,f] = contourLengthIntrp(fopt,x,y);
     circum = circum * 1000;
-    
+
     %     f.ii = linspace(0,2*pi,numel(x))';
     %     f.II = linspace(0,2*pi,360)';    %
     %     f.x = fit(f.ii,x,'smoothingspline',fopt);
@@ -806,7 +804,7 @@ function [circum,f] = EDDyCircumference(z)
     %     end
     %
     %     circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
-    
+
     % 	%%
     % 	clf
     % 	figure(1)
@@ -859,7 +857,7 @@ function fields_out = EDDyCut_init(win,ssh,z)
     fields_out.km_x = deg2km(fields_out.km_x);
     %%
     fields_out.km_y = deg2km(cumsum(diff(fields_out.lat([1 1:end],:),1,1),1));
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [z,passout] = get_window_limits(coor,enlargeFac,map)
@@ -896,7 +894,7 @@ function [z,passout] = get_window_limits(coor,enlargeFac,map)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [inout,M] = enlarge_window(inout,factor,dim)
-    
+
     half_width = round((diff(inout.x) + 1)*(factor - 1)/2);
     half_height = round((diff(inout.y) + 1)*(factor - 1)/2);
     inout.x(1) = max([1 inout.x(1) - half_width]);
@@ -904,7 +902,7 @@ function [inout,M] = enlarge_window(inout,factor,dim)
     inout.y(1) = max([1 inout.y(1) - half_height]);
     inout.y(2) = min([dim.y inout.y(2) + half_height]);
     [M.x,M.y] = meshgrid(inout.x(1):inout.x(end),inout.y(1):inout.y(end));
-    
+
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE] = eddies2struct(CC,thresh)

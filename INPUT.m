@@ -9,7 +9,7 @@ function DD=INPUT
     %    DD.template='aviso';
     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 22;
+    DD.threads.num = 24;
     DD.debugmode   = false;
     %     DD.debugmode = true;
     DD.overwrite   = false;
@@ -20,9 +20,12 @@ function DD=INPUT
     
 %     DD.time.till.str  = '19970403';
     
-        DD.time.from.str  = '19970405';
-            DD.time.till.str  = '20000704';
+%        DD.time.from.str  = '19970405';
+ %           DD.time.till.str  = '20000704';
     
+DD.time.from.str = '20000706'
+DD.time.till.str = '20061227'
+
     %     DD.time.till.str  = '20000701';
     
     %     DD.time.from.str  = '20050103'

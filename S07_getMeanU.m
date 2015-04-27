@@ -6,12 +6,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S07_getMeanU
     %% init
-    DD = initialise([],mfilename);
-     DD.map.window = getfieldload(DD.path.windowFile,'window');
-    %           save DD
-    %     load DD
+%     DD = initialise([],mfilename);
+%      DD.map.window = getfieldload(DD.path.windowFile,'window');
+%               save DD
+        load DD
+        
     %     if ~DD.switchs.netUstuff,return;end
     %% find files
+    
+    DD.parameters.meanUbot = 200;
+    
     [file] = findVelFiles(DD);
     %% get dims
     [d,pos,dim] = getDims(file,DD);

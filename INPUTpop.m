@@ -7,7 +7,7 @@ function DD=INPUTpop
     DD.path.raw.name='/scratch/uni/ifmto/u241194/DAILY/EULERIAN/SSH/';
     DD.path.OkuboWeiss.name='/scratch/uni/ifmto/u300065/FINAL/okuboWeiss/';
     %% map in keys
-    DD.map.out.binSize = 1; % eg 1 for 1 degree
+    DD.map.out.binSize = 0.1; % eg 1 for 1 degree
     DD.map.full3d.fname='GLB_t0.1_42l_CORE.yyyymm.tar';
     %     DD.map.in.fname='rho_yyyymmdd.nc';
     %     DD.map.in.LatLonDepthFile=[DD.path.raw.name 'LatLonDepth.nc'];
@@ -35,7 +35,7 @@ function DD=INPUTpop
     %% parameters
     DD.parameters.ssh_unitFactor = 100; % eg 100 if SSH data in cm, 1/10 if in deka m etc..
     DD.parameters.rossbySpeedFactor=1.75; % only relevant if cheltons method is used. eddy translation speed assumed factor*rossbyWavePhaseSpeed for tracking projections
-    DD.parameters.meanUtop = 800; % depth from which to take mean U top
+    DD.parameters.meanUtop = 1; % depth from which to take mean U top
     DD.parameters.meanUbot = 1000; % depth from which to take mean U bottom
     DD.parameters.meanUunit=100; %
     DD.parameters.minProjecDist=350e3; % (per week)  minimum linear_eccentricity*2 of ellipse (see chelton 2011)

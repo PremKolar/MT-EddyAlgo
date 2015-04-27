@@ -5,11 +5,14 @@
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S09_plotsNew
-    DD = initialise([],mfilename);
-     DD.map.window = getfieldload(DD.path.windowFile,'window');
+%     DD = initialise([],mfilename);
+%      DD.map.window = getfieldload(DD.path.windowFile,'window');
+     
+     load DD
+     
     ticks.rez=get(0,'ScreenPixelsPerInch');
     ticks.width=400;
-    ticks.height=150;
+    ticks.height=400;
     geo=DD.map.window.geo;
     %     ticks.y= round(linspace(geo.south,geo.north,5));
     ticks.y= [-70 -50 -30 0 30 50 70];
@@ -38,9 +41,9 @@ function S09_plotsNew
     save S09main II DD T
     %%
 %      sub09_trackstuff
-%     sub09_mapStuff   
+    sub09_mapStuff   
 %     sub09_histStuff
-    sub09_TPzStuff
+%     sub09_TPzStuff
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

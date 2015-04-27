@@ -6,10 +6,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
-    %     DD=initialise([],mfilename);
+%     DD=initialise([],mfilename);
     %
-    %     save DD
-    load DD
+%              save DD
+        load DD
     DD.map.window = getfieldload(DD.path.windowFile,'window');
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
 %     main(DD);
@@ -98,11 +98,32 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ACs,Cs] = netVels(DD,map)
     
-    tmp = load(DD.path.meanU.file);
-    velmean = tmp.means.small.zonal;
+%     tmp = load(DD.path.meanU.file);
+%     velmean = tmp.means.small.zonal;
+%     ACs =	full(map.AntiCycs.vel.zonal.mean) -velmean;
+%     Cs  =	full(map.Cycs.vel.zonal.mean)     -velmean;
+%     
+    tmp = load(strrep(DD.path.meanU.file,'meanU.mat','meanU1to1000.mat'));
+    velmean.oToOt = tmp.means.small.zonal;
+     tmp = load(strrep(DD.path.meanU.file,'meanU.mat','meanU1to2000.mat'));
+    velmean.oToTt = tmp.means.small.zonal;
+     tmp = load(strrep(DD.path.meanU.file,'meanU.mat','meanU1to200.mat'));
+    velmean.oToTh = tmp.means.small.zonal;
     
-    ACs =	full(map.AntiCycs.vel.zonal.mean) -velmean;
-    Cs  =	full(map.Cycs.vel.zonal.mean)     -velmean;
+    ACs.oToOt =	full(map.AntiCycs.vel.zonal.mean) -velmean.oToOt;
+    Cs.oToOt  =	full(map.Cycs.vel.zonal.mean)     -velmean.oToOt;
+    
+    ACs.oToTt =	full(map.AntiCycs.vel.zonal.mean) -velmean.oToTt ;
+    Cs.oToTt  =	full(map.Cycs.vel.zonal.mean)     -velmean.oToTt ;
+    
+    ACs.oToTh =	full(map.AntiCycs.vel.zonal.mean) -velmean.oToTh;
+    Cs.oToTh  =	full(map.Cycs.vel.zonal.mean)     -velmean.oToTh;
+    
+    
+    
+    
+    
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function seq_body(DD)
@@ -117,10 +138,10 @@ function seq_body(DD)
     %% build zonal means
     map.zonMean = zonmeans(map,DD);
     %% build net vels
-   
-%     if DD.switchs.netUstuff
-        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
-%     end
+    
+    %     if DD.switchs.netUstuff
+    [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+    %     end
     
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');
@@ -476,7 +497,7 @@ function ALL=comboAllMaps(map,DD)
                     ALL.(sen)=setfield(ALL.(sen),stdfields{1}{:},combo.std);
                 end
                 ALL.(sen).visits.all=ALL.(sen).visits.all + new.visits.all;
-                ALL.(sen).visits.single=ALL.(sen).visits.single+ new.visits.single;
+                ALL.(sen).visits.single=ALL.(sen).visits.single + new.visits.single;
             end
             old=ALL.(sen);
         end

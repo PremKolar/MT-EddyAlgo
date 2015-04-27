@@ -58,7 +58,7 @@ function preInits
     addpath(genpath('./'));  %#ok<*MCAP>
     %         warning on backtrace;
     warning('off','SNCTOOLS:nc_getall:dangerous');
-    rehash; clc;
+%     rehash; clc;
     format shortg;
     dbstop if error;
     set(0,'DefaultTextInterpreter', 'LaTeX');

@@ -9,23 +9,23 @@ function DD=INPUT
     %    DD.template='aviso';
     DD.template='pop';
     %% threads / debug
-    DD.threads.num = 24;
+    DD.threads.num = 8;
     DD.debugmode   = false;
     %     DD.debugmode = true;
     DD.overwrite   = false;
     %         DD.overwrite = true;
     %% time
-%     DD.time.from.str  = '19940105'; %first pop/avi
+    DD.time.from.str  = '19940105'; %first pop/avi
     %     DD.time.till.str  = '19940305';
     
-%     DD.time.till.str  = '19970403';
+    %     DD.time.till.str  = '19970403';
     
-%        DD.time.from.str  = '19970405';
- %           DD.time.till.str  = '20000704';
+    %        DD.time.from.str  = '19970405';
+    DD.time.till.str  = '20000704';
     
-DD.time.from.str = '20000706'
-DD.time.till.str = '20061227'
-
+    % DD.time.from.str = '20000706'
+    % DD.time.till.str = '20061227'
+    
     %     DD.time.till.str  = '20000701';
     
     %     DD.time.from.str  = '20050103'
@@ -41,8 +41,7 @@ DD.time.till.str = '20061227'
     DD.map.in.north =  80;
     
     
-    %% thresholds
-    
+    %% thresholds   
     DD.contour.step                = 0.01; % [SI]
     DD.thresh.radius               = 0; % [SI]
     DD.thresh.maxRadiusOverRossbyL = 4; %[ ]

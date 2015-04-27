@@ -37,10 +37,10 @@ function S09_plotsNew
     II=initStuff(DD);
     save S09main II DD T
     %%
-%      sub09_trackstuff
+     sub09_trackstuff
 %     sub09_mapStuff   
 %     sub09_histStuff
-    sub09_TPzStuff
+%     sub09_TPzStuff
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

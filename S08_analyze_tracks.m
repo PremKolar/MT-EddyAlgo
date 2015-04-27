@@ -6,13 +6,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % NEEDS COMPLETE REWRITE! way too complicated
 function S08_analyze_tracks
-    %     DD=initialise([],mfilename);
+    DD=initialise([],mfilename);
     %
-    %     save DD
-    load DD
+    %         save DD
+    %     load DD
     DD.map.window = getfieldload(DD.path.windowFile,'window');
     DD.threads.tracks=thread_distro(DD.threads.num,numel(DD.path.tracks.files));
-%     main(DD);
+    main(DD);
     seq_body(DD);
     %     conclude(DD);
 end
@@ -117,10 +117,10 @@ function seq_body(DD)
     %% build zonal means
     map.zonMean = zonmeans(map,DD);
     %% build net vels
-   
-%     if DD.switchs.netUstuff
-        [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
-%     end
+    
+    %     if DD.switchs.netUstuff
+    [map.AntiCycs.vel.net.mean,map.Cycs.vel.net.mean] = netVels(DD,map);
+    %     end
     
     %% save
     save([DD.path.analyzed.name,'maps.mat'],'-struct','map');

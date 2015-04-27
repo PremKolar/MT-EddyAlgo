@@ -58,9 +58,9 @@ function sub09_trackstuff
     %%
     fn=fnA;
     %%
-    save SaviI
-    velZonmeans(S,DD,II,T,fn.vel);
-%     velDPZonmeans(S,DD,II,T,fn.velDP);
+%     save SaviI
+%     velZonmeans(S,DD,II,T,fn.vel);
+    velDPZonmeans(S,DD,II,T,fn.velDP);
 %         scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -313,7 +313,7 @@ function h=velZonmeans(S,DD,II,T,fn)
     for cc=1:(numel(LAuniq))
         idx=LA==LAuniq(cc);
         visits(cc) = sum(idx);
-        if visits(cc) >= 10 % TODO!!!
+        if visits(cc) >= 100 % TODO!!!
             vvM(cc)=nanmedian(S.vel(idx));
             vvS(cc)=std(S.vel(idx));
             vvSkew(cc)=skewness(S.vel(idx));

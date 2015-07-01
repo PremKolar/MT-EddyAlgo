@@ -7,20 +7,20 @@
 % walks through all the contours and decides whether they qualify
 function S04_filter_eddies
     %% init
-
+    
     DD = initialise('conts',mfilename);
-    %     DD.threads.num = init_threads(DD.threads.num);
-    %
+    DD.map.window = getfieldload(DD.path.windowFile,'window');
+    
     % TODO
     fopt = fitoptions('Method','Smooth','SmoothingParam',0.99);
     save fopt fopt
-
-
+    
+    
     rossby = getRossbyPhaseSpeedAndRadius(DD);
     %% spmd
     main(DD,rossby);
     %% update infofile
-%     conclude(DD);
+    %     conclude(DD);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function main(DD,rossby)
@@ -45,7 +45,7 @@ function spmd_body(DD,rossby)
         %% save
         save_eddies(EE);
     end
-
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE,skip] = work_day(DD,JJ,rossby)
@@ -103,12 +103,12 @@ function [eddies, pass] = walkThroughContsVertically(ee,rossby,cut,DD,sense)
     %% init
     [eddyType,Zloop] = determineSense(DD.FieldKeys.senses,sense,numel(ee));
     %% loop
-%     Tv = disp_progress('init','running through contours vertically');
+    %     Tv = disp_progress('init','running through contours vertically');
     for kk = Zloop % dir dep. on sense. note: ee is sorted vertically
-%         Tv = disp_progress('disp',Tv,numel(Zloop),3);
+        %         Tv = disp_progress('disp',Tv,numel(Zloop),3);
         [pass(kk),ee_out] = run_eddy_checks(pass(kk),ee(kk),rossby,cut,DD,sense);
         if all(struct2array(pass(kk))), pp = pp + 1;
-            [eddies(pp),cut]=eddiesFoundOp(ee_out,cut);
+            [eddies(pp),cut]=eddiesFoundOp(ee_out,DD.map,cut);
         end
     end
     %% catch
@@ -117,44 +117,45 @@ function [eddies, pass] = walkThroughContsVertically(ee,rossby,cut,DD,sense)
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [eddy,cut]=eddiesFoundOp(eddy,cut)
+function [eddy,cut]=eddiesFoundOp(eddy,map,cut)
     %% flag respective overlap too
-    if strcmp(cut.window.type,'globe')
-        eddy.mask=flagOvrlp(eddy.mask,cut.window.dim.x);
+    if strcmp(map.window.type,'globe')
+        eddy.mask = flagOvrlp(eddy.mask,map.window.dim.x);
     end
     %% nan out ssh where eddy was found
     cut.fields.ssh(eddy.mask) = nan;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask = flagOvrlp(mask,X)
-	[Y,~]=size(mask);
-	[yi,xi] = find(mask);
-	[xi,yi] = wrapDoubles(X,xi,yi);
-	mask(drop_2d_to_1d(yi,xi,Y)) = true;
+    [Y,~]=size(mask);
+    [yi,xi] = find(mask);
+    [xi,yi] = wrapDoubles(X,xi,yi);
+    mask(drop_2d_to_1d(yi,xi,Y)) = true;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [xiAlt,yiAlt] = wrapDoubles(X,xi,yi)
-	xiAlt = [xi; xi - X; xi + X];
-	yiAlt = repmat(yi,3,1);
-	overShoot = xiAlt<1 | xiAlt>X;
-	xiAlt(overShoot)=[];
-	yiAlt(overShoot)=[];
+    xiAlt = [xi; xi - X; xi + X];
+    yiAlt = repmat(yi,3,1);
+    overShoot = xiAlt<1 | xiAlt>X;
+    xiAlt(overShoot)=[];
+    yiAlt(overShoot)=[];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [eddyType,Zloop] = determineSense(senseKeys,sense,NumEds)
-	switch sense
-		case - 1
-			eddyType = senseKeys{1}; % anti cycs
-			Zloop = 1:NumEds;
-		case 1
-			eddyType = senseKeys{2}; %  cycs
-			Zloop = NumEds: - 1:1;
-	end
+    switch sense
+        case - 1
+            eddyType = senseKeys{1}; % anti cycs
+            Zloop = 1:NumEds;
+        case 1
+            eddyType = senseKeys{2}; %  cycs
+            Zloop = NumEds: - 1:1;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
+    MAP = DD.map.window;
     %% pre-nan-check
-    pass.rim = CR_RimNan(ee.coor.int, cut.dim.y, cut.fields.ssh);
+    pass.rim = CR_RimNan(ee.coor.int, MAP.dim.y, cut.fields.ssh);
     if ~pass.rim, return, end;
     %% closed ring check
     [pass.CR_ClosedRing] = CR_ClosedRing(ee);
@@ -163,15 +164,13 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     pass.CR_2dEDDy = CR_2dEDDy(ee.coor.int);
     if ~pass.CR_2dEDDy, return, end;
     %% get coor for zoom cut
-    if DD.switchs.chelt
-        winincrease=6;  % TODO
-    else
-        winincrease=6;
-    end
-    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,DD.map.window);
+    
+    winincrease=6;  % TODO
+    
+    [zoom,pass.winlim] = get_window_limits(ee.coor,winincrease,MAP);
     if ~pass.winlim, return, end;
     %% cut out rectangle encompassing eddy range only for further calcs
-    zoom.fields = EDDyCut_init(cut.fields,zoom);
+    zoom.fields = EDDyCut_init(MAP,cut.fields,zoom);
     %% generate logical masks defining eddy interiour and outline
     zoom.mask = EDDyCut_mask(zoom);
     %% check for nans matlab.matwithin eddy
@@ -181,16 +180,16 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     %% check for correct sense
     [pass.CR_sense,ee.sense] = CR_sense(zoom,direction,ee.level);
     if ~pass.CR_sense, return, end;
-
-
+    
+    
     %% calc contour circumference in [SI]
     [ee.circum.si,ee.fourierCont] = EDDyCircumference(zoom);
-
+    
     %% calculate area with respect to contour
     RoL = getLocalRossyRadius(rossby.Lr,ee.coor.int);
     [ee.area,pass.Area] = Area(ee,zoom,RoL,DD.thresh.maxRadiusOverRossbyL,DD.thresh.minRossbyRadius);
     if ~pass.Area && DD.switchs.maxRadiusOverRossbyL, return, end;
-
+    
     %% filter eddies not circle - like enough
     [pass.CR_Shape,ee.iq, ee.cheltshape] = CR_Shape(zoom,ee,DD.thresh.shape,DD.switchs);
     if ~pass.CR_Shape, return, end;
@@ -198,11 +197,11 @@ function [pass,ee] = run_eddy_checks(pass,ee,rossby,cut,DD,direction)
     [pass.CR_AmpPeak,ee.peak,zoom.ssh_BasePos] = CR_AmpPeak(ee,zoom,DD.thresh.amp);
     if ~pass.CR_AmpPeak, return, end;
     %% CHELT OP
-
+    
     ee.chelt = cheltStuff(ee,zoom);
-
+    
     %% get profiles
-    [ee.profiles,pass.CR_radius,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder);
+    [ee.profiles,pass.CR_radius,f] = EDDyProfiles(ee,zoom,DD.parameters.fourierOrder); %#ok<ASGLU>
     if ~pass.CR_radius, return, end;
     %% get radius according to max UV ie min vort
     [ee.radius,pass.CR_radius] = EDDyRadiusFromUV(ee.peak.z, ee.profiles,DD.thresh.radius);
@@ -252,26 +251,25 @@ function  [ch]=cheltStuff(ee,zoom)
     ch.area.Le   = polyarea(x,y);
     ch.area.L    = ch.area.Le/sqrt(2);
     ch.area.Leff = ee.area.intrp;
-
-%
-%     s The right panel shows meridional proﬁles of the
-% average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
-% folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
-% AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
-% (1998).
-
-
+    
+    %
+    %     s The right panel shows meridional proﬁles of the
+    % average (solid line) and the interquartile range of the distribution of Ls (gray shading) in 1° latitude bins. The long dashed line is the meridional proﬁle of the average of the e-
+    % folding scale Le of a Gaussian approximation of each eddy (see Appendix B.3). The short dashed line represents the 0.4° feature resolution limitation of the SSH ﬁelds of the
+    % AVISO Reference Series for the zonal direction (see Appendix A.3) and the dotted line is the meridional proﬁle of the average Rossby radius of deformation from Chelton et al.
+    % (1998).
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RoL = getLocalRossyRadius(rossbyL,coor)
-	[Y,X] = size(rossbyL);
-	x = round(coor.x);
-	y = round(coor.y);
-	x(x<1) = 1;
-	x(x>X) = X;
-	y(y<1) = 1;
-	y(y>Y) = Y;
-	RoL = nanmedian(rossbyL(drop_2d_to_1d(y,x,Y)));
+    [Y,X] = size(rossbyL);
+    x = round(coor.x);
+    y = round(coor.y);
+    x(x<1) = 1;
+    x(x>X) = X;
+    y(y<1) = 1;
+    y(y>Y) = Y;
+    RoL = nanmedian(rossbyL(drop_2d_to_1d(y,x,Y)));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,sense] = CR_sense(zoom,direc,level)
@@ -295,41 +293,41 @@ function [pass,sense] = CR_sense(zoom,direc,level)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function pass = CR_RimNan(coor, Y, ssh)
-	pass = true;
-	if any(isnan(ssh(drop_2d_to_1d(coor.y, coor.x, Y)))), pass = false; end
+    pass = true;
+    if any(isnan(ssh(drop_2d_to_1d(coor.y, coor.x, Y)))), pass = false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,peak,base] = CR_AmpPeak(ee,z,thresh)
-	pass = false;
-	peak.mean_ssh = mean(z.fields.ssh(z.mask.filled));
-	%% make current level zero level and zero out everything else
-	base = poslin( - ee.sense.num*(z.fields.ssh - ee.level));  % TODO, make more exact
-	base(~z.mask.filled) = 0;
-	%% amplitude
-	[peak.amp.to_contour,peak.lin] = max(base(:));
-	[peak.z.y,peak.z.x] = raise_1d_to_2d(z.dim.y, peak.lin);
-	peak.amp.to_mean = z.fields.ssh(peak.lin) - peak.mean_ssh;
-	%% coor in full map
-	peak.y = peak.z.y + z.limits.y(1) - 1;
-	peak.x = peak.z.x + z.limits.x(1) - 1;
-	%% pass check
-	if peak.amp.to_contour >= thresh,	pass = true; 	end
-	%% avoid peaks on bndry
-	if any([peak.z.y==[1 z.dim.y] peak.z.x==[1 z.dim.x]]), pass = false;end
+    pass = false;
+    peak.mean_ssh = mean(z.fields.ssh(z.mask.filled));
+    %% make current level zero level and zero out everything else
+    base = poslin( - ee.sense.num*(z.fields.ssh - ee.level));  % TODO, make more exact
+    base(~z.mask.filled) = 0;
+    %% amplitude
+    [peak.amp.to_contour,peak.lin] = max(base(:));
+    [peak.z.y,peak.z.x] = raise_1d_to_2d(z.dim.y, peak.lin);
+    peak.amp.to_mean = z.fields.ssh(peak.lin) - peak.mean_ssh;
+    %% coor in full map
+    peak.y = peak.z.y + z.limits.y(1) - 1;
+    peak.x = peak.z.x + z.limits.x(1) - 1;
+    %% pass check
+    if peak.amp.to_contour >= thresh,	pass = true; 	end
+    %% avoid peaks on bndry
+    if any([peak.z.y==[1 z.dim.y] peak.z.x==[1 z.dim.x]]), pass = false;end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,IQ,chelt] = CR_Shape(z,ee,thresh,switchs)
-	[passes.iq,IQ] = IsopQuo(ee,thresh.iq);
-	[passes.chelt,chelt] = chelton_shape(z,ee);
-	if switchs.IQ && ~switchs.chelt
-		pass = passes.iq;
-	elseif switchs.chelt && ~switchs.IQ
-		pass = passes.chelt;
-	elseif switchs.chelt && switchs.IQ
-		pass = passes.chelt && passes.iq;
-	else
-		error('choose at least one shape method (IQ or chelton method in input_vars switchs section)') %#ok<*ERTAG>
-	end
+    [passes.iq,IQ] = IsopQuo(ee,thresh.iq);
+    [passes.chelt,chelt] = chelton_shape(z,ee);
+    if switchs.IQ && ~switchs.chelt
+        pass = passes.iq;
+    elseif switchs.chelt && ~switchs.IQ
+        pass = passes.chelt;
+    elseif switchs.chelt && switchs.IQ
+        pass = passes.chelt && passes.iq;
+    else
+        error('choose at least one shape method (IQ or chelton method in input_vars switchs section)') %#ok<*ERTAG>
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,chelt] = chelton_shape(z,ee)
@@ -352,74 +350,73 @@ function [pass,chelt] = chelton_shape(z,ee)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass,iq] = IsopQuo(ee,thresh)
-	%% isoperimetric quotient
-	getIQ = @(area,circum) 4*pi*area/circum^2;
-	iq = getIQ(ee.area.intrp,ee.circum.si);
-	%%
-	if iq >= thresh, pass = true; else pass = false; end
+    %% isoperimetric quotient
+    getIQ = @(area,circum) 4*pi*area/circum^2;
+    iq = getIQ(ee.area.intrp,ee.circum.si);
+    %%
+    if iq >= thresh, pass = true; else pass = false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass] = CR_2dEDDy(coor)
-	if (max(coor.x) - min(coor.x)<2) || (max(coor.y) - min(coor.y)<2)
-		pass = false;
-	else
-		pass = true;
-	end
+    if (max(coor.x) - min(coor.x)<2) || (max(coor.y) - min(coor.y)<2)
+        pass = false;
+    else
+        pass = true;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass] = CR_Nan(z)
-	ssh = z.fields.ssh(z.mask.filled);
-	if ~any(isnan(ssh(:))), pass = true; else pass = false; end
+    ssh = z.fields.ssh(z.mask.filled);
+    if ~any(isnan(ssh(:))), pass = true; else pass = false; end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [pass] = CR_ClosedRing(ee)
-	x = ee.coor.int.x;
-	y = ee.coor.int.y;
-	if abs(x(1) - x(end))>1 || abs(y(1) - y(end))>1;
-		pass = false;
-	else
-		pass = true;
-	end
+    x = ee.coor.int.x;
+    y = ee.coor.int.y;
+    if abs(x(1) - x(end))>1 || abs(y(1) - y(end))>1;
+        pass = false;
+    else
+        pass = true;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % others
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function RS = getRossbyPhaseSpeedAndRadius(DD)
-	if DD.switchs.RossbyStuff
-		RS.Lr = getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
-		RS.c  = getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
-		% TODO docu:
-		RS.c(abs(RS.c) > DD.thresh.phase) = sign(RS.c(abs(RS.c) > DD.thresh.phase)) * abs(DD.thresh.phase);
-	else
-		warning('No Rossby Radius available. Ignoring upper constraint on eddy scale!') %#ok<*WNTAG>
-		RS.c  = [];
-		RS.Lr = [];
-	end
-
+    if DD.switchs.RossbyStuff
+        RS.Lr = getfield(load([DD.path.Rossby.name 'RossbyRadius.mat']),'data');
+        RS.c  = getfield(load([DD.path.Rossby.name 'RossbyPhaseSpeed.mat']),'data');
+        % TODO docu:
+        RS.c(abs(RS.c) > DD.thresh.phase) = sign(RS.c(abs(RS.c) > DD.thresh.phase)) * abs(DD.thresh.phase);
+    else
+        warning('No Rossby Radius available. Ignoring upper constraint on eddy scale!') %#ok<*WNTAG>
+        RS.c  = [];
+        RS.Lr = [];
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [centroid] = AreaCentroid(zoom,Y)
-	%% factor each grid cell equally (compare to CenterOfVolume())
-	ssh = double(logical(zoom.ssh_BasePos));
-	%% get centroid:   COVs = \frac{1}{A} \sum_{i = 1}^n 1 \vec{x}_i,
-	[XI,YI] = meshgrid(1:size(ssh,2), 1:size(ssh,1));
-	y = sum(nansum(ssh.*YI));
-	x = sum(nansum(ssh.*XI));
-	yz = (y/nansum(ssh(:)));
-	xz = (x/nansum(ssh(:)));
-	y = yz + double(zoom.limits.y(1)) - 1;
-	x = xz + double(zoom.limits.x(1)) - 1;
-	centroid.xz = xz;
-	centroid.yz = yz;
-	centroid.x = x;
-	centroid.y = y;
-	centroid.lin = drop_2d_to_1d(y,x,Y);
-	centroid.linz = drop_2d_to_1d(yz,xz,size(ssh,1));
+    %% factor each grid cell equally (compare to CenterOfVolume())
+    ssh = double(logical(zoom.ssh_BasePos));
+    %% get centroid:   COVs = \frac{1}{A} \sum_{i = 1}^n 1 \vec{x}_i,
+    [XI,YI] = meshgrid(1:size(ssh,2), 1:size(ssh,1));
+    y = sum(nansum(ssh.*YI));
+    x = sum(nansum(ssh.*XI));
+    yz = (y/nansum(ssh(:)));
+    xz = (x/nansum(ssh(:)));
+    y = yz + double(zoom.limits.y(1)) - 1;
+    x = xz + double(zoom.limits.x(1)) - 1;
+    centroid.xz = xz;
+    centroid.yz = yz;
+    centroid.x = x;
+    centroid.y = y;
+    centroid.lin = drop_2d_to_1d(y,x,Y);
+    centroid.linz = drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     %% get rossby wave phase speed
-    rU = rossbyU(trackref.lin);   
+    rU = rossbyU(trackref.lin);
     %% get projected distance for one day (rossbySpeedFactor * dt*rU  as in chelton 2011)
     oneDayInSecs = 24*60^2;
     dist.east = DD.parameters.minProjecDist / 7;
@@ -434,8 +431,8 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     ax.maj = (dist.east + dist.west)/2;
     ax.min = dist.y;
     %% get dx/dy at that eddy pos
-    dx = cut.fields.dx(trackref.lin);
-    dy = cut.fields.dy(trackref.lin);
+    dx = DD.map.window.dx(trackref.lin);
+    dy = DD.map.window.dy(trackref.lin);
     %% get major/minor semi - axes [increments]
     ax.majinc = ceil(ax.maj/dx);
     ax.mininc = ceil(ax.min/dy);
@@ -467,28 +464,28 @@ function [mask,trackref] = ProjectedLocations(rossbyU,cut,DD,trackref)
     mask.logical(drop_2d_to_1d(ellip.y,ellip.x,cut.dim.y)) = true;
     mask.logical = sparse(imfill(mask.logical,double([yi.center xi.center]),4));
     %% flag respective overlap too
-    if strcmp(cut.window.type,'globe')
-        mask.logical =flagOvrlp(mask.logical,cut.window.dim.x);
+    if strcmp(DD.map.window.type,'globe')
+        mask.logical =flagOvrlp(mask.logical, DD.map.window.dim.x );
     end
     mask.lin = find(mask.logical);
     mask  =  rmfield(mask,'logical'); % redundant
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function TR = getTrackRef(ee,tr)
-	switch tr
-		case 'centroid'
-			TR = ee.centroid;
-		case 'CenterOfVolume'
-			TR = ee.volume.center;
-		case 'peak'
-			TR = ee.peak;
-	end
+    switch tr
+        case 'centroid'
+            TR = ee.centroid;
+        case 'CenterOfVolume'
+            TR = ee.volume.center;
+        case 'peak'
+            TR = ee.peak;
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function save_eddies(EE)
     [pathstr, ~, ~] = fileparts(EE.filename.self);
-    % TODO TEMP !! (...02d_eddieB.mat)
-    tempname = sprintf('%s/temp-labid-%02d_eddieB.mat',pathstr,labindex);
+    
+    tempname = sprintf('%s/temp-labid-%02d_eddie.mat',pathstr,labindex);
     
     save(tempname,'-v7','-struct','EE');
     system(['mv ' tempname ' ' EE.filename.self]);
@@ -500,13 +497,13 @@ function [area,pass] = Area(ee,z,rossbyL,scaleThresh,minLr)
     area = struct;
     area.pixels = (z.fields.dx.*z.fields.dy).*(z.mask.inside + z.mask.rim_only/2);  % include 'half of rim'
     area.total = sum(area.pixels(:));
-
+    
     %% better
     f = ee.fourierCont;
     x =  feval(f.x,f.II) *1000;
     y =  feval(f.y,f.II) *1000;
     area.intrp = polyarea(x,y);
-
+    
     %%
     rossbyL(rossbyL<minLr) = minLr;    % correct for min value
     area.RadiusOverRossbyL = sqrt(area.intrp/pi)/rossbyL;
@@ -518,61 +515,60 @@ function [area,pass] = Area(ee,z,rossbyL,scaleThresh,minLr)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function	[mask_out] = EDDyPackMask(mask_in,limits,dims)
-	mask_out = false(dims.y,dims.x);
-	mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2)) = mask_in;
+    mask_out = false(dims.y,dims.x);
+    mask_out(limits.y(1):limits.y(2),limits.x(1):limits.x(2)) = mask_in;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [amp] = EDDyAmp2Ellipse(ee,zoom)
-	%% mean amplitude with respect to ellipse contour
-	halfstep = @(data,y,x,dy,dx) mean([data(y,x) data(y + dy*2,x + dx*2)]);
-	xa = double(ee.radius.coor.xwest);
-	xb = double(ee.radius.coor.xeast);
-	ya = double(ee.radius.coor.ysouth);
-	yb = double(ee.radius.coor.ynorth);
-	cx = double(ee.peak.z.x);
-	cy = double(ee.peak.z.y);
-	clear ssh
-	ssh.west = halfstep(zoom.fields.ssh,cy,xa,0,.5);
-	ssh.east = halfstep(zoom.fields.ssh,cy,xb,0, - .5);
-	ssh.south = halfstep(zoom.fields.ssh,ya,cx,.5,0);
-	ssh.north = halfstep(zoom.fields.ssh,yb,cx, - .5,0);
-	ssh.mean = mean(struct2array(ssh));
-	amp = abs(zoom.fields.ssh(ee.peak.z.y,ee.peak.z.x) - ssh.mean);
+    %% mean amplitude with respect to ellipse contour
+    halfstep = @(data,y,x,dy,dx) mean([data(y,x) data(y + dy*2,x + dx*2)]);
+    xa = double(ee.radius.coor.xwest);
+    xb = double(ee.radius.coor.xeast);
+    ya = double(ee.radius.coor.ysouth);
+    yb = double(ee.radius.coor.ynorth);
+    cx = double(ee.peak.z.x);
+    cy = double(ee.peak.z.y);
+    clear ssh
+    ssh.west = halfstep(zoom.fields.ssh,cy,xa,0,.5);
+    ssh.east = halfstep(zoom.fields.ssh,cy,xb,0, - .5);
+    ssh.south = halfstep(zoom.fields.ssh,ya,cx,.5,0);
+    ssh.north = halfstep(zoom.fields.ssh,yb,cx, - .5,0);
+    ssh.mean = mean(struct2array(ssh));
+    amp = abs(zoom.fields.ssh(ee.peak.z.y,ee.peak.z.x) - ssh.mean);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ellipse] = EDDyEllipse(ee,mask)
-	%% get center, minor and major axis for ellipse
-	xa = ee.radius.coor.xwest;
-	xb = ee.radius.coor.xeast;
-	ya = ee.radius.coor.ysouth;
-	yb = ee.radius.coor.ynorth;
-	xm = (mean([xa,xb]));
-	ym = (mean([ya,yb]));
-	axisX = (double(xb - xa))/2;
-	axisY = (double(yb - ya))/2;
-	%% init ellipse mask
-	ellipse = false(mask.dim.y,mask.dim.x);
-	%% get ellipse coor
-	linsdeg = (linspace(0,2*pi,2*sum(struct2array(mask.dim))));
-	ellipseX = round(axisX*cos(linsdeg) + xm);
-	ellipseY = round(axisY*sin(linsdeg) + ym);
-	ellipseX(ellipseX>mask.dim.x) = mask.dim.x;
-	ellipseY(ellipseY>mask.dim.y) = mask.dim.y;
-	ellipseX(ellipseX<1) = 1;
-	ellipseY(ellipseY<1) = 1;
-	xlin = unique(drop_2d_to_1d(ellipseY,ellipseX,mask.dim.y));
-	%% draw into mask
-	ellipse(xlin) = true;
+    %% get center, minor and major axis for ellipse
+    xa = ee.radius.coor.xwest;
+    xb = ee.radius.coor.xeast;
+    ya = ee.radius.coor.ysouth;
+    yb = ee.radius.coor.ynorth;
+    xm = (mean([xa,xb]));
+    ym = (mean([ya,yb]));
+    axisX = (double(xb - xa))/2;
+    axisY = (double(yb - ya))/2;
+    %% init ellipse mask
+    ellipse = false(mask.dim.y,mask.dim.x);
+    %% get ellipse coor
+    linsdeg = (linspace(0,2*pi,2*sum(struct2array(mask.dim))));
+    ellipseX = round(axisX*cos(linsdeg) + xm);
+    ellipseY = round(axisY*sin(linsdeg) + ym);
+    ellipseX(ellipseX>mask.dim.x) = mask.dim.x;
+    ellipseY(ellipseY>mask.dim.y) = mask.dim.y;
+    ellipseX(ellipseX<1) = 1;
+    ellipseY(ellipseY<1) = 1;
+    xlin = unique(drop_2d_to_1d(ellipseY,ellipseX,mask.dim.y));
+    %% draw into mask
+    ellipse(xlin) = true;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [outIdx] = avoidLand(ssh,peak)
-
-	land = reshape(isnan([nan reshape(ssh,1,[]) nan]),1,[]);
-	ii = [1 1:numel(ssh) numel(ssh)];
-	a = ii(find( ii <= peak & land,1,'last') + 1) ;
-	b = ii(find( ii >= peak & land,1,'first') - 1) ;
-	outIdx = a:b;
-
+    land = reshape(isnan([nan reshape(ssh,1,[]) nan]),1,[]);
+    ii = [1 1:numel(ssh) numel(ssh)];
+    a = ii(find( ii <= peak & land,1,'last') + 1) ;
+    b = ii(find( ii >= peak & land,1,'first') - 1) ;
+    outIdx = a:b;
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
@@ -600,8 +596,8 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
             f.(xy)		 = spline(prof.(xy).dist',prof.(xy).ssh');
             s.(xy).ssh = (ppval(f.(xy), s.(xy).dist));
         end
-    catch me
-%         disp(me.message) % non unique data site.. probably at weird land situations TODO!!
+    catch me %#ok<NASGU>
+        %         disp(me.message) % non unique data site.. probably at weird land situations TODO!!
         pass = false;
         s = [];f = [];
         return
@@ -609,7 +605,7 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
     %% intrp versions
     fs = @(diflevel,arg,val) diffCentered(diflevel,arg,val)';
     f.fit.type  = sprintf('fourier%d',fourierOrder);
-
+    
     f.fit.x.ssh = fourierFit_WaitForLicense(s.x.dist, (s.x.ssh),f.fit.type);
     f.fit.y.ssh = fourierFit_WaitForLicense(s.y.dist, (s.y.ssh),f.fit.type);
     %%
@@ -645,95 +641,95 @@ function [s,pass,f] = EDDyProfiles(ee,z,fourierOrder)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [radius,pass] = EDDyRadiusFromUV(peak,prof,thresh)
-	%%
-	[x] = findSigma(peak,prof,'x');
-	[y] = findSigma(peak,prof,'y');
-	%%
-	radius.zonal = diff(x.dis([x.sigma - .5]))/2;
-	radius.meridional = diff(y.dis([y.sigma - .5]))/2;
-	radius.mean = mean([radius.zonal;radius.meridional]);
-	%% coors on ori grid
-	halfidx = @(idx,sig) round(mean(idx([sig - .5 sig + .5])));
-	radius.coor.xwest = halfidx(x.idx,x.sigma(1));
-	radius.coor.xeast = halfidx(x.idx,x.sigma(2));
-	radius.coor.ysouth = halfidx(y.idx,y.sigma(1));
-	radius.coor.ynorth = halfidx(y.idx,y.sigma(2));
-
-	if radius.mean >= thresh, pass = true; else pass = false; end
-
-	%%
-
-	%
-	%     clf
-	%     nrmc = @(x) (x - min(x))/max(x - min(x));
-	%     figure(10000);clf;set(gcf,'visible','off');
-	%     subplot(211)
-	%     nrmdssh = nrmc(x.ssh);
-	%     plot(x.idx,nrmdssh); hold on
-	%     plot(x.idx([x.peakHigh x.peakHigh]),[0 1])
-	%     plot(x.idx([x.peakLow x.peakLow]),[0 1],'r')
-	%     subplot(212)
-	%     nrmdssh = nrmc(y.ssh);
-	%     plot(y.idx,nrmdssh); hold on
-	%     plot(y.idx([y.peakHigh y.peakHigh]),[0 1])
-	%     plot(y.idx([y.peakLow y.peakLow]),[0 1],'r')
-	%     saveas(gcf,['AA',num2str(now),'.png'])
-	%%
-
-	%
-	%     figure(1000)
-	%     xy = 'y';
-	%     nrmc = @(x) (x - min(x))/max(x - min(x));
-	%     spl = @(x,abl) spline(1:abl,x,linspace(1,abl,100));
-	%     pl = @(x,ab) plot(nrmc(spl(x(ab(1):ab(2)),diff(ab) + 1)));
-	%     subplot(131)
-	%     pl(prof.fit.(xy).sshf,y.sigma);hold on;	grid minor;axis off tight
-	%     subplot(132)
-	%     pl(prof.fit.(xy).UV,y.sigma	);hold on;	grid minor;axis off tight
-	%     subplot(133)
-	%     pl(prof.fit.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
-	%     figure(5000)
-	%     subplot(131)
-	%     plot(prof.fit.(xy).sshf);grid minor;axis  tight
-	%     subplot(132)
-	%     plot(prof.fit.(xy).UV	);grid minor;axis  tight
-	%     subplot(133)
-	%     plot(prof.fit.(xy).UVd	);grid minor;axis  tight
-	%     %
-	%%
-
+    %%
+    [x] = findSigma(peak,prof,'x');
+    [y] = findSigma(peak,prof,'y');
+    %%
+    radius.zonal = diff(x.dis([x.sigma - .5]))/2;
+    radius.meridional = diff(y.dis([y.sigma - .5]))/2;
+    radius.mean = mean([radius.zonal;radius.meridional]);
+    %% coors on ori grid
+    halfidx = @(idx,sig) round(mean(idx([sig - .5 sig + .5])));
+    radius.coor.xwest = halfidx(x.idx,x.sigma(1));
+    radius.coor.xeast = halfidx(x.idx,x.sigma(2));
+    radius.coor.ysouth = halfidx(y.idx,y.sigma(1));
+    radius.coor.ynorth = halfidx(y.idx,y.sigma(2));
+    
+    if radius.mean >= thresh, pass = true; else pass = false; end
+    
+    %%
+    
+    %
+    %     clf
+    %     nrmc = @(x) (x - min(x))/max(x - min(x));
+    %     figure(10000);clf;set(gcf,'visible','off');
+    %     subplot(211)
+    %     nrmdssh = nrmc(x.ssh);
+    %     plot(x.idx,nrmdssh); hold on
+    %     plot(x.idx([x.peakHigh x.peakHigh]),[0 1])
+    %     plot(x.idx([x.peakLow x.peakLow]),[0 1],'r')
+    %     subplot(212)
+    %     nrmdssh = nrmc(y.ssh);
+    %     plot(y.idx,nrmdssh); hold on
+    %     plot(y.idx([y.peakHigh y.peakHigh]),[0 1])
+    %     plot(y.idx([y.peakLow y.peakLow]),[0 1],'r')
+    %     saveas(gcf,['AA',num2str(now),'.png'])
+    %%
+    
+    %
+    %     figure(1000)
+    %     xy = 'y';
+    %     nrmc = @(x) (x - min(x))/max(x - min(x));
+    %     spl = @(x,abl) spline(1:abl,x,linspace(1,abl,100));
+    %     pl = @(x,ab) plot(nrmc(spl(x(ab(1):ab(2)),diff(ab) + 1)));
+    %     subplot(131)
+    %     pl(prof.fit.(xy).sshf,y.sigma);hold on;	grid minor;axis off tight
+    %     subplot(132)
+    %     pl(prof.fit.(xy).UV,y.sigma	);hold on;	grid minor;axis off tight
+    %     subplot(133)
+    %     pl(prof.fit.(xy).UVd,y.sigma	);hold on;	grid minor;axis off tight
+    %     figure(5000)
+    %     subplot(131)
+    %     plot(prof.fit.(xy).sshf);grid minor;axis  tight
+    %     subplot(132)
+    %     plot(prof.fit.(xy).UV	);grid minor;axis  tight
+    %     subplot(133)
+    %     plot(prof.fit.(xy).UVd	);grid minor;axis  tight
+    %     %
+    %%
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [A] = findSigma(peak,prof,yx)
-	% note that all profiles are 'high pressure' regardless of sense or
-	% hemisphere here
-	signJump.east = @(X) logical(diff(sign(X([1:end end]))));
-	signJump.west = @(X) logical(diff(sign(X([1   1:end]))));
-	%% x dir
-	A.dUVdx = prof.fit.(yx).UVd ;
-	A.UV = prof.fit.(yx).UV  ;
-	A.ssh = prof.fit.(yx).sshf;
-	A.dis = prof.(yx).dist   ;
-	A.idx = prof.(yx).idx    ;
-	A.intrpLen = length(A.idx);
-	[~,A.peakLow] = min(abs(A.idx - double(peak.(yx)))); % index of peak in high res coors
-	idxL = (1:length(A.ssh))';
-	switch sign(A.UV(A.peakLow))
-		case 1
-			A.peakHigh = find(signJump.east(A.UV) &  idxL >= A.peakLow ,1,'first');
-		case - 1
-			A.peakHigh = find(signJump.west(A.UV) &  idxL <= A.peakLow ,1,'last' );
-	end
-	% either left bndry or idx left of peak where dVdx crosses x - axis and slope of SSH is uphill
-	F.a = A.idx < peak.(yx);
-	F.b = signJump.west(A.dUVdx);
-	F.c = A.UV > 0;
-	A.sigma(1) = max([ 1  find(F.a & F.b & F.c, 1, 'last') ]) + .5;
-	% respectively for downhill side
-	F.a = A.idx > peak.(yx);
-	F.b = signJump.east(A.dUVdx); % right side of idx
-	F.c = A.UV < 0;
-	A.sigma(2) = min([ numel(A.idx) find(F.a & F.b & F.c, 1, 'first')]) - .5;
+    % note that all profiles are 'high pressure' regardless of sense or
+    % hemisphere here
+    signJump.east = @(X) logical(diff(sign(X([1:end end]))));
+    signJump.west = @(X) logical(diff(sign(X([1   1:end]))));
+    %% x dir
+    A.dUVdx = prof.fit.(yx).UVd ;
+    A.UV = prof.fit.(yx).UV  ;
+    A.ssh = prof.fit.(yx).sshf;
+    A.dis = prof.(yx).dist   ;
+    A.idx = prof.(yx).idx    ;
+    A.intrpLen = length(A.idx);
+    [~,A.peakLow] = min(abs(A.idx - double(peak.(yx)))); % index of peak in high res coors
+    idxL = (1:length(A.ssh))';
+    switch sign(A.UV(A.peakLow))
+        case 1
+            A.peakHigh = find(signJump.east(A.UV) &  idxL >= A.peakLow ,1,'first');
+        case - 1
+            A.peakHigh = find(signJump.west(A.UV) &  idxL <= A.peakLow ,1,'last' );
+    end
+    % either left bndry or idx left of peak where dVdx crosses x - axis and slope of SSH is uphill
+    F.a = A.idx < peak.(yx);
+    F.b = signJump.west(A.dUVdx);
+    F.c = A.UV > 0;
+    A.sigma(1) = max([ 1  find(F.a & F.b & F.c, 1, 'last') ]) + .5;
+    % respectively for downhill side
+    F.a = A.idx > peak.(yx);
+    F.b = signJump.east(A.dUVdx); % right side of idx
+    F.c = A.UV < 0;
+    A.sigma(2) = min([ numel(A.idx) find(F.a & F.b & F.c, 1, 'first')]) - .5;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [geo] = geocoor(zoom,volume)
@@ -749,28 +745,28 @@ function [geo] = geocoor(zoom,volume)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [volume] = CenterOfVolume(zoom,area,Y)
-	%% get "volume" of eddy
-	ssh = zoom.ssh_BasePos;
-	volume.total = mean(ssh(:))*area;
-	%% get center of volume  formula:   COVs = \frac{1}{M} \sum_{i = 1}^n m_i \vec{x}_i,
-	[XI,YI] = meshgrid(1:size(ssh,2), 1:size(ssh,1));
-	y = sum(nansum(ssh.*YI));
-	x = sum(nansum(ssh.*XI));
-	yz = (y/nansum(ssh(:)));
-	xz = (x/nansum(ssh(:)));
-	y = yz + double(zoom.limits.y(1)) - 1;
-	x = xz + double(zoom.limits.x(1)) - 1;
-	volume.center.xz = xz;
-	volume.center.yz = yz;
-	volume.center.x = x;
-	volume.center.y = y;
-	volume.center.lin = drop_2d_to_1d(y,x,Y);
-	volume.center.linz = drop_2d_to_1d(yz,xz,size(ssh,1));
+    %% get "volume" of eddy
+    ssh = zoom.ssh_BasePos;
+    volume.total = mean(ssh(:))*area;
+    %% get center of volume  formula:   COVs = \frac{1}{M} \sum_{i = 1}^n m_i \vec{x}_i,
+    [XI,YI] = meshgrid(1:size(ssh,2), 1:size(ssh,1));
+    y = sum(nansum(ssh.*YI));
+    x = sum(nansum(ssh.*XI));
+    yz = (y/nansum(ssh(:)));
+    xz = (x/nansum(ssh(:)));
+    y = yz + double(zoom.limits.y(1)) - 1;
+    x = xz + double(zoom.limits.x(1)) - 1;
+    volume.center.xz = xz;
+    volume.center.yz = yz;
+    volume.center.x = x;
+    volume.center.y = y;
+    volume.center.lin = drop_2d_to_1d(y,x,Y);
+    volume.center.linz = drop_2d_to_1d(yz,xz,size(ssh,1));
 end
 
 
 function [circum,f] = contourLengthIntrp(fopt,x,y)
-
+    
     f.ii = linspace(0,2*pi,numel(x))';
     f.II = linspace(0,2*pi,360)';
     f.x = fit(f.ii,x,'smoothingspline',fopt);
@@ -787,10 +783,10 @@ function [circum,f] = EDDyCircumference(z)
     ilin = z.coor.int.lin;
     x = z.fields.km_x(ilin);
     y = z.fields.km_y(ilin);
-
+    
     [circum,f] = contourLengthIntrp(fopt,x,y);
     circum = circum * 1000;
-
+    
     %     f.ii = linspace(0,2*pi,numel(x))';
     %     f.II = linspace(0,2*pi,360)';    %
     %     f.x = fit(f.ii,x,'smoothingspline',fopt);
@@ -806,7 +802,7 @@ function [circum,f] = EDDyCircumference(z)
     %     end
     %
     %     circum = sum(hypot(diff(feval(f.x,f.II)),diff(feval(f.y,f.II)))) * 1000;
-
+    
     % 	%%
     % 	clf
     % 	figure(1)
@@ -820,109 +816,114 @@ function [circum,f] = EDDyCircumference(z)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mask = EDDyCut_mask(zoom)
-	%% init
-	dummymask = false(size(zoom.fields.ssh));
-	[queryY,queryX] = find(~dummymask);
-	queryLin = drop_2d_to_1d(queryY,queryX,size(dummymask,1));
-	rimIntLin = drop_2d_to_1d(zoom.coor.int.y,zoom.coor.int.x,size(dummymask,1));
-	%% inside
-	querypoints = [queryX,queryY];
-	node = struct2array(zoom.coor.exact);
-	insideLin = queryLin(inpoly(querypoints,node)); % MAIN BOTTLENECK!!!!!
-	mask.inside = dummymask;
-	mask.inside(insideLin) = true;
-	%% on rim
-	mask.rim_only = dummymask;
-	mask.rim_only(rimIntLin) = true;
-	%% full
-	mask.filled = mask.rim_only | mask.inside;
-	%% dims
-	[mask.dim.y, mask.dim.x] = size(dummymask);
+    %% init
+    dummymask = false(size(zoom.fields.ssh));
+    [queryY,queryX] = find(~dummymask);
+    queryLin = drop_2d_to_1d(queryY,queryX,size(dummymask,1));
+    rimIntLin = drop_2d_to_1d(zoom.coor.int.y,zoom.coor.int.x,size(dummymask,1));
+    %% inside
+    querypoints = [queryX,queryY];
+    node = struct2array(zoom.coor.exact);
+    insideLin = queryLin(inpoly(querypoints,node)); % MAIN BOTTLENECK!!!!!
+    mask.inside = dummymask;
+    mask.inside(insideLin) = true;
+    %% on rim
+    mask.rim_only = dummymask;
+    mask.rim_only(rimIntLin) = true;
+    %% full
+    mask.filled = mask.rim_only | mask.inside;
+    %% dims
+    [mask.dim.y, mask.dim.x] = size(dummymask);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function fields_out = EDDyCut_init(fields_in,z)
+function fields_out = EDDyCut_init(win,ssh,z)
     ya = z.limits.y(1);
     yb = z.limits.y(2);
     xa = z.limits.x(1);
     xb = z.limits.x(2);
     %% cut all fields
-    for ff = fieldnames(fields_in)'
-        field = ff{1};
-        fields_out.(field) = fields_in.(field)(ya:yb,xa:xb);
-    end
-    %% TODO do with distance(), looks better
+    cutfield=@(X) X(ya:yb,xa:xb);
+    fields_out.lat = cutfield(win.lat);
+    fields_out.lon = cutfield(win.lon);
+    fields_out.dx  = cutfield(win.dx);
+    fields_out.dy  = cutfield(win.dy);
+    fields_out.ssh = cutfield(ssh.ssh);
+    %     fields_out.ssh = cutfield(ssh.L);
+    %% distances (dont change to cumsum(DX). doesnt work for -180<->180 cases)
     fields_out.km_x = cumsum(mod(diff(fields_out.lon(:,[[1 1:end]]),1,2),360),2);
     fields_out.km_x = fields_out.km_x .* cosd(fields_out.lat);
     fields_out.km_x = deg2km(fields_out.km_x);
     %%
     fields_out.km_y = deg2km(cumsum(diff(fields_out.lat([1 1:end],:),1,1),1));
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [z,passout] = get_window_limits(coor,enlargeFac,map)
-	pass = true(3,1);
-	z.coor = coor;
-	%% output
-	z.limits.x(1) = min(coor.int.x);
-	z.limits.y(1) = min(coor.int.y);
-	z.limits.x(2) = max(coor.int.x);
-	z.limits.y(2) = max(coor.int.y);
-	%%
-	if  exist('enlargeFac','var')
-		try % TODO
-			[z.limits,z.M] = enlarge_window(z.limits,enlargeFac,map.dimPlus) ; % TODO
-		catch
-			[z.limits,z.M] = enlarge_window(z.limits,enlargeFac,map.sizePlus) ;
-		end
-		%%
-		z.dim.x = diff(z.limits.x) + 1;
-		z.dim.y = diff(z.limits.y) + 1;
-		z.coor.int.x = z.coor.int.x - z.limits.x(1) + 1;
-		z.coor.int.y = z.coor.int.y - z.limits.y(1) + 1;
-		z.coor.int.lin = drop_2d_to_1d(z.coor.int.y,z.coor.int.x,z.dim.y)	;
-		z.coor.exact.x = z.coor.exact.x - double(z.limits.x(1)) + 1;
-		z.coor.exact.y = z.coor.exact.y - double(z.limits.y(1)) + 1;
-		%%
-		if strcmp(map.type,'globe') && exist('map','var')
-			%% in global case dismiss eddies touching zonal boundaries (another copy of these eddies exists that is not touching boundaries, due to the zonal appendage in S00b
-			pass(1) = z.limits.x(1) ~= 1;
-			pass(2) = z.limits.x(2) ~= map.dimPlus.x;
-		end
-	end
-	passout = all(pass);
+    pass = true(3,1);
+    z.coor = coor;
+    %% output
+    z.limits.x(1) = min(coor.int.x);
+    z.limits.y(1) = min(coor.int.y);
+    z.limits.x(2) = max(coor.int.x);
+    z.limits.y(2) = max(coor.int.y);
+    %%
+    if  exist('enlargeFac','var')
+        try % TODO
+            [z.limits,z.M] = enlarge_window(z.limits,enlargeFac,map.dimPlus) ; % TODO
+        catch
+            [z.limits,z.M] = enlarge_window(z.limits,enlargeFac,map.sizePlus) ;
+        end
+        %%
+        z.dim.x = diff(z.limits.x) + 1;
+        z.dim.y = diff(z.limits.y) + 1;
+        z.coor.int.x = z.coor.int.x - z.limits.x(1) + 1;
+        z.coor.int.y = z.coor.int.y - z.limits.y(1) + 1;
+        z.coor.int.lin = drop_2d_to_1d(z.coor.int.y,z.coor.int.x,z.dim.y)	;
+        z.coor.exact.x = z.coor.exact.x - double(z.limits.x(1)) + 1;
+        z.coor.exact.y = z.coor.exact.y - double(z.limits.y(1)) + 1;
+        %%
+        if strcmp(map.type,'globe') && exist('map','var')
+            %% in global case dismiss eddies touching zonal boundaries (another copy of these eddies exists that is not touching boundaries, due to the zonal appendage in S00b
+            pass(1) = z.limits.x(1) ~= 1;
+            pass(2) = z.limits.x(2) ~= map.dimPlus.x;
+        end
+    end
+    passout = all(pass);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [inout,M] = enlarge_window(inout,factor,dim)
-
-	half_width = round((diff(inout.x) + 1)*(factor - 1)/2);
-	half_height = round((diff(inout.y) + 1)*(factor - 1)/2);
-	inout.x(1) = max([1 inout.x(1) - half_width]);
-	inout.x(2) = min([dim.x inout.x(2) + half_width]);
-	inout.y(1) = max([1 inout.y(1) - half_height]);
-	inout.y(2) = min([dim.y inout.y(2) + half_height]);
-	[M.x,M.y] = meshgrid(inout.x(1):inout.x(end),inout.y(1):inout.y(end));
-
+    
+    
+    half_width = round((diff(inout.x) + 1)*(factor - 1)/2);
+    half_height = round((diff(inout.y) + 1)*(factor - 1)/2);
+    inout.x(1) = max([1 inout.x(1) - half_width]);
+    inout.x(2) = min([dim.x inout.x(2) + half_width]);
+    inout.y(1) = max([1 inout.y(1) - half_height]);
+    inout.y(2) = min([dim.y inout.y(2) + half_height]);
+    [M.x,M.y] = meshgrid(inout.x(1):inout.x(end),inout.y(1):inout.y(end));
+    
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [EE] = eddies2struct(CC,thresh)
-	if  ~exist('thresh','var')
-		thresh.min=1;
-		thresh.max=inf;
-	end
-	EE=struct;
-	ii = 1;cc = 0;
-	while ii<size(CC,1);
-		len = CC(ii,2);% contourc saves the length of each contour before appending the next
-		if len >= thresh.min && len <= thresh.max
-			cc = cc + 1;
-			EE(cc).level = CC(ii,1);
-			EE(cc).circum.length = len;
-			EE(cc).coor.exact.x = CC(1 + ii:ii + EE(cc).circum.length,1);
-			EE(cc).coor.exact.y = CC(1 + ii:ii + EE(cc).circum.length,2);
-			EE(cc).coor.int.x = int32(EE(cc).coor.exact.x);
-			EE(cc).coor.int.y = int32(EE(cc).coor.exact.y);
-		end
-		ii = ii + len + 1; % jump to next eddy for next iteration
-	end
+    if  ~exist('thresh','var')
+        thresh.min=1;
+        thresh.max=inf;
+    end
+    EE=struct;
+    ii = 1;cc = 0;
+    while ii<size(CC,1);
+        len = CC(ii,2);% contourc saves the length of each contour before appending the next
+        if len >= thresh.min && len <= thresh.max
+            cc = cc + 1;
+            EE(cc).level = CC(ii,1);
+            EE(cc).circum.length = len;
+            EE(cc).coor.exact.x = CC(1 + ii:ii + EE(cc).circum.length,1);
+            EE(cc).coor.exact.y = CC(1 + ii:ii + EE(cc).circum.length,2);
+            EE(cc).coor.int.x = int32(EE(cc).coor.exact.x);
+            EE(cc).coor.int.y = int32(EE(cc).coor.exact.y);
+        end
+        ii = ii + len + 1; % jump to next eddy for next iteration
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [ee] = CleanEddies(ee,cut)
@@ -951,4 +952,5 @@ function  pass = initPass(len)
     pass(len).CR_Shape = 0;
     pass(len).CR_AmpPeak = 0;
     pass(len).CR_radius = 0;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end

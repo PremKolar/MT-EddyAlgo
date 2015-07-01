@@ -29,52 +29,28 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [CUT]=CutMap(file,DD)
     %% get data
-    for kk={'lat','lon','ssh'}
+    for kk={'ssh'}
         keys.(kk{1})=DD.map.in.keys.(kk{1});
     end
+    
     [raw_fields,unreadable]=GetFields(file.in,keys);
     if unreadable.is, CUT.crpt=true; return; end
     %% cut
-    [CUT]=cutSlice(raw_fields,DD.map.window);
+    [CUT.fields]=cutSlice(raw_fields,DD.map.window);
     %% nan out land and make SI
     CUT.fields.ssh=nanLand(CUT.fields.ssh,DD.parameters.ssh_unitFactor);
     %% get distance fields
-    [CUT.fields.dy,CUT.fields.dx]=dydx(CUT.fields.lat,CUT.fields.lon);
+%     [CUT.fields.dy,CUT.fields.dx]=dydx(CUT.fields.lat,CUT.fields.lon);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out=cutSlice(raw,win)
-    cutOut=@(raw,idx) reshape(raw(idx),size(idx));
-    %% cut piece
-    fields=fieldnames(raw);
-    for ff=1:numel(fields); field=fields{ff};
-        out.fields.(field) = cutOut(raw.(field),win.idx);
-    end
-    %% append params
-    out.window = rmfield(win,{'flag','iy','ix','idx'});
-end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out=nanLand(in,fac)
     %% nan and SI
     out=in / fac;
     out(out==0)=nan;
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dy,dx]=dydx(lat,lon)
-    betweenNodesX = @(lalo) (lalo(:,2:end) + lalo(:,1:end-1))/2;
-    betweenNodesY = @(lalo) (lalo(2:end,:) + lalo(1:end-1,:))/2;
-    copyBndryX    = @(X) X(:,[1 1:end end]);
-    copyBndryY    = @(Y) Y([1 1:end end],:);
-    deg2m         = @(degs) deg2km(degs) * 1e3; 
-    %% y
-    dy=deg2m(abs(diff(lat,1,1)));
-    %% x
-    dlon=abs(diff(lon,1,2));
-    dlon(dlon>180) = abs(dlon(dlon>180) - 360);
-    dx=deg2m(dlon) .* cosd(betweenNodesX(lat));
-    %% mean back to nodes
-    dx=copyBndryX(betweenNodesX(dx));    
-    dy=copyBndryY(betweenNodesY(dy));
-end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %=========================================================================%
 function WriteFileOut(file,CUT) %#ok<INUSD>
@@ -89,7 +65,35 @@ function [file,exists]=GetCurrentFile(TT,DD)
     path=DD.path.cuts.name;
     geo=DD.map.in;
     file.out=NSWE2nums(path,DD.pattern.fname,geo,timestr);
-    if exist(file.out,'file'), dispM([file.out ' exists']); exists.out=true; end
+    if exist(file.out,'file')
+        disp([file.out ' exists']);
+        disp(['checking for corruptness']);
+        exists.out = true;
+        try
+            load(file.out,'-mat','fields')
+        catch
+            disp([file.out ' corrupt!']);
+            system(['rm ' file.out]);
+            
+            %% TODO
+            eddy = strrep(file.out,'CUT','EDDIE');
+            try
+                system(['rm ' eddy]);
+            catch nohave
+                disp([nohave.message]) ;
+            end
+            
+            cont = strrep(file.out,'CUT','CONT');
+            try
+                system(['rm ' cont]);
+            catch nohave
+                disp([nohave.message]) ;
+            end
+            %%
+            
+            exists.out = false;
+        end
+    end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

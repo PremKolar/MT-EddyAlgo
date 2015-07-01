@@ -4,7 +4,7 @@
 % Matlab:  7.9
 % Author:  NK
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% needs one 3D salt and temperature file each.
+% needs one 3D salt and temperature file each.open IN
 % integrates over depth to calculate
 % -Brunt Väisälä frequency
 % -Rossby Radius
@@ -13,6 +13,7 @@
 function S01b_fromTS
     %% set up
     [DD]=S01b_ST_set_up;
+     DD.map.window = getfieldload(DD.path.windowFile,'window');
     %% spmd
     main(DD)
     %% make netcdf

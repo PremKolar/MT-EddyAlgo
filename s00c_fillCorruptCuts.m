@@ -42,7 +42,7 @@ function [broke]=getRawFromTshift(DD,tshif)
         file(ff).raw = strrep(DD.map.in.fname, 'yyyymmdd',when.Newstr);
         II(ff).files = [DD.path.raw.name  file(ff).raw ] ;
         II(ff).daynums = when.newNum;
-        warning(['will try to get data for ' when.str ' from ' when.Newstr ' instead!'])
+%         warning(['will try to get data for ' when.str ' from ' when.Newstr ' instead!'])
         %%
         system(['rm ' DD.path.cuts.name  file(ff).corr]);
         try

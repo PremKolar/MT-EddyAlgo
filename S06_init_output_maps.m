@@ -6,8 +6,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function S06_init_output_maps
     %% init
-     DD = initialise([],mfilename);
-%     load DD
+    DD = initialise([],mfilename);
+    DD.map.window = getfieldload(DD.path.windowFile,'window');
+    %     load DD
     %%
     [map] = MakeMaps(DD);
     %%
@@ -23,8 +24,12 @@ end
 function idx = main(DD,out)
     %% get input example lon/lat
     deg2elev = @(lat) deg2rad(wrapTo180(lat));
-    azi      = deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lon'));
-    elev     = deg2elev(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lat'));
+    
+    
+    azi      = reshape(deg2rad(DD.map.window.lon),[],1)';
+    elev     = reshape(deg2elev(DD.map.window.lat),[],1)';
+    %     azi      = deg2rad(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lon'));
+    %     elev     = deg2elev(extractdeepfield(read_fields(DD,1,'cuts'),'fields.lat'));
     [x,y,z]  = sph2cart(azi,elev,1);
     qazi     = deg2rad(out.lon(:));
     qelev    = deg2elev(out.lat(:));
@@ -32,7 +37,7 @@ function idx = main(DD,out)
     inxyz    = [x',y',z'];
     outxyz   = [qx,qy,qz];
     JJ       = thread_distro(DD.threads.num,numel(azi));
-   
+    
     spmd(DD.threads.num)
         idx = dsearchn(outxyz,inxyz(JJ(labindex,1):JJ(labindex,2),:));
         idx = gcat(idx,1,1);

@@ -1,7 +1,7 @@
 function sub09_trackstuff
     load S09main II DD T
     flds = {'age';'lat';'lon';'rad';'vel';'velDP';'amp';'radLe';'radLeff';'radL'};
-    sub09_trackinit(DD);
+%     sub09_trackinit(DD);
     % TRv = getVelFunc(DD);
     %  getLonFunc(DD);
     TR=getTR(DD,flds) ;
@@ -58,9 +58,9 @@ function sub09_trackstuff
     %%
     fn=fnA;
     %%
-    save SaviI
+%     save SaviI
     velZonmeans(S,DD,II,T,fn.vel);
-    velDPZonmeans(S,DD,II,T,fn.velDP);
+%     velDPZonmeans(S,DD,II,T,fn.velDP);
     %     scaleZonmeans(S,DD,II,T,fn.sca);
     %     scattStuff(S,T,DD,II);
     %%
@@ -332,10 +332,19 @@ function h=velZonmeans(S,DD,II,T,fn)
     %     [~,pw]=fileparts(pwd);
     %     save(sprintf('velZonMean-%s.mat',pw),'h','pp','dd');
     %     savefig(DD.path.plots,T.rez,800,800,['S-velZonmean'],'dpdf',DD2info(DD));
+    
+    
+    pop1II = load('../pop1IIC/pop1IIVM')
+    hold on
+    chOverLay(chelt,pop1II.LAuniq,pop1II.vvM,8,0);
+      savefig(DD.path.plots,72,400,300,'pop2Andpop7velZonMean','dpdf',DD2info(DD),12);
+    
+    
+    
     %%
     chelt = imread('/scratch/uni/ifmto/u300065/FINAL/PLOTS/chelt11Ucomp.jpg');
     chelt= chelt(135:3595,415:3790,:);
-    h.ch=chOverLay(chelt,LAuniq,vvM);
+    h.ch=chOverLay(chelt,LAuniq,vvM,5,1);
     savefig(DD.path.plots,72,400,300,fn,'dpdf',DD2info(DD),12);
     cpPdfTotexMT(fn)
     %       figure
@@ -582,7 +591,7 @@ function h=chOverLayScale(chelt,LAuniq,vvM,vvMed)
     h.fig=gcf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function h=chOverLay(chelt,LAuniq,vvM)
+function h=chOverLay(chelt,LAuniq,vvM,prla,backgr)
     [Y,X,Z]=size(chelt);
     ch=reshape(flipud(reshape(chelt,Y,[])),[Y,X,Z]);
     ch=permute(reshape(fliplr(reshape(permute(ch,[3,1,2]),1,[])),[Z,Y,X]),[2,3,1]);
@@ -594,10 +603,12 @@ function h=chOverLay(chelt,LAuniq,vvM)
     x(kill)=nan;
     y(kill)=nan;
     %%
-    clf
+%     clf
+if backgr
     imagesc(linspace(-50,50,X),linspace(-5,20,Y),ch)
+end
     hold on
-    plot(x,y,'linewidth',.8,'color',getParula(5,10));
+    plot(x,y,'linewidth',.8,'color',getParula(prla,10));
     set(gca, 'yticklabel', flipud(get(gca,'yticklabel')));
     axis tight
     grid on

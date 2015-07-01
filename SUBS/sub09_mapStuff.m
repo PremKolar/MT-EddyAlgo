@@ -37,6 +37,38 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
 %         savefig('./',T.rez,T.width,T.height,['MapSigma-' sen],'dpdf');
 %         sleep(1)
         %%
+       
+        clf
+         VV.ac = eurocen(II.maps.AntiCycs.vel.zonal.mean,loMin);
+        VV.c = eurocen(II.maps.Cycs.vel.zonal.mean,loMin);
+        VV.mean = full((VV.c + VV.ac)*100)/2;
+        VV1II = load('../pop1II/pop1IIVVmean.mat')        
+        VVdiff = VV1II.VV.mean - VV.mean;
+          pcolor(lo,la,VVdiff);shading flat;
+          CM = [autumn(100);flipud(winter(100))]
+     colormap(CM)
+        decorate([-20 20 11],T,senAlt,'Zonal velocity','cm/s',0,1);
+        decorate([-10 10 5],T,senAlt,'Zonal velocity','cm/s',0,1);
+            axis([-180 180 -80 90]);
+%         axis([40 65 -50 -25 ]);
+        if ss==2
+            colorbar('hide')
+            set(gca,'yTickLabel','')
+        end
+        
+%        diffcolmap =  get(gcf,'colormap')
+          grid minor;
+%        save diffMapUpopBoth diffcolmap
+     cm = load('diffMapUpopBoth')
+     colormap(cm.diffcolmap)
+   
+%        savefig('./',T.rez,T.width,T.height,['velZonDiffPopMap'],'dpdf');
+       savefig('./',T.rez,400,400,['velZonDiffPopMap'],'dpdf');
+      
+        %%
+        
+        
+        
         
         
        
@@ -62,23 +94,37 @@ function mapsAll(II,DD,T,lo,la,eurocen,loMin)
         savefig('./',T.rez,T.width,T.height,['velZon-' sen],'dpdf');
         sleep(1) 
         
-        %%        
-        close all
-        VV=II.maps.(sen).vel.net.mean*100;
-        VV = eurocen(VV,loMin);
-        pcolor(lo,la,VV);shading flat;
-        cw=jet(20);
-        cm=[0 0 0];
-        ce=(winter(4));
-        colormap([cw;cm;ce(:,[1 3 2])])
-        decorate([-20 5 6],T,senAlt,'Net Zonal velocity','cm/s',0,1);
-%         axis([-180 180 -80 10]);
-        axis([40 65 -50 -25 ]);
+%         %%        
+%         close all
+%         %%
+%         clf
+%         VV=II.maps.(sen).vel.net.mean*100;
+%         VV = eurocen(VV,loMin);
+% %         pcolor(lo,la,VV);shading flat;
+%         contourf(lo,la,VV,20);shading interp
+%         colorbar
+%         caxis([-5 2])
+%        JET = jet(7);
+%        JET([5],:)=[ 0 0 0]
+%         colormap(JET)
+%         %%
+%         cw=jet(10);
+%         cm=[0 0 0];
+%         ce=(parula(5));
+%         colormap([cw;ce(:,[1 3 2])])
+%         %%
+%          colormap([parula(10);[1 0 0];flipud(bone(5))])
+%          colormap([jet(10);flipud(winter(5))])
+%         decorate([-10 5 7],T,senAlt,'Net Zonal velocity','cm/s',0,1);
+        axis([-180 180 -80 80]);
+        set(gcf,'windowstyle','docked')
+%         axis([40 65 -50 -25 ]);
         if ss==2
             colorbar('hide')
             set(gca,'yTickLabel','')
         end
         grid minor;
+        %%
         sleep(1)
         savefig('./',T.rez,T.width,T.height,['velZonNet-' sen],'dpdf');
         sleep(1)

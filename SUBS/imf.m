@@ -4,7 +4,7 @@ function imf(X,a,b)
         b = nanmax(X(:))/2;
     end
     X(isnan(X) | X==0) = -1e42;
-    imagesc(flipud(X));
+    imagesc(flipud(squeeze(X)));
     caxis([a b])
     CM = parula(100);
     CM(1,:) = [1 1 1];

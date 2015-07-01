@@ -1,34 +1,34 @@
-function [DD]=get_input
+function [DD] = get_input
     sprintf(['\n getting user input...']);
     %%
-    DD=evalUserInput;
+    DD = evalUserInput;
     %%
-    DD.time=catstruct(DD.time, timestuff(DD.time));
+    DD.time = catstruct(DD.time, timestuff(DD.time));
     %%
     sprintf(['\n setting internal parameters...']);
-    [DD.pattern, DD.FieldKeys]=DDpatternsAndKeys;
+    [DD.pattern, DD.FieldKeys] = DDpatternsAndKeys;
     %%
     sprintf(['\n scanning data...']);
-    DD.path=catstruct(DD.path,findfiles(DD));
+    DD.path = catstruct(DD.path,findfiles(DD));
     %%
     dispFileStatus(DD.path)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function DD=evalUserInput
-    B=INPUT;
-    A=eval(['INPUT' B.template]);
-    DD=mergeStruct2(A,B);
+function DD = evalUserInput
+    B = INPUT;
+    A = eval(['INPUT' B.template]);
+    DD = mergeStruct2(A,B);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [pattern,FieldKeys]=DDpatternsAndKeys
+function [pattern,FieldKeys] = DDpatternsAndKeys
     %% dir and file formats
-    pattern.fname='CUT_yyyymmdd_SSS-NNN_WWW-EEE.mat';    
-    pattern.prefix.cuts='CUT';
-    pattern.prefix.conts='CONT';
-    pattern.prefix.eddies='EDDIE';
-    pattern.prefix.tracks='TRACK';
+    pattern.fname = 'CUT_yyyymmdd_SSS-NNN_WWW-EEE.mat';
+    pattern.prefix.cuts = 'CUT';
+    pattern.prefix.conts = 'CONT';
+    pattern.prefix.eddies = 'EDDIE';
+    pattern.prefix.tracks = 'TRACK';
     %% fields that must end with .mean and .std - for output plot maps %
-    FieldKeys.MeanStdFields= { ...
+    FieldKeys.MeanStdFields =  { ...
         'age';
         'dist.traj.fromBirth';
         'dist.traj.tillDeath';
@@ -48,7 +48,7 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'iq';
         };
     %% fields 4 colorcoded track plots
-    FieldKeys.trackPlots= { ...
+    FieldKeys.trackPlots =  { ...
         'iq';
         'radius.mean';
         'radius.meridional';
@@ -59,24 +59,24 @@ function [pattern,FieldKeys]=DDpatternsAndKeys
         'age';
         'peak.amp.to_contour';
         'peak.amp.to_mean';
-        'peak.amp.to_ellipse';    
-        'peak.amp.to_ellipse';   
+        'peak.amp.to_ellipse';
+        'peak.amp.to_ellipse';
         };
-    FieldKeys.senses= { ...
+    FieldKeys.senses =  { ...
         'AntiCycs';
         'Cycs';
         };
     %% Rossby
-    FieldKeys.Rossby = { ...
+    FieldKeys.Rossby  =  { ...
         'RossbyPhaseSpeed'   ;
         'RossbyRadius' ;
         };
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function T=timestuff(T)
-    T.from.num=datenum(T.from.str,'yyyymmdd');
-    T.till.num=datenum(T.till.str,'yyyymmdd');
-    T.span=T.till.num-T.from.num+1;
+function T = timestuff(T)
+    T.from.num = datenum(T.from.str,'yyyymmdd');
+    T.till.num = datenum(T.till.str,'yyyymmdd');
+    T.span = T.till.num-T.from.num+1;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function mkDirs(path,senses)
@@ -98,63 +98,57 @@ function mkDirs(path,senses)
     system(['cp ./SUBS/*.m ' path.codesubs]);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function PATH=findfiles(DD)
-    senses=DD.FieldKeys.senses;
-    
-    PATH=DD.path;
-    
-    
-    %% TEMP SOLUTION TODO
-    PATH.root=['../data' PATH.OutDirBaseName(1:end-1) '/'];
-    %% TEMP
-    
-    
-    PATH.plots=['../PLOTS/' PATH.OutDirBaseName '/'];
-    PATH.code=[PATH.root, 'code/'];
-    PATH.codesubs=[PATH.root, 'code/SUBS/'];
-    PATH.cuts.name=[PATH.root, 'CUTS/'];
-    PATH.conts.name=[PATH.root, 'CONTS/'];
-    PATH.eddies.name=[PATH.root,'EDDIES/'];
-    PATH.tracks.name=[PATH.root,'TRACKS/'];
-    PATH.analyzed.name=[PATH.root,'ANALYZED/'];
-    PATH.analyzedTracks.(senses{1}).name=[PATH.analyzed.name,senses{1},'/'];
-    PATH.analyzedTracks.(senses{2}).name=[PATH.analyzed.name,senses{2},'/'];
-    PATH.analyzedTracks.C.name=[PATH.analyzed.name,'Cyclones/'];
-    PATH.Rossby.name=[PATH.root,'ROSSBY/'];
-    PATH.Rossby.Nfile=[PATH.Rossby.name,'N.cdf'];
+function PATH = findfiles(DD)
+    senses = DD.FieldKeys.senses;
+    %%
+    PATH = DD.path;
+    PATH.root = ['../data' PATH.OutDirBaseName '/'];
+    PATH.plots = ['../PLOTS/' PATH.OutDirBaseName '/'];
+    PATH.code = [PATH.root, 'code/'];
+    PATH.codesubs = [PATH.root, 'code/SUBS/'];
+    PATH.cuts.name = [PATH.root, 'CUTS/'];
+    PATH.conts.name = [PATH.root, 'CONTS/'];
+    PATH.eddies.name = [PATH.root,'EDDIES/'];
+    PATH.tracks.name = [PATH.root,'TRACKS/'];
+    PATH.analyzed.name = [PATH.root,'ANALYZED/'];
+    PATH.analyzedTracks.(senses{1}).name = [PATH.analyzed.name,senses{1},'/'];
+    PATH.analyzedTracks.(senses{2}).name = [PATH.analyzed.name,senses{2},'/'];
+    PATH.analyzedTracks.C.name = [PATH.analyzed.name,'Cyclones/'];
+    PATH.Rossby.name = [PATH.root,'ROSSBY/'];
+    PATH.Rossby.Nfile = [PATH.Rossby.name,'N.cdf'];
     %%
     mkDirs(PATH,senses)
     %%
-    [~,~,ext.raw]=fileparts(DD.map.in.fname);
-    patt=strsplit(DD.map.in.fname,'yyyymmdd');
-    PATH.raw.files=dir([PATH.raw.name,patt{1},'*']);
-    PATH.protoMaps.file=[PATH.root, 'protoMaps.mat'];
-    PATH.meanU.file=[PATH.root, 'meanU.mat'];
-    PATH.UV.files=dir([PATH.UV.name,'*.nc']);
-    PATH.cuts.files=dir([PATH.cuts.name,'*.mat']);
-    PATH.conts.files=dir([PATH.conts.name,'*.mat']);
-    PATH.eddies.files=dir([PATH.eddies.name,'*.mat']);
-    PATH.tracks.files=dir([PATH.tracks.name,'*.mat']);
-    PATH.analyzed.files=dir([PATH.analyzed.name,'*.mat']);
-    PATH.analyzedTracks.(senses{1}).files=dir([PATH.analyzedTracks.(senses{1}).name,'*.mat']);
-    PATH.analyzedTracks.(senses{2}).files=dir([PATH.analyzedTracks.(senses{2}).name,'*.mat']);
-    PATH.Rossby.files=[dir([PATH.Rossby.name,'*.nc']); dir([PATH.Rossby.name,'*.mat'])];
+    [~,~,ext.raw] = fileparts(DD.map.in.fname);
+    patt = strsplit(DD.map.in.fname,'yyyymmdd');
+    PATH.raw.files = dir([PATH.raw.name,patt{1},'*']);
+    PATH.protoMaps.file = [PATH.root, 'protoMaps.mat'];
+    PATH.meanU.file = [PATH.root, 'meanU.mat'];
+    PATH.UV.files = dir([PATH.UV.name,'*.nc']);
+    PATH.cuts.files = dir([PATH.cuts.name,'*.mat']);
+    PATH.conts.files = dir([PATH.conts.name,'*.mat']);
+    PATH.eddies.files = dir([PATH.eddies.name,'*.mat']);
+    PATH.tracks.files = dir([PATH.tracks.name,'*.mat']);
+    PATH.analyzed.files = dir([PATH.analyzed.name,'*.mat']);
+    PATH.analyzedTracks.(senses{1}).files = dir([PATH.analyzedTracks.(senses{1}).name,'*.mat']);
+    PATH.analyzedTracks.(senses{2}).files = dir([PATH.analyzedTracks.(senses{2}).name,'*.mat']);
+    PATH.Rossby.files = [dir([PATH.Rossby.name,'*.nc']); dir([PATH.Rossby.name,'*.mat'])];
     %%
-    PATH.TempSalt.files=tempsalt(DD);
-    PATH.windowFile=[PATH.root 'window.mat'];
+    PATH.TempSalt.files = tempsalt(DD);
+    PATH.windowFile = [PATH.root 'window.mat'];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function files=tempsalt(DD)
+function files = tempsalt(DD)
     try
-        files=dir([DD.path.TempSalt.name,'*.nc']);
+        files = dir([DD.path.TempSalt.name,'*.nc']);
     catch  %#ok<CTCH>
         disp('found no Salt/Temp data. Skipping Rossby calcs..')
     end
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function dispFileStatus(p)
-    FN=fieldnames(p)';
-    for ii=1:numel(FN);fn=FN{ii};
+    FN = fieldnames(p)';
+    for ii = 1:numel(FN);fn = FN{ii};
         if isfield(p.(fn),'files') && isfield(p.(fn),'name')
             disp(['found ' num2str(numel(p.(fn).files)) ' files in ' p.(fn).name]);
         end

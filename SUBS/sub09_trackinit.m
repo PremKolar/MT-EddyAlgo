@@ -9,7 +9,9 @@ function sub09_trackinit(DD)
     senses.t=fieldnames(DD.path.analyzedTracks)';
     senses.s=DD.FieldKeys.senses;
     %%
+       DD.map.window = getfieldload(DD.path.windowFile,'window');
     meanU = load(DD.path.meanU.file);
+      meanU.means.zonal = meanU.means.zonal(DD.map.window.idx);
     %%
     for ss=1:2
         [sense,root,eds,toLoad]=inits(DD,senses,ss);
